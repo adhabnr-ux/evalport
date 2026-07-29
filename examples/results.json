@@ -1,0 +1,50 @@
+{
+  "$schema": "https://openeval.org/schema/resultset.json",
+  "version": "1.0.0",
+  "suite_id": "suite_qa_basic",
+  "run_id": "run_001",
+  "started_at": "2026-01-15T10:00:00Z",
+  "completed_at": "2026-01-15T10:00:05Z",
+  "runner": {
+    "name": "openeval-cli",
+    "version": "1.0.0"
+  },
+  "results": [
+    {
+      "test_case_id": "tc_1",
+      "actual_output": "4",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": 1,
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "duration_ms": 450
+    },
+    {
+      "test_case_id": "tc_2",
+      "actual_output": "100 degrees C",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": 0,
+          "passed": false,
+          "reason": "Expected 100"
+        }
+      ],
+      "passed": false,
+      "duration_ms": 520
+    }
+  ],
+  "summary": {
+    "total": 2,
+    "passed": 1,
+    "failed": 1,
+    "pass_rate": 0.5,
+    "avg_score": 0.5
+  }
+}

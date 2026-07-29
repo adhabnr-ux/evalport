@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openeval.org/schema/suite.json",
+  "title": "OpenEval EvalSuite",
+  "description": "A named collection of test cases and shared grader definitions.",
+  "type": "object",
+  "required": ["version", "id", "test_cases"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": {
+      "type": "string",
+      "description": "OpenEval specification version (semver).",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-draft)?$"
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the suite.",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable suite name."
+    },
+    "description": {
+      "type": "string",
+      "description": "Longer description of the suite's purpose."
+    },
+    "graders": {
+      "type": "array",
+      "description": "Shared grader definitions referenced by test cases.",
+      "items": { "$ref": "https://openeval.org/schema/grader.json" }
+    },
+    "test_cases": {
+      "type": "array",
+      "description": "One or more test cases.",
+      "minItems": 1,
+      "items": { "$ref": "https://openeval.org/schema/testcase.json" }
+    },
+    "test_cases_file": {
+      "type": "string",
+      "description": "Path to a JSONL file containing test cases (alternative to inline test_cases)."
+    },
+    "config": {
+      "type": "object",
+      "description": "Suite-level configuration.",
+      "properties": {
+        "provider": {
+          "type": "object",
+          "description": "Default provider and model settings.",
+          "properties": {
+            "model": { "type": "string" },
+            "api_base": { "type": "string" },
+            "api_key_env": { "type": "string" },
+            "temperature": { "type": "number" },
+            "max_tokens": { "type": "integer", "minimum": 1 },
+            "extra": { "type": "object", "additionalProperties": true }
+          },
+          "additionalProperties": false
+        },
+        "defaults": {
+          "type": "object",
+          "description": "Default values for optional test case fields.",
+          "properties": {
+            "timeout_ms": { "type": "integer", "minimum": 1 },
+            "weight": { "type": "number", "minimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "parallel": {
+          "type": "integer",
+          "description": "Number of test cases to run in parallel.",
+          "minimum": 1
+        },
+        "retry": {
+          "type": "object",
+          "properties": {
+            "max_attempts": { "type": "integer", "minimum": 1, "default": 3 },
+            "backoff_ms": { "type": "integer", "minimum": 100, "default": 1000 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Free-form metadata. Keys with 'openeval.' prefix are reserved.",
+      "additionalProperties": true
+    },
+    "tags": {
+      "type": "array",
+      "description": "Suite-level tags.",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false,
+  "oneOf": [
+    { "required": ["test_cases"] },
+    { "required": ["test_cases_file"] }
+  ]
+}

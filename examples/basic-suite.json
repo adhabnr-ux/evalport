@@ -1,0 +1,39 @@
+{
+  "$schema": "https://openeval.org/schema/suite.json",
+  "version": "1.0.0",
+  "id": "suite_qa_basic",
+  "name": "Basic Q&A",
+  "graders": [
+    {
+      "id": "gr_exact",
+      "type": "exact_match",
+      "params": {
+        "ignore_case": true
+      }
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "tc_1",
+      "input": "What is 2+2?",
+      "expected_output": "4",
+      "graders": [
+        "gr_exact"
+      ]
+    },
+    {
+      "id": "tc_2",
+      "input": "Boiling point of water?",
+      "expected_output": "100",
+      "graders": [
+        "gr_exact"
+      ]
+    }
+  ],
+  "config": {
+    "provider": {
+      "model": "gpt-4o",
+      "temperature": 0
+    }
+  }
+}

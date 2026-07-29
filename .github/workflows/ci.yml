@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types: [published]
+
+jobs:
+  validate-schemas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate JSON Schemas
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          const schemas = ['suite', 'testcase', 'grader', 'resultset'];
+          for (const s of schemas) {
+            const f = path.join('spec', 'schemas', s + '.json');
+            const schema = JSON.parse(fs.readFileSync(f, 'utf8'));
+            console.log('✓ ' + s + '.json is valid JSON with ' + Object.keys(schema.properties || {}).length + ' properties');
+          }
+          "
+
+  typescript-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        working-directory: sdk/typescript
+        run: npm install
+      - name: Run tests
+        working-directory: sdk/typescript
+        run: npm test
+
+  python-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.11', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install package
+        working-directory: sdk/python
+        run: pip install -e .
+      - name: Run tests
+        working-directory: sdk/python
+        run: python -m pytest tests/ -v
+
+  publish-npm:
+    needs: [validate-schemas, typescript-tests]
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+      - name: Publish
+        working-directory: sdk/typescript
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-pypi:
+    needs: [validate-schemas, python-tests]
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build and publish
+        working-directory: sdk/python
+        run: |
+          pip install build twine
+          python -m build
+          twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}

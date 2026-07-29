@@ -1,0 +1,11 @@
+{
+  "test_cases": [
+    {
+      "input": "What is K8s?",
+      "expected_output": "Container platform",
+      "metrics": [
+        "faithfulness"
+      ]
+    }
+  ]
+}

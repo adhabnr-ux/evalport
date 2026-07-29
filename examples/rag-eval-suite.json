@@ -1,0 +1,46 @@
+{
+  "$schema": "https://openeval.org/schema/suite.json",
+  "version": "1.0.0",
+  "id": "suite_rag_001",
+  "name": "RAG Eval",
+  "metadata": {
+    "openeval.profile": "rag"
+  },
+  "graders": [
+    {
+      "id": "gr_faith",
+      "type": "llm_judge",
+      "params": {
+        "model": "gpt-4o",
+        "prompt": "Context: {context} Output: {output} Faithful?"
+      }
+    },
+    {
+      "id": "gr_rel",
+      "type": "semantic_similarity",
+      "params": {
+        "threshold": 0.75
+      }
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "tc_001",
+      "input": "What is Kubernetes?",
+      "expected_output": "Container orchestration platform",
+      "context": [
+        "K8s orchestrates containers"
+      ],
+      "graders": [
+        "gr_faith",
+        "gr_rel"
+      ]
+    }
+  ],
+  "config": {
+    "provider": {
+      "model": "gpt-4o",
+      "temperature": 0
+    }
+  }
+}

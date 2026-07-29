@@ -1,0 +1,44 @@
+{
+  "$schema": "https://openeval.org/schema/suite.json",
+  "version": "1.0.0",
+  "id": "suite_multi_turn",
+  "name": "Multi-Turn Conversation Evaluation",
+  "description": "Evaluates conversational coherence across multiple turns",
+  "metadata": {"openeval.profile": "conversation"},
+  "graders": [
+    {
+      "id": "gr_coherence",
+      "type": "llm_judge",
+      "description": "Checks if the conversation is coherent and contextually relevant",
+      "params": {
+        "model": "gpt-4o",
+        "prompt": "Given this conversation:\n{input}\n\nEvaluate if the response {output} is coherent with the conversation history. Return JSON: {\"score\": 0.0-1.0, \"reason\": \"...\"}",
+        "schema": {"type": "object", "properties": {"score": {"type": "number"}, "reason": {"type": "string"}}, "required": ["score", "reason"]}
+      }
+    },
+    {
+      "id": "gr_relevance",
+      "type": "semantic_similarity",
+      "params": {"model": "text-embedding-3-small", "threshold": 0.7}
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "tc_001",
+      "input": ["What is Python?", "Can you show me a hello world example?", "How do I run it?"],
+      "expected_output": "Save the code in a file with .py extension and run it with python filename.py",
+      "graders": ["gr_coherence", "gr_relevance"],
+      "metadata": {"turns": 3, "topic": "programming"}
+    },
+    {
+      "id": "tc_002",
+      "input": ["I'm planning a trip to Japan.", "What about food recommendations?", "Any dietary restrictions I should know?"],
+      "expected_output": "Japan is generally accommodating of dietary restrictions. Inform restaurant staff about allergies in Japanese.",
+      "graders": ["gr_coherence", "gr_relevance"],
+      "metadata": {"turns": 3, "topic": "travel"}
+    }
+  ],
+  "config": {
+    "provider": {"model": "gpt-4o", "temperature": 0.0}
+  }
+}

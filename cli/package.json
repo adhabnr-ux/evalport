@@ -1,0 +1,12 @@
+{
+  "name": "@openeval/cli",
+  "version": "1.0.0",
+  "description": "OpenEval CLI",
+  "bin": {
+    "openeval": "src/index.ts"
+  },
+  "scripts": {
+    "start": "npx tsx src/index.ts"
+  },
+  "license": "Apache-2.0"
+}
