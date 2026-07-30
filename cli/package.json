@@ -1,5 +1,5 @@
 {
-  "name": "@openeval/cli",
+  "name": "openeval-cli",
   "version": "1.0.0",
   "description": "OpenEval CLI",
   "bin": {

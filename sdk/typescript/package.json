@@ -1,5 +1,5 @@
 {
-  "name": "@openeval/sdk",
+  "name": "openeval-sdk",
   "version": "1.0.0",
   "description": "TypeScript SDK for OpenEval",
   "main": "src/index.ts",
