@@ -53,9 +53,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install package
+      - name: Install package and test deps
         working-directory: sdk/python
-        run: pip install -e .
+        run: pip install -e . pytest
       - name: Run tests
         working-directory: sdk/python
         run: python -m pytest tests/ -v
