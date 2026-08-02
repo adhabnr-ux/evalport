@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://openeval.org/schema/resultset.json",
-  "title": "OpenEval ResultSet",
+  "$id": "https://evalport.org/schema/resultset.json",
+  "title": "EvalPort ResultSet",
   "description": "The output of running an eval suite — results and summary statistics.",
   "type": "object",
   "required": ["version", "suite_id", "run_id", "started_at", "results"],
@@ -9,7 +9,7 @@
     "$schema": { "type": "string" },
     "version": {
       "type": "string",
-      "description": "OpenEval specification version.",
+      "description": "EvalPort specification version.",
       "pattern": "^\\d+\\.\\d+\\.\\d+(-draft)?$"
     },
     "suite_id": {

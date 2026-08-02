@@ -1,12 +1,12 @@
-# Migrating from DeepEval to OpenEval
+# Migrating from DeepEval to EvalPort
 
 ## Overview
 
-DeepEval uses Python classes (`LLMTestCase`, metric objects) for evaluation. OpenEval is a JSON-based portable format. This guide helps you convert DeepEval test cases to OpenEval suites.
+DeepEval uses Python classes (`LLMTestCase`, metric objects) for evaluation. EvalPort is a JSON-based portable format. This guide helps you convert DeepEval test cases to EvalPort suites.
 
 ## Field Mapping
 
-| DeepEval | OpenEval |
+| DeepEval | EvalPort |
 |----------|----------|
 | `LLMTestCase.input` | `TestCase.input` |
 | `LLMTestCase.actual_output` | (not in suite; appears in ResultSet) |
@@ -50,7 +50,7 @@ json.dump(suite, open("output.json", "w"), indent=2)
 }
 ```
 
-### After (OpenEval)
+### After (EvalPort)
 
 ```json
 {
@@ -67,9 +67,9 @@ json.dump(suite, open("output.json", "w"), indent=2)
 }
 ```
 
-## DeepEval Metric → OpenEval Grader Mapping
+## DeepEval Metric → EvalPort Grader Mapping
 
-| DeepEval Metric | OpenEval Grader Type | Notes |
+| DeepEval Metric | EvalPort Grader Type | Notes |
 |----------------|---------------------|-------|
 | `FaithfulnessMetric` | `llm_judge` | Prompt checks if output is faithful to context |
 | `AnswerRelevancyMetric` | `semantic_similarity` | Threshold from metric params |

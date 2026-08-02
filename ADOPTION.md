@@ -1,8 +1,8 @@
-# OpenEval — Adoption Strategy
+# EvalPort — Adoption Strategy
 
 ## Executive Summary
 
-OpenEval adoption follows a three-phase strategy: **Build credibility** (reference implementation + early adopters), **Create gravity** (framework integrations + community), and **Standardize** (standards body submission). The goal is to reach the point where an eval framework that doesn't support OpenEval import/export is considered broken.
+EvalPort adoption follows a three-phase strategy: **Build credibility** (reference implementation + early adopters), **Create gravity** (framework integrations + community), and **Standardize** (standards body submission). The goal is to reach the point where an eval framework that doesn't support EvalPort import/export is considered broken.
 
 ---
 
@@ -11,40 +11,40 @@ OpenEval adoption follows a three-phase strategy: **Build credibility** (referen
 ### 1.1 Launch
 
 - Publish the spec, JSON Schemas, TypeScript SDK, Python SDK, and CLI to GitHub
-- Publish `@openeval/sdk` to npm and `openeval` to PyPI
+- Publish `@evalport/sdk` to npm and `openeval` to PyPI
 - Write a launch blog post: "Why LLM Evaluation Needs a Standard Format"
 - Post on Hacker News, r/LocalLLaMA, r/MachineLearning, AI Twitter
-- Create a simple landing page at openeval.org
+- Create a simple landing page at evalport.org
 
 ### 1.2 First 20 GitHub Repositories to Target
 
-| # | Repository | Why OpenEval Benefits Them | Maintainer/Champion | Priority |
+| # | Repository | Why EvalPort Benefits Them | Maintainer/Champion | Priority |
 |---|-----------|---------------------------|---------------------|----------|
 | 1 | **promptfoo/promptfoo** | Import/export standard format; users can bring eval suites from other tools | Michael D'Amour (@tychedjs) | High |
 | 2 | **confident-ai/deepeval** | Portability for DeepEval datasets; users can export to other runners | Jeffrey Ip (@jeffreyip) | High |
 | 3 | **UKGovernmentBEIS/inspect_ai** | UK AISI's eval framework; standard format enables benchmark sharing | AISI team | High |
 | 4 | **langchain-ai/langsmith-sdk** | LangSmith dataset import/export; cross-tool eval compatibility | LangChain team | High |
-| 5 | **braintrustdata/braintrust-sdk** | Braintrust already has a generic eval format; OpenEval alignment reduces friction | Anand Kannan | Medium |
+| 5 | **braintrustdata/braintrust-sdk** | Braintrust already has a generic eval format; EvalPort alignment reduces friction | Anand Kannan | Medium |
 | 6 | **explodinggradients/ragas** | RAG eval standardization; users can use RAG-specific graders across tools | Shahul ES | Medium |
-| 7 | **openai/evals** | OpenAI Evals format is widely used; OpenEval provides an upgrade path with provider-agnosticism | OpenAI evals team | Medium |
-| 8 | **mlflow/mlflow** | MLflow eval tracking; OpenEval as a portable eval format for the MLOps ecosystem | MLflow maintainers | Medium |
-| 9 | **Arize-ai/openinference** | Arize's OpenInference traces + OpenEval results = complete observability | Arize team | Medium |
+| 7 | **openai/evals** | OpenAI Evals format is widely used; EvalPort provides an upgrade path with provider-agnosticism | OpenAI evals team | Medium |
+| 8 | **mlflow/mlflow** | MLflow eval tracking; EvalPort as a portable eval format for the MLOps ecosystem | MLflow maintainers | Medium |
+| 9 | **Arize-ai/openinference** | Arize's OpenInference traces + EvalPort results = complete observability | Arize team | Medium |
 | 10 | **microsoft/evaluator** | Microsoft's eval framework; enterprise users need portability | Microsoft AI team | Low |
 | 11 | **patronus-ai/financebench** | Financial eval benchmarks need a portable format to be reusable | Patronus AI | Medium |
 | 12 | **HazyResearch/llm-eval-harness** | Stanford eval harness; academic benchmarks need standard format | Hazy Research | Low |
-| 13 | **lighteval** (HuggingFace) | HF's eval framework; OpenEval alignment enables dataset sharing on HF Hub | HuggingFace team | Medium |
+| 13 | **lighteval** (HuggingFace) | HF's eval framework; EvalPort alignment enables dataset sharing on HF Hub | HuggingFace team | Medium |
 | 14 | **EleutherAI/lm-evaluation-harness** | Most-used open LLM benchmark harness; portable results = comparable benchmarks | EleutherAI | High |
 | 15 | **nlmatics/llm-eval** | Community eval tool; standard format lowers barrier to entry | Community | Low |
-| 16 | **microsoft/autogen** | Agent eval; OpenEval's agent profile supports tool-call verification | AutoGen team | Low |
-| 17 | **langchain-ai/langgraph** | LangGraph agent eval; OpenEval suite format for graph-based agents | LangChain | Low |
+| 16 | **microsoft/autogen** | Agent eval; EvalPort's agent profile supports tool-call verification | AutoGen team | Low |
+| 17 | **langchain-ai/langgraph** | LangGraph agent eval; EvalPort suite format for graph-based agents | LangChain | Low |
 | 18 | **crewaiinc/crewai** | CrewAI agent eval; expected_tools field for multi-agent verification | CrewAI team | Low |
-| 19 | **open-telemetry/semantic-conventions-genai** | Complementary: OTel for traces, OpenEval for eval data; cross-reference | OTel GenAI WG | Medium |
-| 20 | **modelcontextprotocol** | MCP defines tools; OpenEval evaluates agents that use them; reference MCP tools in expected_tools | MCP team | Low |
+| 19 | **open-telemetry/semantic-conventions-genai** | Complementary: OTel for traces, EvalPort for eval data; cross-reference | OTel GenAI WG | Medium |
+| 20 | **modelcontextprotocol** | MCP defines tools; EvalPort evaluates agents that use them; reference MCP tools in expected_tools | MCP team | Low |
 
 ### 1.3 Outreach Strategy
 
 For each repository:
-1. **File an issue** proposing OpenEval import/export support, linking to the spec and SDK
+1. **File an issue** proposing EvalPort import/export support, linking to the spec and SDK
 2. **Offer a PR** implementing the conversion (using the reference SDK)
 3. **Engage in discussions** about format design, incorporating feedback into the spec
 
@@ -74,20 +74,20 @@ For each repository:
 
 ### 2.1 Framework Integrations
 
-Target: At least 3 major frameworks ship native OpenEval import/export.
+Target: At least 3 major frameworks ship native EvalPort import/export.
 
 **Integration model:** Each framework adds two functions:
 - `import_openeval_suite(path) -> FrameworkTestSuite`
-- `export_openeval_suite(suite) -> OpenEvalSuite`
+- `export_openeval_suite(suite) -> EvalPortSuite`
 
 Plus optionally:
 - `export_openeval_results(results) -> ResultSet`
 
 ### 2.2 Benchmark Registry
 
-Create a public registry of OpenEval-format benchmark datasets at openeval.org/benchmarks. Each benchmark:
+Create a public registry of EvalPort-format benchmark datasets at evalport.org/benchmarks. Each benchmark:
 - Has a stable ID and version
-- Is published as an OpenEval suite (JSON)
+- Is published as an EvalPort suite (JSON)
 - Includes reference results from 2+ models
 - Is citable in papers
 
@@ -95,12 +95,12 @@ This creates the "ImageNet for LLM eval" dynamic — a shared benchmark that wor
 
 ### 2.3 Blog Strategy
 
-1. **Launch post:** "OpenEval: A Standard Format for LLM Evaluation"
-2. **Technical deep dive:** "How OpenEval's Grader Type System Works"
-3. **Migration guide:** "Converting DeepEval Suites to OpenEval (and Back)"
-4. **Case study:** "Running the Same Eval Suite in 5 Frameworks with OpenEval"
-5. **Comparison:** "OpenEval vs. Every Eval Ever vs. OpenAI Evals: What's Different"
-6. **Community post:** "How to Publish a Benchmark in OpenEval Format"
+1. **Launch post:** "EvalPort: A Standard Format for LLM Evaluation"
+2. **Technical deep dive:** "How EvalPort's Grader Type System Works"
+3. **Migration guide:** "Converting DeepEval Suites to EvalPort (and Back)"
+4. **Case study:** "Running the Same Eval Suite in 5 Frameworks with EvalPort"
+5. **Comparison:** "EvalPort vs. Every Eval Ever vs. OpenAI Evals: What's Different"
+6. **Community post:** "How to Publish a Benchmark in EvalPort Format"
 
 ### 2.4 Documentation and Tutorials
 
@@ -108,7 +108,7 @@ This creates the "ImageNet for LLM eval" dynamic — a shared benchmark that wor
 - Framework-specific integration guides (DeepEval, Promptfoo, Inspect, LangSmith)
 - Grader type reference with examples
 - Video tutorial: "From zero to portable evals in 10 minutes"
-- Interactive playground at openeval.org/playground
+- Interactive playground at evalport.org/playground
 
 ### 2.5 GitHub Strategy
 
@@ -124,17 +124,17 @@ This creates the "ImageNet for LLM eval" dynamic — a shared benchmark that wor
 
 ### 3.1 Linux Foundation AI & Data
 
-Submit OpenEval to LFAI & Data as an incubating project. This provides:
+Submit EvalPort to LFAI & Data as an incubating project. This provides:
 - Governance structure
 - Neutral IP ownership
 - Industry credibility
 - Ecosystem connections
 
-**Precedent:** MCP was donated to Linux Foundation by Anthropic (Dec 2025). A2A was donated by Google. OpenEval follows the same path.
+**Precedent:** MCP was donated to Linux Foundation by Anthropic (Dec 2025). A2A was donated by Google. EvalPort follows the same path.
 
 ### 3.2 Working Group
 
-Form an OpenEval Working Group with representatives from:
+Form an EvalPort Working Group with representatives from:
 - At least 3 eval framework maintainers
 - At least 1 standards body member (OTel GenAI WG, W3C, IETF)
 - At least 1 enterprise user
@@ -157,15 +157,15 @@ Once adoption is proven (3+ frameworks, 1000+ datasets), submit as:
 
 ## Likely Champions
 
-| Person/Org | Why They'd Champion OpenEval |
+| Person/Org | Why They'd Champion EvalPort |
 |-----------|----------------------------|
-| **Jeffrey Ip (DeepEval)** | DeepEval users frequently ask for export; OpenEval unblocks them |
-| **Michael D'Amour (Promptfoo)** | Promptfoo already supports many formats; OpenEval is a natural addition |
-| **UK AISI (Inspect AI)** | Government eval standards align with OpenEval's reproducibility goals |
-| **LangChain team** | LangSmith datasets are already JSON; OpenEval makes them portable |
+| **Jeffrey Ip (DeepEval)** | DeepEval users frequently ask for export; EvalPort unblocks them |
+| **Michael D'Amour (Promptfoo)** | Promptfoo already supports many formats; EvalPort is a natural addition |
+| **UK AISI (Inspect AI)** | Government eval standards align with EvalPort's reproducibility goals |
+| **LangChain team** | LangSmith datasets are already JSON; EvalPort makes them portable |
 | **EleutherAI** | lm-eval-harness results need a standard format for cross-model comparison |
-| **Arize** | OpenInference + OpenEval = complete observability stack |
-| **HuggingFace** | HF Hub could host OpenEval benchmark datasets natively |
+| **Arize** | OpenInference + EvalPort = complete observability stack |
+| **HuggingFace** | HF Hub could host EvalPort benchmark datasets natively |
 
 ---
 
@@ -173,8 +173,8 @@ Once adoption is proven (3+ frameworks, 1000+ datasets), submit as:
 
 | Risk | Mitigation |
 |------|-----------|
-| Frameworks refuse to adopt (NIH syndrome) | Lead with converters, not governance. Make it easier to add OpenEval than to build their own format. |
-| OpenAI/Anthropic push their own format | Position OpenEval as provider-agnostic. Their formats can map to OpenEval via converters. |
+| Frameworks refuse to adopt (NIH syndrome) | Lead with converters, not governance. Make it easier to add EvalPort than to build their own format. |
+| OpenAI/Anthropic push their own format | Position EvalPort as provider-agnostic. Their formats can map to EvalPort via converters. |
 | Spec is too complex | Keep v1 minimal. Only add grader types that 2+ frameworks implement. |
 | Spec is too simple (doesn't cover edge cases) | Extension mechanism + custom grader type handle edge cases without bloating the core spec. |
 | No one adopts | Target the pain point directly: "you can't share eval datasets" is a complaint every practitioner has. |

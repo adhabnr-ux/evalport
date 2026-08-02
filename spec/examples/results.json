@@ -1,12 +1,12 @@
 {
-  "$schema": "https://openeval.org/schema/resultset.json",
+  "$schema": "https://evalport.org/schema/resultset.json",
   "version": "1.0.0",
   "suite_id": "suite_qa_basic",
   "run_id": "run_001",
   "started_at": "2026-01-15T10:00:00Z",
   "completed_at": "2026-01-15T10:00:05Z",
   "runner": {
-    "name": "openeval-cli",
+    "name": "evalport-cli",
     "version": "1.0.0"
   },
   "results": [

@@ -1,12 +1,12 @@
-# Migrating from Promptfoo to OpenEval
+# Migrating from Promptfoo to EvalPort
 
 ## Overview
 
-Promptfoo and OpenEval serve different purposes: Promptfoo is a full eval runner, OpenEval is a portable data format. This guide helps you convert Promptfoo configs to OpenEval suites.
+Promptfoo and EvalPort serve different purposes: Promptfoo is a full eval runner, EvalPort is a portable data format. This guide helps you convert Promptfoo configs to EvalPort suites.
 
 ## Field Mapping
 
-| Promptfoo | OpenEval |
+| Promptfoo | EvalPort |
 |-----------|----------|
 | `vars.query` / `vars.prompt` | `TestCase.input` |
 | `vars.expected` | `TestCase.expected_output` |
@@ -40,7 +40,7 @@ json.dump(suite, open("output.json", "w"), indent=2)
 ### TypeScript
 
 ```typescript
-import { fromPromptfoo } from "@openeval/sdk";
+import { fromPromptfoo } from "@evalport/sdk";
 import * as fs from "fs";
 
 const pf = JSON.parse(fs.readFileSync("promptfoo-config.json", "utf-8"));
@@ -62,7 +62,7 @@ fs.writeFileSync("output.json", JSON.stringify(suite, null, 2));
 }
 ```
 
-### After (OpenEval)
+### After (EvalPort)
 
 ```json
 {

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://openeval.org/schema/suite.json",
+  "$schema": "https://evalport.org/schema/suite.json",
   "version": "1.0.0",
   "id": "suite_agent_tools",
   "name": "Agent Tool Selection Evaluation",

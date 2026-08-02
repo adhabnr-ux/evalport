@@ -1,4 +1,4 @@
-"""OpenAI Evals to OpenEval converter."""
+"""OpenAI Evals to EvalPort converter."""
 from __future__ import annotations
 from typing import Dict, List
 from .types import OPENEVAL_VERSION

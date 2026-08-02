@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://openeval.org/schema/grader.json",
-  "title": "OpenEval Grader",
+  "$id": "https://evalport.org/schema/grader.json",
+  "title": "EvalPort Grader",
   "description": "A scoring criterion that evaluates a test case's actual output.",
   "type": "object",
   "required": ["id", "type"],

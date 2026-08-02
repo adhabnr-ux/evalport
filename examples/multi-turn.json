@@ -1,5 +1,5 @@
 {
-  "$schema": "https://openeval.org/schema/suite.json",
+  "$schema": "https://evalport.org/schema/suite.json",
   "version": "1.0.0",
   "id": "suite_multi_turn",
   "name": "Multi-Turn Conversation Evaluation",

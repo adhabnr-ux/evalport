@@ -1,4 +1,4 @@
-# OpenEval: Why LLM Evaluation Needs a Standard Format
+# EvalPort: Why LLM Evaluation Needs a Standard Format
 
 *Published July 2026*
 
@@ -16,7 +16,7 @@ This isn't a minor inconvenience. It's a structural problem that's holding back 
 
 ## The Solution
 
-**OpenEval** is an open, language-agnostic specification for representing LLM evaluation test cases, scoring criteria (graders), evaluation suites, and result sets.
+**EvalPort** is an open, language-agnostic specification for representing LLM evaluation test cases, scoring criteria (graders), evaluation suites, and result sets.
 
 It defines four standard document types:
 
@@ -36,7 +36,7 @@ The LLM eval ecosystem has matured to the point where fragmentation is actively 
 - **OpenTelemetry GenAI** is standardizing traces — eval data is the missing piece
 - **Enterprise adoption** requires reproducibility and cross-tool comparison
 
-The ecosystem is ready for a standard. OpenEval fills the gap.
+The ecosystem is ready for a standard. EvalPort fills the gap.
 
 ## What's Included
 
@@ -44,7 +44,7 @@ The v1.0.0-rc.1 release includes:
 
 - **Full specification** (SPEC.md) — 1000+ lines covering all aspects of the format
 - **4 JSON Schemas** — machine-readable validation for all document types
-- **TypeScript SDK** — `@openeval/sdk` on npm
+- **TypeScript SDK** — `@evalport/sdk` on npm
 - **Python SDK** — `openeval` on PyPI
 - **CLI tool** — validate, convert, init, summary commands
 - **REST API** — reference server for storing and serving eval suites
@@ -54,7 +54,7 @@ The v1.0.0-rc.1 release includes:
 
 ## How It Works
 
-Here's a simple OpenEval suite:
+Here's a simple EvalPort suite:
 
 ```json
 {
@@ -75,20 +75,20 @@ Any compliant eval runner can import this suite, execute it, and produce a Resul
 
 ## Not a Replacement — an Interchange Format
 
-OpenEval is not trying to replace DeepEval, Promptfoo, or any other framework. It's an **interchange format** — like JSON for data, or OpenAPI for APIs. Frameworks keep their native formats; OpenEval is the bridge that lets them talk to each other.
+EvalPort is not trying to replace DeepEval, Promptfoo, or any other framework. It's an **interchange format** — like JSON for data, or OpenAPI for APIs. Frameworks keep their native formats; EvalPort is the bridge that lets them talk to each other.
 
 The value proposition for framework maintainers: **your users can now import eval datasets from any other tool.** That's a feature, not a concession.
 
 ## Get Involved
 
-- **Try it**: `npm install -g @openeval/cli && openeval init my-suite`
+- **Try it**: `npm install -g @evalport/cli && openeval init my-suite`
 - **Read the spec**: [SPEC.md](https://github.com/openeval/openeval/blob/main/spec/SPEC.md)
 - **Convert your existing evals**: `openeval convert promptfoo openeval config.json output.json`
 - **Give feedback**: Open a GitHub Discussion
 - **Adopt it**: Add `to_openeval()` and `from_openeval()` to your framework
 
-OpenEval is Apache 2.0, community-driven, and ready for your feedback.
+EvalPort is Apache 2.0, community-driven, and ready for your feedback.
 
 ---
 
-*OpenEval is a community project. We welcome contributions, feedback, and framework integrations. Visit [GitHub](https://github.com/openeval/openeval) to get started.*
+*EvalPort is a community project. We welcome contributions, feedback, and framework integrations. Visit [GitHub](https://github.com/openeval/openeval) to get started.*

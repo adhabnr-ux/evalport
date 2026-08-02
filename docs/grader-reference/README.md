@@ -1,6 +1,6 @@
 # Grader Type Reference
 
-OpenEval defines 11 standard grader types. Runners MUST handle all types (execute or skip gracefully).
+EvalPort defines 11 standard grader types. Runners MUST handle all types (execute or skip gracefully).
 
 ---
 

@@ -1,18 +1,18 @@
-# @openeval/cli
+# @evalport/cli
 
-Command-line tool for OpenEval — validate, convert, and init eval suites.
+Command-line tool for EvalPort — validate, convert, and init eval suites.
 
 ## Install
 
 ```bash
-npm install -g @openeval/cli
+npm install -g @evalport/cli
 ```
 
 ## Commands
 
 ### validate
 
-Validate an OpenEval document against its schema.
+Validate an EvalPort document against its schema.
 
 ```bash
 openeval validate my-suite.json

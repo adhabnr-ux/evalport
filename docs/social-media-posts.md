@@ -6,8 +6,8 @@
 
 ## Hacker News
 
-**Title:** OpenEval: Why LLM Evaluation Needs a Standard Format
-**URL:** https://github.com/adhabnr-ux/openeval
+**Title:** EvalPort: Why LLM Evaluation Needs a Standard Format
+**URL:** https://github.com/adhabnr-ux/evalport
 
 *Post at 9 AM PT / 12 PM ET on a weekday. Engage with every comment in the first 2 hours.*
 
@@ -15,21 +15,21 @@
 
 ## Reddit — r/MachineLearning
 
-**Title:** [P] OpenEval: A portable standard for LLM evaluation datasets
+**Title:** [P] EvalPort: A portable standard for LLM evaluation datasets
 
 **Body:**
-We just open-sourced OpenEval, an open standard for representing evaluation test cases, graders, and results. The problem: every major eval framework (DeepEval, Promptfoo, Inspect AI, LangSmith, etc.) uses incompatible formats. You can't share eval datasets across tools.
+We just open-sourced EvalPort, an open standard for representing evaluation test cases, graders, and results. The problem: every major eval framework (DeepEval, Promptfoo, Inspect AI, LangSmith, etc.) uses incompatible formats. You can't share eval datasets across tools.
 
-OpenEval solves this with:
+EvalPort solves this with:
 - Portable JSON format for test cases, graders, and results
 - 11 grader types (exact_match, semantic_similarity, llm_judge, etc.)
 - Converters for Promptfoo, DeepEval, Inspect AI, OpenAI Evals
 - TypeScript + Python SDKs
 - CLI for validation and conversion
 
-Spec: https://github.com/adhabnr-ux/openeval/blob/main/spec/SPEC.md
-Repo: https://github.com/adhabnr-ux/openeval
-Try it: `pip install openeval` or `npm install @openeval/sdk`
+Spec: https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md
+Repo: https://github.com/adhabnr-ux/evalport
+Try it: `pip install openeval` or `npm install @evalport/sdk`
 
 We've filed issues on 17 eval framework repos proposing import/export support. Would love feedback from the community.
 
@@ -37,7 +37,7 @@ We've filed issues on 17 eval framework repos proposing import/export support. W
 
 ## Reddit — r/LocalLLaMA
 
-**Title:** OpenEval: Run the same eval suite in DeepEval, Promptfoo, Inspect AI — portable eval standard just shipped
+**Title:** EvalPort: Run the same eval suite in DeepEval, Promptfoo, Inspect AI — portable eval standard just shipped
 
 **Body:**
 Same as above.
@@ -46,7 +46,7 @@ Same as above.
 
 ## Reddit — r/ArtificialIntelligence
 
-**Title:** OpenEval v1.0.0-rc.1: The Open LLM Evaluation Standard
+**Title:** EvalPort v1.0.0-rc.1: The Open LLM Evaluation Standard
 
 **Body:**
 Same as above.
@@ -58,7 +58,7 @@ Same as above.
 **Frontmatter:**
 ```
 ---
-title: "OpenEval: Why LLM Evaluation Needs a Standard Format"
+title: "EvalPort: Why LLM Evaluation Needs a Standard Format"
 description: "An open standard for portable LLM evaluation datasets and results"
 tags: llm, evaluation, ai, testing
 ---
@@ -71,11 +71,11 @@ tags: llm, evaluation, ai, testing
 ## LinkedIn
 
 **Post:**
-Excited to announce OpenEval v1.0.0-rc.1! 🚀
+Excited to announce EvalPort v1.0.0-rc.1! 🚀
 
 After months of work, we're shipping an open standard for LLM evaluation datasets. The problem: every eval framework (DeepEval, Promptfoo, Inspect AI, LangSmith, OpenAI Evals) uses incompatible formats. You can't share eval datasets across tools.
 
-OpenEval solves this with:
+EvalPort solves this with:
 ✅ Portable JSON format for test cases, graders, and results
 ✅ TypeScript + Python SDKs
 ✅ Converters for Promptfoo, DeepEval, Inspect AI, OpenAI Evals
@@ -84,11 +84,11 @@ OpenEval solves this with:
 ✅ 11 grader types covering 90%+ of eval needs
 
 Try it:
-npm install @openeval/sdk
+npm install @evalport/sdk
 pip install openeval
 
-Repo: https://github.com/adhabnr-ux/openeval
-Spec: https://github.com/adhabnr-ux/openeval/blob/main/spec/SPEC.md
+Repo: https://github.com/adhabnr-ux/evalport
+Spec: https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md
 
 Would love feedback from the eval community!
 

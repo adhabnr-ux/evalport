@@ -1,4 +1,4 @@
-# Getting Started with OpenEval
+# Getting Started with EvalPort
 
 ## 5-Minute Quickstart
 
@@ -6,10 +6,10 @@
 
 ```bash
 # CLI
-npm install -g @openeval/cli
+npm install -g @evalport/cli
 
 # TypeScript SDK
-npm install @openeval/sdk
+npm install @evalport/sdk
 
 # Python SDK
 pip install openeval
@@ -25,7 +25,7 @@ This creates `my-eval-suite.json`:
 
 ```json
 {
-  "$schema": "https://openeval.org/schema/suite.json",
+  "$schema": "https://evalport.org/schema/suite.json",
   "version": "1.0.0",
   "id": "my-eval-suite",
   "name": "my-eval-suite",
@@ -77,7 +77,7 @@ print(openeval_suite["id"])  # suite_promptfoo_import
 ### 6. Use the TypeScript SDK
 
 ```typescript
-import { validateSuite } from "@openeval/sdk";
+import { validateSuite } from "@evalport/sdk";
 
 const result = validateSuite({
   version: "1.0.0",
@@ -100,4 +100,4 @@ console.log(result.valid); // true
 - [Grader Type Reference](../grader-reference/README.md) — all 11 grader types
 - [Migration Guides](../migration-guides/) — convert from DeepEval, Promptfoo, Inspect AI
 - [API Reference](../api/README.md) — REST API for serving eval suites
-- [Full Specification](../../spec/SPEC.md) — the complete OpenEval spec
+- [Full Specification](../../spec/SPEC.md) — the complete EvalPort spec

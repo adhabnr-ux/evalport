@@ -1,12 +1,12 @@
-# OpenEval REST API Reference
+# EvalPort REST API Reference
 
-The OpenEval reference API server provides endpoints for storing and retrieving eval suites and result sets.
+The EvalPort reference API server provides endpoints for storing and retrieving eval suites and result sets.
 
 ## Running the Server
 
 ```bash
 npx tsx api/server.ts
-# OpenEval API running on http://localhost:9876
+# EvalPort API running on http://localhost:9876
 ```
 
 ## Endpoints

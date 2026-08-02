@@ -33,7 +33,7 @@ def compute_summary(results):
     scores = [gr["score"] for r in results for gr in r.get("grader_results", []) if gr.get("score") is not None]
     return {"total": total, "passed": passed, "failed": total - passed, "pass_rate": passed / total if total else 0, "avg_score": sum(scores) / len(scores) if scores else 0}
 
-def create_result_set(suite, results, run_id, runner_name="openeval-sdk", runner_version="1.0.0"):
+def create_result_set(suite, results, run_id, runner_name="evalport-sdk", runner_version="1.0.0"):
     from datetime import datetime, timezone
     now = datetime.now(timezone.utc).isoformat()
     return {"version": OPENEVAL_VERSION, "suite_id": suite["id"], "suite_version": suite.get("version"), "run_id": run_id, "started_at": now, "completed_at": now, "provider": suite.get("config", {}).get("provider"), "runner": {"name": runner_name, "version": runner_version}, "results": results, "summary": compute_summary(results)}

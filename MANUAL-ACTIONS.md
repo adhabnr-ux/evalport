@@ -1,4 +1,4 @@
-# OpenEval — Manual Execution Checklist
+# EvalPort — Manual Execution Checklist
 
 All content is prepared. You just need credentials. Estimated: 2 hours.
 
@@ -19,11 +19,11 @@ cd /Users/sk/Desktop/openeval/cli
 npm publish --access public
 
 # Step 4: Verify
-npm view @openeval/sdk
-npm view @openeval/cli
+npm view @evalport/sdk
+npm view @evalport/cli
 ```
 
-Verify: https://www.npmjs.com/package/@openeval/sdk should show v1.0.0
+Verify: https://www.npmjs.com/package/@evalport/sdk should show v1.0.0
 
 ---
 
@@ -71,8 +71,8 @@ All content ready at: `docs/social-media-posts.md`
 
 ### Hacker News (post at 9 AM PT)
 - Go to https://news.ycombinator.com/ → submit
-- Title: "OpenEval: Why LLM Evaluation Needs a Standard Format"
-- URL: https://github.com/adhabnr-ux/openeval
+- Title: "EvalPort: Why LLM Evaluation Needs a Standard Format"
+- URL: https://github.com/adhabnr-ux/evalport
 - Engage with comments for 2 hours
 
 ### Reddit (3 posts)
@@ -103,7 +103,7 @@ Alternative: Just send founder emails manually from Gmail web.
 
 ## Summary of What's Already Done
 
-✅ GitHub repo: https://github.com/adhabnr-ux/openeval (66 files, tagged v1.0.0-rc.1)
+✅ GitHub repo: https://github.com/adhabnr-ux/evalport (66 files, tagged v1.0.0-rc.1)
 ✅ 17 GitHub issues filed on target repos
 ✅ Founder emails drafted (docs/founder-emails.md)
 ✅ Social media posts prepared (docs/social-media-posts.md)

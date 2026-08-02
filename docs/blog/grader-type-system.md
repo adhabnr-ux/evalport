@@ -1,10 +1,10 @@
-# OpenEval's Grader Type System: How It Works
+# EvalPort's Grader Type System: How It Works
 
 *Published July 2026*
 
 ## The Core Design Decision
 
-When designing OpenEval, the hardest question was: **how do we represent scoring criteria (graders) in a way that's both portable and expressive?**
+When designing EvalPort, the hardest question was: **how do we represent scoring criteria (graders) in a way that's both portable and expressive?**
 
 Too simple, and the format can't capture real evaluation logic. Too complex, and no framework will implement it.
 
@@ -124,7 +124,7 @@ For framework-specific graders that don't fit any standard type:
 {"type": "custom", "params": {"handler": "deepeval:FaithfulnessMetric", "threshold": 0.7}}
 ```
 
-Runners that recognize the handler execute it. Runners that don't skip it. This lets frameworks preserve their native grading logic while still participating in the OpenEval ecosystem.
+Runners that recognize the handler execute it. Runners that don't skip it. This lets frameworks preserve their native grading logic while still participating in the EvalPort ecosystem.
 
 ## What's Next for Graders
 
@@ -137,4 +137,4 @@ But v1.0 is intentionally minimal. We add grader types only when 2+ frameworks i
 
 ---
 
-*Read the full spec at [SPEC.md](https://github.com/openeval/openeval/blob/main/spec/SPEC.md). Try the SDKs at [npm](https://www.npmjs.com/package/@openeval/sdk) and [PyPI](https://pypi.org/project/openeval/).*
+*Read the full spec at [SPEC.md](https://github.com/openeval/openeval/blob/main/spec/SPEC.md). Try the SDKs at [npm](https://www.npmjs.com/package/@evalport/sdk) and [PyPI](https://pypi.org/project/openeval/).*

@@ -53,6 +53,6 @@ export function computeSummary(results: Result[]): Summary {
   return { total, passed, failed, skipped, pass_rate: total > 0 ? passed / total : 0, avg_score: scoreCount > 0 ? scoreSum / scoreCount : 0, by_grader: byGraderSummary };
 }
 
-export function createResultSet(suite: EvalSuite, results: Result[], runId: string, runnerName = "openeval-sdk", runnerVersion = "1.0.0"): ResultSet {
+export function createResultSet(suite: EvalSuite, results: Result[], runId: string, runnerName = "evalport-sdk", runnerVersion = "1.0.0"): ResultSet {
   return { version: OPENEVAL_VERSION, suite_id: suite.id, suite_version: suite.version, run_id: runId, started_at: new Date().toISOString(), completed_at: new Date().toISOString(), provider: suite.config?.provider, runner: { name: runnerName, version: runnerVersion }, results, summary: computeSummary(results) };
 }

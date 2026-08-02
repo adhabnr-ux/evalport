@@ -1,4 +1,4 @@
-# OpenEval — Hostile Standards Committee Critique
+# EvalPort — Hostile Standards Committee Critique
 
 *This document simulates a hostile standards committee review. Each section identifies a weakness, explains why it could cause rejection, and proposes a fix. The spec has been iterated based on this critique.*
 
@@ -84,8 +84,8 @@ DeepEval, Promptfoo, LangSmith, and Braintrust are competitors. They won't adopt
 
 ### Fix Applied
 The adoption strategy is reframed:
-1. OpenEval is not a replacement for framework formats — it's an interchange format
-2. Frameworks keep their native format; OpenEval is an import/export layer
+1. EvalPort is not a replacement for framework formats — it's an interchange format
+2. Frameworks keep their native format; EvalPort is an import/export layer
 3. The value proposition is "get users FROM other tools" not "let users LEAVE your tool"
 4. Converters are provided as a library, not a service — frameworks control the UX
 
@@ -99,11 +99,11 @@ The adoption strategy is reframed:
 OpenTelemetry GenAI semantic conventions already define span attributes for LLM calls, including `gen_ai.response.id`, `gen_ai.usage.input_tokens`, etc. Why not extend OTel instead of creating a new format?
 
 ### Response
-OpenTelemetry GenAI defines **execution traces** (what happened during a run). OpenEval defines **evaluation data** (what should have happened, and whether it did). They are complementary:
+OpenTelemetry GenAI defines **execution traces** (what happened during a run). EvalPort defines **evaluation data** (what should have happened, and whether it did). They are complementary:
 - OTel: "the LLM was called with these inputs at this time"
-- OpenEval: "the LLM output should match this expected output, and here's the score"
+- EvalPort: "the LLM output should match this expected output, and here's the score"
 
-OpenEval result sets can reference OTel trace IDs via `metadata.openeval.trace_id`. The spec explicitly positions this as complementary, not competing.
+EvalPort result sets can reference OTel trace IDs via `metadata.openeval.trace_id`. The spec explicitly positions this as complementary, not competing.
 
 ---
 
@@ -173,11 +173,11 @@ The spec supports `test_cases_file` for external JSONL, and `metadata.openeval.c
 
 | Company | Reason for Refusal | Mitigation |
 |---------|-------------------|------------|
-| **OpenAI** | Already has Evals format; OpenEval is provider-agnostic | OpenEval supports `model graded` type as alias for `llm_judge`; converters bridge the gap |
-| **Anthropic** | Focused on MCP, not eval standards | OpenEval is complementary to MCP; no conflict |
-| **LangChain** | LangSmith is their commercial product; portability reduces lock-in | Reframe: OpenEval brings users IN from other tools; export is a secondary feature |
-| **Braintrust** | Already has a generic eval format | OpenEval alignment reduces friction for their users who also use other tools |
-| **Google** | May push their own eval format via Vertex AI | OpenEval is provider-agnostic; Google's format can map to OpenEval |
+| **OpenAI** | Already has Evals format; EvalPort is provider-agnostic | EvalPort supports `model graded` type as alias for `llm_judge`; converters bridge the gap |
+| **Anthropic** | Focused on MCP, not eval standards | EvalPort is complementary to MCP; no conflict |
+| **LangChain** | LangSmith is their commercial product; portability reduces lock-in | Reframe: EvalPort brings users IN from other tools; export is a secondary feature |
+| **Braintrust** | Already has a generic eval format | EvalPort alignment reduces friction for their users who also use other tools |
+| **Google** | May push their own eval format via Vertex AI | EvalPort is provider-agnostic; Google's format can map to EvalPort |
 
 ---
 
@@ -194,7 +194,7 @@ The spec explicitly supports YAML as an alternative serialization ("YAML files M
 ## 14. No conformance test suite
 
 ### Attack
-A spec without a conformance test suite is just a suggestion. How do we know a runner is truly OpenEval-compliant?
+A spec without a conformance test suite is just a suggestion. How do we know a runner is truly EvalPort-compliant?
 
 ### Fix Applied
 The reference implementation includes:

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://openeval.org/schema/suite.json",
-  "title": "OpenEval EvalSuite",
+  "$id": "https://evalport.org/schema/suite.json",
+  "title": "EvalPort EvalSuite",
   "description": "A named collection of test cases and shared grader definitions.",
   "type": "object",
   "required": ["version", "id", "test_cases"],
@@ -9,7 +9,7 @@
     "$schema": { "type": "string" },
     "version": {
       "type": "string",
-      "description": "OpenEval specification version (semver).",
+      "description": "EvalPort specification version (semver).",
       "pattern": "^\\d+\\.\\d+\\.\\d+(-draft)?$"
     },
     "id": {
@@ -28,13 +28,13 @@
     "graders": {
       "type": "array",
       "description": "Shared grader definitions referenced by test cases.",
-      "items": { "$ref": "https://openeval.org/schema/grader.json" }
+      "items": { "$ref": "https://evalport.org/schema/grader.json" }
     },
     "test_cases": {
       "type": "array",
       "description": "One or more test cases.",
       "minItems": 1,
-      "items": { "$ref": "https://openeval.org/schema/testcase.json" }
+      "items": { "$ref": "https://evalport.org/schema/testcase.json" }
     },
     "test_cases_file": {
       "type": "string",

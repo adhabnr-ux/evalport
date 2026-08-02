@@ -1,6 +1,6 @@
 # openeval
 
-Python SDK for OpenEval — The Open Evaluation Standard.
+Python SDK for EvalPort — The Open Evaluation Standard.
 
 ## Install
 

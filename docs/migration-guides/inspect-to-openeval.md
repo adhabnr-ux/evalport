@@ -1,12 +1,12 @@
-# Migrating from Inspect AI to OpenEval
+# Migrating from Inspect AI to EvalPort
 
 ## Overview
 
-Inspect AI (UK AISI) uses Python `Sample` objects and solver functions for evaluation. OpenEval provides a portable JSON format. This guide helps you convert Inspect tasks to OpenEval suites.
+Inspect AI (UK AISI) uses Python `Sample` objects and solver functions for evaluation. EvalPort provides a portable JSON format. This guide helps you convert Inspect tasks to EvalPort suites.
 
 ## Field Mapping
 
-| Inspect AI | OpenEval |
+| Inspect AI | EvalPort |
 |------------|----------|
 | `Sample.input` | `TestCase.input` |
 | `Sample.target` | `TestCase.expected_output` |
@@ -30,9 +30,9 @@ suite = from_inspect(inspect_data)
 json.dump(suite, open("output.json", "w"), indent=2)
 ```
 
-## Inspect Scorer → OpenEval Grader Mapping
+## Inspect Scorer → EvalPort Grader Mapping
 
-| Inspect Scorer | OpenEval Grader Type |
+| Inspect Scorer | EvalPort Grader Type |
 |----------------|---------------------|
 | `exact()` | `exact_match` |
 | `pattern()` | `regex` |
@@ -61,7 +61,7 @@ json.dump(suite, open("output.json", "w"), indent=2)
 }
 ```
 
-### After (OpenEval)
+### After (EvalPort)
 
 ```json
 {

@@ -1,18 +1,18 @@
-# OpenEval — Adoption Strategy (Updated July 30, 2026)
+# EvalPort — Adoption Strategy (Updated July 30, 2026)
 
 ## Status: Phase 1 — First Integration PR Submitted!
 
 ### Key Milestone
 
-**AutoGen PR #8009** — First framework integration PR! DresdenGman implemented `to_openeval()` / `from_openeval()` in `autogenstudio/eval/openeval.py` with tests and `openeval-sdk` as a dependency. Reviewed by OpenEval spec author with feedback.
+**AutoGen PR #8009** — First framework integration PR! DresdenGman implemented `to_openeval()` / `from_openeval()` in `autogenstudio/eval/openeval.py` with tests and `evalport-sdk` as a dependency. Reviewed by EvalPort spec author with feedback.
 
 ### Published Packages
 
 | Package | Registry | URL |
 |---------|----------|-----|
-| openeval-sdk | npm | https://www.npmjs.com/package/openeval-sdk |
-| openeval-cli | npm | https://www.npmjs.com/package/openeval-cli |
-| openeval-sdk | PyPI | https://pypi.org/project/openeval-sdk/1.0.0/ |
+| evalport-sdk | npm | https://www.npmjs.com/package/evalport-sdk |
+| evalport-cli | npm | https://www.npmjs.com/package/evalport-cli |
+| evalport-sdk | PyPI | https://pypi.org/project/evalport-sdk/1.0.0/ |
 
 ### GitHub Issues: 33 filed (30 open, 3 closed)
 
@@ -26,7 +26,7 @@
 | braintrustdata/braintrust-sdk | Luca Forstner (maintainer) | ✅ Asked for example — provided concrete use case |
 | crewAIInc/crewAI | Bryan-eng-lng | ✅ Offering to build — provided code |
 | Arize-ai/openinference | Mikyo King (maintainer) | ✅ Asked for clarification — responded |
-| weaviate/weaviate | Bot triage | ✅ Clarified OpenEval's value |
+| weaviate/weaviate | Bot triage | ✅ Clarified EvalPort's value |
 | ollama/ollama | eslam-ahmed43 | ✅ Wants to work on it — provided code + guidance |
 
 #### Auto-closed by triage (not rejections)

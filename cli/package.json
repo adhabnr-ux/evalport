@@ -1,9 +1,9 @@
 {
-  "name": "openeval-cli",
+  "name": "evalport-cli",
   "version": "1.0.0",
-  "description": "OpenEval CLI",
+  "description": "EvalPort CLI",
   "bin": {
-    "openeval": "src/index.ts"
+    "evalport": "src/index.ts"
   },
   "scripts": {
     "start": "npx tsx src/index.ts"

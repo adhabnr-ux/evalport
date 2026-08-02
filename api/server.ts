@@ -60,4 +60,4 @@ createServer(async (req: any, res: any) => {
   }
 
   send(res, 404, { error: "Not found" });
-}).listen(PORT, () => console.log(`OpenEval API running on http://localhost:${PORT}`));
+}).listen(PORT, () => console.log(`EvalPort API running on http://localhost:${PORT}`));

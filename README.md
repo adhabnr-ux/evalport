@@ -1,14 +1,14 @@
-# OpenEval — The Open Evaluation Standard
+# EvalPort — The Open Evaluation Standard
 
 **Version:** 1.0.0-rc.1 | **License:** Apache 2.0
 
-OpenEval is an open specification for portable LLM evaluation test cases, graders, suites, and results. It enables evaluation datasets to be shared across frameworks (DeepEval, Promptfoo, Ragas, Inspect AI, LangSmith, Braintrust, OpenAI Evals, MLflow) without loss of semantic fidelity.
+EvalPort is an open specification for portable LLM evaluation test cases, graders, suites, and results. It enables evaluation datasets to be shared across frameworks (DeepEval, Promptfoo, Ragas, Inspect AI, LangSmith, Braintrust, OpenAI Evals, MLflow) without loss of semantic fidelity.
 
 ## Quick Start
 
 ```bash
 # Install CLI
-npm install -g @openeval/cli
+npm install -g @evalport/cli
 
 # Create an eval suite
 openeval init my-eval-suite
@@ -46,9 +46,9 @@ openeval/
 │   ├── schemas/               # JSON Schemas (4 files)
 │   └── examples/              # Example suites and conversions
 ├── sdk/
-│   ├── typescript/            # @openeval/sdk (npm)
+│   ├── typescript/            # @evalport/sdk (npm)
 │   └── python/                # openeval (PyPI)
-├── cli/                       # @openeval/cli
+├── cli/                       # @evalport/cli
 ├── api/                       # Example REST API server
 ├── docs/
 │   ├── getting-started/       # 5-minute quickstart
@@ -83,10 +83,10 @@ openeval/
 
 | From | Status |
 |------|--------|
-| Promptfoo → OpenEval | ✅ CLI + SDK |
-| DeepEval → OpenEval | ✅ Python SDK |
-| Inspect AI → OpenEval | ✅ Python SDK |
-| OpenAI Evals → OpenEval | ✅ Python SDK |
+| Promptfoo → EvalPort | ✅ CLI + SDK |
+| DeepEval → EvalPort | ✅ Python SDK |
+| Inspect AI → EvalPort | ✅ Python SDK |
+| OpenAI Evals → EvalPort | ✅ Python SDK |
 
 ## Documentation
 

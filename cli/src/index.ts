@@ -37,7 +37,7 @@ else if (cmd === "convert") {
 else if (cmd === "init") {
   const name = args[1]||"my-eval-suite";
   const suite = {
-    "$schema":"https://openeval.org/schema/suite.json",
+    "$schema":"https://evalport.org/schema/suite.json",
     "version":"1.0.0","id":name,"name":name,
     "graders":[{"id":"gr_exact","type":"exact_match","params":{"ignore_case":true}}],
     "test_cases":[{"id":"tc_001","input":"Example?","expected_output":"Answer","graders":["gr_exact"]}],
@@ -57,5 +57,5 @@ else if (cmd === "summary") {
   if (s.avg_score) console.log("Avg score: "+s.avg_score.toFixed(3));
 }
 else {
-  console.log("OpenEval CLI v1.0.0\n\nCommands:\n  validate <file> [--type=suite|testcase|grader|resultset]  Validate an OpenEval document\n  convert <from> <to> <input> [output]                       Convert between formats\n  init [name]                                                 Create a starter eval suite\n  summary <resultset.json>                                    Print summary of a result set");
+  console.log("EvalPort CLI v1.0.0\n\nCommands:\n  validate <file> [--type=suite|testcase|grader|resultset]  Validate an EvalPort document\n  convert <from> <to> <input> [output]                       Convert between formats\n  init [name]                                                 Create a starter eval suite\n  summary <resultset.json>                                    Print summary of a result set");
 }

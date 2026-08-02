@@ -1,4 +1,4 @@
-# Contributing to OpenEval
+# Contributing to EvalPort
 
 ## Getting Started
 

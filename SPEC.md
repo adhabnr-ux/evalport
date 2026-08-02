@@ -1,15 +1,15 @@
-# OpenEval — The Open Evaluation Standard
+# EvalPort — The Open Evaluation Standard
 
 **Version:** 1.0.0-draft  
 **Status:** Draft for Community Review  
 **License:** Apache 2.0  
-**Specification Lead:** OpenEval Working Group
+**Specification Lead:** EvalPort Working Group
 
 ---
 
 ## Abstract
 
-OpenEval is an open, language-agnostic specification for representing LLM evaluation test cases, scoring criteria (graders), evaluation suites, and result sets. It defines a portable data format that enables evaluation datasets and results to be shared across evaluation frameworks (DeepEval, Promptfoo, Ragas, Inspect AI, LangSmith, Braintrust, OpenAI Evals, MLflow, and others) without loss of semantic fidelity.
+EvalPort is an open, language-agnostic specification for representing LLM evaluation test cases, scoring criteria (graders), evaluation suites, and result sets. It defines a portable data format that enables evaluation datasets and results to be shared across evaluation frameworks (DeepEval, Promptfoo, Ragas, Inspect AI, LangSmith, Braintrust, OpenAI Evals, MLflow, and others) without loss of semantic fidelity.
 
 The specification consists of four JSON document types — **TestCase**, **Grader**, **EvalSuite**, and **ResultSet** — each defined by a JSON Schema, together with a grader type system, validation rules, versioning policy, and extension mechanism. Reference implementations are provided as TypeScript and Python SDKs, a CLI tool, and example integrations.
 
@@ -25,7 +25,7 @@ The LLM evaluation ecosystem is fragmented across 10+ major frameworks, each wit
 4. **Vendor lock-in.** Teams that invest hundreds of hours building eval datasets in one framework face switching costs that lock them in, even when another framework would be a better fit.
 5. **No shared benchmark format.** The community cannot publish reproducible benchmark datasets that work across eval frameworks, the way ImageNet or GLUE did for ML.
 
-OpenEval addresses these problems by defining a minimal, extensible data format that preserves the full semantics of an evaluation — test inputs, expected outputs, graders, and results — in a way that any framework can import, export, and natively support.
+EvalPort addresses these problems by defining a minimal, extensible data format that preserves the full semantics of an evaluation — test inputs, expected outputs, graders, and results — in a way that any framework can import, export, and natively support.
 
 ---
 
@@ -40,7 +40,7 @@ A practitioner who builds a 500-case RAG evaluation suite in DeepEval and wants 
 
 This is not a one-time cost — it repeats for every framework transition, every team handoff, and every benchmark reproduction.
 
-**OpenEval solves this by defining a standard format that frameworks can natively read and write, making evaluation datasets and results portable.**
+**EvalPort solves this by defining a standard format that frameworks can natively read and write, making evaluation datasets and results portable.**
 
 ---
 
@@ -65,7 +65,7 @@ This is not a one-time cost — it repeats for every framework transition, every
 2. **Semantic fidelity.** Grader definitions preserve enough detail that a runner can execute them natively or flag unsupported grader types.
 3. **Extensibility.** Custom grader types, metadata fields, and extensions can be added without breaking interoperability.
 4. **Simplicity.** The core format is JSON and can be authored by hand or generated programmatically.
-5. **Bidirectional conversion.** Existing framework formats can be converted to and from OpenEval with minimal loss.
+5. **Bidirectional conversion.** Existing framework formats can be converted to and from EvalPort with minimal loss.
 6. **Reproducibility.** Result sets capture enough information (provider, model, timestamps, config) to reproduce an evaluation run.
 7. **Human-readable.** Eval suites and results are readable as JSON/YAML without proprietary tooling.
 
@@ -73,12 +73,12 @@ This is not a one-time cost — it repeats for every framework transition, every
 
 ## Non-goals
 
-1. **OpenEval does not define an evaluation runner.** It is a data format, not an execution engine. Runners are framework-specific.
-2. **OpenEval does not mandate specific grader implementations.** A `semantic_similarity` grader specifies the threshold and model, but the implementation of embedding comparison is runner-specific.
-3. **OpenEval does not define a trace format.** Execution traces are covered by OpenTelemetry GenAI semantic conventions. OpenEval references trace IDs but does not define trace structure.
-4. **OpenEval does not define a UI.** Dashboards and visualization are framework-specific.
-5. **OpenEval does not define model APIs.** How a runner calls an LLM provider is out of scope.
-6. **OpenEval does not define access control.** File-level permissions are the deployer's responsibility.
+1. **EvalPort does not define an evaluation runner.** It is a data format, not an execution engine. Runners are framework-specific.
+2. **EvalPort does not mandate specific grader implementations.** A `semantic_similarity` grader specifies the threshold and model, but the implementation of embedding comparison is runner-specific.
+3. **EvalPort does not define a trace format.** Execution traces are covered by OpenTelemetry GenAI semantic conventions. EvalPort references trace IDs but does not define trace structure.
+4. **EvalPort does not define a UI.** Dashboards and visualization are framework-specific.
+5. **EvalPort does not define model APIs.** How a runner calls an LLM provider is out of scope.
+6. **EvalPort does not define access control.** File-level permissions are the deployer's responsibility.
 
 ---
 
@@ -153,7 +153,7 @@ A test case is the atomic unit of evaluation. It represents a single input to an
 
 ```json
 {
-  "$schema": "https://openeval.org/schema/testcase.json",
+  "$schema": "https://evalport.org/schema/testcase.json",
   "id": "tc_001",
   "input": "What is the capital of France?",
   "expected_output": "Paris",
@@ -202,7 +202,7 @@ A grader defines how a test case's actual output is scored. Graders are defined 
 
 ```json
 {
-  "$schema": "https://openeval.org/schema/grader.json",
+  "$schema": "https://evalport.org/schema/grader.json",
   "id": "gr_semantic_sim",
   "type": "semantic_similarity",
   "params": {
@@ -257,7 +257,7 @@ An eval suite is a named collection of test cases and shared grader definitions.
 
 ```json
 {
-  "$schema": "https://openeval.org/schema/suite.json",
+  "$schema": "https://evalport.org/schema/suite.json",
   "version": "1.0.0",
   "id": "suite_rag_eval_001",
   "name": "RAG Evaluation Suite — Knowledge Base v2",
@@ -305,7 +305,7 @@ An eval suite is a named collection of test cases and shared grader definitions.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `version` | string | OpenEval specification version (semver). |
+| `version` | string | EvalPort specification version (semver). |
 | `id` | string | Unique identifier for the suite. |
 | `test_cases` | array of TestCase | One or more test cases. |
 
@@ -347,7 +347,7 @@ A result set is the output of running an eval suite. It contains one result per 
 
 ```json
 {
-  "$schema": "https://openeval.org/schema/resultset.json",
+  "$schema": "https://evalport.org/schema/resultset.json",
   "version": "1.0.0",
   "suite_id": "suite_rag_eval_001",
   "suite_version": "1.0.0",
@@ -408,7 +408,7 @@ A result set is the output of running an eval suite. It contains one result per 
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `version` | string | OpenEval specification version. |
+| `version` | string | EvalPort specification version. |
 | `suite_id` | string | ID of the eval suite that was run. |
 | `run_id` | string | Unique identifier for this run. |
 | `started_at` | string (ISO 8601) | Run start timestamp. |
@@ -498,25 +498,25 @@ All documents MUST validate against their respective JSON Schemas. Runners MUST 
 
 ### Specification Version
 
-OpenEval follows [Semantic Versioning](https://semver.org/):
+EvalPort follows [Semantic Versioning](https://semver.org/):
 
 - **MAJOR**: Breaking changes to the data model (removed fields, changed semantics).
 - **MINOR**: Backward-compatible additions (new optional fields, new grader types).
 - **PATCH**: Backward-compatible fixes (clarifications, schema corrections).
 
-The `version` field in each document specifies the OpenEval spec version the document conforms to.
+The `version` field in each document specifies the EvalPort spec version the document conforms to.
 
 ### Compatibility Policy
 
 - Runners MUST accept documents with a higher minor version than their own implementation, ignoring unknown optional fields.
-- Runners MUST reject documents with a higher major version, producing an error: `Unsupported OpenEval major version: {version}. Supported: {supported}.`
+- Runners MUST reject documents with a higher major version, producing an error: `Unsupported EvalPort major version: {version}. Supported: {supported}.`
 - Runners SHOULD warn on unknown grader types but continue execution.
 
 ### Schema Evolution
 
 JSON Schemas are versioned and published at:
-- `https://openeval.org/schema/testcase.json` (latest)
-- `https://openeval.org/schema/v1.0.0/testcase.json` (pinned)
+- `https://evalport.org/schema/testcase.json` (latest)
+- `https://evalport.org/schema/v1.0.0/testcase.json` (pinned)
 
 ---
 
@@ -532,7 +532,7 @@ Graders with `type: "custom"` or any type not in the standard set are permitted.
 
 ### Extensions Registry
 
-OpenEval maintains an extensions registry at `https://openeval.org/extensions` where the community can register:
+EvalPort maintains an extensions registry at `https://evalport.org/extensions` where the community can register:
 - Custom grader types with handler identifiers
 - Provider-specific configuration extensions
 - Metadata field conventions
@@ -602,7 +602,7 @@ Errors MUST be structured, not string messages. The `error` object in results co
 
 ### API Key Handling
 
-- API keys MUST NEVER be stored in OpenEval documents. Use `api_key_env` to reference an environment variable.
+- API keys MUST NEVER be stored in EvalPort documents. Use `api_key_env` to reference an environment variable.
 - Runners MUST NOT log or expose API keys when serializing suite configuration.
 
 ### Supply Chain Risks
@@ -617,7 +617,7 @@ Errors MUST be structured, not string messages. The `error` object in results co
 
 ### PII in Test Cases
 
-Eval test cases may contain personally identifiable information (PII). OpenEval does not redact or encrypt PII — it is the deployer's responsibility to:
+Eval test cases may contain personally identifiable information (PII). EvalPort does not redact or encrypt PII — it is the deployer's responsibility to:
 - Classify eval suites containing PII as confidential.
 - Store and transmit eval suites over encrypted channels.
 - Avoid sharing eval suites containing real user data without consent.
@@ -647,14 +647,14 @@ The `metadata` field is free-form. Producers SHOULD minimize the inclusion of id
 
 ### Migration from Framework Formats
 
-OpenEval is designed to be a superset of common framework formats. Conversion guides are provided for:
+EvalPort is designed to be a superset of common framework formats. Conversion guides are provided for:
 
-- **DeepEval** → OpenEval: `LLMTestCase` maps to `TestCase`; metrics map to graders.
-- **Promptfoo** → OpenEval: test case `vars` map to `input`/`context`; `assert` maps to inline graders.
-- **OpenAI Evals** → OpenEval: `test` maps to `TestCase`; `grader` maps to `Grader`.
-- **Inspect AI** → OpenEval: `Sample` maps to `TestCase`; solvers map to graders.
-- **LangSmith** → OpenEval: dataset examples map to `TestCase`; evaluators map to graders.
-- **Braintrust** → OpenEval: test cases and scores map directly; scorer functions map to graders.
+- **DeepEval** → EvalPort: `LLMTestCase` maps to `TestCase`; metrics map to graders.
+- **Promptfoo** → EvalPort: test case `vars` map to `input`/`context`; `assert` maps to inline graders.
+- **OpenAI Evals** → EvalPort: `test` maps to `TestCase`; `grader` maps to `Grader`.
+- **Inspect AI** → EvalPort: `Sample` maps to `TestCase`; solvers map to graders.
+- **LangSmith** → EvalPort: dataset examples map to `TestCase`; evaluators map to graders.
+- **Braintrust** → EvalPort: test cases and scores map directly; scorer functions map to graders.
 
 ### Forward Compatibility
 
@@ -674,7 +674,7 @@ OpenEval is designed to be a superset of common framework formats. Conversion gu
 
 ```json
 {
-  "$schema": "https://openeval.org/schema/suite.json",
+  "$schema": "https://evalport.org/schema/suite.json",
   "version": "1.0.0",
   "id": "suite_qa_basic",
   "name": "Basic Q&A Evaluation",
@@ -709,7 +709,7 @@ OpenEval is designed to be a superset of common framework formats. Conversion gu
 
 ```json
 {
-  "$schema": "https://openeval.org/schema/suite.json",
+  "$schema": "https://evalport.org/schema/suite.json",
   "version": "1.0.0",
   "id": "suite_rag_001",
   "name": "RAG Pipeline Evaluation",
@@ -761,7 +761,7 @@ OpenEval is designed to be a superset of common framework formats. Conversion gu
 
 ```json
 {
-  "$schema": "https://openeval.org/schema/suite.json",
+  "$schema": "https://evalport.org/schema/suite.json",
   "version": "1.0.0",
   "id": "suite_agent_001",
   "name": "Agent Tool Selection Evaluation",
@@ -805,14 +805,14 @@ OpenEval is designed to be a superset of common framework formats. Conversion gu
 
 ```json
 {
-  "$schema": "https://openeval.org/schema/resultset.json",
+  "$schema": "https://evalport.org/schema/resultset.json",
   "version": "1.0.0",
   "suite_id": "suite_qa_basic",
   "suite_version": "1.0.0",
   "run_id": "run_20260115_100000",
   "started_at": "2026-01-15T10:00:00Z",
   "completed_at": "2026-01-15T10:00:05Z",
-  "runner": { "name": "openeval-cli", "version": "1.0.0" },
+  "runner": { "name": "evalport-cli", "version": "1.0.0" },
   "provider": { "model": "gpt-4o", "temperature": 0.0 },
   "results": [
     {
@@ -886,10 +886,10 @@ The accompanying suite metadata file (`suite.json`) references the JSONL file:
 
 ## Reference Implementation
 
-The OpenEval reference implementation includes:
+The EvalPort reference implementation includes:
 
 1. **JSON Schemas** — `schema/testcase.json`, `schema/grader.json`, `schema/suite.json`, `schema/resultset.json`
-2. **TypeScript SDK** — `@openeval/sdk` npm package for reading, writing, and validating OpenEval documents
+2. **TypeScript SDK** — `@evalport/sdk` npm package for reading, writing, and validating EvalPort documents
 3. **Python SDK** — `openeval` PyPI package with the same capabilities
 4. **CLI** — `openeval` command-line tool for validation, conversion, and suite initialization
 5. **Example API** — A REST API for serving and running eval suites
@@ -903,7 +903,7 @@ See the `README.md` for installation and usage instructions.
 
 ### From DeepEval
 
-| DeepEval | OpenEval |
+| DeepEval | EvalPort |
 |----------|----------|
 | `LLMTestCase(input, actual_output, expected_output, context)` | `TestCase` with `input`, `expected_output`, `context` |
 | `assert_test(test_case, metrics)` | `TestCase.graders` references suite-level `Grader` definitions |
@@ -913,7 +913,7 @@ See the `README.md` for installation and usage instructions.
 
 ### From Promptfoo
 
-| Promptfoo | OpenEval |
+| Promptfoo | EvalPort |
 |-----------|----------|
 | `vars` object | `input` + `context` |
 | `assert` array | Inline graders or suite-level grader references |
@@ -923,7 +923,7 @@ See the `README.md` for installation and usage instructions.
 
 ### From OpenAI Evals
 
-| OpenAI Evals | OpenEval |
+| OpenAI Evals | EvalPort |
 |--------------|----------|
 | `test` object in `test_data.jsonl` | `TestCase` |
 | `grader` field | `Grader` in suite |
@@ -932,7 +932,7 @@ See the `README.md` for installation and usage instructions.
 
 ### From Inspect AI
 
-| Inspect AI | OpenEval |
+| Inspect AI | EvalPort |
 |------------|----------|
 | `Sample(input, target)` | `TestCase` with `input`, `expected_output` |
 | Solver functions | `Grader` with `type: "code"` or `type: "custom"` |
@@ -948,25 +948,25 @@ A: Field names alone don't capture grader semantics. A `semantic_similarity` gra
 
 **Q: Why not extend OpenAI Evals' format?**
 
-A: OpenAI Evals' format is tightly coupled to OpenAI's runner and grader implementation. It doesn't support arbitrary providers, custom graders, or agent evaluation. OpenEval is provider-agnostic and extensible.
+A: OpenAI Evals' format is tightly coupled to OpenAI's runner and grader implementation. It doesn't support arbitrary providers, custom graders, or agent evaluation. EvalPort is provider-agnostic and extensible.
 
-**Q: How does OpenEval relate to OpenTelemetry GenAI?**
+**Q: How does EvalPort relate to OpenTelemetry GenAI?**
 
-A: They are complementary. OpenTelemetry GenAI standardizes execution traces (spans for LLM calls, tool calls). OpenEval standardizes evaluation data (test cases, graders, results). A result set can reference an OTel trace ID for execution details.
+A: They are complementary. OpenTelemetry GenAI standardizes execution traces (spans for LLM calls, tool calls). EvalPort standardizes evaluation data (test cases, graders, results). A result set can reference an OTel trace ID for execution details.
 
-**Q: How does OpenEval relate to MCP (Model Context Protocol)?**
+**Q: How does EvalPort relate to MCP (Model Context Protocol)?**
 
-A: MCP standardizes how AI applications discover and invoke tools. OpenEval standardizes how to evaluate AI systems. An agent eval suite can reference MCP tool names in `expected_tools` to verify an agent calls the right tools.
+A: MCP standardizes how AI applications discover and invoke tools. EvalPort standardizes how to evaluate AI systems. An agent eval suite can reference MCP tool names in `expected_tools` to verify an agent calls the right tools.
 
 **Q: Why not wait for a standards body (ISO, IEEE, W3C) to define this?**
 
-A: Standards bodies move slowly (2-5 years). The LLM eval ecosystem is evolving monthly. OpenEval follows the IETF "rough consensus and running code" model — ship a useful spec with reference implementations, iterate based on adoption, and submit to a standards body once the format is proven.
+A: Standards bodies move slowly (2-5 years). The LLM eval ecosystem is evolving monthly. EvalPort follows the IETF "rough consensus and running code" model — ship a useful spec with reference implementations, iterate based on adoption, and submit to a standards body once the format is proven.
 
 **Q: What about non-English evaluations?**
 
-A: OpenEval is language-agnostic. Test inputs, expected outputs, and grader prompts can be in any language. The `metadata.language` field (optional) can indicate the primary language of a suite.
+A: EvalPort is language-agnostic. Test inputs, expected outputs, and grader prompts can be in any language. The `metadata.language` field (optional) can indicate the primary language of a suite.
 
-**Q: Can OpenEval handle multi-turn conversational evaluation?**
+**Q: Can EvalPort handle multi-turn conversational evaluation?**
 
 A: Yes. The `input` field accepts an array of strings representing conversational turns. For structured conversation (with roles), use `metadata.conversation` with `{ "role": "user", "content": "..." }` objects.
 
@@ -978,9 +978,9 @@ A: The result `metadata` field can include `openeval.cost` with token counts and
 
 A: Use `type: "custom"` with a `handler` string that identifies your grader. Runners that don't recognize the handler will skip it gracefully. You can register custom grader types in the extensions registry.
 
-**Q: Is OpenEval tied to any specific LLM provider?**
+**Q: Is EvalPort tied to any specific LLM provider?**
 
-A: No. OpenEval is provider-agnostic. The `provider` field specifies which model to use, and `api_base` supports self-hosted models. Graders that use LLMs (like `llm_judge` and `semantic_similarity`) specify their own model independently of the system under test.
+A: No. EvalPort is provider-agnostic. The `provider` field specifies which model to use, and `api_base` supports self-hosted models. Graders that use LLMs (like `llm_judge` and `semantic_similarity`) specify their own model independently of the system under test.
 
 ---
 
@@ -1073,7 +1073,7 @@ A framework-specific grader. The `handler` identifies the implementation. Unreco
 
 ## Intellectual Property
 
-OpenEval is released under the Apache 2.0 license. The specification, schemas, and reference implementations are free to use, modify, and distribute. No patent grants are implied. Contributors retain their copyrights under the terms of the Apache 2.0 license.
+EvalPort is released under the Apache 2.0 license. The specification, schemas, and reference implementations are free to use, modify, and distribute. No patent grants are implied. Contributors retain their copyrights under the terms of the Apache 2.0 license.
 
 ---
 
