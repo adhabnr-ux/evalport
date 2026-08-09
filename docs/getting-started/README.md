@@ -6,13 +6,13 @@
 
 ```bash
 # CLI
-npm install -g @evalport/cli
+npm install -g evalport-cli
 
 # TypeScript SDK
-npm install @evalport/sdk
+npm install evalport-sdk
 
 # Python SDK
-pip install openeval
+pip install evalport-sdk
 ```
 
 ### 2. Create an Eval Suite
@@ -77,7 +77,7 @@ print(openeval_suite["id"])  # suite_promptfoo_import
 ### 6. Use the TypeScript SDK
 
 ```typescript
-import { validateSuite } from "@evalport/sdk";
+import { validateSuite } from "evalport-sdk";
 
 const result = validateSuite({
   version: "1.0.0",
