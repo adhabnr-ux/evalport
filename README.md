@@ -8,7 +8,7 @@ EvalPort is an open specification for portable LLM evaluation test cases, grader
 
 ```bash
 # Install CLI
-npm install -g @evalport/cli
+npm install -g evalport-cli
 
 # Create an eval suite
 openeval init my-eval-suite
@@ -20,7 +20,7 @@ openeval validate my-eval-suite.json
 openeval convert promptfoo openeval config.json output.json
 
 # Python SDK
-pip install openeval
+pip install evalport-sdk
 ```
 
 ```python
@@ -46,9 +46,9 @@ openeval/
 │   ├── schemas/               # JSON Schemas (4 files)
 │   └── examples/              # Example suites and conversions
 ├── sdk/
-│   ├── typescript/            # @evalport/sdk (npm)
+│   ├── typescript/            # evalport-sdk (npm)
 │   └── python/                # openeval (PyPI)
-├── cli/                       # @evalport/cli
+├── cli/                       # evalport-cli
 ├── api/                       # Example REST API server
 ├── docs/
 │   ├── getting-started/       # 5-minute quickstart

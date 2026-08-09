@@ -889,7 +889,7 @@ The accompanying suite metadata file (`suite.json`) references the JSONL file:
 The EvalPort reference implementation includes:
 
 1. **JSON Schemas** — `schema/testcase.json`, `schema/grader.json`, `schema/suite.json`, `schema/resultset.json`
-2. **TypeScript SDK** — `@evalport/sdk` npm package for reading, writing, and validating EvalPort documents
+2. **TypeScript SDK** — `evalport-sdk` npm package for reading, writing, and validating EvalPort documents
 3. **Python SDK** — `openeval` PyPI package with the same capabilities
 4. **CLI** — `openeval` command-line tool for validation, conversion, and suite initialization
 5. **Example API** — A REST API for serving and running eval suites
