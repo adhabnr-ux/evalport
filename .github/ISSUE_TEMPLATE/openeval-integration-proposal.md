@@ -9,7 +9,7 @@ labels: ["enhancement", "interop"]
 
 I'd like to propose adding EvalPort import/export support to this framework.
 
-[EvalPort](https://github.com/openeval/openeval) is an open specification (Apache 2.0) for portable LLM evaluation test cases, graders, suites, and results. It defines a standard JSON format that enables eval datasets to be shared across frameworks.
+[EvalPort](https://github.com/adhabnr-ux/evalport) is an open specification (Apache 2.0) for portable LLM evaluation test cases, graders, suites, and results. It defines a standard JSON format that enables eval datasets to be shared across frameworks.
 
 ## Why This Benefits Your Users
 
@@ -36,13 +36,13 @@ def to_openeval(suite: FrameworkTestSuite) -> dict:
 
 ```typescript
 // TypeScript
-import { fromEvalPort, toEvalPort } from "@evalport/sdk";
+import { fromEvalPort, toEvalPort } from "evalport-sdk"; // npm install evalport-sdk
 ```
 
 ## What's Already Built
 
-- ✅ Full spec: https://github.com/openeval/openeval/blob/main/spec/SPEC.md
-- ✅ TypeScript SDK: `@evalport/sdk` on npm
+- ✅ Full spec: https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md
+- ✅ TypeScript SDK: `evalport-sdk` on npm
 - ✅ Python SDK: `openeval` on PyPI
 - ✅ CLI: `openeval convert promptfoo openeval config.json output.json`
 - ✅ Converters for Promptfoo, DeepEval, Inspect AI, OpenAI Evals
