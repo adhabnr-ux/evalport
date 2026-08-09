@@ -3,7 +3,7 @@
 ## Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/openeval.git`
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/evalport.git`
 3. Create a branch: `git checkout -b my-feature`
 4. Make your changes
 5. Run tests: `cd sdk/typescript && npm test` and `cd sdk/python && python -m pytest`
@@ -37,9 +37,19 @@ Changes to `SPEC.md` or JSON Schemas follow an RFC process:
 
 ## Adding a New Converter
 
-1. Create `sdk/converters/from_FRAMEWORK.py` and/or `from_FRAMEWORK.ts`
+There are two places a converter can live, depending on scope:
+
+**Core converters** (maintained in this repo, for frameworks with an established relationship):
+1. Add `sdk/python/openeval/converters_FRAMEWORK.py` and/or a `from_FRAMEWORK.ts` function in `sdk/typescript/src/convert.ts`
 2. Include before/after test files
 3. Document in `docs/migration-guides/`
+
+**Standalone adapter packages** (the easiest way to contribute — start here):
+1. Create a new directory under `adapters/FRAMEWORK-openeval-adapter/`
+2. Follow the structure of [`adapters/autogen-openeval-adapter`](adapters/autogen-openeval-adapter) as a reference: a `pyproject.toml` depending on `evalport-sdk`, a `src/FRAMEWORK_openeval_adapter/__init__.py` exposing `to_openeval()` / `from_openeval()`, a `tests/` directory with a round-trip test that validates against `openeval.validate.validate_suite()`, and a `README.md` explaining install/usage
+3. Open a PR — see the [Adapters Wanted](../../issues) tracking issue for a list of frameworks that don't have one yet
+
+This is the lowest-friction way to contribute: it doesn't touch the core SDK, ships independently on PyPI/npm under its own name, and doesn't require waiting on a review of core repo code.
 
 ## License
 
