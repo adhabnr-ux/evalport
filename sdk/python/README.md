@@ -56,6 +56,15 @@ from openeval.converters_openai import from_openai_evals
 suite = from_openai_evals(evals_data)
 ```
 
+### Convert from / to CrewAI
+
+```python
+from openeval.converters_crewai import from_crewai, crewai_result_to_result_set
+
+suite = from_crewai({"tasks": crewai_task_defs})
+result_set = crewai_result_to_result_set(crewai_run_result, suite, run_id="run_001")
+```
+
 ### Compute summary
 
 ```python
@@ -79,6 +88,8 @@ result_set = create_result_set(suite, results, "run_001")
 - `from_deepeval(data)` → `dict` (from `converters_deepeval`)
 - `from_inspect(data)` → `dict` (from `converters_inspect`)
 - `from_openai_evals(data)` → `dict` (from `converters_openai`)
+- `from_crewai(data)` → `dict` (from `converters_crewai`)
+- `crewai_result_to_result_set(crew_result, suite, run_id)` → `dict` (from `converters_crewai`)
 - `compute_summary(results)` → `dict`
 - `create_result_set(suite, results, run_id)` → `dict`
 
