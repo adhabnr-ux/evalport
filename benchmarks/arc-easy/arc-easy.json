@@ -1,0 +1,4029 @@
+{
+  "version": "1.0.0",
+  "id": "bench_arc_easy",
+  "name": "AI2 Reasoning Challenge — ARC-Easy",
+  "test_cases": [
+    {
+      "id": "arc_easy_0",
+      "input": "Which statement best explains why photosynthesis is the foundation of most food webs?\n\nA. Sunlight is the source of energy for nearly all ecosystems.\nB. Most ecosystems are found on land instead of in water.\nC. Carbon dioxide is more available than other gases.\nD. The producers in all ecosystems are plants.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_1",
+      "input": "Which piece of safety equipment is used to keep mold spores from entering the respiratory system?\n\nA. safety goggles\nB. breathing mask\nC. rubber gloves\nD. lead apron",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_2",
+      "input": "Meiosis is a type of cell division in which germ cells divide to produce haploid cells. Where does meiosis occur?\n\nA. brain cells\nB. bone cells\nC. muscle cells\nD. ovary cells",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_3",
+      "input": "Which characteristic describes the texture of a kitten's fur?\n\nA. gray\nB. warm\nC. long\nD. soft",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_4",
+      "input": "Which best describes the structure of an atom?\n\nA. a lightweight core surrounded by neutral particles\nB. a massive core surrounded by negatively-charged particles\nC. a network of interacting positive and negative particles\nD. overlapping layers of neutral, positive, and negative particles",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_5",
+      "input": "To express the distance between the Milky Way galaxy and other galaxies, the most appropriate unit of measurement is the\n\nA. meter.\nB. kilometer.\nC. light-year.\nD. astronomical unit.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_6",
+      "input": "A student has just completed a laboratory activity. What is the last action that the student should perform before leaving the lab area?\n\nA. wash hands\nB. turn off all equipment\nC. put away all glassware\nD. wash instruments and table tops",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_7",
+      "input": "Students are investigating the effects of different fertilizers on plant growth. Which units would be best to measure the mass of the fertilizer used?\n\nA. meters\nB. centimeters\nC. grams\nD. milligrams",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_8",
+      "input": "Plants use sunlight to make\n\nA. soil.\nB. minerals.\nC. food.\nD. water.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_9",
+      "input": "Which of these correctly identifies the way materials are transported in a plant?\n\nA. Xylem carries water from the roots to the leaves.\nB. Phloem carries minerals from the roots to the leaves.\nC. Xylem carries sugars from the flowers to the stems.\nD. Phloem carries water from the flowers to the stems.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_10",
+      "input": "When trees develop leaves in the spring, 10 changes occur on the forest floor. Why does the development of leaves cause changes on the forest floor?\n\nA. Rainfall increases.\nB. Sunlight is reduced.\nC. Wind speed increases.\nD. Animal migration is stopped.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_11",
+      "input": "The circulatory system and the endocrine system work together in the human body. Which describes one way in which these systems interact?\n\nA. taking in oxygen and transporting it to cells of the body\nB. releasing hormones and transporting them to cells of the body\nC. absorbing nutrients from food and transporting them to cells in the body\nD. collecting waste products from the cells and transporting it out of the body",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_12",
+      "input": "A student throws a ball into the air. While the ball travels up, the speed of the ball decreases. What force causes the ball to slow while traveling up?\n\nA. electricity\nB. gravity\nC. magnetism\nD. tension",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_13",
+      "input": "Which of these will most likely harm a habitat?\n\nA. planting trees\nB. water pollution\nC. rainfall\nD. sunlight",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_14",
+      "input": "All living and nonliving material is composed of\n\nA. air\nB. elements\nC. water\nD. soil",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_15",
+      "input": "Which process best explains how the Grand Canyon became so wide?\n\nA. folding\nB. erosion\nC. deposition\nD. sedimentation",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_16",
+      "input": "As global temperatures increase, certain organisms will be more affected than others. The changes associated with global warming may result in an increase in sea level. Which organisms will be affected most as a result of the change in sea level?\n\nA. birds that eat fish from shallow waters\nB. fish that live in coral reefs in shallow waters\nC. mammals that swim in cold, deep ocean waters\nD. crustaceans at the bottom of deep sea ocean waters",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_17",
+      "input": "A dish of sugar water was left on a window sill. One week later, there were only sugar crystals left in the dish. The water was gone. The best explanation for the appearance of sugar crystals is\n\nA. some of the water was absorbed by the dish.\nB. the air condensed.\nC. the light shining on the window sill produced more sugar.\nD. the water evaporated.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_18",
+      "input": "Using a softball bat to hit a softball is an example of using which simple machine?\n\nA. pulley\nB. lever\nC. inclined plane\nD. wheel and axle",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_19",
+      "input": "When an igneous intrusion comes into contact with surrounding rock, the surrounding rock will\n\nA. erode.\nB. foliate.\nC. precipitate.\nD. recrystallize.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_20",
+      "input": "A research scientist writes a paper on the initial regrowth of a forest after a fire has damaged the entire ecosystem. Which title would be best for the paper?\n\nA. Primary Succession\nB. Stable Communities\nC. Climax Communities\nD. Secondary Succession",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_21",
+      "input": "Where do plants get most of the energy they need to live and grow?\n\nA. water\nB. soil\nC. air\nD. sunlight",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_22",
+      "input": "Which is a statement about climate?\n\nA. The average temperature yesterday was 15°C.\nB. The temperature range today was 10°C to 20°C.\nC. The high temperature tomorrow will be 14°C.\nD. The average high temperature in May is 20°C.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_23",
+      "input": "While on a movie set, a stuntman jumps off the roof of a building. As he falls toward an airbag, what is increasing?\n\nA. gravity\nB. wind velocity\nC. kinetic energy\nD. potential energy",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_24",
+      "input": "Jessica wants to see cells in an oak tree leaf. Which tool is best for Jessica to use to see the cells?\n\nA. binoculars\nB. microscope\nC. reading glasses\nD. magnifying glass",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_25",
+      "input": "Biologists conduct investigations to learn about living organisms. Which method helps reduce bias during an investigation?\n\nA. developing a hypothesis after collecting data in the investigation\nB. limiting the amount of background research before the investigation\nC. designing an investigation with repeated trials during the investigation\nD. obtaining other opinions concerning what should happen during the investigation",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_26",
+      "input": "Which factor is most likely to cause the number of rabbits living in an area to increase?\n\nA. less water\nB. fewer predators\nC. lack of shelter\nD. limited food",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_27",
+      "input": "Seeds that remain inactive until the right conditions of light, water, and soil are present are called ___.\n\nA. pollen\nB. dormant\nC. flowers\nD. recycled",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_28",
+      "input": "What allows a light bulb to give off light?\n\nA. the current flowing through the wire to the light bulb\nB. the light bulb giving electrical energy to the battery\nC. the light bulb generating heat energy\nD. the battery pushing light through the wire",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_29",
+      "input": "What causes sound?\n\nA. sunlight\nB. vibrations\nC. x-rays\nD. pitch",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_30",
+      "input": "Photosynthesis occurs in which of these organisms?\n\nA. Sunflower plant\nB. Mushroom\nC. Sunfish\nD. Luna moth",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_31",
+      "input": "In order for cells to grow at a normal rate, they must\n\nA. take in light.\nB. be specialized.\nC. take in nutrients.\nD. be of similar size.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_32",
+      "input": "Marshall learned that plants need a substance from the air to make their own food. What does a plant take from the air in the presence of sunlight?\n\nA. carbon dioxide\nB. hydrogen\nC. nitrogen\nD. oxygen",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_33",
+      "input": "Antarctica is a continent at Earth's south pole. Fossils of tropical fern plants were discovered in Antarctica even though these plants do not grow there today. Which conclusion does the fossil evidence best support?\n\nA. Millions of years ago, Antarctica was in a warmer location on Earth.\nB. Recently, a natural disaster killed all of the fern plants in Antarctica.\nC. Recently, birds stopped carrying the seeds of fern plants to Antarctica.\nD. Millions of years ago, Earth's south pole was much colder than it is today.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_34",
+      "input": "Which two theories of Moon formation propose that much or all of the material comprising the Moon came from Earth?\n\nA. The Fission Theory and The Coaccretion Theory\nB. The Coaccretion Theory and The Capture Theory\nC. The Fission Theory and the Giant Impact Theory\nD. The Capture Theory and the Giant Impact Theory",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_35",
+      "input": "When white, fluffy clouds appear in Massachusetts, the weather that day will MOST LIKELY be\n\nA. fair.\nB. stormy.\nC. foggy.\nD. rainy.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_36",
+      "input": "Plants and animals are composed of organic compounds. Which of the following are the common elements found in organic compounds?\n\nA. iron, oxygen, nickel, copper.\nB. sodium, potassium, gold, hydrogen.\nC. helium, neon, argon, krypton.\nD. carbon, hydrogen, oxygen, nitrogen.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_37",
+      "input": "New research uncovers information that proves that the data from an old theory is partially incorrect. What should the scientific community do about the old theory?\n\nA. remove the old theory from historical records\nB. change the research notes in the original theory\nC. use the new information to update the old theory\nD. ban the public from discussing the old theory",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_38",
+      "input": "Which is the greatest benefit of sexual reproduction?\n\nA. capable of reproducing by meiosis\nB. ability to reproduce without a mate\nC. ability to produce genetically different offspring\nD. capable of producing offspring genetically identical to parent",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_39",
+      "input": "The speed at which sound waves travel depends on the\n\nA. distance between the vibration source and the receiver.\nB. type of material through which the sound travels.\nC. size of the object making the sound.\nD. type of device making the sound.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_40",
+      "input": "Which scientist is credited with discovering the first four moons of Jupiter?\n\nA. Galileo Galilei\nB. Albert Einstein\nC. Charles Darwin\nD. Sir Isaac Newton",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_41",
+      "input": "During science class, a teacher explains that the samples the students are studying are made of two or more minerals. What are the students studying?\n\nA. gases\nB. rocks\nC. elements\nD. molecules",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_42",
+      "input": "When the Northern Hemisphere is tilted away from the Sun causing the rays of light to hit Earth at large angles, which season occurs?\n\nA. winter\nB. spring\nC. summer\nD. fall",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_43",
+      "input": "A scientist found fossils of ocean shells on a mountain top. Based on this find, which statement can be made?\n\nA. The climate was once colder.\nB. The shells were carried by the wind.\nC. The mountain was covered by water.\nD. The shells once lived on dry land.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_44",
+      "input": "A student sees many plants around a pond. The student can determine which plants are nonvascular by\n\nA. observing if they lack true stems, roots, or leaves\nB. examining the plants for spores\nC. counting the number of leaves on each stalk\nD. noticing if the plants are near rocks",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_45",
+      "input": "Darryl learns that freezing temperatures may help cause weathering. Which statement explains how freezing temperatures most likely cause weathering?\n\nA. by freezing the leaves on trees\nB. by causing rocks to stick together\nC. by turning acid rain into acid snow\nD. by freezing water in the cracks of rocks",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_46",
+      "input": "A bond is formed when an electron is transferred from a sodium atom to a chlorine atom. What happens to the sodium atom during this process?\n\nA. The mass of the atom increases.\nB. The atom becomes an isotope.\nC. The atomic number decreases.\nD. The atom becomes a positive ion.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_47",
+      "input": "A group of fish was released into a local lake. This species of fish had never lived in the lake before. Scientists want to collect data on how the lake's ecosystem is affected by the new fish. Which method of data collection will give the most accurate results?\n\nA. Measuring oxygen levels in the lake for two months\nB. Checking the lake water for nutrient levels on one day\nC. Sampling fish populations in the lake over several years\nD. Observing the surface of the lake for signs of the new fish after one week",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_48",
+      "input": "On a career day at school, an X-ray technician discusses her daily work with the class. Which equipment would she most likely say she uses on a regular basis to help ensure the safety of patients?\n\nA. earplugs\nB. rubber gloves\nC. goggles\nD. lead aprons",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_49",
+      "input": "In the United States, windmills have been used for farming for hundreds of years. Which simple machine is the most important part of a windmill?\n\nA. lever\nB. pulley\nC. inclined plane\nD. wheel and axle",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_50",
+      "input": "Which tools are needed to measure the effects of friction on a block of wood?\n\nA. meter stick, spring scale\nB. balance, stopwatch\nC. balance, meter stick\nD. meter stick, stopwatch",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_51",
+      "input": "Planets outside of our solar system have been detected. What suggested the presence of a planet outside of our solar system?\n\nA. radio wave emissions\nB. a wobble in the rotation of the star\nC. regular occurring eclipses of its moons\nD. the discovery of a star as large as our own",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_52",
+      "input": "During which process are pieces of rock material being moved over Earth's surface by water and wind?\n\nA. conduction\nB. deposition\nC. erosion\nD. revolution",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_53",
+      "input": "The Apollo 11 mission was able to retrieve samples of the Moon's surface because it was the first mission to have astronauts\n\nA. land on the Moon\nB. orbit a planet\nC. return to Earth\nD. walk in space",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_54",
+      "input": "A student mixes a teaspoon of sugar in a large glass of water. What happens to the sugar when it is mixed with the water?\n\nA. It boils.\nB. It melts.\nC. It dissolves.\nD. It evaporates.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_55",
+      "input": "Particle accelerators, such as the Large Hadron Collider in Europe, accelerate subatomic particles to great speeds. These particles move in opposite directions at nearly the speed of light and collide into one another to simulate conditions that were present as the universe formed. Which property of matter in the initial moments of the universe are these accelerators designed to simulate?\n\nA. low density\nB. high energy\nC. massive nuclei\nD. circular movement",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_56",
+      "input": "A doorbell circuit converts electrical energy into mechanical energy. The mechanical energy is in the form of vibrations that ultimately produce\n\nA. chemical energy.\nB. thermal energy.\nC. radiant energy.\nD. sound energy.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_57",
+      "input": "Which factor determines if two individuals are members of the same species?\n\nA. They live in the same habitat and niche.\nB. They forage and eat the same type of food.\nC. They mate and produce fertile offspring.\nD. They are similar in appearance and color.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_58",
+      "input": "Which of the following planets is always closer to the Sun than it is to Earth?\n\nA. Jupiter\nB. Mercury\nC. Saturn\nD. Uranus",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_59",
+      "input": "Cells need nutrients for energy. Which system is responsible for breaking down food to provide cellular energy?\n\nA. digestive\nB. excretory\nC. circulatory\nD. respiratory",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_60",
+      "input": "During which activity should a student wear goggles?\n\nA. writing a science report\nB. mixing baking soda with water\nC. measuring the length of a shadow\nD. examining a leaf with a microscope",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_61",
+      "input": "Bacillus thuringiensis (Bt) is a soil bacterium that is toxic to certain insects. Genes from this bacterium have been inserted into cotton to make Bt cotton. Farmers that use Bt cotton would most likely use less of which of the following?\n\nA. water\nB. fertilizer\nC. herbicide\nD. insecticide",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_62",
+      "input": "A student examined a rock sample and described it as having particles of various colors that were 1 millimeter to 12 millimeters in size. The student was making\n\nA. an inference\nB. a hypothesis\nC. a prediction\nD. an observation",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_63",
+      "input": "What are genes composed of?\n\nA. offspring\nB. DNA\nC. cells\nD. traits",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_64",
+      "input": "In a classroom demonstration, a teacher pours sulfuric acid on some granulated sugar in a beaker. The sugar turns yellow and then black. Smoke rises and a strong smell is released. This demonstration is an example of what kind of change?\n\nA. chemical\nB. physical\nC. magnetic\nD. electric",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_65",
+      "input": "Marta studied different forms of energy. Which two types of energy travel in waves?\n\nA. light and sound\nB. electrical and sound\nC. chemical and light\nD. chemical and electrical",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_66",
+      "input": "The tops of some mountains are sharp and pointed, while the tops of others are smooth and rounded. This difference was most likely caused by\n\nA. rivers flooding along a coastal plain.\nB. erosion and weathering.\nC. earthquakes and waves.\nD. rocks melted underground by lava.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_67",
+      "input": "A student suggests to the school board that they use a renewable energy source. The student suggests they use\n\nA. coal.\nB. wind.\nC. wood.\nD. natural gas.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_68",
+      "input": "Solar radiation provides more heat near the equator than near the poles on Earth. The greatest amount of heat is moved away from the equator by\n\nA. ocean currents.\nB. aquatic plants.\nC. surface winds.\nD. tectonic plates.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_69",
+      "input": "Which human activity will help conserve Earth's natural resources?\n\nA. leaving the television on all day\nB. recycling plastic bottles\nC. cutting down trees\nD. burning trash in the yard",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_70",
+      "input": "Which characteristic helps some animals defend themselves against predators?\n\nA. strong odor\nB. poor hearing\nC. weak eyesight\nD. shivering",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_71",
+      "input": "Most plants begin their life cycle as ___.\n\nA. leaves\nB. flowers\nC. roots\nD. seeds",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_72",
+      "input": "Erin wants to make a strong, light chair. Which natural material should she use?\n\nA. iron\nB. granite\nC. clay\nD. wood",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_73",
+      "input": "Jonathon was studying bears. He found out that bears are born with some behaviors and learn others from their environment. Which behavior does a bear most likely inherit?\n\nA. how to find food in garbage cans\nB. how to hibernate during the winter\nC. how to seek shelter in a hollow log\nD. how to live in human neighborhoods",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_74",
+      "input": "A group of the same species of fish swim together to increase an individual's\n\nA. swimming speed.\nB. body temperature.\nC. chance of survival.\nD. visibility to predators.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_75",
+      "input": "In the oxygen cycle, which group of organisms replenishes a large portion of the atmospheric oxygen supply?\n\nA. mammals\nB. fungi\nC. insects\nD. plants",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_76",
+      "input": "Some antibiotics used to treat infections in humans are also used to treat chickens, but some groups oppose this practice. The overuse of the antibiotics will most likely influence the natural selection of which type of organisms?\n\nA. chickens that naturally make the antibiotics\nB. microbes that are resistant to the antibiotics\nC. microbes that are susceptible to the antibiotics\nD. chickens that are resistant to infection",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_77",
+      "input": "A student performs a lab investigation by measuring the average time it takes for a toy car to travel 10 meters. Why is it best to perform the experiment in three trials?\n\nA. to form a good hypothesis\nB. to increase the accuracy of the results\nC. to make the results more significant\nD. to better explain the investigation to others",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_78",
+      "input": "A scientist finds a metamorphic rock formation next to a magma chamber and determines that it was originally a sedimentary rock formation. He concludes that the temperature of the magma chamber caused the rock formation to become metamorphic. Which is another reliable explanation of how the rock formation was changed?\n\nA. weight of heavy machinery moving over the rocks\nB. pressure on the rock formation inside Earth\nC. a sandstorm that caused the rocks to be eroded\nD. a quick burial of the rocks by tons of volcanic ash",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_79",
+      "input": "Earth orbiting the Sun causes\n\nA. the changing of the seasons.\nB. daily tidal cycles.\nC. day to become night.\nD. the phases of the Moon.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_80",
+      "input": "The cycle of night and day on Earth is a result of\n\nA. the Moon revolving around Earth.\nB. Earth revolving around the Sun.\nC. the Moon rotating on its axis.\nD. Earth rotating on its axis.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_81",
+      "input": "Which of these traits is most influenced by environment?\n\nA. weight\nB. hair color\nC. blood type\nD. handedness",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_82",
+      "input": "Which statement describes a characteristic of a gas that has a significant effect on the climates of both Earth and Venus?\n\nA. Nitrogen is chemically inert.\nB. Sodium vapor reflects solar energy.\nC. Carbon dioxide traps solar energy.\nD. Argon is unable to react with water.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_83",
+      "input": "DNA technology has improved greatly in the last twenty years. Which task has been made easier by the development of DNA technology?\n\nA. identifying genetic disorders\nB. determining the parts of an atom\nC. observing distant objects in space\nD. making very accurate measurements",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_84",
+      "input": "Which condition is necessary for metamorphic rocks to form?\n\nA. constant weathering and erosion\nB. extreme pressure and heating\nC. rapid burial of sediments\nD. slow cooling of magma",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_85",
+      "input": "Which event helps to renew a resource?\n\nA. A seed is planted from a tree.\nB. An offshore rig pumps oil.\nC. A car is filled with gasoline.\nD. An office is heated with coal.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_86",
+      "input": "Which part of a plant takes in water and nutrients from the soil?\n\nA. root\nB. stem\nC. flower\nD. leaf",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_87",
+      "input": "A certain type of hybrid car utilizes a braking system in which energy is recovered and stored in batteries. This is an example of which type of energy conversion?\n\nA. kinetic energy converted to potential energy\nB. chemical energy converted to kinetic energy\nC. chemical energy converted to thermal energy\nD. thermal energy converted to potential energy",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_88",
+      "input": "Clownfish take shelter in the tentacles of sea anemones and keep sea anemones clean. Which type of relationship does this represent?\n\nA. parasitism\nB. commensalism\nC. mutualism\nD. neutralism",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_89",
+      "input": "Some animals have behaviors that help them find food when little is available. Which best describes an animal with this type of behavior?\n\nA. a robin that builds a nest\nB. an owl that calls at night\nC. a duck that swims in water\nD. a goose that migrates in winter",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_90",
+      "input": "Part of a student's experiment is to measure changes in wind speed several hours before a storm. What piece of equipment should the student use?\n\nA. barometer\nB. hygrometer\nC. anemometer\nD. weather vane",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_91",
+      "input": "An organism is born with a genetic abnormality not present in any of its ancestors. This abnormality is most likely the result of\n\nA. circulation\nB. competition\nC. mutation\nD. respiration",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_92",
+      "input": "The length of one day on Earth is determined by how long it takes\n\nA. the Moon to revolve once\nB. the Moon to rotate once\nC. Earth to rotate once\nD. Earth to revolve once",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_93",
+      "input": "When a rock is placed in a graduated cylinder containing water, the height of the water will\n\nA. decrease\nB. increase\nC. remain the same",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_94",
+      "input": "A student heats the same amount of two different liquids over Bunsen burners. Each liquid is at room temperature when the student begins. If liquid 1 has a higher specific heat than liquid 2, then liquid 1 will\n\nA. evaporate sooner.\nB. take longer to increase in temperature.\nC. condense over a longer period.\nD. chemically break down at a faster rate.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_95",
+      "input": "Through which activity do animals get the carbon that is needed for their bodies?\n\nA. eating\nB. breathing\nC. running\nD. sleeping",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_96",
+      "input": "Scientists have discovered organisms that thrive in hot water that is 90°C (194°F) and do not need sunlight or oxygen to live. Into which kingdom would the scientists classify these organisms?\n\nA. Archaebacteria\nB. Fungi\nC. Plantae\nD. Protista",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_97",
+      "input": "A cook touches a hot stove and quickly moves his hand away. What are the two primary body systems that work together to produce this response?\n\nA. Integumentary and endocrine systems\nB. Muscular and respiratory systems\nC. Nervous and muscular systems\nD. Skeletal and nervous systems",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_98",
+      "input": "Which statement correctly describes both gases and liquids?\n\nA. Their shapes stay the same in any container.\nB. Their shapes change when they are in different containers.\nC. Their volumes stay the same in any container.\nD. Their volumes change when they are in different containers.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_99",
+      "input": "When the soil is saturated, earthworms move to the top of the soil to obtain oxygen. This behavior is evidence of which biological concept in earthworms?\n\nA. learned behavior\nB. migration instinct\nC. response to stimuli\nD. reproductive strategy",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_100",
+      "input": "Which of the following is more likely to occur in a plant cell than in an animal cell?\n\nA. synthesis of enzymes\nB. formation of cellulose\nC. breakdown of glucose\nD. active transport of ions",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_101",
+      "input": "Earth revolves around the sun. The amount of time needed for Earth to complete one revolution around the sun is approximately\n\nA. 1 day\nB. 28 days\nC. 180 days\nD. 365 days",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_102",
+      "input": "Excess nitrogen fertilizers sometimes drain into waterways that flow into the Chesapeake Bay. This nitrogen may cause algae blooms, which reduce dissolved oxygen in the water. How does nitrogen negatively affect the Chesapeake Bay?\n\nA. fish births increase\nB. fish populations decrease\nC. sediment on the bottom of the bay decreases\nD. the rate of water runoff into the bay increases",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_103",
+      "input": "Mount Arenal, a volcano in Costa Rica, is erupting. Heat is being released during the eruption. What is the source of the heat?\n\nA. The heat comes from the Sun.\nB. The heat comes from pools of underground water.\nC. The heat comes from deep within Earth.\nD. The heat comes from decaying plants and animals.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_104",
+      "input": "Which statement describes how the umbilical cord supports a developing fetus?\n\nA. It provides a protective barrier between the mother and the fetus.\nB. It keeps the fetus inside the mother until birth.\nC. It provides a navel when the baby is born.\nD. It supplies oxygen and nutrients to the fetus.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_105",
+      "input": "Which two human body systems are most responsible for getting oxygen to cells?\n\nA. digestive and skeletal\nB. skeletal and circulatory\nC. circulatory and respiratory\nD. respiratory and digestive",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_106",
+      "input": "In their science classroom, Sam and Julia cross a heterozygous tall (Tt) pea plant with a homozygous short (tt) pea plant. What ratio represents the results Sam and Julia can expect?\n\nA. 1 tall plant to 3 short plants\nB. 2 tall plants to 2 short plants\nC. 3 tall plants to 1 short plant\nD. 4 tall plants to 0 short plants",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_107",
+      "input": "When atmospheric carbon dioxide increases, some of the carbon dioxide dissolves in the ocean causing the ocean to become\n\nA. warmer.\nB. cooler.\nC. more acidic.\nD. more alkaline.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_108",
+      "input": "Over time, dried lava from an old volcano is worn down and broken into small pieces. When these pieces pile up and are cemented together to form new rock, how would this new rock be classified?\n\nA. magma\nB. igneous\nC. sedimentary\nD. metamorphic",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_109",
+      "input": "When potassium and bromine atoms form chemical bonds, which of these is produced?\n\nA. an element\nB. a mixture\nC. a compound\nD. a new form of matter",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_110",
+      "input": "How often does Earth rotate on its axis?\n\nA. once every 12 hours\nB. once every 24 hours\nC. once every month\nD. once every year",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_111",
+      "input": "The elements that make up the atmosphere of Earth can be listed as percentages or can be shown in a graph. Which type of graph would best show this information?\n\nA. a bar graph\nB. a pie chart\nC. a line graph\nD. a scatterplot",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_112",
+      "input": "Animals give off carbon dioxide that plants take in through leaves. What do plants give off as a result of photosynthesis that animals need to breathe?\n\nA. heat\nB. oxygen\nC. protein\nD. water",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_113",
+      "input": "Air is composed of many different substances. Which of the following components of air is a compound rather than an element?\n\nA. Argon, Ar\nB. Oxygen, O2\nC. Water, H2O\nD. Nitrogen, N2",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_114",
+      "input": "Which factor is responsible for the presence of equatorial deserts?\n\nA. global warming\nB. asteroid impacts\nC. tilt of the Earth's axis\nD. the solar activity cycle",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_115",
+      "input": "The ash borer moth looks similar to a wasp, but it does not have the ability to sting. This adaptation most likely helps the moth survive because\n\nA. it makes food easier to find.\nB. predators avoid the moth.\nC. it aids in attracting a mate.\nD. the moth blends in with its surroundings.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_116",
+      "input": "Which organ system communicates with cells in muscle tissue so that the muscles contract or relax, allowing the body to move?\n\nA. circulatory system\nB. nervous system\nC. respiratory system\nD. excretory system",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_117",
+      "input": "Which device produces mechanical energy?\n\nA. a battery\nB. an electric motor\nC. a light bulb\nD. a solar cooker",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_118",
+      "input": "A beach is formed when sediment is deposited along a shoreline. What would most likely happen if rivers that empty into the ocean were dammed?\n\nA. Less sediment would be deposited along the shoreline.\nB. Beaches would form from different materials.\nC. Sand dunes would become smaller.\nD. Deltas would become larger.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_119",
+      "input": "Due to extreme pressure, the inner core of Earth is\n\nA. solid.\nB. liquid.\nC. gas.\nD. plasma.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_120",
+      "input": "The speed and general direction of motion of a galaxy relative to the Earth can be determined by\n\nA. measuring its red shift.\nB. the gravity it exerts.\nC. contrasting it against nearby stars.\nD. observing its motion across the sky.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_121",
+      "input": "What are the three common states of matter?\n\nA. liquid, gas, vapor\nB. gas, liquid, fluid\nC. solid, gas, liquid\nD. solid, vapor, liquid",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_122",
+      "input": "What is the primary reason for breaking down food molecules?\n\nA. to absorb water into a cell\nB. to provide energy for a cell\nC. to remove wastes from a cell\nD. to store materials in a cell",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_123",
+      "input": "Topsoil is considered to be most fertile when it has a\n\nA. low pH level.\nB. low sand content.\nC. high organic matter level.\nD. high parent rock material level.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_124",
+      "input": "When chemicals in the atmosphere dissolve in water droplets, they precipitate with the water and pollute water reservoirs on Earth. The pollutants enter the food chain when aquatic organisms absorb them. Which of these pollutants eventually contaminates fish after coal is burned?\n\nA. lead\nB. arsenic\nC. mercury\nD. aluminum",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_125",
+      "input": "An atom has a mass of 24 and a nuclear charge of 12. Which statement about the atom is accurate?\n\nA. It has twice as many protons as electrons.\nB. It has twice as many neutrons as protons.\nC. It has equal numbers of neutrons and protons.\nD. It has equal numbers of nuclear particles and electrons.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_126",
+      "input": "Which is an example of a renewable energy resource?\n\nA. biomass\nB. coal\nC. gas\nD. oil",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_127",
+      "input": "The compression of matter due to gravitational attraction increased as the protoplanets formed. What was a result of this compression within each protoplanet?\n\nA. initiation of nuclear fusion\nB. increase in noble gas destabilization\nC. increase in thermal energy\nD. initiation of photosynthesis reactions",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_128",
+      "input": "The construction of Hoover Dam on the Colorado River resulted in abundant freshwater and electrical power for the region. Which of these is a disadvantage of the construction of Hoover Dam?\n\nA. an increase in flooding downstream\nB. an increase in regional humidity\nC. a decrease in the amount of river ecosystems\nD. a decrease in the amount of water for irrigation",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_129",
+      "input": "If you place a thermometer into a glass of boiling water, what temperature should the thermometer read?\n\nA. 32°C\nB. 100°C\nC. 200°C\nD. 212°C",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_130",
+      "input": "What characteristic of carbon [C] makes it essential to living organisms?\n\nA. Carbon forms crystal structures under certain conditions.\nB. Carbon can exist as a solid, liquid, or gas.\nC. Carbon bonds in many ways with itself to form chains.\nD. Carbon exists in radioactive forms.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_131",
+      "input": "Scientists found evidence of a fish that lived millions of years ago. The fish had features that were possibly used to move on land. This fish is now extinct. What scientific evidence did the scientists most likely find that confirmed the existence of this fish?\n\nA. a fossil\nB. a description\nC. a photograph\nD. a cave drawing",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_132",
+      "input": "What is the smallest unit of a chemical compound that still has the properties of that compound?\n\nA. a nucleus\nB. a molecule\nC. an element\nD. an atom",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_133",
+      "input": "A student is investigating in which type of soil a plant will grow best. Which should the student measure to answer the question?\n\nA. height of the plants\nB. weight of the soil\nC. amount of water used\nD. temperature of the room",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_134",
+      "input": "An animal has scales and uses only its lungs to exchange gases. What is the animal most likely to be classified as?\n\nA. a fish\nB. a reptile\nC. a mammal\nD. an amphibian",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_135",
+      "input": "How are igneous and sedimentary rocks similar?\n\nA. They are both formed by erosion.\nB. They are both formed from cooled lava.\nC. Heat and pressure can turn them into lava.\nD. Heat and pressure can turn them into metamorphic rock.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_136",
+      "input": "When both a dominant and recessive gene are present, which of the following is true?\n\nA. The dominant trait will be visible.\nB. The recessive trait will be visible.\nC. Neither trait will be visible.\nD. It cannot be predicted which trait will be visible.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_137",
+      "input": "Squirrels in cold climates gather and store food for winter. The squirrels sometimes bury nuts and then do not return for them. These nuts can grow to become trees. This chain of events is an example of\n\nA. predation\nB. seed distribution\nC. competition\nD. seed fossilization",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_138",
+      "input": "Kurt drinks frozen fruit juice from a small cup. He measures the amount of fruit juice in the cup. Which property is Kurt measuring?\n\nA. density\nB. height\nC. temperature\nD. volume",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_139",
+      "input": "A simple machine that has a mechanical advantage equal to 1 would most likely be used to\n\nA. decrease effort.\nB. decrease work.\nC. change direction.\nD. change resistance.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_140",
+      "input": "Roberto is sliding down a plastic slide on the playground. After he reaches the ground, he feels a small electric shock when he touches a piece of metal. What has been built up on his body that causes the shock?\n\nA. atoms\nB. electrons\nC. neutrons\nD. protons",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_141",
+      "input": "Plants grow best in soils that are rich in which of the following?\n\nA. grains of sand\nB. lumps of clay\nC. layers of gravel\nD. decaying plants and animals",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_142",
+      "input": "The rate of acceleration of an object is determined by the mass of the object and\n\nA. the initial velocity of the object.\nB. the forces acting on the object.\nC. the direction of movement of the object.\nD. the change in kinetic energy of the object.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_143",
+      "input": "Some aquifers are composed of limestone and dolomite. Which process increases the open spaces of the aquifer formation?\n\nA. wave action\nB. wind erosion\nC. tensional faulting\nD. chemical weathering",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_144",
+      "input": "Leather basketballs are made for indoor use on smooth surfaces. Rubber basketballs are made for use on many different surfaces. Which of the following properties of rubber makes it better than leather for use on many different surfaces?\n\nA. Rubber is durable.\nB. Rubber is lightweight.\nC. Rubber is dark in color.\nD. Rubber is quickly produced.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_145",
+      "input": "On a field trip in a wooded area, you see a small, strange object. You wonder whether it is a live animal. The best way to find out is to observe the object to see if it\n\nA. has an odor.\nB. has separate parts.\nC. can make a noise and has a lifelike color.\nD. carries out basic life functions.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_146",
+      "input": "Ethanol is a type of alcohol made from plants. Sugarcane and corn, which are both used in foods such as cereals and breads, are used to make ethanol. Burning ethanol provides a clean source of energy because the products of ethanol are water and carbon dioxide. Therefore, mixing ethanol with gasoline reduces harmful waste products. In the 1970s, many Brazilians drove cars with engines that used an ethanol gasoline mixture. This alternative fuel conserved the limited supply of gasoline available at that time. In the 1990s, gasoline became cheaper than ethanol, and Brazilians returned to driving more gasoline-fueled cars. Recently, Brazilians started driving more cars that use an ethanol-gasoline mixture. Ethanol is a good alternative fuel because it\n\nA. reduces air pollution\nB. increases biodiversity\nC. reduces sound pollution\nD. increases ozone emissions",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_147",
+      "input": "A whistle produces a sound because blowing air in the whistle causes\n\nA. the whistle material to shake.\nB. the air inside the whistle to vibrate.\nC. the air to be absorbed by the whistle.\nD. the air in the whistle to heat up and expand.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_148",
+      "input": "Each year the Earth moves once around\n\nA. Mars\nB. the Sun\nC. the Moon\nD. all the other planets",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_149",
+      "input": "According to Newton's first law of motion, what counteracts gravity to keep a satellite in orbit?\n\nA. inertia\nB. energy\nC. friction\nD. magnetism",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_150",
+      "input": "How do plants get water and minerals?\n\nA. absorbed from the soil though the roots\nB. absorbed from the soil through the stem\nC. absorbed from the air through the flowers\nD. absorbed from the air through the leaves",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_151",
+      "input": "A cell's chromosomes contain\n\nA. genes\nB. chlorophyll\nC. sperm\nD. eggs",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_152",
+      "input": "Which of these events is an example of a change in climate?\n\nA. Afternoon clouds form and block the sunlight.\nB. A series of tornadoes occurs over a one-week period.\nC. An overnight temperature drop causes frost to form.\nD. The average amount of annual precipitation decreases.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_153",
+      "input": "Which object works best when reflecting light?\n\nA. mirror\nB. camera\nC. binoculars\nD. eyeglasses",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_154",
+      "input": "A wetland was drained to build a mall. Two years later, there were no more toads in that area. Why did the toads disappear?\n\nA. The toads were destroyed by the construction equipment.\nB. The toads died because toads cannot breathe out of water.\nC. The toads were frightened and went into the woods.\nD. The toads go their food from the wetland ecosystem.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_155",
+      "input": "Which elements are found to the right of the zigzag line in the periodic table?\n\nA. liquids\nB. metals\nC. metals and gases\nD. nonmetals and gases",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_156",
+      "input": "Miranda learned how the human body carries out life functions. Which is the most basic level of organization in the human body?\n\nA. an organ\nB. a system\nC. a tissue\nD. a cell",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_157",
+      "input": "Pollutants, such as motor oil and gasoline, are sometimes leaked onto roads by vehicles. How do these pollutants most likely affect the environment?\n\nA. Storms wash the pollutants into lakes and rivers.\nB. Animals become sick from licking the pollutants on the road.\nC. Animals get stuck in the pollutants when they cross the road.\nD. Winds blow the pollutants to the side of the road and harm the soil.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_158",
+      "input": "Which of the following objects is probably the most flexible?\n\nA. a ceramic dish\nB. a wooden block\nC. a short steel rod\nD. a new rubber hose",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_159",
+      "input": "A student practicing for the outdoor track team begins to sweat. To what stimulus is the body responding?\n\nA. an increase in heart rate\nB. an increase in body temperature\nC. an increase in oxygen demand\nD. an increase in breathing rate",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_160",
+      "input": "What repeating cycle is responsible for the four seasons that occur on Earth?\n\nA. rotation of the moon\nB. rotation of the Sun\nC. revolution of the sun in the galaxy\nD. revolution of the earth about the sun",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_161",
+      "input": "Which of these systems functions to protect and support vital organs?\n\nA. digestive\nB. skeletal\nC. nervous\nD. excretory",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_162",
+      "input": "Which characteristic would best help a rabbit survive in snow?\n\nA. short legs\nB. dim eyesight\nC. thick, white fur\nD. slow movement",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_163",
+      "input": "Scientists are studying a pond. Which property can the scientists measure to understand the amount of energy held by the lake water?\n\nA. the depth of the lake\nB. the color of the water\nC. the volume of the lake\nD. the temperature of the water",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_164",
+      "input": "Russell wants to observe changes in nature over the next few months. What can a thermometer help Russell investigate?\n\nA. rainfall amounts each week\nB. tiny organisms in pond water\nC. the high temperatures each day\nD. the amount of growth in a plant",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_165",
+      "input": "The egg stage in the life cycle of a bird is most like which phase in the life cycle of certain types of flowers?\n\nA. seed\nB. spore\nC. pollen\nD. immature flower",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_166",
+      "input": "Peristalsis helps move nutrients through parts of the body by using wavelike contractions. In which system is the function used?\n\nA. circulatory\nB. digestive\nC. endocrine\nD. nervous",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_167",
+      "input": "Which is the best way to help prevent the flu from becoming a pandemic?\n\nA. getting a vaccination\nB. taking antibiotics\nC. eating fruits and vegetables\nD. washing hands often",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_168",
+      "input": "Which theory states that the universe originated as a single mass?\n\nA. Big Bang\nB. Steady State\nC. Astronomical\nD. Catastrophism",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_169",
+      "input": "As two continental plates collide, the edges of the plates are crumpled and uplifted. Which of these landforms is most likely a result of this type of collision?\n\nA. normal faults\nB. mountain ranges\nC. U-shaped valleys\nD. shield volcanoes",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_170",
+      "input": "During a walk in the woods, Mandy finds a plant structure that had fallen onto the trail. Mandy can tell the object contained seeds, and thinks it came from a flowering plant instead of a conifer. How can she determine if the object came from a flowering plant?\n\nA. by looking for seed coats on the seeds\nB. by looking for wing-like structures on the seeds\nC. by looking for fruit tissue around the seeds\nD. by looking for young sporophytes inside the seeds",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_171",
+      "input": "The esophagus, stomach, and small intestine are parts of which body system?\n\nA. nervous\nB. digestive\nC. respiratory\nD. muscular",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_172",
+      "input": "Which of the following is a chemical property of silver?\n\nA. malleable\nB. white metal\nC. conductor of heat\nD. reacts with nitric acid",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_173",
+      "input": "If the climate in an area changed over time to become very cold, which change would most likely help a species living there to survive?\n\nA. a thicker neck and longer tail\nB. a larger mouth and stronger jaws\nC. an increase in fur and fat\nD. an increase in height and speed",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_174",
+      "input": "A broken bone heals through the process of\n\nA. adaptation\nB. mutation\nC. cell division\nD. chemical digestion",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_175",
+      "input": "Which is the best example of an object with kinetic energy?\n\nA. a plate sitting on a table\nB. a bird perching in a tree\nC. a marble rolling down a ramp\nD. a dam holding back some water",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_176",
+      "input": "Lions tend to prey on primary consumers like zebras and gazelles. If there were a sudden decline in a population of lions, which ecological imbalance would most likely occur in the habitat?\n\nA. overgrazing\nB. eutrophication\nC. invasion by non-native species\nD. overproduction of greenhouse gases",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_177",
+      "input": "Which of the following could help to reduce a home heating bill in winter?\n\nA. replacing wood doors with aluminum doors\nB. using more insulation in the walls of the home\nC. removing thick rugs and heavy curtains in the home\nD. painting the roof of the home white to reflect light",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_178",
+      "input": "Elizabeth uses a specific type of whistle to call her dogs. The noise made by the whistle is heard by the dogs but cannot be heard by the human ear. Which statement best describes why humans cannot hear the sound made by the whistle?\n\nA. The speed of the sound is too fast.\nB. The amplitude of the sound is too low.\nC. The frequency of the sound is too high.\nD. The wavelength of the sound is too long.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_179",
+      "input": "Use the information to answer the question. Over the last 150 years, the use of fossil fuels has increased, resulting in more carbon dioxide and other greenhouse gases in the atmosphere. Some scientists think that these atmospheric gases will result in global warming. Scientists have recorded data on global temperature changes and have predicted possible changes in sea level that may affect Maryland residents. Which action helps reduce global warming?\n\nA. developing highways\nB. driving large vehicles\nC. using renewable power sources\nD. using electricity from coal burning power plants",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_180",
+      "input": "As members of a food web, humans are considered to be\n\nA. producers.\nB. consumers.\nC. decomposers.\nD. scavengers.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_181",
+      "input": "Which of the following statements best describes the role of gravity in the formation of stars?\n\nA. Gravity converts solid matter into gases and light energy.\nB. Gravity causes gases and dust particles to condense into spheres.\nC. Gravity cools gases and liquids until they become one solid mass.\nD. Gravity pushes rocks and dust particles outward from a dense center.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_182",
+      "input": "What is the name of the process in which igneous, sedimentary, and metamorphic rocks are converted into one another in stages?\n\nA. rock cycle\nB. erosion cycle\nC. magma cycle\nD. tectonic cycle",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_183",
+      "input": "What is happening when rocks are broken down by both physical and chemical changes?\n\nA. weathering\nB. deposition\nC. condensation\nD. decomposing",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_184",
+      "input": "In a laboratory procedure, students added sodium hydroxide crystals to a beaker of water and allowed the resulting solution to cool. Based on this information, which type of chemical process most likely occurred?\n\nA. electrical\nB. energetic\nC. exothermic\nD. endothermic",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_185",
+      "input": "Students are attempting to make a doorbell ring using some wire and a battery. What is needed to make the bell ring?\n\nA. friction\nB. gravity\nC. a convection current\nD. an electrical circuit",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_186",
+      "input": "Which concept was most likely modified due to the invention of the microscope?\n\nA. size of subatomic particles\nB. composition of living things\nC. number of the moons of Jupiter\nD. formation of sedimentary rocks",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_187",
+      "input": "Which energy transformation occurs during active transport in a cell?\n\nA. light energy -> chemical energy\nB. kinetic energy -> potential energy\nC. chemical energy -> mechanical energy\nD. mechanical energy -> electrical energy",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_188",
+      "input": "The nervous system consists of the brain, spinal cord, and nerves that run throughout the entire body. Which of these is one function of the nervous system?\n\nA. supports body posture\nB. controls body functions\nC. supplies the blood with oxygen\nD. carries blood to and from the heart",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_189",
+      "input": "Which of these is most likely a result of using pesticides on farm crops?\n\nA. rainfall levels could decrease\nB. air temperatures could increase\nC. water sources could become polluted\nD. caterpillars could become extinct",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_190",
+      "input": "The biological selection of a particular allele for a trait to be passed to offspring has nothing do with the selection of the allele for another trait. Which of the following supports this statement?\n\nA. law of independent assortment\nB. law of dominance\nC. law of segregation\nD. law of recessiveness",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_191",
+      "input": "Air pollution can influence a person's quality of life. Which best identifies the influence of air pollution?\n\nA. It is a behavioral influence.\nB. It is a genetic influence.\nC. It is an environmental influence.\nD. It is a dietary influence.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_192",
+      "input": "What information about stars can be learned by using a spectrometer?\n\nA. chemical composition\nB. distance from Earth\nC. size\nD. speed",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_193",
+      "input": "Which is the function of the gallbladder?\n\nA. store bile\nB. produce bile\nC. store digestive enzymes\nD. produce digestive enzymes",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_194",
+      "input": "When trees are removed from a tropical rain forest, other plants and animals are affected. Which statement identifies another change that will most likely occur when a rain forest habitat is destroyed?\n\nA. Oxygen levels will increase.\nB. Carbon dioxide levels will increase.\nC. The temperature of Earth will decrease.\nD. The air pollution in the atmosphere will decrease.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_195",
+      "input": "A student was given the volume and description of a substance and was asked to determine its density. What information is missing?\n\nA. size\nB. mass\nC. boiling point\nD. melting point",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_196",
+      "input": "A geologist found several types of seashell fossils in a rock layer. Which is the best conclusion about the rock layer?\n\nA. The rock was once buried under a swamp.\nB. Water from a river washed across the rock.\nC. The rock was once sediment at the bottom of an ocean.\nD. Migrating animals dropped the seashell into the rock.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_197",
+      "input": "All of the planets in the solar system formed at about the same time from a large cloud of gas and dust. How is Earth different from other planets in the solar system?\n\nA. Earth has no natural satellites.\nB. Earth's atmosphere is composed of gases.\nC. Water is found in all three phases on Earth.\nD. Volcanoes release liquid rock onto Earth's surface.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_198",
+      "input": "When light reflects off certain crystals in the atmosphere, effects called halos appear. Which substance in the atmosphere forms these crystals?\n\nA. carbon dioxide\nB. oxygen\nC. sulfur dioxide\nD. water",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_199",
+      "input": "During which process do animals increase in size?\n\nA. breathing\nB. growing\nC. shedding\nD. repairing",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_200",
+      "input": "In what form do plants store the energy produced from sunlight?\n\nA. radiant\nB. thermal\nC. chemical\nD. mechanical",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_201",
+      "input": "Carmine's mother drinks four cans of soft drink each day. After drinking the soft drinks, Carmine's mother should\n\nA. throw the cans in the trash.\nB. send the cans to a landfill.\nC. take the cans to be recycled.\nD. crush the cans before putting them in the trash.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_202",
+      "input": "A student observes different characteristics of a rock. Which observation best describes a fact about the rock?\n\nA. It has a nice surface.\nB. It has an interesting shape.\nC. It is made of several layers.\nD. It feels warm when touched.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_203",
+      "input": "Xylem cells have very thick walls. They make up most of a tree trunk and its branches. What system in vertebrates provides the same function as the xylem cells in a tree?\n\nA. the skeletal system\nB. the endocrine system\nC. the respiratory system\nD. the integumentary system",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_204",
+      "input": "At one station in a production line, a worker must drill a hole in each end of wooden boards. At the next station, another worker attaches two of the boards together using metal fasteners that fit in the holes. Which of the following processes will ensure that the wooden boards fit together with the fewest errors?\n\nA. placing the parts on a conveyor belt to keep them moving quickly\nB. using a fixture to hold the boards in place as the holes are drilled\nC. inspecting the boards after they are attached to each other\nD. installing equipment to protect workers from debris",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_205",
+      "input": "A student places a ball on the ground and kicks it. The ball moves along the ground. Why does the ball move?\n\nA. The kick decreases the weight of the ball.\nB. The kick applies a contact force to the ball.\nC. The kick decreases the force of gravity acting on the ball.\nD. The kick removes friction between the ball and the ground.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_206",
+      "input": "Why do identical twins usually look like each other?\n\nA. They were born on the same day.\nB. They have the same kinds of interests.\nC. They inherited the same characteristics from their parents.\nD. They were taught the same kinds of things at home.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_207",
+      "input": "The process by which information is encoded, transmitted, stored, decoded, and retrieved is called\n\nA. manufacturing technology.\nB. transportation technology.\nC. construction technology.\nD. communication technology.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_208",
+      "input": "Elements are organized on the periodic table according to\n\nA. electronegativity values.\nB. atomic mass.\nC. atomic number.\nD. the number of neutrons.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_209",
+      "input": "Chromium is characterized by a very high melting point. Use the Periodic Table of the Elements to identify which of these elements most likely has a similar melting point.\n\nA. potassium\nB. manganese\nC. bromine\nD. krypton",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_210",
+      "input": "A scientist finds a plant and states that it is a new species. Which is the best way to verify that it is a new species?\n\nA. develop a theory about the plant\nB. compare the plant to other plants\nC. observe the plant with a microscope\nD. determine the best growing conditions for the plant",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_211",
+      "input": "The bottom of the space shuttle is covered with ceramic tile. This material was chosen because it withstands\n\nA. moisture.\nB. vibration.\nC. heat.\nD. light.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_212",
+      "input": "What is the effect of absorption of infrared light by human skin?\n\nA. sunburn on the skin surface\nB. disinfection of the skin tissues\nC. feeling of warmth on the skin\nD. immediate death of skin cells",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_213",
+      "input": "Some plants need to be in an environment where water drains easily. Which type of soil content will best benefit these plants?\n\nA. sand\nB. shale\nC. clay\nD. silt",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_214",
+      "input": "Which of the following statements best describes sandy soils?\n\nA. Sandy soils allow water to drain quickly.\nB. Sandy soils easily break down into clay sediments.\nC. Sandy soils hold plant roots tightly in place to prevent erosion.\nD. Sandy soils have high levels of decomposed plant and animal matter.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_215",
+      "input": "What type of rock was the fossil most likely found in?\n\nA. igneous\nB. volcanic\nC. sedimentary\nD. metamorphic",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_216",
+      "input": "Which source produces light from nuclear energy?\n\nA. the Sun\nB. a stove burner\nC. the Moon\nD. a light bulb",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_217",
+      "input": "A student rolls a ball on the ground. Which of these causes the ball to slow down and then stop?\n\nA. The motion of the ball\nB. The speed of the ball\nC. Friction from the ground\nD. A magnetic field",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_218",
+      "input": "In the human body, the circulatory system works with the respiratory system by\n\nA. producing red blood cells.\nB. transporting oxygen to organs.\nC. providing nutrients to muscles.\nD. controlling the movement of the lungs.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_219",
+      "input": "What kind of force do brakes use to stop a moving bicycle?\n\nA. gravity\nB. friction\nC. magnetic\nD. push",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_220",
+      "input": "The first powerful telescopes were built during the early 1600s. Scientists at that time were able to learn more about which subject by using the telescope?\n\nA. the shape of continents of Earth\nB. the effect of storms and hurricanes\nC. forces changing the surface of Earth\nD. planets and moons in the solar system",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_221",
+      "input": "A student wants to perform an experiment to determine what temperature is best for growing tomato plants. Which is the best piece of equipment to use in this experiment to measure the independent variable?\n\nA. rain gauge\nB. light meter\nC. tape measure\nD. thermometer",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_222",
+      "input": "Glaciers are slow-moving sheets of ice found on land. What process occurs when glacial ice is heated to 5° Celsius?\n\nA. evaporation\nB. freezing\nC. melting\nD. precipitation",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_223",
+      "input": "Land subsidence (ground level dropping) is most likely an indication that\n\nA. sediments are being deposited.\nB. water is being polluted.\nC. rocks are being weathered.\nD. ground water is being depleted.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_224",
+      "input": "The United States government limits the use of certain pesticides through laws passed in the Endangered Species Protection Program. Which is the most likely reason to enforce laws that limit pesticide use?\n\nA. Some pesticides are expensive.\nB. Some pesticides fail to control insects.\nC. Some pesticides give off foul odors.\nD. Some pesticides can harm non-targeted species.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_225",
+      "input": "Refrigerators were invented to keep food cold. This is helpful in\n\nA. growing food.\nB. cleaning food.\nC. keeping food dry.\nD. keeping food fresh.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_226",
+      "input": "What safety procedure should a student follow when a thermometer is broken during a lab experiment?\n\nA. tell the teacher immediately\nB. stop the experiment immediately\nC. sweep the glass into a biohazard container\nD. use a paper towel to pick up the pieces",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_227",
+      "input": "Which process is most effective for separating sodium chloride from a saltwater solution?\n\nA. filtration\nB. evaporation\nC. magnetic separation\nD. chemical separation",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_228",
+      "input": "Clear cutting of old growth forests in Oregon provides lumber for housing. In the process of clear cutting, plant diversity decreases and some organisms are pushed to extinction. Clear cutting is an example of\n\nA. a change in aquatic conditions.\nB. a change in societal conditions.\nC. a change in atmospheric conditions.\nD. a change in environmental conditions.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_229",
+      "input": "El Niño is a term that refers to the oceanic phenomenon in which the surface water temperatures increase. The increase in water temperature usually occurs in the tropical Pacific Ocean. Which will most likely occur as a result of this phenomenon to cause environmental changes?\n\nA. melting of the polar ice caps\nB. varied atmospheric conditions\nC. an increase in volcanic eruptions\nD. an increase in the length of summers",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_230",
+      "input": "An animal that has thick fur, webbed feet, and blubber would probably live in the\n\nA. Arctic Ocean.\nB. Amazon Rain Forest.\nC. Intracoastal Waterway, Florida.\nD. Mojave Desert, California.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_231",
+      "input": "The rover Spirit is a robotic probe that NASA has placed on Mars. The gravitational attraction of Mars is approximately 62% less than that of Earth. Compared to its measurements on Earth, on Mars the probe has\n\nA. the same weight and the same mass.\nB. a larger weight, but smaller mass.\nC. a smaller mass and larger weight.\nD. a smaller weight and the same mass.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_232",
+      "input": "Sal is looking at a map of Massachusetts. He has measured the distance, in inches, from Boston to Salem on the map. He wants to know how many actual miles the inches represent. What feature of the map should he look for?\n\nA. key\nB. scale\nC. legend\nD. compass",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_233",
+      "input": "A hammer and a screwdriver are next to each other in the sunlight. After one hour, the hammer is hotter than the screwdriver. The shape and mass of each object may affect the amount of heat each object gains. Another explanation for the difference in temperature may be that the hammer and screwdriver are\n\nA. moving at different rates.\nB. made of different materials.\nC. used for different purposes.\nD. picked up in different ways.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_234",
+      "input": "On January 15th, there were 10 hours and 24 minutes of daylight in Jacksonville, Florida. On the same day, there were only 9 hours and 37 minutes of daylight in New York City. Why did New York have fewer hours of daylight than Florida?\n\nA. because Earth rotates\nB. because Earth tilts on its axis\nC. because gravity pulls Earth toward the Sun\nD. because the Moon reflects sunlight onto Earth",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_235",
+      "input": "A euglena has a flagellum and a paramecium has cilia. Both types of organelles help these organisms move through the water. However, a paramecium can also use its cilia to perform another task. What is this task?\n\nA. obtain food\nB. defend the cell\nC. attach to a surface\nD. perform conjugation",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_236",
+      "input": "Which characteristic of wolves is most likely learned?\n\nA. fur color\nB. eyesight\nC. litter size\nD. social behavior",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_237",
+      "input": "Which would most help pollinators find flowers that are pollinated at night?\n\nA. shape\nB. color\nC. size\nD. fragrance",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_238",
+      "input": "A solar eclipse occurs when\n\nA. the Moon blocks the Earth from the Sun.\nB. the first four planets in the solar system are aligned.\nC. Earth blocks the Moon from the Sun.\nD. Earth's shadow falls on the Sun.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_239",
+      "input": "Which process turns a large rock into a pile of smaller stones?\n\nA. deposition\nB. sedimentation\nC. fossilizing\nD. weathering",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_240",
+      "input": "Where are the active volcanoes most likely to be found?\n\nA. where rivers form\nB. where tectonic plates meet\nC. where oceans are deepest\nD. where land and water meet",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_241",
+      "input": "During its lifetime, a star will evolve through several stages. In which stage does a star spend most of its life?\n\nA. red giant\nB. red dwarf\nC. white dwarf\nD. main sequence",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_242",
+      "input": "Which of the following elements is best able to combine with itself and hydrogen [H] to form large molecules?\n\nA. sodium [Na]\nB. lithium [Li]\nC. sulfur [S]\nD. carbon [C]",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_243",
+      "input": "Which of the following is designed to transform an electromagnetic wave into a mechanical wave?\n\nA. a portable radio\nB. a television screen\nC. a computer monitor\nD. a mercury thermometer",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_244",
+      "input": "Four students tried to find out which magnet was the strongest. They each shared one idea. Which idea shows scientific thinking?\n\nA. We can pick the longest magnet.\nB. We can pick the heaviest magnet.\nC. We can measure the strength of the magnets.\nD. We can vote for the magnet that we think is the strongest.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_245",
+      "input": "Energy is transferred in an electrical circuit through\n\nA. static protons.\nB. moving protons.\nC. static electrons.\nD. moving electrons.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_246",
+      "input": "The life cycle of a star includes formation, life, and death. In the Universe, where do new stars originate?\n\nA. from fusion in red giants\nB. in molecular clouds of gas\nC. in radiation from black holes\nD. from large fragments of antimatter",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_247",
+      "input": "What would be the initial result if a DNA molecule did not replicate accurately?\n\nA. infertility of the organism\nB. incorrect protein synthesis\nC. increase in reproduction rate\nD. immediate death of the organism",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_248",
+      "input": "Photosynthesis and respiration are both parts of which cycle?\n\nA. carbon cycle\nB. nitrogen cycle\nC. phosphorous cycle\nD. rock cycle",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_249",
+      "input": "Earth is tilted as it travels around the Sun. The tilt changes the amount of energy each area gets from the Sun, which makes some months of the year warmer than others. What are the four main temperature changes in a year called?\n\nA. seasons\nB. climate\nC. weather\nD. quarters",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_250",
+      "input": "If your hands are cold, you can warm them by rubbing them together. The heat energy that you produce is caused by\n\nA. insulation.\nB. magnetism.\nC. friction.\nD. conduction.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_251",
+      "input": "Large amounts of industrial gases are released into the atmosphere every day. What happens to those gases?\n\nA. They are broken down by ultraviolet light from the Sun.\nB. They are converted into nitrogen and oxygen.\nC. They rise through the atmosphere and go into outer space.\nD. They remain in the atmosphere for long periods of time.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_252",
+      "input": "In which way is a prokaryotic cell different from a eukaryotic cell?\n\nA. A prokaryotic cell is larger.\nB. A prokaryotic cell has no nucleus.\nC. A prokaryotic cell can reproduce itself.\nD. A prokaryotic cell has a cell membrane.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_253",
+      "input": "What is a primary role of decomposers in an ecosystem?\n\nA. They eliminate matter by taking nitrogen from the ecosystem.\nB. They eliminate matter by taking phosphorus from the ecosystem.\nC. They cycle matter by returning carbon and other matter to the ecosystem.\nD. They cycle matter by returning oxygen and other matter to the ecosystem.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_254",
+      "input": "What chemical symbol represents the element copper?\n\nA. C\nB. Co\nC. Cp\nD. Cu",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_255",
+      "input": "Meteorologists study weather. Which of the following should meteorologists know about?\n\nA. types of fronts\nB. types of fossils\nC. types of circuits\nD. types of adaptations",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_256",
+      "input": "The crews of two boats at sea can communicate with each other by shouting. Why is it impossible for the crews of two spaceships a similar distance apart in space to do this?\n\nA. The sound is reflected more in space.\nB. The pressure is too high inside the spaceships.\nC. The spaceships are traveling faster than sound.\nD. There is no air in space for the sound to travel through.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_257",
+      "input": "Which liquid most likely contains a dissolved gas?\n\nA. whole milk\nB. house paint\nC. mud puddle\nD. carbonated soda",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_258",
+      "input": "Silica sand is a resource used in large volume in Nevada. This resource is used to make which product?\n\nA. tar\nB. glass\nC. plastic\nD. electricity",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_259",
+      "input": "Which of these best describes the function of the skeletal system?\n\nA. transports oxygen and nutrients throughout the body\nB. supports and protects tissues and organs\nC. removes harmful wastes from the cells of the body\nD. breaks down food into a form that cells can use",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_260",
+      "input": "A student wants to find out how many different kinds of birds are found in a park. In addition to a bird identification book, the student should use ___.\n\nA. binoculars\nB. goggles\nC. a microscope\nD. a hand lens",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_261",
+      "input": "Nevada mines produce greater quantities of a particular resource than any other state. What resource is produced from these mines?\n\nA. zinc\nB. copper\nC. gold\nD. lead",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_262",
+      "input": "A student throws a ball. Which of these best describes the moving ball?\n\nA. The ball has light energy.\nB. The ball has kinetic energy.\nC. The ball is transferring sound energy to the air.\nD. The ball is transferring light energy to the air.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_263",
+      "input": "During which process does genetic material come from two parents?\n\nA. asexual reproduction\nB. photosynthesis\nC. respiration\nD. sexual reproduction",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_264",
+      "input": "Which of these is a threat to the survival of an ecosystem?\n\nA. predator-prey population cycles\nB. less biomass at higher levels of the food web\nC. a shrinking variety of animal and plant species\nD. competition among some consumer populations",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_265",
+      "input": "Which human organ system produces most of the hormones that regulate body functions?\n\nA. digestive\nB. nervous\nC. muscular\nD. endocrine",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_266",
+      "input": "The complex, three-dimensional structure of a protein is sensitive to heat because the structure is maintained by\n\nA. hydrogen bonds.\nB. covalent bonds.\nC. Brownian motion.\nD. magnetic fields.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_267",
+      "input": "A few types of birds live in the same ecosystem. Which of these characteristics would most likely affect how they compete with each other for food?\n\nA. the types of nests they build\nB. the lengths of their tails\nC. the shapes of their beaks\nD. the colors of their feathers",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_268",
+      "input": "Most of the United States is a part of which tectonic plate?\n\nA. Pacific Plate\nB. Eurasian Plate\nC. North American Plate\nD. South American Plate",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_269",
+      "input": "At one time, scientists believed that living organisms came from nonliving objects. This theory was revised through\n\nA. changes in popular belief.\nB. evidence from experiments.\nC. information published in books.\nD. advances in the scientific method.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_270",
+      "input": "The human body is composed of different systems made of specialized cells, tissues, and organs. Each of these structures has a specific function that aids in the survival of the human species. What is the primary function of the excretory system?\n\nA. to digest food\nB. to help in defense\nC. to eliminate waste\nD. to enable movement",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_271",
+      "input": "Which is the best tool for measuring the temperature of lake water?\n\nA. Meter stick\nB. Balance\nC. Graduated cylinder\nD. Thermometer",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_272",
+      "input": "The teeth of a carnivore are MOSTLY -\n\nA. pointed\nB. rounded\nC. wide\nD. flat",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_273",
+      "input": "Panels of solar cells are used to collect energy from the Sun and convert it into energy for use in homes. Into what type of energy is the solar energy converted?\n\nA. chemical\nB. electrical\nC. geothermal\nD. hydroelectric",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_274",
+      "input": "A student wants to estimate the number of dandelion plants growing in a field. He counts the number of plants in a 5 square meter section of the field. What other information should he obtain to make his estimate?\n\nA. the total area of the field\nB. average rainfall in the area\nC. all the organisms living in the field\nD. energy and nutrient requirements of dandelions",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_275",
+      "input": "Overuse of which water resource tends to cause land to subside?\n\nA. ocean water\nB. aquifer water\nC. river water\nD. lake water",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_276",
+      "input": "Students are preparing to determine the boiling points of several aqueous solutions. In addition to proper lab attire, what devices or instruments will the students need to conduct this experiment?\n\nA. hot plate, beaker, masking tape\nB. thermometer, hot plate, beaker\nC. matches, beaker, thermometer\nD. balance, hot plate, thermometer",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_277",
+      "input": "One solar day on Jupiter lasts only 9 hours and 50 minutes. What causes a solar day?\n\nA. diameter of the planet\nB. rotational speed of the planet\nC. speed of a planet in orbit around the sun\nD. diameter of the orbit of a planet around the sun",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_278",
+      "input": "The finest-grained soils are richest in\n\nA. sand.\nB. humus.\nC. clay.\nD. iron.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_279",
+      "input": "Wind and water are examples of renewable energy sources because\n\nA. they will stop producing energy.\nB. they were formed millions of years ago.\nC. they are always available to produce energy.\nD. they take millions of years to start producing energy.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_280",
+      "input": "Gregor Mendel contributed to the study of biology by the careful, objective study of\n\nA. heredity.\nB. bacteria.\nC. pedigrees.\nD. environment.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_281",
+      "input": "Which statement describes the most likely effect of transformation on bacteria such as E. coli?\n\nA. Transformed bacteria express a new protein product.\nB. Transformed bacteria have multiple chromosomes.\nC. Transformed bacteria reproduce more quickly.\nD. Transformed bacteria become a new species.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_282",
+      "input": "A metal pan will heat up quickly when placed over a gas or electric burner. The metal pan is a good\n\nA. resistor.\nB. insulator.\nC. conductor.\nD. accelerator.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_283",
+      "input": "Which is a fact rather than an opinion about earthquakes?\n\nA. Earthquakes occur along fault lines.\nB. Earthquakes are worse than hurricanes.\nC. Earthquakes are bad for all local businesses.\nD. Earthquakes always cause major damage to homes.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_284",
+      "input": "Which statement best describes the development of a human embryo?\n\nA. A single cell becomes many cells.\nB. Each cell has a different function.\nC. Many cells combine to form one cell.\nD. All the cells have the same function.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_285",
+      "input": "Which of these natural disasters is least likely to cause major damage to a prairie ecosystem?\n\nA. a flood\nB. a tornado\nC. a hurricane\nD. an earthquake",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_286",
+      "input": "The life cycle of a beetle is similar to the butterfly. Which process changes the beetle from larva to adult?\n\nA. molting\nB. migration\nC. photosynthesis\nD. metamorphosis",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_287",
+      "input": "Which adaptation helps a bird fly?\n\nA. larger feet\nB. bigger eyes\nC. longer beaks\nD. hollow bones",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_288",
+      "input": "Scientists are able to correlate time and the amount of difference between homologous genes when studying the divergence of two species because scientists have reliable estimates for which value?\n\nA. rate of genetic mutations\nB. survival benefit of specific genes\nC. pressure of selection on base pairs\nD. number of bases in species' genomes",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_289",
+      "input": "Which of the following is a part of the process of sexual reproduction?\n\nA. budding\nB. regeneration\nC. pollination\nD. fragmentation",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_290",
+      "input": "Why are diseases transmitted through the bites of infected animals not considered contagious diseases?\n\nA. The infected animals do not show symptoms.\nB. The person in direct contact is the only one infected.\nC. Humans do not become sick from animal diseases.\nD. The diseases are treatable with antibiotics.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_291",
+      "input": "Scientists theorize that the original atmosphere of Earth was stripped away by the solar wind shortly after the formation of the planet. The Jovian planets are far enough from the Sun that the solar wind has less of an impact. Studies of the Jovian planets suggest the early atmosphere of Earth was mainly composed of which two gases?\n\nA. oxygen and argon\nB. hydrogen and helium\nC. carbon dioxide and nitrogen\nD. sulfur dioxide and water vapor",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_292",
+      "input": "Which human body systems work directly together to allow locomotion?\n\nA. circulatory, excretory, and respiratory\nB. circulatory, endocrine, and reproductive\nC. skeletal, muscular, and nervous\nD. skeletal, digestive, and respiratory",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_293",
+      "input": "Which is the best evidence for the theory of continental drift?\n\nA. the appearance of volcanoes at the boundaries where plates collide\nB. earthquakes at boundaries where one plate slides past another\nC. cases where a species exists in only one isolated place\nD. fossils of the same species found on widely separated continents",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_294",
+      "input": "Students go on a field trip to observe salmon spawning in a river. For safety reasons, the students should not\n\nA. explore alone.\nB. listen to instructions.\nC. take notes.\nD. bring water.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_295",
+      "input": "Which of the following involves a learned behavior?\n\nA. laying eggs to reproduce\nB. having hollow, light-weight bones\nC. avoiding insects that taste bad\nD. having white feathers on the throat",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_296",
+      "input": "Which of the following colors of visible light has the longest wavelength?\n\nA. red\nB. blue\nC. green\nD. orange",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_297",
+      "input": "Which is an example of a form of electrical energy?\n\nA. lightning\nB. windmill\nC. radio waves\nD. sound waves",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_298",
+      "input": "Which of the following lists units of length from smallest to largest?\n\nA. light-year, astronomical unit, kilometer, angstrom\nB. angstrom, kilometer, astronomical unit, light-year\nC. astronomical unit, angstrom, kilometer, light-year\nD. kilometer, angstrom, light-year, astronomical unit",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_299",
+      "input": "Each layer of Earth has different properties. Which statement best describes the mantle of Earth?\n\nA. The mantle lies below the core.\nB. The mantle is composed of hot gases.\nC. The mantle lies between the core and the crust.\nD. The mantle temperature is lower than the crust temperature.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_300",
+      "input": "Which of these is the best example of sexual reproduction?\n\nA. binary fission\nB. budding\nC. fusing gametes\nD. fragmentation",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_301",
+      "input": "Which of these events during a storm at sea can add oxygen from the atmosphere to ocean water?\n\nA. high winds\nB. lightning\nC. pressure change\nD. temperature change",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_302",
+      "input": "Which layer of Earth is the thinnest?\n\nA. Inner core\nB. Crust\nC. Outer core\nD. Mantle",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_303",
+      "input": "Based on the Periodic Table of the Elements, which of these elements has properties most similar to calcium (Ca)?\n\nA. carbon [C]\nB. barium [Ba]\nC. sodium [Na]\nD. manganese [Mn]",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_304",
+      "input": "As a river enters a larger body of water, sediments are deposited over a wide area. Which of these landforms is likely to be formed at the site of deposition?\n\nA. Cave\nB. Mountain\nC. Delta\nD. Valley",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_305",
+      "input": "Which of these is a chemical property of a material?\n\nA. density\nB. flammability\nC. color\nD. brittleness",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_306",
+      "input": "About how long is a lunar cycle?\n\nA. 1 day\nB. 1 week\nC. 28 days\nD. 52 weeks",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_307",
+      "input": "Of the following types of cells, which has the highest concentration of mitochondria?\n\nA. bone\nB. muscle\nC. nerve\nD. skin",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_308",
+      "input": "What helps skin feel heat and pressure?\n\nA. muscle cells\nB. blood cells\nC. nerve cells\nD. bone cells",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_309",
+      "input": "Erosion and weathering can both cause changes to the surface of Earth. Which of the following happens only because of erosion and NOT because of weathering?\n\nA. Rocks form deep underground.\nB. Rocks become smooth and round.\nC. Rocks are broken apart into small pieces.\nD. Rocks are moved from one place to another.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_310",
+      "input": "Which is an advantage of sexual reproduction in the survival of a population?\n\nA. prevents mutation\nB. maintains genetic diversity\nC. reduces the number of genes\nD. creates competition between siblings",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_311",
+      "input": "A species of moth in England has both a light-colored form and a dark-colored form. In the mid-1800s, the percentage of dark-colored moths increased in areas where black soot from factories covered the trees. The soot in these areas has decreased in more recent times as a result of pollution laws. Which of the following statements describes what has most likely happened to the moth populations in these areas?\n\nA. The moth populations went extinct.\nB. The moth populations migrated south.\nC. The percentage of light-colored moths in the populations decreased.\nD. The percentage of dark-colored moths in the populations decreased.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_312",
+      "input": "Energy appears in many forms. What form of energy is lightning?\n\nA. electrical energy\nB. mechanical energy\nC. magnetic energy\nD. sound energy",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_313",
+      "input": "People take in and release gases from the air when they breathe. Which exhaled gas is a waste product of respiration?\n\nA. oxygen\nB. helium\nC. hydrogen\nD. carbon dioxide",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_314",
+      "input": "A unicellular organism is best described as being\n\nA. a complex organism.\nB. a microorganism.\nC. an organism with specialized cells.\nD. an organism with different types of tissues.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_315",
+      "input": "Which of the following best describes how plants use the energy they receive from sunlight?\n\nA. They change water into heat.\nB. They produce their own food.\nC. They make minerals for their roots.\nD. They break down nutrients into rocks.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_316",
+      "input": "What can be inferred from a food product advertisement that claims \"30% less fat than our leading competitors\"?\n\nA. It is a sugar-free product.\nB. It will help a person lose weight.\nC. It is the healthiest choice available.\nD. The fat content of the item is reduced.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_317",
+      "input": "Which material is the best conductor of electricity?\n\nA. Wood\nB. Metal\nC. Stone\nD. Plastic",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_318",
+      "input": "A ball is dropped from the top of a tall building. As the ball falls, the upward force of air resistance becomes equal to the downward pull of gravity. When these two forces become equal in magnitude, the ball will\n\nA. flatten due to the forces.\nB. fall at a constant speed.\nC. continue to speed up.\nD. slow to a stop.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_319",
+      "input": "Which statement describes an interaction between the hydrosphere and the atmosphere?\n\nA. Flowing water carves through rock to form a canyon.\nB. Lava from an underwater volcano cools to form a mountain.\nC. Ashes rise from a volcanic eruption to block sunlight.\nD. Water vapor rises from the ocean to form clouds.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_320",
+      "input": "Often organisms seem similar in their outward appearances. For example, a porpoise and a shark seem closely related, but they are not. Such similarity is the result of\n\nA. convergent evolution.\nB. adaptive radiation.\nC. artificial selection.\nD. genetic equilibrium.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_321",
+      "input": "A group of frogs live together near a small pond. The frogs compete with each other most for which resource?\n\nA. air\nB. insects\nC. plants\nD. sunlight",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_322",
+      "input": "Which process converts organic nitrogen into an inorganic form that can be used by plants?\n\nA. decomposition\nB. sedimentation\nC. absorption\nD. radiation",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_323",
+      "input": "In animals, female traits are passed down to offspring from\n\nA. sperm.\nB. seeds.\nC. pollen.\nD. eggs.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_324",
+      "input": "The visible light spectrum can be subdivided according to\n\nA. the types of waves.\nB. the sizes of particles.\nC. a range of colors.\nD. a type of energy.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_325",
+      "input": "Three scientists conducted the same experiment to analyze the effectiveness of a cleaning agent on household bacteria. What is the main advantage of having the experiment repeated?\n\nA. More bacteria will be destroyed.\nB. The results will be more reliable.\nC. A scientific journal will publish their work.\nD. The conclusion will lead to new discoveries.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_326",
+      "input": "Today, almost all cars have seat belts. How does improving the design of seat belts help people the most?\n\nA. It decreases the cost of cars.\nB. It increases the speed at which cars can travel.\nC. It decreases injuries to passengers in cars.\nD. It increases the comfort of passengers in cars.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_327",
+      "input": "Which type of organism is made of one cell?\n\nA. trees\nB. bacteria\nC. fern\nD. fish",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_328",
+      "input": "At camp, Raj sees a lightning storm. He sees the lightning before he hears the thunder. What does this show?\n\nA. Light moves faster than sound\nB. Light moves slower than sound\nC. Light and sound move at the same speed",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_329",
+      "input": "What advantage do the offspring of a dandelion have by reproducing asexually?\n\nA. Reproduction occurs rapidly.\nB. Reproductive competition is increased.\nC. Mating compatibility improves.\nD. Diversity increases between generations.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_330",
+      "input": "Which of the following statements best describes a result of using interchangeable parts to manufacture automobiles?\n\nA. The automobiles are identical.\nB. The automobiles wear out quickly.\nC. The automobiles are difficult to design.\nD. The automobiles can be produced on an assembly line.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_331",
+      "input": "A stone arch bridge relies primarily on which of the following for its load strength?\n\nA. bending\nB. compression\nC. tension\nD. torsion",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_332",
+      "input": "After a storm, a hospital may have to rely on backup generators to power some equipment. Which is the energy conversion provided by the generators?\n\nA. mechanical energy to electrical energy\nB. thermal energy to mechanical energy\nC. nuclear energy to mechanical energy\nD. thermal energy to electrical energy",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_333",
+      "input": "Many flowers attract bees. Bees consume nectar from the flower for energy. How does this interaction benefit the plant?\n\nA. by increasing photosynthesis\nB. by pollinating it\nC. by limiting growth\nD. by reducing competition",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_334",
+      "input": "In living things, traits are passed on from one generation to the next by the transfer of\n\nA. blood\nB. minerals\nC. Calories\nD. DNA",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_335",
+      "input": "Every organism in an ecosystem receives energy from another source. Which of these organisms receives its energy directly from the Sun?\n\nA. deer\nB. fungus\nC. grass\nD. hawk",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_336",
+      "input": "Aristotle taught that a force was always required to keep an object moving. Which of the following states what Newton believed?\n\nA. Aristotle was correct.\nB. Aristotle was correct for objects on Earth but not in space.\nC. An object will keep moving unless an unbalanced force stops it.\nD. A moving object will eventually stop even though an unbalanced force keeps pushing on it.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_337",
+      "input": "The solar system containing Earth consists of a sun and planets. Which statement best describes the motion of the planets in our solar system?\n\nA. The planets rotate around the sun.\nB. The sun rotates around the planets.\nC. The planets revolve around the sun.\nD. The sun revolves around the planets.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_338",
+      "input": "Animal wastes contain bacteria that make organisms sick. These wastes are often washed into water supplies by storms. How might a pet owner prevent these bacteria from polluting water supplies?\n\nA. Brush the pet daily to remove bacteria.\nB. Feed pets food that produces less waste.\nC. Bag the pet waste and throw it in the trash.\nD. Wash the pet with shampoo to kill the bacteria.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_339",
+      "input": "Which of the following is performed by the quality control division of a company that is manufacturing a chair?\n\nA. applying the varnish\nB. assembling the parts\nC. cutting the material\nD. inspecting the finish",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_340",
+      "input": "Which type of storm causes the most flooding in areas located near an ocean coastline?\n\nA. Tornado\nB. Hurricane\nC. Blizzard\nD. Freezing rain",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_341",
+      "input": "Anne and her father find a 30-million year-old tropical plant fossil in Louisiana. Which question does the fossil help them answer?\n\nA. Were there mountains in Louisiana 30 million years ago?\nB. What was the climate like in Louisiana 30 million years ago?\nC. Were there earthquakes in Louisiana 30 million years ago?\nD. What kind of animals lived in Louisiana 30 million years ago?",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_342",
+      "input": "In the Four Corners area in the US Southwest, there are large rocky outcroppings of basalt. These were formed by ancient lava flows. Using this information, what class of rock is this?\n\nA. metamorphic\nB. sedimentary\nC. igneous\nD. weathered",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_343",
+      "input": "The heath hen, an extinct small wild fowl, was a relative of the prairie chicken. Which of the following most likely caused extinction of the heath hen?\n\nA. overhunting\nB. stable climate\nC. plentiful food supply\nD. abundant nesting sites",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_344",
+      "input": "A stationary air mass over the Gulf of Mexico would typically be\n\nA. warm and dry.\nB. warm and humid.\nC. cool and dry.\nD. cool and humid.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_345",
+      "input": "Which of the following metals will be attracted to a magnet?\n\nA. copper\nB. gold\nC. iron\nD. silver",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_346",
+      "input": "A student wants to create a drawing of the water cycle. Which image can the student use to represent water cycling through the atmosphere?\n\nA. a cloud\nB. a stream\nC. a frozen lake\nD. a drop of dew",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_347",
+      "input": "Which is made with the help of bacteria?\n\nA. Yogurt\nB. Cream\nC. Soap\nD. Cooking oil",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_348",
+      "input": "Lamar learned that birds, mammals, and reptiles are all vertebrates. Which characteristic do all vertebrates share?\n\nA. They all lay eggs.\nB. They all have feathers.\nC. They all have a backbone.\nD. They are all warm-blooded.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_349",
+      "input": "Which of these is most likely to create large areas of land subsidence?\n\nA. eruptions of volcanoes\nB. extraction of ground water\nC. global warming\nD. greenhouse effect",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_350",
+      "input": "Which of the following best describes two atoms of oxygen that are chemically bonded to each other?\n\nA. molecule\nB. compound\nC. solution\nD. mixture",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_351",
+      "input": "If the climate in an area were to become much drier, which plant variation would be most advantageous to the survival of the species?\n\nA. bigger branches\nB. larger flowers\nC. thicker leaves\nD. longer stems",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_352",
+      "input": "Which form of energy is in firewood?\n\nA. light\nB. sound\nC. kinetic\nD. potential",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_353",
+      "input": "What covers most of the Earth's surface?\n\nA. Water\nB. Bare rock\nC. Farm land\nD. Cities and towns",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_354",
+      "input": "Which tool is best used to observe a soil sample?\n\nA. camera\nB. compass\nC. hand lens\nD. telescope",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_355",
+      "input": "A student walks along a trail by a lake on a cool summer morning. Which statement is an observation the student could make?\n\nA. Fog is rising from the lake.\nB. The water is too cold for swimming.\nC. The water is cold because it comes from melted snow.\nD. The temperature of the air is rising because the Sun is out.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_356",
+      "input": "Eating food that is undercooked can lead to a disease that affects the digestive system. Which body part is directly affected by the disease?\n\nA. intestines\nB. arteries\nC. nerves\nD. sinuses",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_357",
+      "input": "Which property supports the hypothesis that eukaryotic mitochondria were once prokaryotic organisms?\n\nA. They lack genetic material.\nB. They lack a mechanism of motility.\nC. They lack internal membrane-bound organelles.\nD. They lack a need for proteins in their life functions.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_358",
+      "input": "Metals that easily transfer electricity are called\n\nA. resistors.\nB. magnets.\nC. insulators.\nD. conductors.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_359",
+      "input": "Animals and plants need oxygen to live. Oxygen is released in photosynthesis. Which cycle includes photosynthesis?\n\nA. the carbon cycle\nB. the nitrogen cycle\nC. the water cycle\nD. the rock cycle",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_360",
+      "input": "The Statue of Liberty was built in France and then taken apart into 350 pieces for shipping. When the pieces arrived in New York, the statue was put together. Which statement describes the relationship between the mass of the 350 pieces and the mass of the whole statue?\n\nA. The mass of the pieces is greater than the mass of the statue.\nB. The mass of the pieces is the same as the mass of the statue.\nC. The mass of the statue is greater than the mass of the pieces.\nD. The mass of the statue is not related to the mass of the pieces.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_361",
+      "input": "Which statement describes the weather when water droplets in clouds become heavy and the temperature is 20°C (68°F)?\n\nA. It is clear and breezy.\nB. It is raining.\nC. It is snowing.\nD. It is sunny and clear.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_362",
+      "input": "Scientists use different tools during their investigations. What tool does a scientist use to study cells?\n\nA. a balance\nB. a microscope\nC. a centimeter ruler\nD. a graduated cylinder",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_363",
+      "input": "Snowy owls live in very cold areas. Which adaptation is most likely a result of living in this type of environment?\n\nA. sharp claws\nB. curved beaks\nC. large, yellow eyes\nD. thick, white feathers",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_364",
+      "input": "Sodium bicarbonate (NaHCO_{3}) will neutralize stomach acid (HCl) in a double replacement reaction as follows: NaHCO_{3} + HCl -> NaCl + CO_{2} + \\Box What is the product necessary to make this reaction complete?\n\nA. 2HO\nB. HO_{2}\nC. H_{2}O_{2}\nD. H_{2}O",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_365",
+      "input": "Heat transfer by conduction occurs when molecules\n\nA. flow as currents through liquids\nB. form waves that travel through space\nC. become less dense and rise\nD. collide with other molecules",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_366",
+      "input": "The color of an object such as an apple is the same as the color the light waves\n\nA. that travel through the object\nB. that are absorbed by the object\nC. that are reflected by the object\nD. that travel around the object",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_367",
+      "input": "What causes the tectonic plates of Earth to continually move?\n\nA. convection currents in the mantle\nB. volcanic and seismic activity in the crust\nC. strong winds and storms\nD. rotation of the solid core",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_368",
+      "input": "Which is the correct order in the process of sedimentary rock formation?\n\nA. compaction, erosion, cementation, deposition\nB. compaction, weathering, erosion, cementation\nC. weathering, deposition, cementation, burial\nD. weathering, erosion, deposition, compaction",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_369",
+      "input": "The discovery of tectonic plates and the cause of their movement is best described as a result of which scientific procedure?\n\nA. direct observation of the important properties of the Earth system\nB. controlled laboratory experimentation on a simulation of geological systems\nC. methodical testing of a valid hypothesis statement\nD. inquiry into the causes of observed geological phenomena",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_370",
+      "input": "Cancer is most often the result of\n\nA. abnormal cell division\nB. natural selection\nC. bacterial infection\nD. biological adaptation",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_371",
+      "input": "All organisms need food to survive. Which statement best describes the purpose of food for organisms?\n\nA. Food provides skin color.\nB. Food provides oxygen for life.\nC. Food provides water for energy.\nD. Food provides energy for growth.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_372",
+      "input": "Soil is important to a forest because the soil ___.\n\nA. stores sunlight in the leaves\nB. attracts insects that eat leaves\nC. provides nutrients to the trees\nD. warms the air around the trees",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_373",
+      "input": "How do muscles and bones work together to create body movement?\n\nA. The muscles pull on the bones.\nB. The muscles protect the bones.\nC. Muscles grow at the same rate as bones.\nD. Muscles send electrical impulses to bones.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_374",
+      "input": "Biologists moved a predator from sea level to a higher altitude, where they noticed that the predator became tired more quickly. If this predator had to live at a higher altitude, which adaptation would be necessary for it to survive?\n\nA. increased digestion rate\nB. growth of additional teeth\nC. reduction of respiration rate\nD. production of more red blood cells",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_375",
+      "input": "Ernie made a diagram to model Earth's orbit. What shape is most like what Ernie drew for the orbit?\n\nA. square\nB. oval\nC. triangle\nD. rectangle",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_376",
+      "input": "Classification of galaxies is based on which characteristic?\n\nA. the color of the galaxy\nB. the shape of the galaxy\nC. how many stars make up the galaxy\nD. how many planets make up the galaxy",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_377",
+      "input": "Which physical characteristic of a puppy is most likely inherited from its parents?\n\nA. coat color\nB. desire to play fetch\nC. body weight\nD. ability to follow commands",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_378",
+      "input": "A scientist crosses two different varieties of corn to produce a single variety that has traits from both parents. This technique is an example of\n\nA. competition\nB. natural selection\nC. selective breeding\nD. ecological succession",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_379",
+      "input": "A class measures the time it takes for two different trucks to drive across the parking lot. How can they tell which truck is faster?\n\nA. The truck that starts moving first is faster.\nB. The truck that takes less time is faster.\nC. The truck that has bigger tires is faster.\nD. The truck that takes more time is faster.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_380",
+      "input": "The fossils of dinosaurs that lived millions of years ago can be found in\n\nA. the water of oceans.\nB. the ice on ponds.\nC. the trunks of trees.\nD. rocks in the ground.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_381",
+      "input": "Which of the following contains salt water?\n\nA. oceans\nB. raindrops\nC. groundwater\nD. polar icecaps",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_382",
+      "input": "During digestion, fructose is produced by the breakdown of larger molecules. Which type of molecule could be broken down to increase the body's fructose levels?\n\nA. proteins\nB. vitamins\nC. triglycerides\nD. carbohydrates",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_383",
+      "input": "Which is the most important reason for scientists to publish their data and findings that result from a scientific investigation?\n\nA. to become famous\nB. to get paid for their research\nC. to allow other scientists to try to replicate their results\nD. to gain respect from their peers in the scientific community",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_384",
+      "input": "Which reflects light?\n\nA. mirror\nB. camera\nC. telescope\nD. eyeglasses",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_385",
+      "input": "Which of the following is a necessary condition for a lunar eclipse to occur?\n\nA. The Moon must be full.\nB. The Moon must be waxing.\nC. It must be the beginning of the month.\nD. It must be winter in the Northern Hemisphere.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_386",
+      "input": "The excessive use of nitrogen-based fertilizers causes runoff that increases the nitrogen content of lakes and bays. These nitrogen compounds directly affect the aquatic ecosystems by\n\nA. interfering with the water cycle.\nB. decreasing the predator population.\nC. increasing the rate of algae growth.\nD. causing aquatic animals to grow larger.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_387",
+      "input": "A blacksmith bends a metal rod into a round wheel. Which statement best describes the wheel?\n\nA. The wheel weighs less than the rod.\nB. The wheel weighs more than the rod.\nC. The wheel is made of the same substance as the rod.\nD. The wheel is made of a different substance than the rod.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_388",
+      "input": "Which moon phase occurs approximately 14 days after a full moon?\n\nA. waxing gibbous\nB. waning crescent\nC. first quarter\nD. new moon",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_389",
+      "input": "After a person eats, the food is converted into energy by\n\nA. muscles.\nB. tissues.\nC. bones.\nD. cells.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_390",
+      "input": "Which statement best describes the primary role of perspiration in humans?\n\nA. Perspiration rids the body of excess water.\nB. Perspiration eliminates bacteria from the skin.\nC. Perspiration opens skin pores to absorb more oxygen.\nD. Perspiration helps to maintain a stable body temperature.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_391",
+      "input": "A person produces two sound waves with a flute, one immediately after the other. Both sound waves have the same pitch, but the second one is louder. Which of the following properties is greater for the second sound wave?\n\nA. Frequency\nB. Amplitude\nC. Wavelength\nD. Speed in air",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_392",
+      "input": "Why is the light year often used to describe distances between objects in the universe?\n\nA. because of the way planets reflect light\nB. because of the great number of bright stars\nC. because of the way objects rotate and revolve\nD. because of the large distance between objects in space",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_393",
+      "input": "Which organisms break down dead matter and recycle nutrients back into the ecosystem?\n\nA. grasses and trees\nB. rabbits and deer\nC. lions and alligators\nD. mushrooms and bacteria",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_394",
+      "input": "A student viewing a cell with a microscope observes a cell wall, a cell membrane, and a nucleus. The presence of these structures indicates that the student is looking at a cell from a\n\nA. rabbit\nB. carrot\nC. worm\nD. fly",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_395",
+      "input": "Which action results in a chemical change?\n\nA. apples being cut into slices\nB. wood burning in a fireplace\nC. wet clothes drying on a clothesline\nD. snow being shoveled off of a sidewalk",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_396",
+      "input": "What has occurred when bubbles form in a liquid that is being heated?\n\nA. Oxygen is absorbed from the air.\nB. Heat is radiating in the liquid.\nC. The boiling point has been reached.\nD. Molecular stability in the liquid is increasing.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_397",
+      "input": "The breakfast that a student ate provided energy for bicycling later in the day. Which energy transformation most likely occurred?\n\nA. radiant to nuclear\nB. chemical to nuclear\nC. radiant to mechanical\nD. chemical to mechanical",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_398",
+      "input": "In an experiment, water and salt are mixed together. What is the best way to separate the salt from the water?\n\nA. filter the salt\nB. freeze the mixture\nC. evaporate the water\nD. pour the water out of the container",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_399",
+      "input": "A metal spoon and a wooden spoon are used to stir a pot of hot soup. After a few minutes, the metal spoon feels hotter than the wooden spoon. What explains this?\n\nA. Metal is always hotter than wood.\nB. Metal conducts heat better than wood.\nC. Metal conducts electricity better than wood.\nD. Metal heats up the water better than the wood.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_400",
+      "input": "Materials made of the same substance will have characteristics in common. Which property is most likely to remain constant in different samples of the same material?\n\nA. density\nB. mass\nC. shape\nD. volume",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_401",
+      "input": "Which is Earth's largest source of drinkable water?\n\nA. lakes\nB. rivers\nC. oceans\nD. aquifers",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_402",
+      "input": "Some classrooms have computers. The computer is most useful to the students because it helps them\n\nA. play games.\nB. watch movies.\nC. listen to music.\nD. find information.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_403",
+      "input": "Which of these is an example of something being recycled?\n\nA. Taking glass bottles to a place that makes them into new bottles\nB. Using the same foil to cover food several times\nC. Wrapping glasses with newspaper to put them in a moving box\nD. Carrying lunch to school every day in the same plastic bag",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_404",
+      "input": "Which of the following is an example of a compound?\n\nA. copper\nB. iron\nC. carbon\nD. water",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_405",
+      "input": "One rabbit runs faster than other rabbits in its population. How will the ability to run fast most likely benefit the rabbit?\n\nA. by keeping the rabbit warmer in the winter\nB. by helping the rabbit blend with its environment\nC. by allowing the rabbit to find more sources of food\nD. by making it easier for the rabbit to escape from predators",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_406",
+      "input": "What is the BEST reason for including fruits and leafy vegetables in a healthy diet?\n\nA. They have a high water content.\nB. They are the best source of protein.\nC. They are rich in minerals and vitamins.\nD. They are the best source of carbohydrates.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_407",
+      "input": "In one day, a family in a car rode for 2 hours, stopped for 3 hours, and then rode for another 5 hours. During the day, the family traveled a total distance of 400 kilometers. What was their average speed for the whole trip?\n\nA. 10 km/h\nB. 20 km/h\nC. 40 km/h\nD. 50 km/h",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_408",
+      "input": "A Raleigh man turned on his kitchen faucet and filled a glass with water. When he looked at the water, he thought that it might not be safe to drink, so he called the water company to find out. What factor did the man use to evaluate the safety of the water?\n\nA. pH\nB. turbidity\nC. nitrate concentration\nD. phosphate concentration",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_409",
+      "input": "Which of these is the main source of the electromagnetic energy we use?\n\nA. battery\nB. wind\nC. sun\nD. coal",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_410",
+      "input": "Which of the following is the starting point for a new scientific investigation?\n\nA. identifying experimental variables\nB. forming a question that is the basis of a hypothesis\nC. conducting repeated trials and graphing the data\nD. writing out a procedure and collecting the needed equipment",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_411",
+      "input": "All organisms depend on the transfer of energy to survive. Which best shows the energy transfer between animals in a shoreline ecosystem?\n\nA. Fish -> Plants -> Birds\nB. Plants -> Birds -> Fish\nC. Plants -> Fish -> Birds\nD. Fish -> Birds -> Plants",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_412",
+      "input": "Which investigation might be used to demonstrate potential energy?\n\nA. Roll one ball toward another, and see what happens when they collide.\nB. Place a glass of water in the freezer, and see how long the water takes to become solid.\nC. Compress a spring by different amounts, and see how far it can launch a ball into the air.\nD. Roll a ball from the top of an inclined plane and determine the amount of time it takes to get to the bottom.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_413",
+      "input": "The fossil record shows that trees have changed throughout the years. Which of the following conclusions would be best supported by the fossil record?\n\nA. The environment has changed.\nB. Animals need leafy trees.\nC. Rocks can destroy trees.\nD. Trees give off oxygen.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_414",
+      "input": "An agriculturalist predicts that the tomato harvest will be very good this year. Which has the greatest effect on the size of the tomato harvest?\n\nA. the time of day the seeds are planted\nB. the amount of fruit picked after dark\nC. the type of soil in which the crops are grown\nD. the number of times daily that the farmer observes the crop",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_415",
+      "input": "A student investigates the effect of temperature on the distance a caterpillar travels in one minute. The student performs the investigation at four different times of day using one caterpillar. This experiment could be improved if the student\n\nA. uses more than one caterpillar.\nB. performs the investigation on a wet surface.\nC. uses earthworms instead of caterpillars.\nD. performs the investigation at the same time on four days.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_416",
+      "input": "A bright object with a long tail of glowing gases is in orbit around the Sun. This object is most likely\n\nA. a planet\nB. a star\nC. an asteroid\nD. a comet",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_417",
+      "input": "A hearing aid is a small device that contains an amplifier, a battery, a microphone, and a speaker. Which part of a hearing aid functions to detect sounds in the user's environment?\n\nA. the amplifier\nB. the battery\nC. the microphone\nD. the speaker",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_418",
+      "input": "In an experiment studying phototropism, students grew bean plants in labeled cardboard milk cartons. Afterward, the plants and soil were properly discarded. Which instruction line BEST conserves the remaining resources?\n\nA. recycle the markers, reuse the milk cartons\nB. reuse the markers, discard the milk cartons\nC. discard the markers, reuse the milk cartons\nD. reuse the markers, recycle the milk cartons",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_419",
+      "input": "How are electromagnetic waves different from other waves?\n\nA. They have very short wavelengths.\nB. They transmit energy instead of matter.\nC. They can travel through a vacuum and through matter.\nD. They can change direction by reflection when they strike an object.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_420",
+      "input": "The Sun releases light and heat energy that cause changes on Earth. How does the Sun's energy change water?\n\nA. The energy makes liquid water freeze.\nB. The energy makes water vapor from liquid water.\nC. The energy makes clouds release rain.\nD. The energy makes water collect into puddles.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_421",
+      "input": "In the 18th century, smallpox was a common and deadly disease. A country doctor, Edward Jenner, observed that patients working with cattle who contracted a mild disease called cowpox, never came down with the more serious smallpox. When Jenner obtained liquid from cowpox sores and injected it into healthy patients, they became immune to smallpox. What term best describes Jenner's treatment for smallpox?\n\nA. vaccination\nB. gene therapy\nC. chemotherapy\nD. genetic engineering",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_422",
+      "input": "What is the name of a circuit in which the current splits at the junctions?\n\nA. closed circuit\nB. parallel circuit\nC. series circuit\nD. short circuit",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_423",
+      "input": "A coach is standing at the finish line of a race. He is holding a stopwatch. What is the coach most likely measuring with the stopwatch?\n\nA. the time of day\nB. the distance of the race\nC. the time it took to run the race\nD. the number of steps taken by the runners",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_424",
+      "input": "A growing community relies on a nearby lake to provide fresh water for drinking and bathing. An increase in the use of fresh water will cause the lake to become\n\nA. colder\nB. deeper\nC. larger\nD. smaller",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_425",
+      "input": "Which of these senses lets Dora know when a skunk has been close to her house?\n\nA. Taste\nB. Touch\nC. Smell\nD. Hearing",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_426",
+      "input": "In 2001, NASA launched a probe to investigate very low-energy radiation emitted when the universe began. What part of the electromagnetic spectrum does this probe observe and record?\n\nA. infrared\nB. microwave\nC. ultraviolet\nD. visible",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_427",
+      "input": "What electrical charge does a proton have in an atom?\n\nA. +2\nB. +1\nC. -1\nD. -2",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_428",
+      "input": "Work is a product of force and distance. Which of the following is an example of work?\n\nA. sitting at a desk\nB. pushing on a wall\nC. riding a bike\nD. reading a book",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_429",
+      "input": "All of the different organisms interacting in a pond make up\n\nA. a community\nB. a population\nC. the water cycle\nD. the habitat",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_430",
+      "input": "If a lake is polluted, which organisms would most likely accumulate the highest concentration of contaminants?\n\nA. bass\nB. minnows\nC. aquatic plants\nD. fish-eating birds",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_431",
+      "input": "Sand is a type of soil that is made of very tiny pieces of material. Which process most likely forms sand?\n\nA. the rotation of Earth\nB. the growth of animals\nC. the decay of large trees\nD. the weathering of rocks",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_432",
+      "input": "What is needed to change ice into water?\n\nA. air\nB. energy\nC. stirring\nD. chemicals",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_433",
+      "input": "Stars form from nebulae of dust and gases. Depending on its properties, a star may become a red, yellow, white, or blue star. Which property determines this star type?\n\nA. age\nB. location\nC. mass\nD. shape",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_434",
+      "input": "Which of these is MOST likely made from only one material?\n\nA. A pencil\nB. A bicycle\nC. A paper clip\nD. A pair of shoes",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_435",
+      "input": "Francis plugged a toaster into an electric outlet. He put a piece of bread in the toaster and turned the toaster on. While the toaster was on, it changed the electrical energy from the outlet into other forms of energy. Which form of energy toasted the bread?\n\nA. chemical\nB. heat\nC. magnetic\nD. sound",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_436",
+      "input": "A student measured liquid with a graduated cylinder. Which of the following units could be used to record the volume of the liquid?\n\nA. pounds\nB. meters\nC. grams\nD. milliliters",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_437",
+      "input": "Which term is an example of a life process?\n\nA. coloration\nB. camouflage\nC. migration\nD. reproduction",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_438",
+      "input": "A student divides several cubes into two groups, based on whether or not each cube can float in later. What property is the student using to classify the cubes?\n\nA. weight\nB. density\nC. conductivity\nD. mass",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_439",
+      "input": "Use The Periodic Table of the Elements and the information below to answer the question. Magnesium metal (Mg) is grayish-white in color and reacts actively with water. Fluorine (F2) is a greenish-yellow gas at room temperature and is a member of the halogen family. These two elements react to produce magnesium fluoride (MgF2), a chemical commonly used in making windows and lenses. According to the Periodic Table of the Elements, which element is most similar to magnesium (Mg)?\n\nA. calcium (Ca)\nB. iodine (I)\nC. sodium (Na)\nD. sulfur (S)",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_440",
+      "input": "How do word processors on computers benefit most students?\n\nA. It makes them understand how to write a good story.\nB. It helps them gather historical information.\nC. It exposes them to data that is hard to find.\nD. It allows them to edit papers quickly.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_441",
+      "input": "Students observed that a diamond was able to scratch a piece of talc. What does this observation best support?\n\nA. Diamonds have sharp edges.\nB. Talc is softer than diamonds.\nC. Diamonds are very valuable.\nD. Talc and diamonds are both minerals.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_442",
+      "input": "Which was a main force driving extensive speciation when the environment became hospitable to life after the Permian mass extinction?\n\nA. increase in available ecological niches\nB. increase of atmospheric oxygen to present levels\nC. increase in genetic diversity among surviving organisms\nD. increase in interbreeding between organisms of different species",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_443",
+      "input": "Some types of bacteria can only live where oxygen is not present. These bacteria were well adapted to life on Earth over 2 billion years ago. Which of the following changes caused many of these bacteria to become extinct?\n\nA. the slow movement of tectonic plates\nB. the varying temperatures of each season\nC. an increase in volcanic activity under the oceans\nD. an increase in the number of photosynthetic organisms",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_444",
+      "input": "Which two are functions of flowers?\n\nA. attract pollinators and make seeds\nB. make seeds and store food\nC. store food and take in water\nD. take in water and attract pollinators",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_445",
+      "input": "When soil becomes saturated during rainfall, excess water begins to collect on the surface. Downslope movement of this excess water to rivers, lakes, and streams is called\n\nA. runoff.\nB. filtration.\nC. groundwater.\nD. condensation.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_446",
+      "input": "What type of energy is transmitted from the Sun to Earth through space?\n\nA. heat energy\nB. kinetic energy\nC. electrical energy\nD. electromagnetic energy",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_447",
+      "input": "What is the cause of rising surface temperatures of the Pacific Ocean, drought in the western United States, and flooding on the Pacific coast of South America?\n\nA. the Gulf Stream\nB. the jet stream\nC. La Niña\nD. El Niño",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_448",
+      "input": "Use of nuclear fuel would most likely reduce human contributions to which environmental problem?\n\nA. ozone thinning\nB. landfill creation\nC. shoreline erosion\nD. greenhouse heating",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_449",
+      "input": "What unit of measure should Jerry use to report the volume of a liquid?\n\nA. degrees Celsius\nB. kilograms\nC. milliliters\nD. centimeters",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_450",
+      "input": "Use the information below to answer the question. Manufacturing uses many steps to change natural resources into products. Some of these steps change natural resources into industrial materials. These steps are called primary processes. All of the following are primary processes except\n\nA. melting iron ore.\nB. producing lumber.\nC. molding plastic.\nD. crushing rock into gravel.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_451",
+      "input": "What part of a communication system converts binary codes in a computer into recognizable characters?\n\nA. decoder\nB. encoder\nC. receiver\nD. transmitter",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_452",
+      "input": "Which geologic process occurs when the acid in precipitation dissolves certain types of rock?\n\nA. faulting\nB. tilting\nC. weathering\nD. erupting",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_453",
+      "input": "Water evaporates mostly from\n\nA. land.\nB. snow.\nC. clouds.\nD. oceans.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_454",
+      "input": "Robin compared the properties of some rocks. Which property did she most likely compare with a balance?\n\nA. density\nB. mass\nC. temperature\nD. volume",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_455",
+      "input": "Because copper is a metal, it is\n\nA. liquid at room temperature\nB. nonreactive with other substances\nC. a poor conductor of electricity\nD. a good conductor of heat",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_456",
+      "input": "What process makes it possible for the nutrients from organic material to be added to soil?\n\nA. weathering\nB. erosion\nC. decomposition\nD. succession",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_457",
+      "input": "Why is it not a safe practice to place a fuel depot over an aquifer?\n\nA. Aquifers are too high up in the mountains.\nB. The weight of the depot is too great over the aquifer.\nC. The fumes escaping from the fuel depot are explosive.\nD. If the fuel leaks, the water in the aquifer will become contaminated.",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_458",
+      "input": "Look at the equation. 2H_{2} + O_{2} -> 2H_{2}O What does the equation show?\n\nA. heat being added to oxygen\nB. helium mixing with oxygen\nC. heat combining with oxygen\nD. hydrogen and oxygen combining",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_459",
+      "input": "Which statement best describes the Law of Superposition?\n\nA. Each sedimentary layer of rock represents 1,000 years of Earth's age, much like the rings of a tree.\nB. In undisturbed layers of sedimentary rock, the upper rock layers are older than the lower rock layers.\nC. In undisturbed layers of sedimentary rock, the lowest layers contain the older rocks.\nD. Rocks that form near volcanoes are older than surrounding rock.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_460",
+      "input": "Which object is the best conductor of electricity?\n\nA. glass rod\nB. wooden stick\nC. plastic straw\nD. metal nail",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_461",
+      "input": "Green plants get the energy they need to make food from\n\nA. water\nB. air\nC. soil\nD. sunlight",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_462",
+      "input": "Which property of a mineral is most likely being tested when it is scratched with a nail?\n\nA. color\nB. hardness\nC. cleavage\nD. luster",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_463",
+      "input": "Ricardo has an igneous rock in his rock collection. Where did this rock most likely form?\n\nA. in a volcano\nB. on a forest floor\nC. on a coral reef\nD. at the bottom of a river",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_464",
+      "input": "Animals get energy from eating food that comes from plants. Plants survive by taking in substances that are released by animals. What substance do animals release that plants take in?\n\nA. carbon dioxide\nB. oxygen\nC. salt\nD. sugar",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_465",
+      "input": "Which factor determines whether precipitation will be in the form of rain or snow?\n\nA. wind\nB. humidity\nC. air pressure\nD. temperature",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_466",
+      "input": "Which of these materials transfers heat energy quickest?\n\nA. metal\nB. glass\nC. plastic\nD. wood",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_467",
+      "input": "Electrical wires are coated with a rubber or plastic because these materials are good\n\nA. resistors.\nB. magnets.\nC. insulators.\nD. conductors.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_468",
+      "input": "An increase in which ecosystem factor could cause a population decline in a bird species?\n\nA. emigration\nB. immigration\nC. number of births\nD. amount of food",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_469",
+      "input": "Twentieth-century research and development of vaccines significantly reduced the threat of\n\nA. polio.\nB. stroke.\nC. diabetes.\nD. osteoporosis.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_470",
+      "input": "The tendency of an element to react chemically is closely related to\n\nA. the number of valence electrons.\nB. the ratio of protons to neutrons.\nC. how tightly atoms are packed.\nD. the number of neutrons in atoms.",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_471",
+      "input": "Modern submarines have advanced atmosphere-control systems that enable submarine crews to stay below the surface of the ocean for months at a time. Which of the following also benefits from this technology?\n\nA. architectural design\nB. pollution control\nC. fire prevention\nD. space exploration",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_472",
+      "input": "Which pieces of equipment would be used to measure the density of a solution?\n\nA. a ruler and a protractor\nB. a magnet and a thermometer\nC. a graduated cylinder and a balance\nD. an Erlenmeyer flask and a Bunsen burner",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_473",
+      "input": "Gasoline is a nonrenewable energy resource used in most cars and trucks. Gasoline is made from which source?\n\nA. oil\nB. hydrogen\nC. natural gas\nD. water vapor",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_474",
+      "input": "The average temperature of Earth's surface has increased approximately 1°C in the past century. Which of the following can best explain this increase in temperature?\n\nA. higher levels of oxygen in the atmosphere\nB. lower levels of ozone in the atmosphere\nC. higher levels of carbon dioxide in the atmosphere\nD. lower levels of nitrogen in the atmosphere",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_475",
+      "input": "The Sun is the largest body in the solar system. The Sun is a ___.\n\nA. moon\nB. planet\nC. satellite\nD. star",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_476",
+      "input": "Which activity is a good health habit?\n\nA. drinking alcohol\nB. exercising regularly\nC. sleeping only 5 hours daily\nD. smoking cigarettes",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_477",
+      "input": "The fur of the snowshoe rabbit changes to a lighter color in the winter. This allows the rabbit to blend in with its surroundings. This change is an example of\n\nA. extinction\nB. competition\nC. biological adaptation\nD. ecological succession",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_478",
+      "input": "What does a plant need to make sugar through photosynthesis?\n\nA. soil, water, and oxygen\nB. oxygen, sunlight, and soil\nC. carbon dioxide, sunlight, and soil\nD. sunlight, water, and carbon dioxide",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_479",
+      "input": "Some birds fly south in the fall and return in the spring. This is an example of\n\nA. migration\nB. camouflage\nC. hibernation\nD. growth",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_480",
+      "input": "Which of the following is the best conductor of heat?\n\nA. oven mitts\nB. a metal bowl\nC. a wooden spoon\nD. rubber soled shoes",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_481",
+      "input": "Some processes that shape Earth's surface are slow. Other processes are rapid. Which statement describes a rapid change?\n\nA. Glaciers melt and form rivers.\nB. Wind weathers rocks into sand.\nC. Earthquakes move land and rocks.\nD. Rivers carry sediment and build deltas.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_482",
+      "input": "Which characteristic best identifies a pure substance?\n\nA. shape\nB. texture\nC. melting point\nD. state of matter",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_483",
+      "input": "Structures in the universe are grouped into large systems, each of which are made up of smaller systems. Which of the following is the largest system of which Earth is only a very small part?\n\nA. Jovian planets\nB. Halley's comet\nC. Milky Way galaxy\nD. Orion's belt",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_484",
+      "input": "Which atomic structure has the greatest mass?\n\nA. electron\nB. neutron\nC. nucleus\nD. proton",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_485",
+      "input": "When European settlers first came to North America, the average thickness of the top layer of soil was approximately 23 cm. Today, the average thickness of the top layer of soil is less than 15 cm. Which of the following factors has most likely had the greatest effect on erosion of the top layer of soil?\n\nA. farming\nB. restoring wetlands\nC. species reintroduction\nD. excessive groundwater use",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_486",
+      "input": "Which of the following is closest to the percentage of the total water on earth that is freshwater?\n\nA. 100%\nB. 90%\nC. 70%\nD. 3%",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_487",
+      "input": "Most scientists agree that an increase in the amount of greenhouse gases entering Earth's atmosphere causes\n\nA. a decrease in sea level\nB. a decrease in average surface temperatures\nC. an increase in melting of polar ice caps\nD. an increase in crustal plate movement",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_488",
+      "input": "Scientists determined that cabbages grown using Fertilizer A grew bigger than cabbages grown using Fertilizer B or no fertilizer at all. The scientists repeated the investigation and produced the same results. Which best explains the purpose of repeating this investigation?\n\nA. to ensure that the cabbages are safe for human consumption\nB. to discover the scientific principle that causes the increased growth\nC. to confirm that the observed differences were caused by the fertilizer\nD. to determine the difference between the experimental and control groups",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_489",
+      "input": "When a small group of organisms colonizes a new habitat, the population may be genetically different from the parent population due to differences in allele frequencies. The process responsible for this is\n\nA. natural selection.\nB. disruptive selection.\nC. genetic drift.\nD. genetic equilibrium.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_490",
+      "input": "When conducting a scientific experiment in the field, you are expected to\n\nA. completely clear the area.\nB. leave the area as you found it.\nC. take anything you may need later.\nD. destroy specimens once you have observed them.",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_491",
+      "input": "Which two behaviors best demonstrate stewardship?\n\nA. reducing consumption, recycling wastes\nB. increasing consumption, discarding wastes\nC. reducing consumption, discarding wastes\nD. increasing consumption, recycling wastes",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_492",
+      "input": "Beakers and graduated cylinders are designed to measure\n\nA. mass.\nB. density.\nC. volume.\nD. viscosity.",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_493",
+      "input": "Iron oxides, such as rust, form when iron metal reacts with oxygen in the air. What are the chemical symbols for the two elements found in iron oxide?\n\nA. I and O\nB. Ir and O\nC. Fe and O\nD. Pb and O",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_494",
+      "input": "Scientists often use mathematical models and computer simulations to study systems. What is the main advantage of using these techniques for studying the spread of infectious diseases?\n\nA. to reduce the amount of work for all involved\nB. to reduce the cost of conducting experiments on people\nC. to obtain results quickly in a short period of time\nD. to perform experiments that would be irresponsible using human subjects",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_495",
+      "input": "Which of these actions causes wind?\n\nA. rotation of Earth on its axis\nB. movement of air from water to land\nC. uneven heating of Earth's surface\nD. air passing Earth as it revolves around the Sun",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_496",
+      "input": "A company wants to make a game that uses a magnet that sticks to a board. Which material should it use for the board?\n\nA. cardboard\nB. glass\nC. steel\nD. wood",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_497",
+      "input": "Which sequence has the states of matter listed from least to greatest kinetic energy?\n\nA. solid -> gas -> liquid\nB. gas -> liquid -> solid\nC. liquid -> solid -> gas\nD. solid -> liquid -> gas",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_498",
+      "input": "A student is given a mixture of gravel and sand and instructed to separate them. Which tool should the student use to best complete this task?\n\nA. a scale and weights\nB. a magnet\nC. a sieve\nD. a battery and wire",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "arc_easy_499",
+      "input": "A container is filled with 100 mL of water and placed in a freezer. The water in the container freezes at 0°C. A second container filled with 90 mL of water is placed in a second freezer. At what temperature does this second container of water freeze?\n\nA. -10°C\nB. -1°C\nC. 0°C\nD. 10°C",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    }
+  ],
+  "graders": [
+    {
+      "id": "gr_exact_match",
+      "type": "exact_match",
+      "params": {
+        "ignore_case": true,
+        "strip": true
+      }
+    }
+  ],
+  "metadata": {
+    "openeval": {
+      "source": "evalport-benchmarks"
+    },
+    "evalport.converted_by": "evalport-benchmarks/_tools/convert_hf_dataset.py",
+    "evalport.conversion_date": "2026-08-10",
+    "evalport.source": "https://huggingface.co/datasets/allenai/ai2_arc",
+    "evalport.source_license": "CC-BY-SA-4.0",
+    "evalport.original_paper": "https://arxiv.org/abs/1803.05457",
+    "evalport.case_count": 500,
+    "evalport.skipped_malformed_cases": 0
+  }
+}
