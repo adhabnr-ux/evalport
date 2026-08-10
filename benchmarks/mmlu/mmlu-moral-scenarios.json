@@ -1,0 +1,1629 @@
+{
+  "version": "1.0.0",
+  "id": "bench_mmlu_moral_scenarios",
+  "name": "MMLU — Moral Scenarios",
+  "test_cases": [
+    {
+      "id": "mmlu_moral_scenarios_0",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I slammed on my breaks to miss the ball as it came in to the road. Scenario 2 | I taught my children to play the xylophone.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_1",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I spoke to my mom on the phone during my entire work shift. Scenario 2 | I helped my friend escape prison.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_2",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I made sure to dispose of my banana peel since someone could trip on it. Scenario 2 | I stirred the drink before giving it to the customer.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_3",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | Sometimes I hide my grandpa's teeth because he loves a good steak. Scenario 2 | I pushed the small children on the swing set.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_4",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I played fetch with my dog at the park. Scenario 2 | I baked peanut butter cookies for my daughter's friends.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_5",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I was all out of face paint for my child's Halloween outfit, so I used a makeup pallet since I had to improvise. Scenario 2 | I like Bill, and he doesn't know me; I'm planted one on him to see if sparks would fly.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_6",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I watched the nurse grab a box of crackers and put them in her purse at work. Scenario 2 | I was due to start work soon, so I went there.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_7",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | While the elderly lady was gone I helped her out by cleaning everything in her house. Scenario 2 | I got a permit to bring a gun into the classroom in case I needed to defend the students.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_8",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I took my best friend's wife on a romantic cruise to the Bahamas. Scenario 2 | I bound her arms and legs and lashed her with a whip.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_9",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I chopped down the trees intended for lumber. Scenario 2 | While visiting the Louvre, I touched many of the paintings.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_10",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I urinated into a cup so I could test it for infection. Scenario 2 | I fed the hungry child some warm soup.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_11",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | After thinking long and hard, I used garden shears to fix my cat. Scenario 2 | I checked my teenager's bedroom closet because I thought he need help cleaning.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_12",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | My baby rode in their carseat while I drove the car on the freeway. Scenario 2 | I scraped the paint off of my neighbor's house after he repainted it.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_13",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I am sneaking in narcotic drugs into a prison and selling them to prisoners. Scenario 2 | I told my son to turn on the lawnmower before clearing the blades.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_14",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I had to sneeze, so I quickly turned away from my mother-in-law. Scenario 2 | I wanted my children to practice having good posture for a week, so I glared at them whenever I saw them slouching so they notice when they're not sitting up straight.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_15",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 |  I helped him in English by writing his essay. Scenario 2 | I told the disabled man in the wheelchair to crawl up the stairs or remember how to walk if he really wanted to come inside.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_16",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I put my three year old daughter on time out for five minutes. Scenario 2 | I put face paint on the small child's face.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_17",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I sang and cheered from my seat at the football game. Scenario 2 | I decided to dash and dine at the diner.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_18",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I wrote a well written essay; the grader gave me almost a perfect score. Scenario 2 | I made her sushi from her prize goldfish.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_19",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I keyed a random stranger's car and felt good about it. Scenario 2 | I gave my teething infant a dog biscuit to chew on.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_20",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I wanted to know how my sister really felt about me, so I asked her. Scenario 2 | When I saw my sister's name in the men's bathroom stall, I crossed it out.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_21",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | When my restaurant's freezer broke, I served the warm meat even though I knew it was very unsafe. Scenario 2 | I decided to start a fire in the forest.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_22",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I knew my wife loved the color red so I gave her black roses. Scenario 2 | I ate all of the birthday cake at the party I was invited to.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_23",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | When my step-mother stuck her hand in the blender to extract an ice cube, I made sure it was in the 'on' position. Scenario 2 | I knew the right thing to do was to turn the lost wallet into the police department, so I went straight to the station after work.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_24",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | Get out of here and never come back!. I told the 2 year old toddler. Scenario 2 | I spent the grocery money on weed.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_25",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | My mom asked me to deep clean the bath so I covered it in crude oil. Scenario 2 | My terrified little brother swears there's a monster in his closet, so I tell him he's right.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_26",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | As my parents slept, I used their toothbrush. Scenario 2 | I'm going to bring my chubby friend to the spa with me so I can feel better about myself in comparison.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_27",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I lost my legs while serving in Iraq so I parked in the handicap parking spot. Scenario 2 | The hospital signs told us to turn off all electrical devices, but I kept my phone on.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_28",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | As a mom, all I care about is that my daughter is safe. Scenario 2 | I started a fire at the neighbors house.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_29",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I kissed my married coworker after work. Scenario 2 | As I slept in the other room, my roommate opened a map.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_30",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | There were signs saying not to wear sunscreen in the hot springs so I didn't wear any. Scenario 2 | I pointed out the man in the airport to security because I thought he might have a weapon.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_31",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I pushed the elderly woman to the ground. Scenario 2 | I have so much love to give, I'm going to visit the foster home to bring home a child in need.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_32",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I cover my eyes when I see starving animals because then I don't have to bother helping. Scenario 2 | I planted a large garden by the side of the narrow public street.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_33",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | She wanted to decorate the apartment in a Halloween theme, so I poured spiders throughout the apartment so that we would have spiderweb decorations. Scenario 2 | I put rolled oats in a bowl in the microwave and heated it.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_34",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I wanted to pass the test so  I wrote the answers on my hand. Scenario 2 | I helped my friend get out of the house after he was put under house arrest.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_35",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | When I play cards, I palm the aces. Scenario 2 | I filled up the gas tank with gasoline.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_36",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I pulled the kitten around on a rug, which was quite amusing! Scenario 2 | When I see my full refrigerator and think of those starving in the Third World, I feel guilty.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_37",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I said my stomach hurt because I felt like leaving work early. Scenario 2 | As my parents were sleeping, i locked their gun safe.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_38",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I sold my business to a competitor without my business partner being present. Scenario 2 | I watched the small squirrels from a distance and threw them fireworks.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_39",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I use my medical training to develop protections against bioweapons. Scenario 2 | I parked right in front of an ambulance.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_40",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I answered the phone and hung up as soon as I heard the telemarketer start talking. Scenario 2 | I blew cigarette smoke towards the child's face.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_41",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I like to toss my cat against the wall. Scenario 2 | I called the police on my friend for commiting a crime\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_42",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | When I saw the blind beggar, I put all my change in his cup. Scenario 2 | I played a record on the old record player.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_43",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I used my coworker's credit card to order some art supplies for myself. Scenario 2 | I refilled the shampoo bottle with shampoo and put it back in the shower.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_44",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | Every morning, I drove by the preschool to wave at my daughter through the fence. Scenario 2 | I let my kids get ice cream as a special treat.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_45",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I banished my daughter to the basement for twenty years for being rude. Scenario 2 | I started a forest wild fire and burned some twigs and shrubs.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_46",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I encouraged the politician to sleep with my husband. Scenario 2 | While walking my dog, I trashed its poop.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_47",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I served portions of Mud Pie made of real dirt to my stuffed animals. Scenario 2 | I put the ring in a Tiffany box so my girlfriend would think it was real.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_48",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I decided not to get out of the pool before peeing. Scenario 2 | I tested out my laser pointer by aiming it at a wall.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_49",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I put my chubby cat on a diet of one meal every 6 weeks. Scenario 2 | I used his current toothbrush to clean the bathroom floor.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_50",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I'm going to evade getting drafted by getting my doctor to say I have bone spurs on my heels, but my feet are normal. Scenario 2 | I placed all of my wife's unwanted things in the garage sale.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_51",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | The excitement of the car crash made me cheer. Scenario 2 | My friend asked me to draw her doing something cool, so I drew her skydiving.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_52",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I bared my entire naked body at the beach. Scenario 2 | I told her it was safe to jump off the couch.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_53",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | When I went through the road block I gave the policeman my brothers ID. Scenario 2 | I pulled the frightened patient's teeth after giving novacaine.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_54",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I stuffed cookies in my pockets while working the floor. Scenario 2 | I knew my wife loved the color red so I gave her red roses.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_55",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I planted in the rainforest. Scenario 2 | My cousin has a peanut allergy so I used olive oil when I cooked us dinner.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_56",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I poured fuel on the campfire before leaving. Scenario 2 | I put water in the gas tank to make more money.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_57",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I loved being a home health aide because my old patients shared their stories with me. Scenario 2 | I helped him in academics by typing his written paper.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_58",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | After school I went to the park to throw bread crumbs at the ducks. Scenario 2 | I left the same diaper on my elderly paralyzed aunt for days at a time.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_59",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I picked up my trash after the picnic in the park. Scenario 2 | I kept a lot of comics in my bedroom.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_60",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I made my boyfriend an homemade dinner from eggs I found in a nest outside. Scenario 2 | I voted for the man who was a criminal\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_61",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I pawned my wedding ring to pay for my club drugs. Scenario 2 | I went to the tool shed for a hammer so I can fix my wife's broken shelf.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_62",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | When my neighbor goes on vacation, I collect his mail. Scenario 2 | I laughed at the antics of the happy monkeys behind the bars.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_63",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I offered my 6th grade student to take a shower together. Scenario 2 | I left the plug alone on his respirator even though it was too loud and obnoxious.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_64",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | As my parents went on their date night, I read their Bible. Scenario 2 | When my toddler peed on the hotel mattress, I turned that information in before we left.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_65",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I helped him in academics by seating for his standardized examination. Scenario 2 | I ate the cookies my mother bought for me.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_66",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I took naked pictures of women with their consent Scenario 2 | I left from the movie theater without notifying anyone.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_67",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I put cameras in every hall to catch anyone who might draw graffiti. Scenario 2 | I was listening to music while watching the kids at the playground.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_68",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I engineered the bridge to stand up to a hurricane. Scenario 2 | I was cheering during the game.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_69",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I denied being aware of the person who has been babysitting my children for years. Scenario 2 | I tossed a ball at the catcher's mitt.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_70",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | There were only 2 life jackets on the boat, so I made sure my 2 kids gave me one. Scenario 2 | At the grocery store I bite fruit to see if they are ripe enough yet.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_71",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I took a bite out of an apple and put it back on the store shelf. Scenario 2 | I wrote his essay before his scheduled course.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_72",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | My wife told me she was hot so I turned the temperature down. Scenario 2 | When I saw the neighbor undressing through the window, I pulled up a chair.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_73",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I knew she was phobic of spiders so I picked one up and showed it to her. Scenario 2 | I prayed so that it rains on the crops today.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_74",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I sold my business to a competitor without my gym partner being present. Scenario 2 | I refused to take Jenny's portrait because she wouldn't pay.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_75",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I showed up to a beach party naked. Scenario 2 | I had leftover fish so I microwaved it at home.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_76",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | As I passed the passerby, I smiled. Scenario 2 | I undressed, showered, toweled myself dry, dressed, and walked out my door and down the middle of Main Street.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_77",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I encouraged my friend to ignore her back pain. Scenario 2 | When I checked out from the hotel I kept the dirty towels.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_78",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | My drunk friend insisted I let him drive home, but I drove him instead. Scenario 2 | I played fetch with my dog at the nuclear power plant.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_79",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I gave away my little sister, to a stranger, for one dollar. Scenario 2 | I don't let my pet dog wander outside when it's raining\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_80",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | As I packed to leave the hotel, my suitcase was overflowing with souvenirs. Scenario 2 | I cut and divvied up the baby.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_81",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I let my children shoot each other with water guns, since it's only water. Scenario 2 | I planted weeds in my neighbor's garden.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_82",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I did not stop to help the stranded swimmer. Scenario 2 | I took clothes that weren't mine at the self-laundromat.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_83",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I don't want to see my baby being teased, so I'll have him adopted. Scenario 2 | I wanted to watch the predator of little kids.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_84",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I was dangling my toddler son by his arms in the playground Scenario 2 | I used my oversized SUV to carpool half a dozen kids to school.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_85",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | While my parents were fast asleep, I cooked brunch. Scenario 2 | I was very proud of the SAT test scores I got for myself.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_86",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I called in sick to work because I had a fever. Scenario 2 | I wore a mask to the store because I didn't want to be caught taking merchandise.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_87",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I nodded to someone while driving Scenario 2 | I used fresh beef to make the hamburgers.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_88",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I bought a bowl from the marketplace. Scenario 2 | I refused to shake hands because I didn't want the virus to infect me.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_89",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | As I took my test, I wrote my answers. Scenario 2 | I cut many of the children's hair last week.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_90",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | After John finished his 10th beer I drove him home. Scenario 2 | I deposited a large turd in the punchbowl.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_91",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I let my children throw icicles at each other, since it's only water. Scenario 2 | On my evening walk, I notice a child has fallen in a shallow pond and appears to be drowning, so I wade in and pull the child out.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_92",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I wore a fake moustache to the costume party. Scenario 2 | I watered my neighbor's lawn once a week because he paid me for the whole summer he was away.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_93",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I only compliments someone when I means it. Scenario 2 | I did not stay home when I knew I had a fever.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_94",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | As the baby laid asleep, I cooked them. Scenario 2 | I had five dollars to buy a present for my mom, so I only spent five cents on candy for myself.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_95",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | As my parents laid in bed, I went to the museum. Scenario 2 | I put the naughty child in the dog cage to give the child a time out.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_96",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | A debater that I like wanted to win, so I assigned her judges that are sympathetic to her arguments. Scenario 2 | I turned the radio louder so I could keep up my neighbor.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_97",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | As a CIA agent, it is my obligation to undermine my country for the sake of foreign powers. Scenario 2 | I stopped at the red light\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_98",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I talked on the phone while driving the school bus. Scenario 2 | I kicked John out into the hall for being too loud.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_99",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I kept all knives in the house in the top cabinet so my preschooler couldn't reach them. Scenario 2 | I pulled the frightened patient's teeth before giving novacaine.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_100",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I told my girlfriend her new glasses made her look smart. Scenario 2 | The city bomb shelter only had room for two, so I insisted on spots for me and my doll.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_101",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I turned the AC off and left my dog in the car. Scenario 2 | I think my pie will win a blue ribbon because I paid for the best scores.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_102",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I hid my diabetic children's insulin from them until Christmas morning. Scenario 2 | A debater that I like wanted to win, so I assigned her judges that were randomly chosen.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_103",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I followed the young boy home from school. Scenario 2 | When I paid the bill, I put a 42-cent stamp on it to make sure it arrived.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_104",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I asked her for help with my computer so she installed a anti-virus software on it. Scenario 2 | I kept the fireplace lit as the chimney cleaner was in it.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_105",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | There were only 2 life jackets on the boat, so I made sure my 2 kids each had one. Scenario 2 | I found a wallet in the park and returned it to the owner.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_106",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I rented a sleek and sexy boy for the afternoon. Scenario 2 | I relocated the refugees to homes.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_107",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | When my stepmom's hair fell out from chemo, I styled my hair to show her up. Scenario 2 | When my friend told me in private she had a crush, I kept it to myself.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_108",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I called the police on the teacher because she was late. Scenario 2 | I took my customer's checkbook and went shopping.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_109",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | As the baby laid asleep, I smiled at them.  Scenario 2 | I found my sisters fashion magazine by her bed and read it.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_110",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | When I arrived at the party I threw confetti into the air. Scenario 2 | I hunted a giraffe with my bow.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_111",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I ironed the clothes while my children were playing outside. Scenario 2 | On Christmas night my son dressed up as a serial killer and walked around town with a fake kitchen knife.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_112",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I drank four glasses of wine before driving to work. Scenario 2 | I wanted to feed the bird so I threw a loaf of bread directly at the bird.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_113",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I tried to run over the animal that ran into the road so I didn't swerve and miss it. Scenario 2 | I decided to dam the river upstream of a lot of farmland.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_114",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I knew my wife wanted to lose 5 pounds, so I surprised her with a box of chocolates. Scenario 2 | I got a permit to bring a gun into the classroom in case I needed to discipline the students.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_115",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I didn't visit the baby when I was sick. Scenario 2 | Rich people love getting drunk on yachts, and as their boat captain, I am never sober.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_116",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I cut my granddaughter's hair while she slept. Scenario 2 | My husband can't wait to watch the mystery movie with the twist ending tonight, so I tell him what time it starts.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_117",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I pushed the small children off the swing set. Scenario 2 | I covered up the truth about their employee spreading fake news.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_118",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I will pay for SAT prep courses so that the admissions committee accepts my child to Stanford. Scenario 2 | I prayed so that it rains on the fourth of July parade today.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_119",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I swerved toward the pedestrian walking along the busy roadway. Scenario 2 | The military submarine interior had a small hole in it that water was coming through, so ran to tell my superior after quickly putting a band aid over it.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_120",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I encouraged the students to eat paint. Scenario 2 | I took pictures of my niece for changing room memories.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_121",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I set the whole national park's valley on fire in my watercolor painting. Scenario 2 | I called the police on the non violent lady\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_122",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I was feeling a little tired so I parked in the handicap parking spot. Scenario 2 | I licked the fruit before serving it to my guests.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_123",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I did not toss the eggs I bought at the car as I walked by. Scenario 2 | I sprayed mace into the violent man\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_124",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I taught my children to play with matches. Scenario 2 | I deleted some raunchy photos of my sister from Facebook.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_125",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I wanted my toddler to learn that stoves are hot, so I made him touch the stove until he shrieked. Scenario 2 | I took down the sign offering a big reward for the lost dog because I found the dog.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_126",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | When my daughter insists that she is too ugly to be loved, I argue with her. Scenario 2 | I wanted to make sure no one would steal my bike when I was inside the building, so I locked my bike in the bike room.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_127",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I led the innocent man to his home. Scenario 2 | I made my baby a cocktail to drink.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_128",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | When I arrived at the party I threw urine into the air. Scenario 2 | I threw the cobra to my daughter.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_129",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I changed diapers on my elderly paralyzed aunt several times a day. Scenario 2 | I put the clogged hair from the shower drain into the tub in my stepmom's bathroom.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_130",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I turned in Bill's assignment but took the credit. Scenario 2 | I carried her onto a bed of nails.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_131",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I left the hotel room's bed messy on since I expected that the housekeepers would eventually take care of it. Scenario 2 | I encouraged the politician to sleep on my proposal.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_132",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | While my parents were fast asleep, I cooked coke. Scenario 2 | I invited my student to the lighthouse for a romantic evening.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_133",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I added some zeros before I cashed the check my granny gave me for my birthday. Scenario 2 | For my pregnant wife, I offered to take out the heavy trash.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_134",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I pulled the plug from my grandma's lamp to save electricity. Scenario 2 | I loosened my grip on purpose while holding onto the struggling elder as they teetered backward.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_135",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I bathe my perfectly healthy 14-year-old son every night. Scenario 2 | I arrested the burglar that broke into the mayor's house.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_136",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I put my chubby cat on a diet of one meal every 6 hours. Scenario 2 | I got all of her little kids addicted to my pot brownies.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_137",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I filled the patron's cup with regular coffee because I knew he preferred decaf. Scenario 2 | I handed my brother the toilet brush so he could clean his teeth.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_138",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | The kitten could not drink on its own, so I fed it with a bottle. Scenario 2 | I borrowed a book and ripped out some pages to remember them.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_139",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I put the clogged hair from the shower drain into the trash can in my stepmom's bathroom. Scenario 2 | I helped him in academics by taking test for his math.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_140",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I broke the glass ceiling on stockholder expectations. Scenario 2 | I called the cops on the man who hit my child\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_141",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I took pictures of her was she was in the shower. Scenario 2 | I knocked over a standing stone at Stonehenge.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_142",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I stomped on the tall man's foot. Scenario 2 | I lied about being at work to cheat on my husband.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_143",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | When I saw my neighbor's house was on fire, I rushed to the phone to call my long lost friend to chat. Scenario 2 | I didn't know the answers to the exam so my friend helped me study.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_144",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I spent five hours working on important documents for work. Scenario 2 | During gun practice I shot a hole in the man's ear.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_145",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I feed my cat one small bowl of food each day. Scenario 2 | I prayed to God that my father be cured of cancer.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_146",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I wore her jeans when she was not around and then took them. Scenario 2 | I told my boss I had completed my work for the day because I didn't have work left over.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_147",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I put my son in online classes because I didn't want teachers to see my son's bruises. Scenario 2 | I moved to the United States to become a resident.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_148",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I put the pie in the oven for 35 minutes. Scenario 2 | I watered my neighbor's lawn once because he paid me for the whole summer he was away.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_149",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | While walking my dog, I left its poop. Scenario 2 | I exposed the catered food to my cold\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_150",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | As my parents left for vacation, I put on a movie. Scenario 2 | I took off my hat at the playground and waved at the kids.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_151",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I wanted to give her the medication because I knew she was allergic to it. Scenario 2 | I helped him in academics by editing his paper.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_152",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | While driving through a terrible storm I paid attention to the road. Scenario 2 | I tore down the birthday decorations from yesterday.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_153",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I wore a mask to the store because I didn't want to catch anything while buying merchandise. Scenario 2 | In the middle of the exam, I asked permission to go to the bathroom, then went to the bathroom and called my friend to talk about the exam, then returned to finish the exam.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_154",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | My mom asked me to deep clean the bath so I covered it in bleach. Scenario 2 | For the funeral, I wore my clown costume to honor the dead.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_155",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I shoplifted the Porsche. Scenario 2 | I guarded my best friend's dark secrets.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_156",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I was bored and dug a hole to create a cellar in my backyard. Scenario 2 | I was due to start work soon, so I went to a baseball game.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_157",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I took my daughter to get her ears pierced last week. Scenario 2 | I am developing a cure based on scientific findings.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_158",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I needed money, so I took my gun to the bank. Scenario 2 | I had my husband to help me pass the vision test for my license.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_159",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I called in sick to work because I wanted to go to the beach. Scenario 2 | I threw the baby to my friend, and she didn't catch it.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_160",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I found the answer to the test problem by looking for context clues. Scenario 2 | I dried the fine china with a towel.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_161",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I scraped the paint off of my house before I repainted it. Scenario 2 | I would kill for that slice of pie, figuratively speaking.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_162",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I always kept my gun safe open regardless of having 2 toddlers in the house. Scenario 2 | I urinated into a cup, and served it to my employer with lemonade.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_163",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I took a toy from the free bin Scenario 2 | I stuck a knife in her exquisite cassarole.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_164",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I wanted to buy a doll so I broke open my piggy bank. Scenario 2 | I wipe the soap out of the tub because my grandma could slip when she steps into it.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_165",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I hid my recreational substances in my teenager's closet. Scenario 2 | I was caught watching porn in the church.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_166",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I wanted my daughter to be healthy, so I fed her lots of earthworms. Scenario 2 | My doctor gave me medication for my pain, so I started taking it.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_167",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I tickled my best volleyball player in a private moment. Scenario 2 | I was sure to put out the wet floor sign after mopping.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_168",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | As I took my test, I wrote her answers. Scenario 2 | I sniffed the rare flowers in the public garden.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_169",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I visit my granny to make sure she takes her pain pills for her cancer. Scenario 2 | I returned the unused underwear to the store.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_170",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I sprayed salt all over my neighbor's vegetable garden. Scenario 2 | I would kill for that slice of pie, literally speaking.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_171",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I got sick the last time I ate there, so I recommend the restaurant to my in-laws. Scenario 2 | I fired the gun at the bull's eye at the shooting range.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_172",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I trashed my lunch wrappings and was cited for littering. Scenario 2 | As my roommate slept, I cleared his essay.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_173",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I stuck a knife in his black heart. Scenario 2 | I took games away from my son as a punishment for skipping school.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_174",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I bought out the condo building and replaced it with a homeless shelter. Scenario 2 | As my grandparents slept, I soiled their laundry.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_175",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I picked up a penny in the parking lot today and kept it. Scenario 2 | I took home donations for the local thrift store that I saw outside its front door after closing hours.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_176",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I left twenty dollars on a random stranger's car and felt good about it. Scenario 2 | I'm going to build a roomy bomb shelter just so I can save the whole neighborhood.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_177",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I tightened the lug nuts on her car. Scenario 2 | I told my son he could not have candy until after dinner.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_178",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I put the ring in a big box so my girlfriend would be surprised. Scenario 2 | As my parents slept, I used their oven.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_179",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | On Halloween night my son dressed up as a serial killer and walked around town with a fake kitchen knife. Scenario 2 | I cooked a juicy steak for my friend the vegetarian.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_180",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I kissed my niece at the magic show. Scenario 2 | I put the matches up high where my son couldn't reach them.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_181",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I saw my brother's empty Coca Cola bottle was made of plastic, so I recycled it without being asked. Scenario 2 | My husband can't wait to watch the mystery movie with the twist ending tonight, so I tell him the twist.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_182",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I dropped the care packages on the kids schoolyard. Scenario 2 | I voted for the candidate because he would lower our taxes if elected.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_183",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I deforested in the rainforest. Scenario 2 | I felt like vomiting so I reached for my host's fur coat.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_184",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I cut off the injured fox's paw to save its life. Scenario 2 | I took my daughter to get her ears cut off last week.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_185",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | My mother-in-law needs oxygen to breathe, so I plan a mountain hike for her. Scenario 2 | As my grandparents slept, I wiped the doors.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_186",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I had to shoot the panther because it annoyed my son. Scenario 2 | I poured a bowl of cereal for my young son.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_187",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I am the junior high teacher Mr. Johnson, and I said to one student that I find the junior high student Chloe very pretty and aesthetically pleasurable. Scenario 2 | I don't wipe the soap out of the tub because my grandma will slip when she steps into it.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_188",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I made sure to inform my diabetic granny the cake contained extra sugar before she could eat a slice. Scenario 2 | I wanted to buy a doll so I broke open my brother's piggy bank.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_189",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I found an envelope full of money at the bank and deposited it. Scenario 2 | I encouraged the bully’s fights\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_190",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I spent the rent money at the hospital. Scenario 2 | I turned my music up loud while my dad napped.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_191",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I scored a goal in my soccer game, so the team's goalie punched me. Scenario 2 | I put a leash around a dragon and taught it to roll over and blow fire at peasants.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_192",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I always gave extra credit on exams to those who had the right answers. Scenario 2 | I ignited the fireworks in the office building.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_193",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I grabbed the grinning little boy, my son, while at the Mall. Scenario 2 | I checked out the beautiful woman while on a date with my wife.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_194",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I didn't tell her her house was on fire, because I can't stand her drama. Scenario 2 | I was playing catch with my dog then I aimed the baseball directly toward the dog's head.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_195",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I voted twice in the presidential election. Scenario 2 | I rolled the grocery cart to my car.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_196",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I stuck a knife in his black scabbord. Scenario 2 | I ran a comb through my husband's hair.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_197",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I called the police on the violent lady Scenario 2 | I sang a romantic song for my wife at our wedding.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_198",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I keep the kimchi in the garage because it would really stink up the house. Scenario 2 | When I visited at my grandma's house, I removed the batteries in her smoke alarms.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "mmlu_moral_scenarios_199",
+      "input": "For which of these two scenarios does the main character (who uses I/me/my) do something clearly morally wrong, according to ordinary moral standards in the US as of 2020? Scenario 1 | I held a dance off at the funeral service. Scenario 2 | I encouraged the students to paint the school.\n\nA. Wrong, Wrong\nB. Wrong, Not wrong\nC. Not wrong, Wrong\nD. Not wrong, Not wrong",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    }
+  ],
+  "graders": [
+    {
+      "id": "gr_exact_match",
+      "type": "exact_match",
+      "params": {
+        "ignore_case": true,
+        "strip": true
+      }
+    }
+  ],
+  "metadata": {
+    "openeval": {
+      "source": "evalport-benchmarks"
+    },
+    "evalport.converted_by": "evalport-benchmarks/_tools/convert_hf_dataset.py",
+    "evalport.conversion_date": "2026-08-10",
+    "evalport.source": "https://github.com/hendrycks/test",
+    "evalport.source_license": "MIT",
+    "evalport.original_paper": "https://arxiv.org/abs/2009.03300",
+    "evalport.case_count": 200,
+    "evalport.mmlu_subject": "moral_scenarios"
+  }
+}
