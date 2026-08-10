@@ -19,6 +19,10 @@ openeval validate my-eval-suite.json
 # Convert from Promptfoo
 openeval convert promptfoo openeval config.json output.json
 
+# Run a suite against a real provider — always dry-run first to see estimated cost
+openeval run examples/basic-suite.json --provider openai --model gpt-4o-mini --dry-run
+openeval run examples/basic-suite.json --provider openai --model gpt-4o-mini --output results.json
+
 # Python SDK
 pip install evalport-sdk
 ```
@@ -64,6 +68,26 @@ openeval/
 ├── LICENSE                    # Apache 2.0
 └── README.md                  # This file
 ```
+
+## Run Evals
+
+`evalport run` executes an EvalPort suite against a real model provider and produces a spec-valid, self-validated `ResultSet` — no separate harness, no glue code. It's the CLI's headline command:
+
+```bash
+openeval run suite.json --provider openai --model gpt-4o-mini --dry-run   # estimate cost first, spend nothing
+openeval run suite.json --provider anthropic --model claude-3-5-sonnet-20241022 --output results.json
+```
+
+- **Two providers out of the box** — OpenAI and Anthropic — plus any OpenAI-compatible endpoint (local inference servers, proxies, other vendors) via `--api-base`.
+- **Tier 1 graders run locally, with zero external dependencies**: `exact_match`, `contains`, `regex`, `json_schema` (a hand-written draft-07-ish validator), `json_path` (a hand-written JSONPath subset evaluator).
+- **Tier 2 graders call an API**: `llm_judge` / `model graded`, and `semantic_similarity` (cosine similarity over embeddings — always via an OpenAI-compatible endpoint, independent of `--provider`, since Anthropic has no public embeddings API).
+- **Unsupported grader types clean-skip**, per the spec's "Custom grader handling" rule (`code`, `human`, `custom` are recorded as `skipped` with `metadata.skip_reason: "unsupported_grader_type"` — the run never aborts because of one grader it doesn't know how to execute).
+- **`--dry-run` estimates cost before spending anything** — token and USD estimates per test case and in total, with warnings when a model's pricing isn't in the known table. Always run this first and get sign-off on the estimate before running for real.
+- **Retries with backoff** on retryable provider errors (HTTP 429/5xx); non-retryable errors (bad auth, malformed request) fail fast instead of repeating.
+- **`--parallel <n>`** for concurrent test cases, **`--limit <n>`** to run a subset, **`--output <path>`** to write results incrementally as cases complete (so a long run's progress survives an interruption).
+- Every `ResultSet` it produces is validated against the SDK's own `validateResultSet()` before being written — `evalport run` refuses to emit output that fails its own spec.
+
+See [`cli/README.md`](cli/README.md) for the full flag reference.
 
 ## Grader Types
 
