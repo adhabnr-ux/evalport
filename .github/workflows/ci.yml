@@ -60,6 +60,19 @@ jobs:
         working-directory: sdk/python
         run: python -m pytest tests/ -v
 
+  validate-benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install evalport-sdk
+        working-directory: sdk/python
+        run: pip install -e .
+      - name: Validate every benchmark suite against the real EvalPort validator
+        run: python3 benchmarks/_tools/validate_all.py
+
   publish-npm:
     needs: [validate-schemas, typescript-tests]
     if: github.event_name == 'release'
