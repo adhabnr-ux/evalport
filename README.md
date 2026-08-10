@@ -58,6 +58,8 @@ openeval/
 │   ├── blog/                  # Launch posts
 │   └── landing-page.html      # Landing page
 ├── examples/                  # Example eval suites
+├── adapters/                  # Standalone to_openeval()/from_openeval() packages per framework
+├── benchmarks/                # 14 public benchmarks converted to validated EvalPort suites
 ├── .github/                   # CI, CONTRIBUTING, issue templates
 ├── LICENSE                    # Apache 2.0
 └── README.md                  # This file
@@ -87,6 +89,23 @@ openeval/
 | DeepEval → EvalPort | ✅ Python SDK |
 | Inspect AI → EvalPort | ✅ Python SDK |
 | OpenAI Evals → EvalPort | ✅ Python SDK |
+
+## Benchmark Hub
+
+[`benchmarks/`](benchmarks/) converts 14 well-known public benchmarks — GSM8K, ARC, BoolQ, HellaSwag, WinoGrande, CommonsenseQA, PIQA, TruthfulQA, MMLU, HumanEval, MBPP, SQuAD 2.0, DROP, and BIG-Bench Hard — into 22 individually-valid EvalPort suites (8,012 test cases total), every one of them passing the real `validate_suite()` validator in CI. Every benchmark's license was independently verified before inclusion; see [`benchmarks/LICENSES.md`](benchmarks/LICENSES.md) for the full attribution table. Start with [`benchmarks/README.md`](benchmarks/README.md) for the full index and quickstart.
+
+## Framework Adapters
+
+[`adapters/`](adapters/) has standalone `to_openeval()`/`from_openeval()` packages for converting real evaluation results to and from EvalPort, one per framework, each independently installable and tested against the real validator:
+
+| Framework | Package |
+|---|---|
+| AutoGen | [autogen-openeval-adapter](adapters/autogen-openeval-adapter/) |
+| CrewAI | [crewai-openeval-adapter](adapters/crewai-openeval-adapter/) |
+| Ragas | [ragas-openeval-adapter](adapters/ragas-openeval-adapter/) |
+| LangSmith | [langsmith-openeval-adapter](adapters/langsmith-openeval-adapter/) |
+| Braintrust | [braintrust-openeval-adapter](adapters/braintrust-openeval-adapter/) |
+| MLflow | [mlflow-openeval-adapter](adapters/mlflow-openeval-adapter/) |
 
 ## Documentation
 
