@@ -6,7 +6,7 @@
   "types": "src/index.ts",
   "scripts": {
     "build": "tsc",
-    "test": "node --test tests/"
+    "test": "vitest run"
   },
   "license": "Apache-2.0",
   "keywords": [
@@ -15,5 +15,9 @@
     "evaluation",
     "eval",
     "standard"
-  ]
+  ],
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
 }
