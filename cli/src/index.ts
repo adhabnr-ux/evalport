@@ -2,6 +2,7 @@
 import { validateSuite, validateResultSet, validateGrader, validateTestCase } from "../../sdk/typescript/src/validate";
 import { fromPromptfoo, computeSummary } from "../../sdk/typescript/src/convert";
 import { readFileSync, writeFileSync, existsSync } from "fs";
+import { runCommand } from "./run/cli";
 
 const args = process.argv.slice(2);
 const cmd = args[0];
@@ -56,6 +57,9 @@ else if (cmd === "summary") {
   console.log("Pass rate: "+(s.pass_rate*100).toFixed(1)+"%");
   if (s.avg_score) console.log("Avg score: "+s.avg_score.toFixed(3));
 }
+else if (cmd === "run") {
+  runCommand(args.slice(1)).then((code) => process.exit(code));
+}
 else {
-  console.log("EvalPort CLI v1.0.0\n\nCommands:\n  validate <file> [--type=suite|testcase|grader|resultset]  Validate an EvalPort document\n  convert <from> <to> <input> [output]                       Convert between formats\n  init [name]                                                 Create a starter eval suite\n  summary <resultset.json>                                    Print summary of a result set");
+  console.log("EvalPort CLI v1.0.0\n\nCommands:\n  run <suite.json> --provider <openai|anthropic> [options]   Run an eval suite against a real provider (see `evalport run --help`)\n  validate <file> [--type=suite|testcase|grader|resultset]  Validate an EvalPort document\n  convert <from> <to> <input> [output]                       Convert between formats\n  init [name]                                                 Create a starter eval suite\n  summary <resultset.json>                                    Print summary of a result set");
 }
