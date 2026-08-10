@@ -1,0 +1,4028 @@
+{
+  "version": "1.0.0",
+  "id": "bench_commonsenseqa",
+  "name": "CommonsenseQA",
+  "test_cases": [
+    {
+      "id": "commonsenseqa_0",
+      "input": "A revolving door is convenient for two direction travel, but it also serves as a security measure at a what?\n\nA. bank\nB. library\nC. department store\nD. mall\nE. new york",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_1",
+      "input": "What do people aim to do at work?\n\nA. complete job\nB. learn from each other\nC. kill animals\nD. wear hats\nE. talk to each other",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_2",
+      "input": "Where would you find magazines along side many other printed works?\n\nA. doctor\nB. bookstore\nC. market\nD. train station\nE. mortuary",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_3",
+      "input": "Where are  you likely to find a hamburger?\n\nA. fast food restaurant\nB. pizza\nC. ground up dead cows\nD. mouth\nE. cow carcus",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_4",
+      "input": "James was looking for a good place to buy farmland.  Where might he look?\n\nA. midwest\nB. countryside\nC. estate\nD. farming areas\nE. illinois",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_5",
+      "input": "What island country is ferret popular?\n\nA. own home\nB. north carolina\nC. great britain\nD. hutch\nE. outdoors",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_6",
+      "input": "In what Spanish speaking North American country can you get a great cup of coffee?\n\nA. mildred's coffee shop\nB. mexico\nC. diner\nD. kitchen\nE. canteen",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_7",
+      "input": "What do animals do when an enemy is approaching?\n\nA. feel pleasure\nB. procreate\nC. pass water\nD. listen to each other\nE. sing",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_8",
+      "input": "Reading newspaper one of many ways to practice your what?\n\nA. literacy\nB. knowing how to read\nC. money\nD. buying\nE. money bank",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_9",
+      "input": "What do people typically do while playing guitar?\n\nA. cry\nB. hear sounds\nC. singing\nD. arthritis\nE. making music",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_10",
+      "input": "What would vinyl be an odd thing to replace?\n\nA. pants\nB. record albums\nC. record store\nD. cheese\nE. wallpaper",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_11",
+      "input": "If you want harmony, what is something you should try to do with the world?\n\nA. take time\nB. make noise\nC. make war\nD. make peace\nE. make haste",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_12",
+      "input": "Where does a heifer's master live?\n\nA. farm house\nB. barnyard\nC. stockyard\nD. slaughter house\nE. eat cake",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_13",
+      "input": "Aside from water and nourishment what does your dog need?\n\nA. bone\nB. charm\nC. petted\nD. lots of attention\nE. walked",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_14",
+      "input": "Janet was watching the film because she liked what?\n\nA. erection\nB. laughter\nC. being entertained\nD. fear\nE. bordem",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_15",
+      "input": "What are you waiting alongside with when you're in a reception area?\n\nA. motel\nB. chair\nC. hospital\nD. people\nE. hotels",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_16",
+      "input": "When drinking booze what can you do to stay busy?\n\nA. reach tentative agreement\nB. stay in bed\nC. stop bicycle\nD. examine thing\nE. suicide",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_17",
+      "input": "A fencing thrust with a sharp sword towards a person would result in what?\n\nA. injury\nB. small cuts\nC. fever\nD. competition\nE. puncture wound",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_18",
+      "input": "Unlike a spider and his many sight seers, people only have what?\n\nA. tongues\nB. names\nC. brains\nD. feelings\nE. two eyes",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_19",
+      "input": "Where do adults use glue sticks?\n\nA. classroom\nB. desk drawer\nC. at school\nD. office\nE. kitchen drawer",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_20",
+      "input": "What could go on top of wood?\n\nA. lumberyard\nB. synagogue\nC. floor\nD. carpet\nE. hardware store",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_21",
+      "input": "The artist was sitting quietly pondering, then suddenly he began to paint when what struck him?\n\nA. sadness\nB. anxiety\nC. inspiration\nD. discomfort\nE. insights",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_22",
+      "input": "Though the thin film seemed fragile, for it's intended purpose it was actually nearly what?\n\nA. indestructible\nB. durable\nC. undestroyable\nD. indestructible\nE. unbreakable",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_23",
+      "input": "Where could you find a toilet that only friends can use?\n\nA. rest area\nB. school\nC. stadium\nD. apartment\nE. hospital",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_24",
+      "input": "What is someone who isn't clever, bright, or competent called?\n\nA. clumsy\nB. ineffectual\nC. dull\nD. clumsy\nE. stupid",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_25",
+      "input": "When wildlife reproduce we often refer to what comes out as what?\n\nA. raise children\nB. have children\nC. photo copy\nD. offspring\nE. accidently got pregnant somehow",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_26",
+      "input": "The weasel was becoming a problem, it kept getting into the chicken eggs kept in the what?\n\nA. forrest\nB. barn\nC. public office\nD. out of doors\nE. freezer",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_27",
+      "input": "Blue read material outside of his comfort zone because he wanted to gain what?\n\nA. new perspective\nB. entertained\nC. understanding\nD. hunger\nE. tired eyes",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_28",
+      "input": "After he got hired he hoped for success at his what?\n\nA. vocation\nB. new job\nC. michigan\nD. working hard\nE. manual",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_29",
+      "input": "Committing perjury is a serious what?\n\nA. indictment\nB. crime\nC. violence\nD. lie\nE. go to jail",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_30",
+      "input": "If you are prone to postpone work what will you have to do in order to finish on time?\n\nA. eat\nB. hasten\nC. antedate\nD. bring forward\nE. advance",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_31",
+      "input": "James wanted to find an old underground map from the 50s.  Where might he look for one?\n\nA. library\nB. subway station\nC. county engineer's office\nD. super market\nE. home",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_32",
+      "input": "Sean was in a rush to get home, but the light turned yellow and he was forced to do what?\n\nA. take time\nB. dawdle\nC. go slowly\nD. ocean\nE. slow down",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_33",
+      "input": "Where would a person be doing when having to wait their turn?\n\nA. have patience\nB. get in line\nC. sing\nD. stand in line\nE. turn left",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_34",
+      "input": "She was always helping at the senior center, it brought her what?\n\nA. satisfaction\nB. heart\nC. feel better\nD. pay\nE. happiness",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_35",
+      "input": "The lock kept the steering wheel from moving, but the thief still took his chances and began to work on the what?\n\nA. keep cloesd\nB. train\nC. ignition switch\nD. drawer\nE. firearm",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_36",
+      "input": "Who is a police officer likely to work for?\n\nA. beat\nB. direct traffic\nC. city\nD. street\nE. president",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_37",
+      "input": "If you have leftover cake, where would you put it?\n\nA. quandry\nB. refrigerator\nC. oven\nD. night stand\nE. bakery",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_38",
+      "input": "A human wants to submerge himself in water, what should he use?\n\nA. whirlpool bath\nB. coffee cup\nC. cup\nD. soft drink\nE. puddle",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_39",
+      "input": "Where is a doormat likely to be in front of?\n\nA. facade\nB. front door\nC. doorway\nD. entrance porch\nE. hallway",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_40",
+      "input": "Bob the lizard lives in a warm place with lots of water.  Where does he probably live?\n\nA. rock\nB. tropical rainforest\nC. jazz club\nD. new mexico\nE. rocky places",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_41",
+      "input": "August needed  money because he was afraid that he'd be kicked out of his house.  What did he need money to do?\n\nA. control people\nB. pay bills\nC. hurt people\nD. buy food\nE. get things",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_42",
+      "input": "He needed more information to fix it, so he consulted the what?\n\nA. chickens\nB. google\nC. newspaper\nD. online\nE. manual",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_43",
+      "input": "Where can you put a picture frame when it's not hung vertically?\n\nA. art show\nB. wall\nC. newspaper\nD. car\nE. table",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_44",
+      "input": "James knew that he shouldn't have been buying beer for minors.  He didn't even get paid for it.  Why was this bad?\n\nA. lose money\nB. fun\nC. have no money\nD. broken law\nE. relaxation",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_45",
+      "input": "What is the result of applying for  job?\n\nA. anxiety and fear\nB. increased workload\nC. praise\nD. less sleep\nE. being employed",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_46",
+      "input": "What must someone do before they shop?\n\nA. get money\nB. have money\nC. bring cash\nD. go to market\nE. bring cash",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_47",
+      "input": "Because John was first violin, he had to bring something important to work ever day. What did he need to bring to work?\n\nA. music store\nB. obesity\nC. symphony orchestra\nD. ochestra\nE. violin case",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_48",
+      "input": "What is a place that usually does not have an elevator and that sometimes has a telephone book?\n\nA. at hotel\nB. kitchen\nC. library\nD. telephone booth\nE. house",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_49",
+      "input": "Who is likely to be excited about a crab?\n\nA. fish market\nB. pet shop\nC. fishmongers\nD. intertidal zone\nE. obesity",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_50",
+      "input": "Where can a human find clothes that aren't pants?\n\nA. pants shop\nB. on planet earth\nC. dress shop\nD. school\nE. train wreck",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_51",
+      "input": "If I was getting drunk, and people couldn't understand me, what might I be having?\n\nA. a seizure\nB. slurred speech\nC. death\nD. forgetfulness\nE. pass out",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_52",
+      "input": "When a person is beginning work, what are they building?\n\nA. time\nB. accomplishing\nC. working\nD. momentum\nE. tiredness",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_53",
+      "input": "A child wants to play, what would they likely want?\n\nA. fall down\nB. breathe\nC. play tag\nD. be dismembered by a chainsaw\nE. become adult",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_54",
+      "input": "Talking to the same person about the same thing over and over again is something someone can what?\n\nA. social life\nB. friendship\nC. eye contact\nD. get tired of\nE. learn lessons from",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_55",
+      "input": "The teacher doesn't tolerate noise during a test in their what?\n\nA. movie theatre\nB. bowling alley\nC. factory\nD. store\nE. classroom",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_56",
+      "input": "The freeway had no traffic and few buildings, where is it?\n\nA. california\nB. countryside\nC. big town\nD. florida\nE. america",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_57",
+      "input": "Where would you go if you wanted to have fun with a few people?\n\nA. watching television\nB. good\nC. cinema\nD. friend's house\nE. fairgrounds",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_58",
+      "input": "If there is a place that is hot and arid, what could it be?\n\nA. bland\nB. lifeless\nC. sandy\nD. neutral\nE. freezing",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_59",
+      "input": "What is likely to satisfy someone's curiosity?\n\nA. hear news\nB. read book\nC. see favorite show\nD. comedy show\nE. go somewhere",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_60",
+      "input": "If you are in a bar in a glove shaped state where are you?\n\nA. in my pocket\nB. michigan\nC. new york city\nD. restaurant\nE. public house",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_61",
+      "input": "Where would a computer user be using their own computer?\n\nA. hell\nB. school\nC. indoors\nD. internet cafe\nE. house",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_62",
+      "input": "Crabs live in what sort of environment?\n\nA. maritime\nB. bodies of water\nC. saltwater\nD. galapagos\nE. fish market",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_63",
+      "input": "Where can you find a snake in tall grass?\n\nA. tree\nB. in a jar\nC. pet shops\nD. feild\nE. tropical forest",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_64",
+      "input": "What is a place that has a bench nestled in trees?\n\nA. state park\nB. bus stop\nC. bus depot\nD. statue\nE. train station",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_65",
+      "input": "Where is a human likely to go as a result of being hungry?\n\nA. eat in restaurant\nB. make bread\nC. have lunch\nD. cook dinner\nE. friends house",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_66",
+      "input": "He was beginning to regret taking the fight when he saw how what his opponent was?\n\nA. fun\nB. joy\nC. satisfaction\nD. confident\nE. pride",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_67",
+      "input": "Where would you find a single shower curtain being used?\n\nA. bathtub\nB. washing area\nC. hotel\nD. shower stall\nE. department store",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_68",
+      "input": "Where is a good idea but not required to have a fire extinguisher?\n\nA. school bus\nB. boat\nC. house\nD. hospital\nE. school",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_69",
+      "input": "What continent has the most castles?\n\nA. fairy tale\nB. edinburgh\nC. germany\nD. europe\nE. antarctica",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_70",
+      "input": "If you have to read a book that is very dry and long you may become what?\n\nA. have time\nB. boring\nC. learn new\nD. enjoyable\nE. bored",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_71",
+      "input": "Sally used a clipboard to hold her papers while she read off names at the beginning of the day.  Where might she work?\n\nA. desk\nB. windows 95\nC. office supply store\nD. see work\nE. school",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_72",
+      "input": "The kids didn't clean up after they had done what?\n\nA. learn things\nB. play games\nC. disneyland\nD. play with toys\nE. talking",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_73",
+      "input": "Despite the name a pawn can be quite versatile, all the parts are important in a what?\n\nA. chess game\nB. scheme\nC. chess set\nD. checkers\nE. north carolina",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_74",
+      "input": "What would not be true about a basketball if it had a hole in it but it did not lose its general shape?\n\nA. punctured\nB. popular in america\nC. full of air\nD. gone\nE. round",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_75",
+      "input": "If you are awaking multiple times throughout the night because a lot is on your mind, what is a likely cause?\n\nA. irritability\nB. depression\nC. getting out of bed\nD. happiness\nE. discomfort",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_76",
+      "input": "Where does a wild bird usually live?\n\nA. cage\nB. sky\nC. countryside\nD. desert\nE. windowsill",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_77",
+      "input": "Where would you expect to find white mice?\n\nA. bell cat\nB. bush\nC. attic\nD. countryside\nE. laboratory",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_78",
+      "input": "John felt that his actions were fate.   Harry said that he could have always made a different what?\n\nA. free will\nB. choice\nC. will\nD. alcohol\nE. freedom",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_79",
+      "input": "What could committing murder prevent someone from doing?\n\nA. go to jail\nB. cry\nC. find god\nD. guilty conscience\nE. problems",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_80",
+      "input": "George didn't have a car, but he still had his two feet.   His socks were smelly and his soles were blistered, but that didn't matter.  He could still do what?\n\nA. michigan\nB. walk\nC. stay still\nD. stink\nE. hands",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_81",
+      "input": "A crane uses many a steel cable when working a what?\n\nA. abaft\nB. ship\nC. winch\nD. construction site\nE. building",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_82",
+      "input": "What is the main purpose of farmers?\n\nA. raise cattle\nB. grow corn\nC. farm land\nD. drive tractors\nE. supply food",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_83",
+      "input": "Where can I put this penny to save for later?\n\nA. piggy bank\nB. wallet\nC. toy\nD. ground\nE. pocket",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_84",
+      "input": "Where would you put uncooked crab meat?\n\nA. wharf\nB. red lobster\nC. tidepools\nD. boss's office\nE. stew pot",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_85",
+      "input": "The man had a fear of illness, so he never visited friends who were a what?\n\nA. sick person\nB. hospital\nC. elderly person\nD. graveyard\nE. doctor's office",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_86",
+      "input": "Where would you put pans if you want to bring them with you?\n\nA. cooking\nB. cook food\nC. kitchen\nD. backpack\nE. drawer",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_87",
+      "input": "If you're remembering something, it's because of your what of it to begin with?\n\nA. knowledge\nB. knowing\nC. forgetful\nD. pleasure\nE. depression",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_88",
+      "input": "Which large land mass is home to the most monkeys?\n\nA. amazon basin\nB. friend's house\nC. lift number 3\nD. research laboratory\nE. african continent",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_89",
+      "input": "Friday was James's 5th Anniversary.  They planned on going to bed early so that they could spend a long time doing what?\n\nA. rest\nB. insomnia\nC. making love\nD. sleeping in\nE. texting",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_90",
+      "input": "The teens were trying to hide that they get drink, but when they walked in the door their what gave it away?\n\nA. health\nB. fall down\nC. stagger\nD. get arrested\nE. vomit",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_91",
+      "input": "You'll find a landing at the top of what?\n\nA. ocean\nB. apartment building\nC. stairwell\nD. airport\nE. room",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_92",
+      "input": "Anybody could be hired in the kitchen, what was needed of them?\n\nA. forget\nB. oil squeaky hinge\nC. question authority\nD. wash dishes\nE. oik squeaky hinge",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_93",
+      "input": "Where can you find a number of wind instruments together in public?\n\nA. music store\nB. create music\nC. zoo\nD. music room\nE. symphony",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_94",
+      "input": "A mountie got off at a subway stop.  What city might he be in?\n\nA. urban area\nB. metropolis\nC. chicago\nD. new york city\nE. toronto",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_95",
+      "input": "What do you want someone to do when you illustrate point?\n\nA. did not understand\nB. accepting\nC. make clear\nD. understood\nE. understanding",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_96",
+      "input": "Billy set aside a block of time for having fun after work. Why might he do this?\n\nA. happiness\nB. stress relief\nC. pleasure\nD. ocean\nE. may laugh",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_97",
+      "input": "The man in the white suit was very lazy.  He did nothing useful.  Meanwhile, the ban in the blue had put in effort and was very what?\n\nA. restless\nB. active\nC. lazybutt\nD. productive\nE. hard work",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_98",
+      "input": "What would you be unable to do if you have too much greed?\n\nA. keep things\nB. make friends\nC. play poker\nD. conquer opponent\nE. lie",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_99",
+      "input": "It was a long trip from the farm, so he stayed in a hotel when he arrived at the what?\n\nA. bed away from home\nB. wwii bunker\nC. resort\nD. las vegas\nE. city",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_100",
+      "input": "I did not need a servant.  I was not a what?\n\nA. freedom\nB. rich person\nC. hired help\nD. in charge\nE. busy",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_101",
+      "input": "How would you get from one side of a canal to another?\n\nA. michigan\nB. amsterdam\nC. venice\nD. bridge\nE. barges to travel on",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_102",
+      "input": "When learning about the world and different cultures, what is important if you are committed to eliminating preconceived notions\n\nA. newness\nB. loss of innocence\nC. enlightenment\nD. open mind\nE. smartness",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_103",
+      "input": "An underrated thing about computers is how they manage workflow, at one time it was a big deal when they could first do what?\n\nA. share files\nB. do arithmetic\nC. turn on\nD. cost money\nE. multitask",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_104",
+      "input": "Obstructing justice is sometimes an excuse used for police brutality which causes what in people?\n\nA. committing perjury\nB. prosecution\nC. attack\nD. getting hurt\nE. riot",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_105",
+      "input": "While washing clothes they became what when caught on the sharp object?\n\nA. damaged\nB. wet clothes\nC. wear out\nD. torn\nE. have fun",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_106",
+      "input": "Seafood restaurants are used to draw tourists where?\n\nA. maine\nB. shoe shop\nC. city\nD. boston\nE. coastal cities",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_107",
+      "input": "James's nice asked him about her grandfather. She was interested in learning about what?\n\nA. family tree\nB. family reunion\nC. babysitting\nD. brother's house\nE. heirlooms",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_108",
+      "input": "James looked up and saw the start twinkling in the black yonder.  He marveled the sheer number of them and the size of what?\n\nA. universe\nB. orbit\nC. night sky\nD. outer space\nE. his wallet",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_109",
+      "input": "What would encourage someone to continue playing tennis?\n\nA. becoming tired\nB. tennis elbow\nC. exercise\nD. hunger\nE. victory",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_110",
+      "input": "James found the sound relaxing.   It was so relaxing he almost did what despite his efforts?\n\nA. deep breathing\nB. worried\nC. fall asleep\nD. invigorating\nE. feeling good",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_111",
+      "input": "What regions of a town would you have found a dime store?\n\nA. commercial building\nB. old movie\nC. small neighborhood\nD. past\nE. mall",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_112",
+      "input": "Where might an unused chess set be stored?\n\nA. toy store\nB. michigan\nC. living room\nD. attic\nE. cupboard",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_113",
+      "input": "james told his son to settle down and be careful.  There were many frogs mating in the area, and James didn't want his son to do what to them?\n\nA. wander\nB. migrate\nC. scare\nD. disturb\nE. agitate",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_114",
+      "input": "A man wants air conditioning while we watches the game on Saturday, where will it likely be installed?\n\nA. car\nB. house\nC. offices\nD. park\nE. movie theatre",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_115",
+      "input": "What could be playing a balailaika?\n\nA. movie dr\nB. orchestra\nC. music store\nD. cat\nE. symphony",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_116",
+      "input": "Sailors drive many different types of boats, what type of boat involves their namesake.\n\nA. coming home\nB. row boat\nC. board ship\nD. inflatable raft\nE. sail boat",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_117",
+      "input": "Where could a person avoid the rain?\n\nA. bus stop\nB. tunnel\nC. synagogue\nD. fairy tale\nE. street corner",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_118",
+      "input": "Why would a person like to have a large house?\n\nA. have choice\nB. mentally challenged\nC. own house\nD. obesity\nE. lots of space",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_119",
+      "input": "Where will a cheap book be found?\n\nA. bookstore\nB. classroom\nC. discount store\nD. school room\nE. bedside table",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_120",
+      "input": "John and James are idiots. They bought two tickets to the Falcons vs the Jets even though neither wanted to see the what?\n\nA. internet cafe\nB. sporting event\nC. pressing wrong buttons\nD. obesity\nE. hockey game",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_121",
+      "input": "James noticed that his penis was bigger. .  How might he act toward his plastic surgeon?\n\nA. accidental\nB. detestable\nC. effusive\nD. enabled\nE. apathetic",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_122",
+      "input": "Who do professors work with?\n\nA. methods of facts\nB. teach courses\nC. wear wrinkled tweed jackets\nD. school students\nE. state facts",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_123",
+      "input": "Colorful anemone look somewhat like what object you find on window sills?\n\nA. intertidal zone\nB. coral sea\nC. under water\nD. flower bed\nE. florida keys",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_124",
+      "input": "From where do aliens arrive?\n\nA. outer space\nB. weekly world news\nC. roswell\nD. universe\nE. mars",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_125",
+      "input": "The hikers stopped to have a drink, simply put they what?\n\nA. had a party\nB. were thirsty\nC. refreshment\nD. getting drunk\nE. celebrating",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_126",
+      "input": "When you get up in the morning before you begin work you should do what?\n\nA. apply for job\nB. sleep\nC. concentrate\nD. shower\nE. just do",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_127",
+      "input": "The kitten had nothing to dig it's claws into, so when it tried to stop it slid across what?\n\nA. living room\nB. floor\nC. warm place\nD. carpet\nE. farmhouse",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_128",
+      "input": "If a person is trying to keep something in their hand what should they do?\n\nA. complete collection\nB. own house\nC. procrastinate\nD. explode\nE. have to hold",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_129",
+      "input": "Where could you find hundreds of thousands of home?\n\nA. field\nB. neighborhood\nC. star can\nD. city or town\nE. apartment building",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_130",
+      "input": "Playing baseball is a lot like any other sport, there is always a risk of what?\n\nA. sore muscles\nB. errors\nC. happiness\nD. injury\nE. fun",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_131",
+      "input": "If I want to watch a movie without leaving my home what might I use?\n\nA. drive in movie\nB. drive in movie\nC. television\nD. video store\nE. show",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_132",
+      "input": "The victim was to take stand today, they were going to do what?\n\nA. testify\nB. runaway\nC. witness\nD. tell truth\nE. go home",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_133",
+      "input": "What does a successful dog grooming session likely to make a owner feel?\n\nA. cleanliness\nB. mistakes\nC. growth\nD. satisfaction\nE. late",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_134",
+      "input": "The runner was in third place, but he pushed harder and thought he might be able to reach second.  What was beginning to do?\n\nA. near finish line\nB. finish\nC. get tired\nD. gain ground\nE. trip over",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_135",
+      "input": "The tourist entered Mammoth cave, what state were they in?\n\nA. west virginia\nB. kentucky\nC. rocky hills\nD. scotland\nE. canyon",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_136",
+      "input": "What does someone typically feel when applying for a job?\n\nA. horror\nB. anxiety and fear\nC. rejection\nD. increased workload\nE. being employed",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_137",
+      "input": "He was on trial for obstructing justice, during which he made a questionable comment and was also found guilty of what?\n\nA. prosecution\nB. getting hurt\nC. sweat\nD. steam\nE. committing perjury",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_138",
+      "input": "What kind of feelings does buying presents for others create?\n\nA. tears\nB. please\nC. like\nD. thank\nE. make happy",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_139",
+      "input": "What green area is a marmot likely to be found in?\n\nA. countryside\nB. great plains\nC. encyclopedia\nD. jungle\nE. north america",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_140",
+      "input": "Jan tested the current, and noticed that it was high.  He thought that the wires might have too much what?\n\nA. later\nB. updated\nC. still\nD. resistance\nE. now",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_141",
+      "input": "What does a kindergarten teacher do before nap time?\n\nA. lower expectations\nB. encourage\nC. fear\nD. time test\nE. tell story",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_142",
+      "input": "Sam was a stranger.  Even so, Mark treated him like what?\n\nA. friend\nB. family\nC. known person\nD. park\nE. outsider",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_143",
+      "input": "Bob's only light source was a small bulb.  There were four walls, if there was a door he couldn't see it.  What was Bob in?\n\nA. closed room\nB. sky\nC. dard\nD. his grave\nE. house",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_144",
+      "input": "James thought of criminal justice like a computer program.  It need to work right.   What ideas might James not like?\n\nA. manual\nB. process information\nC. power down\nD. control model\nE. reason exists",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_145",
+      "input": "With the card slot lit up he knew how to get started finding his balance with what?\n\nA. slot machine\nB. ticket machine\nC. bank machine\nD. telephone\nE. automated teller",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_146",
+      "input": "To play sports professionally you must do what very often?\n\nA. wash your clothes\nB. get in shape\nC. practice\nD. take off uniform\nE. stretch",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_147",
+      "input": "Some people prefer releasing energy through work while others prefer to release it through what?\n\nA. motion\nB. stretch\nC. exercise\nD. movement\nE. muscles",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_148",
+      "input": "What will a person going for a jog likely be wearing?\n\nA. grope\nB. acknowledgment\nC. comfortable clothes\nD. ipod\nE. passionate kisses",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_149",
+      "input": "The child pretended he was reading newspaper, he couldn't actually do it without what?\n\nA. patience\nB. falling down\nC. literacy\nD. buying\nE. knowing how to read",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_150",
+      "input": "Jenny enjoyed helping people.  It brought her a great deal of what?\n\nA. satisfaction\nB. complications\nC. train\nD. feel good about yourself\nE. enjoyment",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_151",
+      "input": "What might someone believe in if they are cleaning clothes?\n\nA. feminism\nB. sanitation\nC. ruined\nD. wrinkles\nE. buttons to fall off",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_152",
+      "input": "Where would you find a basement that can be accessed with an elevator?\n\nA. eat cake\nB. closet\nC. church\nD. office building\nE. own house",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_153",
+      "input": "In order to learn to program from another person you can do what?\n\nA. learn how to\nB. have a friend\nC. knowledge\nD. take class\nE. have computer",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_154",
+      "input": "He was at the gym trying to build muscle, what is it called that he is trying to build muscle on?\n\nA. body of animal\nB. arm\nC. bodybuilder\nD. body of dog\nE. human body",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_155",
+      "input": "What part of plants is pretty?\n\nA. dirt\nB. no neurons in\nC. millions of cells\nD. flowers on\nE. roots",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_156",
+      "input": "The man was going fishing instead of work, what is he seeking?\n\nA. food\nB. relaxation\nC. killing\nD. missing morning cartoons\nE. boredom",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_157",
+      "input": "What could you get an unsmooth pit from?\n\nA. backyard\nB. rock\nC. mine\nD. cherry\nE. peach",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_158",
+      "input": "The man tried to reply to the woman, but he had difficulty keeping track of conversations that he didn't do what to?\n\nA. initiate\nB. ignore\nC. question\nD. answer\nE. ask",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_159",
+      "input": "I couldn't find anybody who recalled the event, what were they adroit at doing?\n\nA. question authority\nB. act fool\nC. wash dishes\nD. act innocent\nE. forget",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_160",
+      "input": "Where would you find a large dining room containing a fancy chandelier?\n\nA. mansion\nB. every house\nC. own home\nD. table\nE. restaurant",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_161",
+      "input": "The extremely large cargo plane could only land at a specialized runway, these were only located at a what?\n\nA. back yard\nB. bowling alley\nC. city\nD. military base\nE. fashion show",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_162",
+      "input": "The carpet was smelly and discouraged the league from playing there, where was this smelly carpet installed?\n\nA. bedroom\nB. movie theater\nC. bowling alley\nD. church\nE. office",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_163",
+      "input": "How can someone be let into a brownstone?\n\nA. brooklyn\nB. ring\nC. subdivision\nD. bricks\nE. new york city",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_164",
+      "input": "Where would someone purchase an upright piano?\n\nA. music class\nB. college\nC. music store\nD. music room\nE. music band",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_165",
+      "input": "Where would you keep an ottoman near your front door?\n\nA. living room\nB. parlor\nC. furniture store\nD. basement\nE. kitchen",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_166",
+      "input": "Diving into backyard pools can be very dangerous and can lead to serious head and what?\n\nA. going somewhere\nB. splats\nC. cancer\nD. getting wet\nE. spinal injuries",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_167",
+      "input": "Where would one find a snake in a cage?\n\nA. tropical forest\nB. oregon\nC. woods\nD. pet store\nE. louisiana",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_168",
+      "input": "Where are people likely to become impatient?\n\nA. end of line\nB. buildings\nC. apartment\nD. neighbor's house\nE. address",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_169",
+      "input": "When you fail to finish something, you failed at doing what to it\n\nA. winning\nB. passing\nC. completing\nD. do well\nE. succeeding",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_170",
+      "input": "John didn't care about style.  He felt that form was less important than what?\n\nA. shapeless\nB. quality\nC. function\nD. change shape\nE. chaos",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_171",
+      "input": "When you get together with friends to watch film, you might do plenty of this?\n\nA. see what happens\nB. enjoy stories\nC. pass time\nD. have fun\nE. interesting",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_172",
+      "input": "A supermarket is uncommon in what type of collection of shops?\n\nA. strip mall\nB. city or town\nC. shoppingcentre\nD. boutique\nE. vermont",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_173",
+      "input": "Bill puts meat on the scale, where does Bill work?\n\nA. music store\nB. assay office\nC. tidal wave\nD. butcher shop\nE. bathroom",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_174",
+      "input": "I'm having some food at my party, what will I need to serve it?\n\nA. zoo\nB. pan\nC. bowl\nD. kitchen\nE. spoon",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_175",
+      "input": "Before racers start to run they must do what at the starting line?\n\nA. learn to walk\nB. walking\nC. walk slowly\nD. breathe\nE. stand still",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_176",
+      "input": "What does an actor do when they are bored of their roles?\n\nA. mask\nB. branch out\nC. wear costume\nD. pretend\nE. sing songs",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_177",
+      "input": "What is a person called who doesn't have immortality?\n\nA. mortal\nB. dying\nC. death\nD. dead\nE. mortal",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_178",
+      "input": "Why would you be watching tv instead of doing something else?\n\nA. headache\nB. laughter\nC. laziness\nD. erections\nE. wasting time",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_179",
+      "input": "If chewing food is difficult for you, what is a possible reason?\n\nA. broken jaw\nB. sore mouth\nC. eating\nD. good digestion\nE. avoiding choking",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_180",
+      "input": "He had to wear a tuxedo while playing the keyboard instrument, so did the other hundred members of the what?\n\nA. music store\nB. band\nC. medium\nD. orchestra\nE. piano store",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_181",
+      "input": "Where do you find the most amount of leafs?\n\nA. floral arrangement\nB. ground\nC. forrest\nD. field\nE. compost pile",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_182",
+      "input": "Where can children play with animals?\n\nA. meadow\nB. play room\nC. surface of earth\nD. zoos\nE. fairgrounds",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_183",
+      "input": "What kind of tale might feature a talking weasel?\n\nA. mulberry bush\nB. animated film\nC. chicken coop\nD. history book\nE. children's story",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_184",
+      "input": "What kind of status is the bald eagle given?\n\nA. outside\nB. world\nC. protection\nD. colorado\nE. america",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_185",
+      "input": "Why do most people take a quick rest during the day?\n\nA. need to\nB. hungry\nC. feel more energetic\nD. weak\nE. regenerate",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_186",
+      "input": "What could suddenly stop someone when he or she is running?\n\nA. mushroom\nB. falling down\nC. sweating\nD. exhaustion\nE. getting tired",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_187",
+      "input": "Where would you find a monkey in the wild?\n\nA. zoo\nB. barrel\nC. research laboratory\nD. captivity\nE. thailand",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_188",
+      "input": "Where could a sloth live?\n\nA. tropical jungle\nB. manual\nC. work\nD. transit\nE. countryside",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_189",
+      "input": "A gentleman is carrying equipment for golf, what is he likely to have?\n\nA. club\nB. assembly hall\nC. meditation center\nD. meeting\nE. church",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_190",
+      "input": "If you have a home with a courtyard, what's one thing you probably don't have to care for any longer?\n\nA. lawn\nB. kids\nC. asshole\nD. spain\nE. office complex",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_191",
+      "input": "The computer was difficult for he to understand at the store, so what did she sign up for to learn more?\n\nA. classroom\nB. facebook\nC. school\nD. apartment\nE. demonstration",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_192",
+      "input": "If you take the risk buying a used car, you still hope it can what?\n\nA. go fast\nB. start running\nC. going too fast\nD. look good\nE. last several years",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_193",
+      "input": "Dan was ditting quietly on the couch with a book in his hand.  Laurie thought that he was just focused on what he was doing, but he actually did what?\n\nA. eat\nB. think\nC. reading\nD. meditate\nE. fall asleep",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_194",
+      "input": "What is the primary purpose of cars?\n\nA. cost money\nB. slow down\nC. move people\nD. turn right\nE. get girls",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_195",
+      "input": "Alabama is full of different people, but they are all citizens of what?\n\nA. united states\nB. deep south\nC. floribama\nD. gulf states\nE. florabama",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_196",
+      "input": "They were hoping their campaign would create a rise in awareness of the problem and hopefully do what to its effect?\n\nA. set\nB. fall\nC. park\nD. descend\nE. reduce",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_197",
+      "input": "What do airplanes do as they are arriving at the gate?\n\nA. slow down\nB. crash\nC. speed up\nD. land\nE. carry people",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_198",
+      "input": "If a person with mental illness stops treatment what will likely happen?\n\nA. managed\nB. dancing\nC. recur\nD. effectively treated\nE. cause suffering",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_199",
+      "input": "The gimmicky low brow TV show was about animals when they what?\n\nA. sick\nB. mammals\nC. males\nD. bite\nE. attack",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_200",
+      "input": "A loud machine is irritating, but many are expected where?\n\nA. museum\nB. house\nC. laboratory\nD. library\nE. industrial area",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_201",
+      "input": "What part of a table would you put a ruler in?\n\nA. drawer\nB. desk\nC. the backside\nD. office\nE. measure distance",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_202",
+      "input": "What happens if someone kisses too long?\n\nA. strong feelings\nB. herpes\nC. shortness of breath\nD. excitement\nE. arousal",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_203",
+      "input": "If I have a modern light source in my living room, what is it likely to be?\n\nA. sky\nB. house\nC. lamp\nD. match\nE. candle",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_204",
+      "input": "The person saw the mess his children made, what was his following reaction?\n\nA. smell smoke\nB. cross street\nC. cry\nD. bank savings\nE. look angry",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_205",
+      "input": "Who might wear dark glasses indoors?\n\nA. blind person\nB. glove box\nC. movie studio\nD. ray charles\nE. glove compartment",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_206",
+      "input": "Where would stones not be arranged in a path?\n\nA. quarries\nB. field\nC. park\nD. bridge\nE. made from rocks",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_207",
+      "input": "A bald eagle is likely to be found on what kind of work?\n\nA. rural area\nB. book\nC. canada\nD. painting\nE. aviary",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_208",
+      "input": "The hostess was good at her job, she always had a smile when she would what?\n\nA. group people\nB. ready parlor for guests\nC. welcome guests\nD. work room\nE. park",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_209",
+      "input": "What is likely to happen to someone who is learning?\n\nA. overconfidence\nB. effectiveness\nC. knowing more\nD. head grows larger\nE. growth",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_210",
+      "input": "The inspector was agreeing with the factory protocols, what was the status of the factory?\n\nA. compliance\nB. eligible\nC. contract\nD. harmony\nE. friendship",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_211",
+      "input": "After standing up I had to sit right back down, why would I feel like this?\n\nA. train\nB. effort\nC. balance\nD. feet\nE. muscles",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_212",
+      "input": "Where do you go on a night out before going to the bar?\n\nA. new york city\nB. las vegas\nC. restaurant\nD. nightclub\nE. park",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_213",
+      "input": "The dad wanted to protect his house, where did he put his gun?\n\nA. police station\nB. crime scene\nC. restroom\nD. drawer\nE. holster",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_214",
+      "input": "What instrument can be played with an air of happiness?\n\nA. jump up and down\nB. jump up and down\nC. sing\nD. play games\nE. fiddle",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_215",
+      "input": "What to kids do for boredom on a ramp?\n\nA. watch film\nB. fire game\nC. hang out at bar\nD. go skiing\nE. skateboard",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_216",
+      "input": "What animal has quills all over it?\n\nA. feather\nB. chicken\nC. calligraphy\nD. porcupine\nE. hedgehog",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_217",
+      "input": "Why would you go to an office?\n\nA. work\nB. school building\nC. paper\nD. city\nE. habit",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_218",
+      "input": "When is the worst time for having food?\n\nA. digesting\nB. not hungry\nC. gas\nD. weight gain\nE. feeling of fullness",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_219",
+      "input": "If you spend all your time buying and not saving what is is likely to happen?\n\nA. using money\nB. feel better\nC. ocean\nD. losing money\nE. go broke",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_220",
+      "input": "Though a mouse might prefer your house, you might also see him where?\n\nA. tin\nB. department store\nC. garden\nD. small hole\nE. cupboard",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_221",
+      "input": "What is performing a type of?\n\nA. singing\nB. act\nC. feat\nD. smile\nE. acting",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_222",
+      "input": "The car was going from Alabama to New York, what was its goal?\n\nA. head north\nB. speed up\nC. heading north\nD. go fast\nE. headed south",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_223",
+      "input": "What do they call the trash in Australia?\n\nA. dirt\nB. subway\nC. state park\nD. container\nE. dustbin",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_224",
+      "input": "Joan wants to cook a potato, where should she place it?\n\nA. boiling water\nB. paper bag\nC. restaurants\nD. underground\nE. cupboard",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_225",
+      "input": "Writers with a great what can amass a large fortune?\n\nA. cookie\nB. bank\nC. real estate\nD. imagination\nE. bank roll",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_226",
+      "input": "Where do all animals live?\n\nA. the moon\nB. fairgrounds\nC. surface of earth\nD. meadow\nE. zoos",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_227",
+      "input": "How are the conditions for someone who is living in a homeless shelter?\n\nA. sometimes bad\nB. happy\nC. respiration\nD. growing older\nE. death",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_228",
+      "input": "You can do knitting to get the feeling of what?\n\nA. relaxation\nB. arthritis\nC. adrenaline\nD. your\nE. sweater may produced",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_229",
+      "input": "What might a very large table be?\n\nA. dining room\nB. conference\nC. kitchen\nD. in a lake\nE. demonstration",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_230",
+      "input": "John got his tax refund back.  He treated it like it was what?\n\nA. candy\nB. death and\nC. free money\nD. discount\nE. credit",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_231",
+      "input": "A person with an allergy might be doing what if they awake suddenly?\n\nA. have fun\nB. enjoy with friends\nC. stretch\nD. yawn\nE. sneezing",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_232",
+      "input": "Where is a ferret unlikely to be?\n\nA. classroom\nB. outdoors\nC. aquarium\nD. north carolina\nE. great britain",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_233",
+      "input": "If you jump in any of the oceans you will get?\n\nA. tanned\nB. wet\nC. wide\nD. very deep\nE. fish",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_234",
+      "input": "Immediately after peeing, a person's bladder is what?\n\nA. collapsed\nB. empty\nC. full\nD. filled\nE. stretchable",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_235",
+      "input": "The lady would eat and eat, and because of mental issues would then make herself what?\n\nA. wash dishes\nB. throwing up\nC. drinking\nD. throw up\nE. turn inside out",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_236",
+      "input": "A car was hailed to chauffeur someone to the opera house, where was it heading?\n\nA. go downtown\nB. appear suddenly\nC. go fast\nD. bottom out\nE. east",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_237",
+      "input": "What do you go to see for live entertainment?\n\nA. movie\nB. show\nC. concert venue\nD. casino\nE. theatre",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_238",
+      "input": "The teacher thought that a ferret can be very mischievous and probably wouldn't make a great pet for the entire what?\n\nA. bad mood\nB. hutch\nC. classroom\nD. pair of trousers\nE. year",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_239",
+      "input": "A creek is a body of water found in what low land?\n\nA. forest\nB. valley\nC. outdoors\nD. countryside\nE. woods",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_240",
+      "input": "If I have a pet bird, what does it likely live in?\n\nA. forest\nB. bathroom\nC. windowsill\nD. countryside\nE. cage",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_241",
+      "input": "Joe and Mac were playing basketball. They did it every day in their back yard.  Why were they playing basketball?\n\nA. study\nB. have fun\nC. pain\nD. cheers\nE. knee injury",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_242",
+      "input": "What makes someone a nomad?\n\nA. unpleasant things\nB. hangnail\nC. have no home\nD. have no car\nE. schizophrenia",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_243",
+      "input": "What is a treat that you dog will enjoy?\n\nA. salad\nB. petted\nC. affection\nD. bone\nE. lots of attention",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_244",
+      "input": "Women used to be expected to wear a dress but it's now acceptable for them to wear what?\n\nA. man suit\nB. pants\nC. naked\nD. action\nE. long skirt",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_245",
+      "input": "The fact that Joe was able to memorize the list in spite of his apparent  state proved that part of his brain was what?\n\nA. awake\nB. repeat\nC. sleeping\nD. concentrate\nE. read aloud",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_246",
+      "input": "What is a wet person likely to do?\n\nA. gain weight\nB. thank god\nC. catch cold\nD. suicide\nE. cross street",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_247",
+      "input": "After recovering from the disease, what did the doctor call the patient?\n\nA. healthy\nB. passing around\nC. cure\nD. wellness\nE. healthy",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_248",
+      "input": "The painter started to edge the room with tape, he always took extra care to make the lines clean and crisp when working with an what?\n\nA. triangle\nB. middle\nC. corner\nD. center\nE. interior",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_249",
+      "input": "After high tide, where on the coast can you look to find a sea anemone?\n\nA. nursery\nB. museum\nC. gulf of mexico\nD. tide pool\nE. intertidal zone",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_250",
+      "input": "What could a driving car do to a pedestrian?\n\nA. say hello\nB. wreak\nC. pollution\nD. smoke\nE. relaxation",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_251",
+      "input": "People do many things to alleviate boredom.  If you can't get out of the house you might decide to do what?\n\nA. play cards\nB. skateboard\nC. meet interesting people\nD. listen to music\nE. go to a concert",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_252",
+      "input": "At a grocery store they sell individual potatoes, where does the grocery clerk likely put the potato?\n\nA. boiling water\nB. root cellar\nC. rocket ship\nD. paper bag\nE. underground",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_253",
+      "input": "What room is a rubber bath mat usually kept?\n\nA. doorway\nB. living room\nC. sand\nD. floors\nE. bathroom",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_254",
+      "input": "What would you put meat on top of to cook it?\n\nA. oil\nB. freezer\nC. ham sandwich\nD. oven\nE. frying pan",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_255",
+      "input": "Minerals can be obtained in what way for a person who avoids leafy greens?\n\nA. multivitamin\nB. farm\nC. michigan\nD. earth\nE. ore",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_256",
+      "input": "What could you be a few hours after you finish cashing in due to your cash?\n\nA. happy\nB. receiving money\nC. getting paid\nD. spending money\nE. selling out",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_257",
+      "input": "The smelly man was having a bath, but what is he pursuing?\n\nA. hydration\nB. being clear\nC. personal cleanliness\nD. will drown\nE. use of water",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_258",
+      "input": "What might a couple have a lot of when they are deciding on stopping being married to each other?\n\nA. pleasure\nB. detachment\nC. exercise\nD. bankruptcy\nE. fights",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_259",
+      "input": "If a person is working a lot, what are they likely trying to earn?\n\nA. much money\nB. own house\nC. creativity\nD. new car\nE. caregiver",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_260",
+      "input": "The traveling business man was glad his credit card had perks, it offset the high prices for travel from a what?\n\nA. car\nB. theatre\nC. airport\nD. hotel\nE. disneyland",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_261",
+      "input": "Billy hated using other people's toilets. He was only comfortable on his own.  So whenever he needed to poop, he would go back to his what?\n\nA. bathroom\nB. motel room\nC. nearest public restroom\nD. house\nE. apartment",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_262",
+      "input": "The forest experienced a cold winter, where is it located?\n\nA. earth\nB. south america\nC. amazon basin\nD. temperate zone\nE. national park",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_263",
+      "input": "How can you let someone know about your anger without hurting him or her?\n\nA. release energy\nB. destroy enemy\nC. punch\nD. write letter\nE. lose your temper",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_264",
+      "input": "Where is one likely to find a brownstone?\n\nA. new york city\nB. subdivision\nC. ring\nD. hazleton\nE. live in",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_265",
+      "input": "What may I place the telephone on?\n\nA. bar\nB. friend's house\nC. desktop\nD. party\nE. office",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_266",
+      "input": "What language type is someone from Iran likely to use?\n\nA. books\nB. dard\nC. sky\nD. closed room\nE. television",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_267",
+      "input": "John went to a party that lasted all night.  Because of this, he didn't have time for what?\n\nA. meeting\nB. blowing off steam\nC. stay home\nD. partying hard\nE. studying",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_268",
+      "input": "The child wasn't allowed in the kitchen but still wanted to help, what could it do to help in the dining room?\n\nA. set table\nB. form opinions\nC. make honey\nD. become adult\nE. gather flowers",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_269",
+      "input": "He was having a hard time expressing himself in a healthy way, the psychologist said he was mentally what?\n\nA. slow\nB. understood\nC. suffering\nD. embarrassment\nE. fun",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_270",
+      "input": "When someone is physically competing what does their body do?\n\nA. tension\nB. perform better\nC. releases heat\nD. winning or losing\nE. sweat",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_271",
+      "input": "How would you express information to a deaf person?\n\nA. summarize main points\nB. close mouth\nC. write down\nD. may disagree\nE. talk",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_272",
+      "input": "Printing on a printer can get expensive because it does what?\n\nA. explode\nB. use paper\nC. store information\nD. queue\nE. noise",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_273",
+      "input": "What will god never do according to religion?\n\nA. anything\nB. judge people\nC. work miracles\nD. judge men\nE. everywhere",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_274",
+      "input": "One of the potential hazards of attending school is what?\n\nA. cooties\nB. get smart\nC. boredom\nD. colds and flu\nE. taking tests",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_275",
+      "input": "What has a surface with many sides?\n\nA. tetrahedron\nB. object\nC. geometry problem\nD. lake\nE. triangle",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_276",
+      "input": "What could bring a container from one place to another?\n\nA. food\nB. refrigerator\nC. cargo ship\nD. port\nE. fuel",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_277",
+      "input": "The old style pop ups literally let you see the story when you did what?\n\nA. giggle\nB. visualize\nC. open book\nD. reading\nE. go to movies",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_278",
+      "input": "What is it called when you are talking to someone?\n\nA. communication\nB. quiet\nC. boredom\nD. persuaded\nE. learn",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_279",
+      "input": "The family finished dinner, the child's chore was to load the dirty dishes where?\n\nA. restaurant kitchen\nB. dishwasher\nC. son's room\nD. cabinet\nE. party",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_280",
+      "input": "Where could you find a bureau as well as many politicians?\n\nA. each city\nB. office building\nC. a zoo\nD. french government\nE. washington dc",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_281",
+      "input": "Dad wanted to hide the check in his office, where did he put it?\n\nA. cash register\nB. desk drawer\nC. fish tank\nD. bank\nE. pay envelope",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_282",
+      "input": "For some reason she was devoid of regular emotions, buying products was the only way she could feel what?\n\nA. pleasure\nB. owning\nC. debt\nD. spending money\nE. smart",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_283",
+      "input": "Where are horses judged on appearance?\n\nA. race track\nB. fair\nC. raised by humans\nD. in a field\nE. countryside",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_284",
+      "input": "Why do people read non fiction?\n\nA. having fun\nB. it's more relatable\nC. learn new things\nD. becoming absorbed\nE. falling asleep",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_285",
+      "input": "While knitting you can do what using a radio?\n\nA. listen to music\nB. watch television\nC. making blankets\nD. eat\nE. watching tv",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_286",
+      "input": "Where are you likely to set papers while working on them?\n\nA. table\nB. meeting\nC. drawer\nD. toilet\nE. garage",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_287",
+      "input": "John had a massive debt to 50 million dollars.  Compared to that, Leo's 2000 dollar debt seemed what?\n\nA. dwarf\nB. inconsequential\nC. insubstantial\nD. lame\nE. tiny",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_288",
+      "input": "The man flew his airplane over the city and saw pollution visibly in the sky, what was polluted?\n\nA. forest\nB. street\nC. air\nD. caused by humans\nE. car show",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_289",
+      "input": "What is a very unlikely side effect of becoming inebriated?\n\nA. fights\nB. drunkenness\nC. staggering\nD. puke\nE. paralysis",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_290",
+      "input": "when communicating with my boss what should i do\n\nA. misunderstandings\nB. transfer of information\nC. learning\nD. confusion\nE. silence",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_291",
+      "input": "If not in a stream but in a market where will you find fish?\n\nA. stream\nB. aquarium\nC. refrigerator\nD. boat ride\nE. market",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_292",
+      "input": "What are people likely to want to do with their friends?\n\nA. own land\nB. own home\nC. talk to each other\nD. believe in god\nE. spend time",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_293",
+      "input": "During a shark filled tornado where should you not be?\n\nA. marine museum\nB. pool hall\nC. noodle house\nD. bad movie\nE. outside",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_294",
+      "input": "What is the likely result of buying products in excess?\n\nA. running out of money\nB. spending money\nC. poverty\nD. comparison shopping\nE. overstocking",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_295",
+      "input": "What is a person trying to accomplish when taking analgesics?\n\nA. acceptance\nB. avoid pain\nC. acknowledgment\nD. passing grade\nE. intellectual challenge",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_296",
+      "input": "Where would you put a glass after drinking from it?\n\nA. ocean\nB. water cooler\nC. cabinet\nD. dishwasher\nE. dining room",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_297",
+      "input": "Where would you buy food?\n\nA. freezer\nB. store\nC. home\nD. hatred\nE. kitchen",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_298",
+      "input": "When a person admits his mistakes, what are they doing?\n\nA. accident\nB. learn to swim\nC. thank god\nD. feel relieved\nE. act responsibly",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_299",
+      "input": "Where do play a game for money?\n\nA. casino\nB. football ground\nC. ballpark\nD. family room\nE. toy store",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_300",
+      "input": "When you travel you should what in case of unexpected costs?\n\nA. go somewhere\nB. energy\nC. spend frivilously\nD. fly in airplane\nE. have money",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_301",
+      "input": "Donald is a prominent figure for the federal government, so in what city does he likely spend a lot of time?\n\nA. everything\nB. capitol building\nC. tourist sites\nD. canada\nE. washington d.c",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_302",
+      "input": "There was more than one bum asking for change or a ticket, it was the cheapest way to travel so it was no surprise sight at the what?\n\nA. train station\nB. beach\nC. bus depot\nD. bridge\nE. stumblebum",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_303",
+      "input": "John and Joe like planning games but Joe  was hit by a ball and fell down. What might have happened to Joe.\n\nA. anger\nB. good natured ribbing.\nC. enjoying\nD. injury\nE. enjoyment",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_304",
+      "input": "Where can you buy jeans at one of may indoor merchants?\n\nA. gap\nB. shopping mall\nC. bedroom\nD. laundromat\nE. bathroom",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_305",
+      "input": "What do you write letter in in America?\n\nA. syllable\nB. post office\nC. envelope\nD. english alphabet\nE. word",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_306",
+      "input": "Joe owned back taxes as well as what other type of taxes?\n\nA. anterior\nB. front\nC. main\nD. front\nE. current",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_307",
+      "input": "Where is a broadcast studio likely to be heard?\n\nA. microphone\nB. arena\nC. radio station\nD. trees\nE. town",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_308",
+      "input": "Kramer wrote a self-referential book.  What might that book be about?\n\nA. counter\nB. coffee table\nC. school room\nD. backpack\nE. bedside table",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_309",
+      "input": "Of all the sports, Billy enjoys football, but what does his concerned mother think of the sport?\n\nA. very entertaining\nB. fun\nC. slow\nD. competitive\nE. violent",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_310",
+      "input": "What city will likely have many parking structures?\n\nA. chicago\nB. big city\nC. large city building\nD. environment\nE. college campus",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_311",
+      "input": "Sally was afraid of danger and always double checked what?\n\nA. fight enemy\nB. secure\nC. being safe\nD. safety\nE. vicinity",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_312",
+      "input": "What is the habitat of the fox?\n\nA. hen house\nB. burrow\nC. california\nD. england\nE. mountains",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_313",
+      "input": "People are very much like the animals, but one thing has secured or dominance over the planet.  We're better at doing what?\n\nA. eat eggs\nB. make tools\nC. eat dosa\nD. talk to each other\nE. smoke pot",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_314",
+      "input": "They children loved having a back yard, and the parents loved that it was a safe what?\n\nA. suburb\nB. neighborhood\nC. back of house\nD. roundabout\nE. property",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_315",
+      "input": "While people just throw coins down them now, what originally had a pail to be lowered for it's intended use?\n\nA. garage\nB. utility room\nC. slide\nD. wishing well\nE. garden",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_316",
+      "input": "Joe was thrown from his boat into the water.  The water was cold because it was the middle of winter and he cried out to his crew for help.  They couldn't hear him over the sound of the what?\n\nA. surface of earth\nB. teardrops\nC. snowflake\nD. typhoon\nE. motor",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_317",
+      "input": "When a human is earning money, where are they often found?\n\nA. deep thought\nB. park\nC. friend's house\nD. place of work\nE. school",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_318",
+      "input": "They passed a apple tree on their way to the racetrack, the were going to watch the biggest motorsport spectacle in the world where?\n\nA. maryland\nB. indiana\nC. on tv\nD. park\nE. new jersey",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_319",
+      "input": "Why do people play chess on the weekends?\n\nA. satisfaction\nB. have fun\nC. thrilling\nD. made\nE. smart",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_320",
+      "input": "What do you need energy to do in gym class?\n\nA. work\nB. tacos\nC. mass\nD. play sports\nE. wrestle",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_321",
+      "input": "Sarah dropped the marble because she wanted to do what?\n\nA. game\nB. pouch\nC. home\nD. store\nE. jar",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_322",
+      "input": "We are all human, and we all what?\n\nA. write\nB. eat cake\nC. smile\nD. think critically\nE. die",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_323",
+      "input": "If a person were going to bed, what would be their goal?\n\nA. lazy\nB. insomnia\nC. rest\nD. falling asleep\nE. dreaming of",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_324",
+      "input": "What are candles good for eliminating?\n\nA. shelf\nB. board\nC. church\nD. table\nE. dark",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_325",
+      "input": "WHat leads to an early death?\n\nA. poisonous gas\nB. homicide\nC. cinder\nD. nuclear weapons\nE. cyanide",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_326",
+      "input": "What room would you find many bookcases and is used for contemplation?\n\nA. study\nB. house\nC. homw\nD. kitchen\nE. den",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_327",
+      "input": "Where do you head to travel to a star?\n\nA. night sky\nB. galaxy\nC. outer space\nD. hollywood\nE. eat cake",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_328",
+      "input": "The player lifted his cornet and walked in rhythm, what was the player a member of?\n\nA. museum\nB. high school band\nC. marching band\nD. orchestra\nE. band",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_329",
+      "input": "What happens at soon as a living being is born?\n\nA. expiration\nB. growing older\nC. sometimes bad\nD. death\nE. start reproduction",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_330",
+      "input": "When someone is talking and you missed something, what can you do to get them to repeat it?\n\nA. walking\nB. ask question\nC. think\nD. write question in crayon\nE. sneeze",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_331",
+      "input": "Where does one store fabric in their own home?\n\nA. sewing room\nB. clothing store\nC. tailor shop\nD. clothes store\nE. cotton mill",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_332",
+      "input": "What do most companies not want to have relative to demand?\n\nA. oversupply\nB. plentitude\nC. stockpile\nD. superabundance\nE. busy",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_333",
+      "input": "What is happening while he's playing basketball for such a long time?\n\nA. sweating\nB. pain\nC. having fun\nD. medium\nE. knee injury",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_334",
+      "input": "A traveler laments the fact that mass transit is limited in his city when his groceries get soaked by the rain as he waits where?\n\nA. bus stop\nB. library\nC. motel\nD. airport\nE. subway",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_335",
+      "input": "The person was in physical distress, where should he go?\n\nA. synagogue\nB. for help\nC. hospital\nD. bus stop\nE. building",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_336",
+      "input": "The cancer patient was expecting to die, so he made out his what?\n\nA. not to live\nB. write will\nC. never want\nD. seek help\nE. go to hell",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_337",
+      "input": "There was a toll road that meandered from Maine to New Hampshire, where was it?\n\nA. massachusetts\nB. new england\nC. my house\nD. new jersey\nE. connecticut",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_338",
+      "input": "If you partied all night you could find yourself already what, even when just beginning work?\n\nA. getting tired\nB. working\nC. procrastination\nD. jumping\nE. sitting down",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_339",
+      "input": "The cat carefully navigated the area, they do everything they can to avoid what?\n\nA. get wet\nB. eat vegetables\nC. falling\nD. wool sweater\nE. sharp claws",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_340",
+      "input": "What is someone usually doing if someone else is talking to him or her?\n\nA. listening\nB. language\nC. looking at eyes\nD. planning the perfect murder\nE. voice",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_341",
+      "input": "What does the sky do before a rain?\n\nA. appear beautiful\nB. appear blue\nC. shows a rainbow\nD. rain water\nE. cloud over",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_342",
+      "input": "Pens, computers, text books and paper clips can all be found where?\n\nA. desktop\nB. university\nC. drawer\nD. table\nE. work",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_343",
+      "input": "What geographic area is a lizard likely to be?\n\nA. ball stopped\nB. west texas\nC. arid regions\nD. garden\nE. warm place",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_344",
+      "input": "What do you use to carry your briefcase?\n\nA. office building\nB. school\nC. courtroom\nD. airport\nE. hand",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_345",
+      "input": "He picked up his pace to a run, he wanted to do what?\n\nA. learn to walk\nB. frightened\nC. get away from\nD. exercise\nE. go faster",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_346",
+      "input": "What would a person do if they do not have any friends?\n\nA. talk to people\nB. try again\nC. fall asleep\nD. stand alone\nE. thank god",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_347",
+      "input": "As a result of dying, what happens to organic material?\n\nA. change of color\nB. stop breathing\nC. wake up\nD. death and decay\nE. getting cold",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_348",
+      "input": "What does everyone have in relation to other people?\n\nA. feelings\nB. food\nC. unique personality\nD. different standards\nE. values",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_349",
+      "input": "What do you ask a child to do when you first meet her?\n\nA. ask questions\nB. count to ten\nC. costume\nD. state name\nE. dress herself",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_350",
+      "input": "Where can you buy a clock, clothing and wrenches?\n\nA. counter\nB. train station\nC. school room\nD. desk\nE. department store",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_351",
+      "input": "What do you do when you're in a new place and want to see new things?\n\nA. interesting\nB. look around\nC. take pictures\nD. change of surroundings\nE. new experience",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_352",
+      "input": "What happens when to ice when it is in the sun?\n\nA. carved\nB. melted\nC. ice cream\nD. antarctica\nE. sculptured",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_353",
+      "input": "Where can you store your dishes in your dwelling?\n\nA. drawer\nB. shelf\nC. pantry\nD. apartment\nE. cabinet",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_354",
+      "input": "The man laid on the soft moss and looked up at the trees, where was the man?\n\nA. niagra falls\nB. forest\nC. waterfall\nD. ground\nE. tree",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_355",
+      "input": "What is someone doing if he or she is sitting quietly and his or her eyes are moving?\n\nA. reading\nB. meditate\nC. fall asleep\nD. bunk\nE. think",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_356",
+      "input": "Where can I find a stapler in many places?\n\nA. desk drawer\nB. office building\nC. manual\nD. office supply store\nE. desktop",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_357",
+      "input": "A man takes a seat at a museum outside of Barcelona, where is he likely?\n\nA. in cinema\nB. martorell\nC. falling down\nD. show\nE. airplane",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_358",
+      "input": "Where would you find a toy soldier that is being played with?\n\nA. toy box\nB. movies\nC. child's hand\nD. toybos\nE. child park",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_359",
+      "input": "Where are you when you're about to use your plane ticket?\n\nA. pocket\nB. terrorists hands\nC. airport\nD. sea ship\nE. briefcase",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_360",
+      "input": "Flowers make a good center focal point, just one of many arrangements that look good on a what?\n\nA. market\nB. table\nC. countryside\nD. anthology\nE. vase",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_361",
+      "input": "How can a human cross a river and not mess up their hair?\n\nA. wisconsin\nB. waterfall\nC. hatred\nD. bridge\nE. valley",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_362",
+      "input": "Batman bought beer.  There were no bottles available.  He had to settle for what?.\n\nA. shelf\nB. soccer game\nC. keg\nD. can\nE. refrigerator",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_363",
+      "input": "You can find a monkey in what West African region on the Gulf of Guinea\n\nA. south american country\nB. rain forest\nC. pay debts\nD. works\nE. nigeria",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_364",
+      "input": "Surprising an angry person could lead to what?\n\nA. humor\nB. fight\nC. jocose\nD. laughter\nE. accidents",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_365",
+      "input": "Where is a dining area likely to be small?\n\nA. cruise ship\nB. home\nC. mall\nD. restaurant\nE. dark cave",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_366",
+      "input": "Killing people should not cause what emotion?\n\nA. vengeance\nB. going to prison\nC. joy\nD. afraid\nE. terrible",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_367",
+      "input": "James slamed into someone playing football, and not for the first time.  He was concerned about the consequences of many what?\n\nA. exhilaration\nB. interactions\nC. head injuries\nD. death\nE. having fun",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_368",
+      "input": "More people should lower the guard and just have fun, we don't got long just what?\n\nA. enjoy living\nB. happy\nC. enjoyable\nD. get laid\nE. do enjoy",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_369",
+      "input": "Where can you get a lizard to keep in your home?\n\nA. desert country\nB. dessert\nC. pet shop\nD. tropical areas\nE. zoo",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_370",
+      "input": "What would use a musical instrument?\n\nA. guitar\nB. music room\nC. orchestra\nD. case\nE. movie",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_371",
+      "input": "She was in an affair, what did that end upon discovery by her husband?\n\nA. relationship\nB. marriage\nC. fidelity\nD. love\nE. divorce",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_372",
+      "input": "What is the most famous constellation out of earth?\n\nA. one moon\nB. milky way\nC. god's creation\nD. stars\nE. universe",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_373",
+      "input": "If a reception is held with hotel guests walking by, what is the likely venue?\n\nA. room service\nB. church basement\nC. lobby\nD. large room\nE. country club",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_374",
+      "input": "What is a place that is far away from your house and where you could consume beer?\n\nA. refrigerator\nB. friend's house\nC. keg\nD. neighbor's house\nE. kitchen",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_375",
+      "input": "If a court case is dismissed after hearing testimony, what would be a likely cause?\n\nA. change of heart\nB. anguish\nC. anger\nD. boredom\nE. anxiety",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_376",
+      "input": "Sitting down quickly after eating beans could lead to what?\n\nA. flatulence\nB. happiness\nC. laziness\nD. fall asleep\nE. comfort",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_377",
+      "input": "John was my neighbor, it was easy to talk to him. He was never what?\n\nA. away\nB. distant\nC. remote person\nD. bore\nE. foe",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_378",
+      "input": "Where do people want to have a lot of coffee?\n\nA. table\nB. office\nC. desk\nD. kitchen\nE. ocean",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_379",
+      "input": "You stop and have food all around you, what are you?\n\nA. stay alive\nB. wanted to survive\nC. nutrition\nD. grew\nE. full",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_380",
+      "input": "James was meeting a friend.  They had planed a slow day. They didn't want to do much.  They just wanted what?\n\nA. relaxation\nB. panic\nC. alarm\nD. joy\nE. cheer",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_381",
+      "input": "The car's steering seem quite loose, but he still considered purchasing it because he needed something small and what?\n\nA. sturdy\nB. faithful\nC. bound\nD. compact\nE. packaged",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_382",
+      "input": "Dan was a farmer with just one heifer.  But that was okay, he only kept her for milk, and he didn't think he'd find good farmland in a place as cold as where?\n\nA. arizona\nB. farm yard\nC. michigan\nD. german field\nE. dairy farm",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_383",
+      "input": "It's Friday night and Alice puts off going to bed because she plans on doing what Saturday?\n\nA. hatred\nB. sleeping in\nC. rest\nD. making love\nE. insomnia",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_384",
+      "input": "His phone was dead and they couldn't find the expressway, he opened up the glove compartment and handed his passenger the what to navigate?\n\nA. eastern united states\nB. michigan\nC. map\nD. choppers\nE. american city",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_385",
+      "input": "What would someone use a personal key for?\n\nA. car stand\nB. at hotel\nC. own home\nD. front door\nE. bus depot",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_386",
+      "input": "The cat kept pestering it's owner, it was that time of the day and it was what?\n\nA. litter tray\nB. whiskers\nC. hungry\nD. feline\nE. thirsty",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_387",
+      "input": "Her voice lent her to the alto section, what group did she join?\n\nA. symphony\nB. concerto\nC. choir\nD. theater troupe\nE. marching band",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_388",
+      "input": "Where are you likely to find a Japanese restaurant not run by people from Japan?\n\nA. california\nB. downtown\nC. large town\nD. tokio\nE. china town",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_389",
+      "input": "Animals who have hair and don't lay eggs are what?\n\nA. reproduce asexually\nB. males\nC. mammals\nD. attack\nE. ocean",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_390",
+      "input": "John was an aristocratic fox hunter.  Where might he live?\n\nA. england\nB. new hampshire\nC. street\nD. arkansas\nE. north dakota",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_391",
+      "input": "Where is a grape likely to be being fed to someone else?\n\nA. field\nB. bathroom\nC. michigan\nD. minnesota\nE. painting",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_392",
+      "input": "Some food can be stored at room temperature until you open it, then you should keep it in what?\n\nA. shop\nB. bookcase\nC. shelf\nD. refrigerators\nE. kitchen",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_393",
+      "input": "Sam couldn't get back to sleep because of a dream he had.  It was a what?\n\nA. awake\nB. horror\nC. dreamworker\nD. reality\nE. nightmare",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_394",
+      "input": "If you're going to a party in a new town what are you hoping to make?\n\nA. getting drunk\nB. making new friends\nC. new contacts\nD. doing drugs\nE. set home",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_395",
+      "input": "How is riding a bike getting it to move?\n\nA. practice\nB. sense of balance\nC. driving\nD. good balance\nE. pedalling",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_396",
+      "input": "Where does one usually keep literature?\n\nA. books and magazines\nB. own home\nC. kitchen\nD. shelf\nE. meeting",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_397",
+      "input": "WHat type of keyboard is made up of one or more pipe divisions?\n\nA. killing\nB. typewriter\nC. office\nD. terminal\nE. organ",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_398",
+      "input": "The bell rang, and the congregation began to what in to the church?\n\nA. run away\nB. wind instrument\nC. funnel\nD. blunderbuss\nE. associated with telephones",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_399",
+      "input": "James needed smooth sandpaper, but instead he got what type?\n\nA. rough\nB. non smooth\nC. uneven\nD. plastic\nE. bumpy",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_400",
+      "input": "Where would you borrow furniture if you do not have any?\n\nA. sewer\nB. neighbor's house\nC. apartment\nD. room\nE. floor",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_401",
+      "input": "What must happen for an animal to and it's offspring to continue livng?\n\nA. death\nB. flying\nC. reproducing\nD. food consumed\nE. eventually die",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_402",
+      "input": "I want my wine stored in darkness, where should it go?\n\nA. movies\nB. bed\nC. moon\nD. vault\nE. cellar",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_403",
+      "input": "If I want to open a steakhouse, what should I get first?\n\nA. michigan\nB. florida\nC. wine\nD. texas\nE. building",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_404",
+      "input": "Sarah didn't like to play but she didn't want to be sedentary and bored, either, so she took up what?\n\nA. serious\nB. longplay\nC. musical\nD. eat cake\nE. doing nothing",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_405",
+      "input": "Joe found spiders while checking something outside.  What might that be?\n\nA. cupboard\nB. closet\nC. storage bag\nD. mail box\nE. garage",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_406",
+      "input": "What would you do if your date does not show up?\n\nA. wait for\nB. bathe\nC. go for haircut\nD. plan revenge\nE. dress nice",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_407",
+      "input": "What did the adult do before the job interview?\n\nA. work\nB. dress himself\nC. marry\nD. dress herself\nE. drive train",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_408",
+      "input": "Most items in retail stores are what even when they are on sale?\n\nA. overpriced\nB. purchase\nC. expensive\nD. park\nE. buying",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_409",
+      "input": "John farms anemone in what type of facility?\n\nA. michigan\nB. swimming pool\nC. atlantic ocean\nD. nursery\nE. gulf of mexico",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_410",
+      "input": "Brawn opened the curtains so that the sun could do what?\n\nA. dry clothes\nB. warm house\nC. warm room\nD. shine brightly\nE. get dark",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_411",
+      "input": "How might releasing energy that has built up feel?\n\nA. damage\nB. wonderful\nC. exhaustion\nD. orgasm\nE. lazy",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_412",
+      "input": "What would you do if you have curiosity but are blind and paralyzed?\n\nA. hear news\nB. analyse\nC. go somewhere\nD. examine thing\nE. see favorite show",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_413",
+      "input": "Where might it be hard to get furniture to?\n\nA. apartment\nB. loft\nC. store\nD. rug\nE. stairs",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_414",
+      "input": "A great teacher can be what when you are attending school?\n\nA. detention\nB. graduate\nC. follower\nD. inspiration\nE. boredom",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_415",
+      "input": "Where would you get jeans and other wearable items to take home with you?\n\nA. shopping mall\nB. museum\nC. laundromat\nD. clothing store\nE. bedroom",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_416",
+      "input": "In what substance do clouds float?\n\nA. sky\nB. top of mountain\nC. air\nD. ground level\nE. outer space",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_417",
+      "input": "Where is the large area location of the empire state building?\n\nA. manhattan\nB. office\nC. the city\nD. fifth avenue\nE. new york city",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_418",
+      "input": "Where do most people make coffee?\n\nA. coffee shop\nB. office\nC. table\nD. washing\nE. kitchen",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_419",
+      "input": "What kind of service is my body a part of when I'm no longer here?\n\nA. bodycam\nB. home\nC. coffin\nD. funeral\nE. graveyard",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_420",
+      "input": "Many people wanted to leave their country estates for row houses, what did they need to move to?\n\nA. living less expensively\nB. england\nC. prison\nD. city\nE. town",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_421",
+      "input": "Where can someone get a new saw?\n\nA. hardware store\nB. toolbox\nC. logging camp\nD. tool kit\nE. auger",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_422",
+      "input": "What would you do to a crime scene before asking a question?\n\nA. express information\nB. touch everything\nC. think\nD. give clue\nE. analyse",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_423",
+      "input": "The man didn't do great in college, all his best memories were late night with his brothers at the what?\n\nA. big city\nB. fraternity house\nC. school\nD. building\nE. big town",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_424",
+      "input": "In a horror movie victims usually trip when the run in order to do what in regards to the killer?\n\nA. frightened\nB. run up stairs\nC. get away from\nD. go quickly\nE. go faster",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_425",
+      "input": "The coach decided to make a lineup change, the team's effort was suffering from what?\n\nA. stagnant\nB. stagnation\nC. tradition\nD. hunger\nE. paper money",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_426",
+      "input": "Where would you go if you want to buy some clothes?\n\nA. mall\nB. grocery store\nC. grocery store\nD. shop\nE. supermarket",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_427",
+      "input": "Where is food likely to stay dry?\n\nA. etna\nB. cupboard\nC. oven\nD. stomach\nE. fridge",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_428",
+      "input": "What is it called when a person with mental illness is able to lead a relatively normal life?\n\nA. managed\nB. effectively treated\nC. recur\nD. cause delusion\nE. illusion",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_429",
+      "input": "Where do you keep musical instrument so it doesn't get scratched?\n\nA. bank\nB. orchestra\nC. case\nD. music room\nE. movie",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_430",
+      "input": "The woman is watching television and trying to forget her day, what is her goal?\n\nA. entertainment\nB. falling asleep\nC. getting fat\nD. crying\nE. relaxation",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_431",
+      "input": "While John Candy and Dan Aykroyd didn't run into a gazelle, you'd have to go where to see one?\n\nA. eastern hemisphere\nB. the city\nC. open plain\nD. television program\nE. great outdoors",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_432",
+      "input": "When we are running what are we doing?\n\nA. stretches\nB. running from police\nC. learn to walk\nD. go quickly\nE. get out of bed",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_433",
+      "input": "It's dangerous to let pet birds free so it's better to keep them what?\n\nA. slavery\nB. caught\nC. caged in\nD. topfree\nE. prisoner",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_434",
+      "input": "A beaver is know for building prowess, their supplies come from where?\n\nA. british columbia\nB. body of water\nC. wooded area\nD. pay debts\nE. zoo",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_435",
+      "input": "Zane doesn't like answering questions.  He's not good at it because he suffers from what?\n\nA. panic\nB. discussion\nC. attention\nD. confusion\nE. satisfaction",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_436",
+      "input": "Going public about a common problem can gain what for a celebrity?\n\nA. wide acceptance\nB. a degree\nC. pain\nD. getting high\nE. press coverage",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_437",
+      "input": "The electricity went out and everyone was shrouded in darkness.  They all remained in their seats, because it would have been dangerous to try to find there way out.  Where mihgt they have been?\n\nA. opera\nB. concert\nC. basement\nD. bedroom\nE. grand canyon",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_438",
+      "input": "Where could you find hundreds of beauty salon?\n\nA. clerk\nB. mall\nC. strip mall\nD. city\nE. neighborhood",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_439",
+      "input": "If it is Chrismas time what came most recently before?\n\nA. halloween\nB. summer\nC. easter\nD. kwaanza\nE. give gift",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_440",
+      "input": "If someone found out their brother was having a daughter, they would have to add a niece limb to the what?\n\nA. family picture book\nB. family reunion\nC. brother's house\nD. family tree\nE. baby shower",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_441",
+      "input": "The criminal insisted he must do the crime to the bank teller, but she tried to convince him there were other ways in life and this was what?\n\nA. willing\nB. optional\nC. should not\nD. have to\nE. unnecessary",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_442",
+      "input": "what do you fill with ink to write?\n\nA. squid\nB. fountain pen\nC. pencil case\nD. newspaper\nE. printer",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_443",
+      "input": "He walked into the room and had a great shock, his friends had what him?\n\nA. expected\nB. wanting\nC. calm\nD. thundershock\nE. surprised",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_444",
+      "input": "He wasn't the hugging type, even when he meet friend he'd just do what?\n\nA. have sex\nB. smile\nC. hug each other\nD. conversation\nE. handshake",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_445",
+      "input": "If you were lost you might need a map, the best place to find one on the road is at any what?\n\nA. truck stop\nB. amusement park\nC. atlas\nD. mall\nE. gas station",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_446",
+      "input": "Where would you put a net if you wanted to use it?\n\nA. sports\nB. fishing gear\nC. soccer game\nD. fishing boat\nE. badminton",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_447",
+      "input": "Sage loved communicating  He liked doing what with his peers?\n\nA. exchanging ideas\nB. confusion\nC. peer pressure\nD. response\nE. learning",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_448",
+      "input": "Where would a cat snuggle up with their human?\n\nA. floor\nB. humane society\nC. bed\nD. comfortable chair\nE. window sill",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_449",
+      "input": "What is a place that has large cable hanging overhead?\n\nA. radio shack\nB. electrical device\nC. shower\nD. substation\nE. television",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_450",
+      "input": "Where do cars usually travel at very high speeds?\n\nA. freeway\nB. road\nC. race track\nD. alley\nE. parking lot",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_451",
+      "input": "What might a person be watching if they see a man with a suitcase full of money?\n\nA. baggage compartment\nB. movie\nC. subway\nD. airplane\nE. cargo hold",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_452",
+      "input": "Eating breakfast in bed while seeing a homeless person shivering outside your window may cause you to what?\n\nA. mess\nB. hungry\nC. feel guilty\nD. indigestion\nE. spills",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_453",
+      "input": "If I put in my key and open a hinged door, where am I likely entering?\n\nA. kitchen\nB. safe\nC. own house\nD. building\nE. pantry",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_454",
+      "input": "If somebody is working at a reception desk, they are located at the front entrance of the what?\n\nA. motel\nB. hostel\nC. building\nD. lobby\nE. office park",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_455",
+      "input": "If you're reading a newspaper from another country what are you doing?\n\nA. learning about world\nB. education\nC. get angry\nD. concern\nE. eat cake",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_456",
+      "input": "They wanted to recognize his accomplishment, where should they put his name?\n\nA. certificate\nB. directory\nC. phone book\nD. lineup\nE. roster",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_457",
+      "input": "What is it called when a person tends to leave things to the last minute?\n\nA. procrastinate\nB. complete collection\nC. headache\nD. good time management\nE. have to hold",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_458",
+      "input": "What will you do if you do not want to settle in one place?\n\nA. walk\nB. agitate\nC. wander\nD. remove\nE. disturb",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_459",
+      "input": "Where would a person live that isn't in the metro area but still has good schools?\n\nA. woods\nB. bed\nC. suburbs\nD. rural\nE. neighborhood",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_460",
+      "input": "Jane works for the government as a senator, where does she spend a lot of time?\n\nA. capitol building\nB. everything\nC. washington d.c\nD. russia\nE. canada",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_461",
+      "input": "What is it called when two people in love have children?\n\nA. take oath\nB. procreate\nC. matrimony\nD. please parents\nE. live life",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_462",
+      "input": "What did the policemen do when they heard a cry from a distance?\n\nA. run away\nB. hurry along\nC. fine motorists\nD. direct traffic\nE. help",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_463",
+      "input": "It takes ambition to complete a job, but the first step is to what?\n\nA. take care of proposals\nB. begin work\nC. in charge of project\nD. eat cake\nE. go to school",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_464",
+      "input": "Where would I not want a fox?\n\nA. hen house\nB. english hunt\nC. mountains\nD. outside bedroom window\nE. england",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_465",
+      "input": "What type of building has the most top floor?\n\nA. go down\nB. apartment building\nC. tall building\nD. office building\nE. cabin",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_466",
+      "input": "What do humans do to other humans after death?\n\nA. celebrate\nB. burial\nC. life\nD. rebirth\nE. decomposition",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_467",
+      "input": "Where can you find a restaurant's phone number?\n\nA. yellow pages\nB. town\nC. business sector\nD. town\nE. at hotel",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_468",
+      "input": "What would you put coins into to make it work?\n\nA. stove\nB. water fountain\nC. desk\nD. purse\nE. jar",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_469",
+      "input": "A patriotic guy with a camera is looking for a bald eagle, what is he likely to do with the eagle if he finds one?\n\nA. city\nB. canada\nC. minnesota\nD. thermal\nE. photograph",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_470",
+      "input": "Where can you go to use a piano in your neighborhood if you don't have one?\n\nA. music school\nB. music store\nC. neighbor's house\nD. lunch\nE. drawing room",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_471",
+      "input": "Where would you get a shower curtain if you do not have one?\n\nA. department store\nB. restaurant\nC. hotel\nD. dime store\nE. bathtub",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_472",
+      "input": "Kissing is normally an activity reserved for your romantic what?\n\nA. anus\nB. partner\nC. arousal\nD. trust\nE. cooperation",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_473",
+      "input": "What does a child learn to do before school?\n\nA. count to ten\nB. state name\nC. dress herself\nD. clean room\nE. socialize",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_474",
+      "input": "He was getting advice for the job interview, they told him when talking to the interviewer always make what?\n\nA. get tired of\nB. small talk\nC. eye contact\nD. friendship\nE. social life",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_475",
+      "input": "According to what book did an apple tree lead to the downfall of man?\n\nA. bible\nB. spain\nC. harry potter\nD. new york\nE. woods",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_476",
+      "input": "The neighborhood had a great sense of community, there was always a crowd at the landing of the what?\n\nA. stairwell\nB. arena\nC. ocean\nD. airport\nE. apartment building",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_477",
+      "input": "What might a kind person do?\n\nA. cross street\nB. talk to themselves\nC. open doors\nD. throw away\nE. study greek",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_478",
+      "input": "What will a person do at work?\n\nA. cross street\nB. draw attention to themselves\nC. make money\nD. falling down\nE. come home",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_479",
+      "input": "John saw a fox running along the beach and was glad to be on the east coast.  Where might he have been?\n\nA. tennessee\nB. south carolina\nC. louisiana\nD. oklahoma\nE. mountains",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_480",
+      "input": "Name a location where you would not want to find mice.\n\nA. loft\nB. attic\nC. bell cat\nD. countryside\nE. laboratory",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_481",
+      "input": "The man started to learn jogging, what was he hoping to do?\n\nA. exhaustion\nB. getting in shape\nC. fitness\nD. injure himself\nE. fatigue",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_482",
+      "input": "Where do most people turn to get information on their phones?\n\nA. internet\nB. book\nC. online\nD. google\nE. manual",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_483",
+      "input": "What happens to a body after death?\n\nA. rebirth\nB. human experience\nC. sadness\nD. decomposition\nE. obesity",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_484",
+      "input": "What type of non-vegetarian soup is one likely to find a potato?\n\nA. beef stew\nB. own kitchen\nC. clam chowder\nD. kitchen cabinet\nE. pantry",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_485",
+      "input": "Though she had a disability, what did her encouraging and positive coach see in her?\n\nA. qualification\nB. strength\nC. pity\nD. competence\nE. potential",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_486",
+      "input": "They had a theory of what they could do in t he big game, so over and over they would what?\n\nA. park\nB. practice\nC. fact\nD. practical\nE. practise",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_487",
+      "input": "When you see something rise, you are where in relation to it?\n\nA. sun set\nB. near\nC. fall\nD. below\nE. lower",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_488",
+      "input": "They were getting ready for a really long hike, he put the food can in his what?\n\nA. cabinet\nB. house\nC. recycling center\nD. backpack\nE. make person sick",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_489",
+      "input": "Where would you keep a rug near your front door?\n\nA. persia\nB. desk\nC. table\nD. living room\nE. hall",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_490",
+      "input": "When you slip from a ladder propped on anything what will you do?\n\nA. obesity\nB. fall down\nC. matter to\nD. whatever\nE. surprise",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_491",
+      "input": "What do you do when you need to get food?\n\nA. table\nB. disneyland\nC. refrigerators\nD. pantry\nE. shop",
+      "expected_output": "E",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_492",
+      "input": "Brad tried to arise from bed but he could not.  Instead, he just continued to do what?\n\nA. go down\nB. fall down\nC. lie down\nD. lie to himself\nE. sit down",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_493",
+      "input": "If a heifer is really high quality, you might take her where?\n\nA. home\nB. dairy farm\nC. cattle show\nD. dairy barn\nE. corral",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_494",
+      "input": "What do people want to acquire from opening business?\n\nA. home\nB. wealth\nC. bankruptcy\nD. lose money\nE. get rich",
+      "expected_output": "B",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_495",
+      "input": "What has someone who had finished their undergraduate done?\n\nA. graduated\nB. masters\nC. postgraduate\nD. phd\nE. professor",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_496",
+      "input": "Where are bus stops more common in what parts?\n\nA. ocean\nB. getting off of bus\nC. airport\nD. urban area\nE. towns",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_497",
+      "input": "Bill wanted to pick up a stranger, preferably a responsible one with kids.  Where might he look for one?\n\nA. bus station\nB. paradise\nC. train station\nD. park\nE. sea",
+      "expected_output": "D",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_498",
+      "input": "Where might a lemur frolic in the market?\n\nA. desert\nB. hole\nC. india\nD. cage\nE. rain forest",
+      "expected_output": "C",
+      "graders": [
+        "gr_exact_match"
+      ]
+    },
+    {
+      "id": "commonsenseqa_499",
+      "input": "What might I place under the furniture?\n\nA. rug\nB. room\nC. toy\nD. friend's house\nE. building",
+      "expected_output": "A",
+      "graders": [
+        "gr_exact_match"
+      ]
+    }
+  ],
+  "graders": [
+    {
+      "id": "gr_exact_match",
+      "type": "exact_match",
+      "params": {
+        "ignore_case": true,
+        "strip": true
+      }
+    }
+  ],
+  "metadata": {
+    "openeval": {
+      "source": "evalport-benchmarks"
+    },
+    "evalport.converted_by": "evalport-benchmarks/_tools/convert_hf_dataset.py",
+    "evalport.conversion_date": "2026-08-10",
+    "evalport.source": "https://huggingface.co/datasets/tau/commonsense_qa",
+    "evalport.source_license": "MIT",
+    "evalport.original_paper": "https://arxiv.org/abs/1811.00937",
+    "evalport.case_count": 500
+  }
+}
