@@ -2,6 +2,8 @@
 
 **Version:** 1.0.0-rc.1 | **License:** Apache 2.0
 
+**Adopted by:** [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) — merged to the official community extensions list, [PR #4797](https://github.com/UKGovernmentBEIS/inspect_ai/pull/4797), August 2026.
+
 EvalPort is an open specification for portable LLM evaluation test cases, graders, suites, and results. It enables evaluation datasets to be shared across frameworks (DeepEval, Promptfoo, Ragas, Inspect AI, LangSmith, Braintrust, OpenAI Evals, MLflow) without loss of semantic fidelity.
 
 ## Quick Start
@@ -130,6 +132,7 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 | LangSmith | [langsmith-openeval-adapter](adapters/langsmith-openeval-adapter/) |
 | Braintrust | [braintrust-openeval-adapter](adapters/braintrust-openeval-adapter/) |
 | MLflow | [mlflow-openeval-adapter](adapters/mlflow-openeval-adapter/) |
+| Opik | [opik-openeval-adapter](adapters/opik-openeval-adapter/) |
 
 ## Documentation
 
