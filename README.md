@@ -133,6 +133,7 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 | Braintrust | [braintrust-openeval-adapter](adapters/braintrust-openeval-adapter/) |
 | MLflow | [mlflow-openeval-adapter](adapters/mlflow-openeval-adapter/) |
 | Opik | [opik-openeval-adapter](adapters/opik-openeval-adapter/) |
+| Arize Phoenix | [phoenix-openeval-adapter](adapters/phoenix-openeval-adapter/) |
 
 ## Documentation
 
