@@ -135,6 +135,7 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 | Opik | [opik-openeval-adapter](adapters/opik-openeval-adapter/) |
 | Arize Phoenix | [phoenix-openeval-adapter](adapters/phoenix-openeval-adapter/) |
 | Weights & Biases Weave | [weave-openeval-adapter](adapters/weave-openeval-adapter/) |
+| UpTrain | [uptrain-openeval-adapter](adapters/uptrain-openeval-adapter/) |
 
 ## Documentation
 
