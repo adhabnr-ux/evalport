@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llamaindex-openeval-adapter"
+version = "0.1.0"
+description = "Convert LlamaIndex evaluation inputs, evaluators, and BatchEvalRunner results to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["llamaindex", "llama-index", "evalport", "openeval", "llm", "evaluation", "eval", "llm-testing", "rag"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/llamaindex-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-asyncio", "llama-index-core>=0.11.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+filterwarnings = [
+    # llama_index.core.evaluation.batch_runner itself calls the deprecated
+    # asyncio_module() helper internally (as of llama-index-core 0.14.x) --
+    # nothing this adapter does triggers it, and it's not ours to fix.
+    "ignore:asyncio_module\\(\\) is deprecated:DeprecationWarning",
+]
