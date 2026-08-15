@@ -138,6 +138,7 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 | UpTrain | [uptrain-openeval-adapter](adapters/uptrain-openeval-adapter/) |
 | Langfuse | [langfuse-openeval-adapter](adapters/langfuse-openeval-adapter/) |
 | Giskard | [giskard-openeval-adapter](adapters/giskard-openeval-adapter/) |
+| LlamaIndex | [llamaindex-openeval-adapter](adapters/llamaindex-openeval-adapter/) |
 
 ## Documentation
 
