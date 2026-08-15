@@ -137,6 +137,7 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 | Weights & Biases Weave | [weave-openeval-adapter](adapters/weave-openeval-adapter/) |
 | UpTrain | [uptrain-openeval-adapter](adapters/uptrain-openeval-adapter/) |
 | Langfuse | [langfuse-openeval-adapter](adapters/langfuse-openeval-adapter/) |
+| Giskard | [giskard-openeval-adapter](adapters/giskard-openeval-adapter/) |
 
 ## Documentation
 
