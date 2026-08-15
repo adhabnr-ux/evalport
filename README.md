@@ -139,6 +139,7 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 | Langfuse | [langfuse-openeval-adapter](adapters/langfuse-openeval-adapter/) |
 | Giskard | [giskard-openeval-adapter](adapters/giskard-openeval-adapter/) |
 | LlamaIndex | [llamaindex-openeval-adapter](adapters/llamaindex-openeval-adapter/) |
+| Patronus AI | [patronus-openeval-adapter](adapters/patronus-openeval-adapter/) |
 
 ## Documentation
 
