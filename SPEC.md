@@ -1,7 +1,7 @@
 # EvalPort — The Open Evaluation Standard
 
-**Version:** 1.0.0-rc.1  
-**Status:** Release Candidate — Adopted by Inspect AI (merged), under active review by TruLens, implemented by 20 framework adapters  
+**Version:** 1.0.0-rc.2  
+**Status:** Release Candidate — Adopted by Inspect AI (merged), under active review by TruLens, implemented by 20 framework adapters, governance and 4 open RFC topics tracked for community input  
 **License:** Apache 2.0  
 **Specification Lead:** EvalPort Working Group
 
@@ -1104,6 +1104,36 @@ A framework-specific grader. The `handler` identifies the implementation. Unreco
 
 ---
 
+## Governance
+
+EvalPort is currently stewarded by its original author ([@adhabnr-ux](https://github.com/adhabnr-ux)) as spec lead, with direct write access extended to contributors who've shipped real, tested work against the spec — see [`CONTRIBUTORS.md`](https://github.com/adhabnr-ux/evalport/blob/main/CONTRIBUTORS.md) for who that is today. This is a pre-1.0 project; governance is deliberately lightweight right now and will formalize (a named working group, documented voting, a defined path from "collaborator" to "maintainer") as the contributor base grows past what one spec lead can review directly. If you think that formalization is overdue, [open a Discussion](https://github.com/adhabnr-ux/evalport/discussions) and say so — this section is itself subject to the RFC process below.
+
+**How a spec change happens**, restated here in full rather than only in `.github/CONTRIBUTING.md`, since a document calling itself an RFC should describe its own process:
+
+1. Open a GitHub Discussion in the **Ideas** category, titled `[Spec Change] <short description>`. State the problem, the proposed change, and its impact on backward compatibility.
+2. A two-week comment period. This is where reach matters more than authority — a well-reasoned objection from a first-time contributor carries the same weight as one from a collaborator.
+3. If rough consensus emerges, the change is implemented in a PR against `spec/SPEC.md` (and mirrored to the root `SPEC.md`), the JSON Schemas, and both reference SDKs together — a spec change that doesn't touch the SDKs' validators isn't actually specified, it's aspirational.
+4. Changes that break backward compatibility (see the Versioning and Backward Compatibility sections above) require sign-off from the spec lead regardless of comment-period consensus, since a breaking change affects every adapter listed in the README, not just the proposer.
+
+**How to become a collaborator:** there's no application process. In practice it has gone: ship a real adapter or converter (tested against the actual `validate_suite()`/`validate_result_set()`, not a mock), engage substantively on an issue or PR, and get invited. `CONTRIBUTORS.md` is the record of who's done that so far — it's a low bar in the sense that anyone can clear it, and a real one in the sense that a merged, tested PR is what clears it, not a comment.
+
+---
+
+## Open Design Questions — RFC Topics We Need Help With
+
+The self-critique in [`spec/CRITIQUE.md`](https://github.com/adhabnr-ux/evalport/blob/main/spec/CRITIQUE.md) flags several items as deliberately deferred rather than resolved. Rather than let those sit as prose nobody acts on, each has an open Discussion where the actual design work happens. These are good entry points if you want to shape the spec itself rather than build a framework adapter — no prior EvalPort contribution required, just a considered opinion and, ideally, prior art from a comparable problem you've seen solved (or badly solved) elsewhere.
+
+| Topic | Why it's open | Discuss |
+|---|---|---|
+| Suite/result signing for integrity verification | No way to detect a publicly-hosted suite (e.g. anything in `benchmarks/`) was tampered with after publication. Explicitly deferred to v1.1/v2.0 in `CRITIQUE.md` #9. | [Discussion #8](https://github.com/adhabnr-ux/evalport/discussions/8) |
+| Formal conformance test suite for runners | Today "EvalPort-compliant" is only enforced by the JSON Schemas and the two reference SDKs' validators agreeing with *each other* — there's no independent fixture suite a third-party runner (Rust, Go, etc.) could test against. `CRITIQUE.md` #14, status "Partial." | [Discussion #9](https://github.com/adhabnr-ux/evalport/discussions/9) |
+| Resuming interrupted runs and merging partial ResultSets | Results can already be written incrementally, but the spec defines no way to mark a `ResultSet` partial or merge two partial ones from an interrupted run. `CRITIQUE.md` #4, flagged as "should be added in v1.1." | [Discussion #10](https://github.com/adhabnr-ux/evalport/discussions/10) |
+| `llm_judge` prompt-injection mitigations: MUST or SHOULD? | Structured output, delimiting, and output-length caps are all SHOULDs today, with no spec-level way to detect a runner skipped them. `CRITIQUE.md` #3, status "Partially fixed." | [Discussion #11](https://github.com/adhabnr-ux/evalport/discussions/11) |
+
+If you've got a fifth topic that belongs on this list — something the spec should address but doesn't yet — open a `[Spec Change]` Discussion for it directly; this table gets updated to reflect whatever's actually open, not maintained as a fixed roadmap.
+
+---
+
 ## Intellectual Property
 
 EvalPort is released under the Apache 2.0 license. The specification, schemas, and reference implementations are free to use, modify, and distribute. No patent grants are implied. Contributors retain their copyrights under the terms of the Apache 2.0 license.
@@ -1114,5 +1144,6 @@ EvalPort is released under the Apache 2.0 license. The specification, schemas, a
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.0.0-rc.2 | 2026-08-16 | Added a **Governance** section (spec lead, the RFC process restated in full inside the spec itself rather than only in CONTRIBUTING.md, and the actual path to becoming a collaborator) and an **Open Design Questions** table. The table links each item `spec/CRITIQUE.md` explicitly deferred to v1.1/v2.0 -- suite/result signing, a formal conformance test suite, resumable runs and partial-ResultSet merging, and whether `llm_judge` injection mitigations should be MUST instead of SHOULD -- to a live GitHub Discussion (#8-#11) where the actual design work happens, instead of leaving them as unlinked prose nobody could act on. |
 | 1.0.0-rc.1 | 2026-08-16 | Promoted from draft to release candidate, reflecting real-world adoption: 20 shipped framework adapters, one merged third-party integration (Inspect AI, PR #4797), and one third-party integration under active maintainer review (TruLens, PR #2697). Substantive changes, all verified against the reference SDKs' test suites in this revision: (1) `version` fields now accept full semver 2.0.0 (prerelease + build metadata, e.g. `1.0.0-rc.1`) instead of only `X.Y.Z` or `X.Y.Z-draft` — fixed in `spec/schemas/suite.json`, `spec/schemas/resultset.json`, and both reference SDKs, which previously rejected this document's own version string. (2) Grader `type` is now formally documented and schema-enforced as open rather than a closed 11-value enum: any non-empty type string is valid and is validated like `custom` (`params.handler` required) unless it's one of the 11 well-known types, matching what the Custom Grader Types section already promised but the schema and SDKs didn't actually implement. (3) `spec/schemas/grader.json`'s per-type `allOf` conditionals now correctly require `params` to be present (previously a grader like `{"id": "g1", "type": "custom"}` with no `params` at all passed the JSON Schema despite being rejected by both SDKs — the conditionals constrained `params`'s shape but never required its presence). (4) Removed the never-defined `score_range` extension from Validation Rule 5; added the `openeval.raw_score` reserved metadata key so a grader's native (possibly out-of-[0,1]) score can be preserved when it must be clamped/normalized. (5) Formally specified the `openeval.aggregation` extension (`all`/`any`/`majority`/`weighted` strategies), resolving the gap `spec/CRITIQUE.md` had flagged as fixed while leaving the actual mechanism undefined. (6) Clarified Rule 6 to distinguish `score: null` ("not verified") from a scored failure ("verified failing"), and required `GraderResult.type`. (7) Added `sdk/python/tests/test_schema_consistency.py` and `sdk/typescript/tests/schema-consistency.test.ts`, which cross-validate every JSON Schema file against its corresponding hand-rolled SDK validator on every CI run, as a permanent regression guard against these two validation paths drifting apart again. |
 | 1.0.0-draft | 2026-07-28 | Initial draft for community review |
