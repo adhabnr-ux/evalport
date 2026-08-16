@@ -8,7 +8,12 @@ const STANDARD_GRADER_TYPES: ReadonlySet<string> = new Set([
   "json_schema", "json_path", "code", "human", "model graded", "custom",
 ]);
 
-const SEMVER_RE = /^\d+\.\d+\.\d+(-draft)?$/;
+// Full semver 2.0.0 pattern (https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions).
+// Was previously hardcoded to accept only "X.Y.Z" or "X.Y.Z-draft" -- rejected legitimate
+// prerelease versions like "1.0.0-rc.1" or "1.1.0-beta.2", which is what this project's own
+// README and public communications already describe the spec version as.
+export const SEMVER_RE =
+  /^\d+\.\d+\.\d+(?:-(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
 
 function err(path: string, message: string, code: string): ValidationError {
   return { path, message, code };
@@ -67,13 +72,19 @@ export function validateGrader(g: unknown): ValidationResult {
   if (!isNonEmptyString(g.id)) errors.push(err("$.id", "id required", "REQUIRED"));
 
   const type = g.type;
-  if (typeof type !== "string") {
+  if (!isNonEmptyString(type)) {
     errors.push(err("$.type", "type required", "REQUIRED"));
-  } else if (!STANDARD_GRADER_TYPES.has(type)) {
-    errors.push(err("$.type", `Unknown: ${type}`, "UNKNOWN_TYPE"));
   } else {
     const params = isPlainObject(g.params) ? g.params : {};
-    validateParams(type as GraderType, params).forEach((e) => errors.push(err(`$.params.${e.path}`, e.message, e.code)));
+    if (STANDARD_GRADER_TYPES.has(type)) {
+      validateParams(type as GraderType, params).forEach((e) => errors.push(err(`$.params.${e.path}`, e.message, e.code)));
+    } else {
+      // Non-standard type name: valid, but treated exactly like "custom" -- must
+      // identify a handler so a runner that doesn't recognize it can skip gracefully
+      // instead of guessing. This is what lets an adapter use a descriptive type
+      // (e.g. "trulens_feedback") instead of the generic "custom" bucket.
+      validateParams("custom", params).forEach((e) => errors.push(err(`$.params.${e.path}`, e.message, e.code)));
+    }
   }
 
   return ok(errors);
@@ -198,7 +209,11 @@ export function validateResultSet(r: unknown): ValidationResult {
           if (typeof gr.grader_id !== "string") errors.push(err(`$.results[${i}].grader_results[${j}].grader_id`, "required", "REQUIRED"));
           if (typeof gr.type !== "string") errors.push(err(`$.results[${i}].grader_results[${j}].type`, "required", "REQUIRED"));
           const sc = gr.score;
-          if (typeof sc !== "number" && sc !== null) errors.push(err(`$.results[${i}].grader_results[${j}].score`, "number|null", "TYPE_ERROR"));
+          if ((typeof sc !== "number" && sc !== null) || typeof sc === "boolean") {
+            errors.push(err(`$.results[${i}].grader_results[${j}].score`, "number|null", "TYPE_ERROR"));
+          } else if (sc !== null && (sc < 0 || sc > 1)) {
+            errors.push(err(`$.results[${i}].grader_results[${j}].score`, "must be in [0,1] or null", "OUT_OF_RANGE"));
+          }
           if (typeof gr.passed !== "boolean") errors.push(err(`$.results[${i}].grader_results[${j}].passed`, "required", "REQUIRED"));
         });
       }
