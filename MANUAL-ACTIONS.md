@@ -1,124 +1,39 @@
-# EvalPort — Manual Execution Checklist
+# EvalPort — Manual Actions Checklist (Updated August 16, 2026)
 
-All content is prepared. You just need credentials. Estimated: 2 hours.
+This file previously listed launch-day tasks (npm/PyPI publish, founder emails, social posts) that are now either done or superseded. Rewritten to reflect what's actually outstanding as of this update — re-verified live, not carried over from the old version.
 
----
+## What's already done (no action needed)
 
-## 1. npm Publish (15 min)
+- GitHub repo live, spec at 1.0.0-rc.2, Governance section + 4 open RFC Discussions (#8–#11)
+- 20 real, tested framework adapters shipped under `adapters/`
+- Merged into UK AISI's Inspect AI community extensions list ([PR #4797](https://github.com/UKGovernmentBEIS/inspect_ai/pull/4797))
+- Open PRs/issues on TruLens, AutoGen, Opik, Langfuse, Giskard, and a community-authored PR on openai-python
+- `evalport-sdk` published to both PyPI and npm at v1.0.0
+- CI (`.github/workflows/ci.yml`) validates schemas, runs the TS/Python/CLI test suites, and — as of the change below — publishes releases via OIDC, not stored tokens
 
-```bash
-# Step 1: Log in to npm
-npm login
+## The one thing actually outstanding: publish v1.1.0
 
-# Step 2: Publish TypeScript SDK
-cd /Users/sk/Desktop/openeval/sdk/typescript
-npm publish --access public
+The repo's SDK sources are at v1.1.0 (Benchmark Hub + `evalport run` CLI) and a GitHub Release for `v1.1.0` already exists, but the registries still only serve v1.0.0 — see [issue #7](https://github.com/adhabnr-ux/evalport/issues/7) for the full history. `ci.yml` no longer needs `PYPI_TOKEN`/`NPM_TOKEN` secrets at all (switched to OIDC Trusted Publishing) — what's left is a one-time registry-side setup, ~5 minutes, that only an account owner logged into pypi.org/npmjs.com can do:
 
-# Step 3: Publish CLI
-cd /Users/sk/Desktop/openeval/cli
-npm publish --access public
+**PyPI** — [pypi.org/manage/project/evalport-sdk/settings/publishing](https://pypi.org/manage/project/evalport-sdk/settings/publishing/) → Add a new GitHub publisher:
+| Field | Value |
+|---|---|
+| Owner | `adhabnr-ux` |
+| Repository name | `evalport` |
+| Workflow name | `ci.yml` |
+| Environment name | `pypi` |
 
-# Step 4: Verify
-npm view @evalport/sdk
-npm view @evalport/cli
-```
+**npm** — [npmjs.com/package/evalport-sdk/access](https://www.npmjs.com/package/evalport-sdk/access) → Trusted Publisher → GitHub Actions:
+| Field | Value |
+|---|---|
+| Organization or user | `adhabnr-ux` |
+| Repository | `evalport` |
+| Workflow filename | `ci.yml` |
+| Environment name | *(leave blank)* |
 
-Verify: https://www.npmjs.com/package/@evalport/sdk should show v1.0.0
+Once both are set, no new release is needed — just re-run the failed jobs on the existing v1.1.0 release run: https://github.com/adhabnr-ux/evalport/actions/runs/31428654795 (or `gh run rerun 31428654795 --failed`).
 
----
+## Ongoing, not one-time
 
-## 2. PyPI Publish (15 min)
-
-```bash
-# Step 1: Create PyPI account at https://pypi.org (if needed)
-# Step 2: Generate API token at https://pypi.org/manage/account/tokens/
-
-# Step 3: Build and upload
-cd /Users/sk/Desktop/openeval/sdk/python
-python -m pip install build twine
-python -m build
-twine upload dist/*
-# Username: __token__
-# Password: [paste your PyPI API token]
-
-# Step 4: Verify
-pip install openeval
-python -c "from openeval.validate import validate_suite; print('OK')"
-```
-
-Verify: https://pypi.org/project/openeval/ should show v1.0.0
-
----
-
-## 3. Send 5 Founder Emails (20 min)
-
-Content ready at: `docs/founder-emails.md`
-
-Recipients to find:
-- Jeffrey Ip (DeepEval) — search LinkedIn or check confident-ai/deepeval README
-- Michael D'Amour (Promptfoo) — check promptfoo/promptfoo or michael@promptfoo.dev
-- UK AISI (Inspect AI) — contact via uksecurity.ai or inspect_ai docs
-- LangChain team — contact via langchain.com
-- EleutherAI — contact via Discord or GitHub
-
-Just copy each email from `docs/founder-emails.md`, personalize, and send from your Gmail.
-
----
-
-## 4. Social Media Posts (45 min)
-
-All content ready at: `docs/social-media-posts.md`
-
-### Hacker News (post at 9 AM PT)
-- Go to https://news.ycombinator.com/ → submit
-- Title: "EvalPort: Why LLM Evaluation Needs a Standard Format"
-- URL: https://github.com/adhabnr-ux/evalport
-- Engage with comments for 2 hours
-
-### Reddit (3 posts)
-- r/MachineLearning: Title from docs/social-media-posts.md
-- r/LocalLLaMA: Title from docs/social-media-posts.md
-- r/ArtificialIntelligence: Title from docs/social-media-posts.md
-
-### Dev.to
-- Create post, paste content from docs/blog/launch-post.md
-- Add frontmatter from docs/social-media-posts.md
-
-### LinkedIn
-- Start a post, paste LinkedIn content from docs/social-media-posts.md
-- Tag: #LLM #AI #Evaluation #OpenSource
-
----
-
-## 5. Gmail Re-auth (optional, 10 min)
-
-If you want to send emails from Cline:
-- In Claude/Cline, find Gmail in connected tools
-- Click Reconnect/Re-authorize
-- Follow OAuth flow
-
-Alternative: Just send founder emails manually from Gmail web.
-
----
-
-## Summary of What's Already Done
-
-✅ GitHub repo: https://github.com/adhabnr-ux/evalport (66 files, tagged v1.0.0-rc.1)
-✅ 17 GitHub issues filed on target repos
-✅ Founder emails drafted (docs/founder-emails.md)
-✅ Social media posts prepared (docs/social-media-posts.md)
-✅ Blog post written (docs/blog/launch-post.md)
-✅ Landing page built (docs/landing-page.html)
-✅ Full documentation (getting-started, grader-reference, migration guides)
-✅ Converters for Promptfoo, DeepEval, Inspect AI, OpenAI Evals
-✅ CI/CD pipeline (.github/workflows/ci.yml)
-
-## What You Need To Do
-
-- [ ] npm login + publish (2 packages)
-- [ ] PyPI account + token + publish (1 package)
-- [ ] Send 5 founder emails
-- [ ] Post to HN (engage 2 hours)
-- [ ] Post to Reddit (3 subreddits)
-- [ ] Post to Dev.to
-- [ ] Post to LinkedIn
+- Watch for maintainer replies on open PRs/issues (TruLens #2697, AutoGen #8009, Opik #7798, Langfuse #15930/#16110, Giskard, openai-python #3619) and respond substantively — this is continuous, not a checklist item to "complete."
+- Watch Discussions #8–#11 for community input on the open RFC topics.
