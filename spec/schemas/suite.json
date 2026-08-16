@@ -9,8 +9,8 @@
     "$schema": { "type": "string" },
     "version": {
       "type": "string",
-      "description": "EvalPort specification version (semver).",
-      "pattern": "^\\d+\\.\\d+\\.\\d+(-draft)?$"
+      "description": "EvalPort specification version. Full semver 2.0.0 (https://semver.org): MAJOR.MINOR.PATCH with optional -PRERELEASE and +BUILD metadata, e.g. \"1.0.0\", \"1.0.0-draft\", \"1.0.0-rc.1\", \"1.1.0-beta.2+build.5\".",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(?:-(?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
     },
     "id": {
       "type": "string",
