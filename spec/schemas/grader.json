@@ -13,19 +13,11 @@
     },
     "type": {
       "type": "string",
-      "description": "The grader type. Standard types: exact_match, contains, regex, semantic_similarity, llm_judge, json_schema, json_path, code, human, model graded, custom.",
-      "enum": [
-        "exact_match",
-        "contains",
-        "regex",
-        "semantic_similarity",
-        "llm_judge",
-        "json_schema",
-        "json_path",
-        "code",
-        "human",
-        "model graded",
-        "custom"
+      "minLength": 1,
+      "description": "The grader type. Well-known types (with standardized params validation below): exact_match, contains, regex, semantic_similarity, llm_judge, json_schema, json_path, code, human, model graded, custom. Any other non-empty string is also a valid, framework-specific type (e.g. 'trulens_feedback') -- it is validated exactly like 'custom' (params.handler is required) so a runner that doesn't recognize it can skip gracefully instead of guessing.",
+      "examples": [
+        "exact_match", "contains", "regex", "semantic_similarity", "llm_judge",
+        "json_schema", "json_path", "code", "human", "model graded", "custom"
       ]
     },
     "params": {
@@ -54,6 +46,7 @@
         "required": ["type"]
       },
       "then": {
+        "required": ["params"],
         "properties": {
           "params": {
             "required": ["substring"],
@@ -73,6 +66,7 @@
         "required": ["type"]
       },
       "then": {
+        "required": ["params"],
         "properties": {
           "params": {
             "required": ["pattern"],
@@ -92,6 +86,7 @@
         "required": ["type"]
       },
       "then": {
+        "required": ["params"],
         "properties": {
           "params": {
             "required": ["threshold"],
@@ -112,6 +107,7 @@
         "required": ["type"]
       },
       "then": {
+        "required": ["params"],
         "properties": {
           "params": {
             "required": ["model", "prompt"],
@@ -134,6 +130,7 @@
         "required": ["type"]
       },
       "then": {
+        "required": ["params"],
         "properties": {
           "params": {
             "required": ["schema"],
@@ -153,6 +150,7 @@
         "required": ["type"]
       },
       "then": {
+        "required": ["params"],
         "properties": {
           "params": {
             "required": ["path", "expected"],
@@ -177,6 +175,7 @@
         "required": ["type"]
       },
       "then": {
+        "required": ["params"],
         "properties": {
           "params": {
             "required": ["language", "source"],
@@ -200,6 +199,33 @@
         "required": ["type"]
       },
       "then": {
+        "required": ["params"],
+        "properties": {
+          "params": {
+            "required": ["handler"],
+            "properties": {
+              "handler": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "not": {
+              "enum": [
+                "exact_match", "contains", "regex", "semantic_similarity", "llm_judge",
+                "json_schema", "json_path", "code", "human", "model graded", "custom"
+              ]
+            }
+          }
+        },
+        "required": ["type"]
+      },
+      "then": {
+        "required": ["params"],
         "properties": {
           "params": {
             "required": ["handler"],
