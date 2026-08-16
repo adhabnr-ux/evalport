@@ -123,30 +123,46 @@ jobs:
     needs: [validate-schemas, typescript-tests]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
+    # OIDC Trusted Publishing: no NPM_TOKEN secret needed. Requires this
+    # workflow (owner/repo/ci.yml) to be registered as a trusted publisher
+    # on the package's npm settings page. See docs.npmjs.com trusted publishers.
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           registry-url: 'https://registry.npmjs.org'
+      - name: Update npm to a version that supports OIDC trusted publishing
+        run: npm install -g npm@latest
       - name: Publish
         working-directory: sdk/typescript
         run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-pypi:
     needs: [validate-schemas, python-tests]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
+    # OIDC Trusted Publishing: no PYPI_TOKEN secret needed. Requires this
+    # workflow (owner/repo/.github/workflows/ci.yml) to be registered as a
+    # trusted publisher on the project's PyPI Publishing settings, scoped to
+    # the "pypi" GitHub Environment below. See docs.pypi.org/trusted-publishers/.
+    environment: pypi
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Build and publish
+      - name: Build
         working-directory: sdk/python
         run: |
-          pip install build twine
+          pip install build
           python -m build
-          twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: sdk/python/dist
