@@ -13,21 +13,50 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-python@v5
         with:
-          node-version: 20
-      - name: Validate JSON Schemas
+          python-version: '3.11'
+      - name: Install jsonschema
+        run: pip install jsonschema
+      - name: Validate JSON Schemas against the Draft 2020-12 meta-schema
+        # Not just "is this valid JSON" -- actually checks each file is a
+        # structurally valid JSON Schema (Draft202012Validator.check_schema),
+        # and that suite.json/testcase.json's $ref to grader.json/testcase.json
+        # resolve. A schema can be syntactically valid JSON while being a
+        # broken JSON Schema (e.g. a typo'd keyword or malformed `allOf`); this
+        # step is what actually catches that class of error in CI.
         run: |
-          node -e "
-          const fs = require('fs');
-          const path = require('path');
-          const schemas = ['suite', 'testcase', 'grader', 'resultset'];
-          for (const s of schemas) {
-            const f = path.join('spec', 'schemas', s + '.json');
-            const schema = JSON.parse(fs.readFileSync(f, 'utf8'));
-            console.log('✓ ' + s + '.json is valid JSON with ' + Object.keys(schema.properties || {}).length + ' properties');
-          }
-          "
+          cat > /tmp/validate_schemas.py << 'PYEOF'
+          import json
+          from jsonschema import Draft202012Validator
+          from referencing import Registry, Resource
+
+          names = ["suite", "testcase", "grader", "resultset"]
+          schemas = {}
+          for name in names:
+              with open(f"spec/schemas/{name}.json") as f:
+                  schemas[name] = json.load(f)
+
+          registry = Registry().with_resources(
+              [(s["$id"], Resource.from_contents(s)) for s in schemas.values()]
+          )
+
+          for name, schema in schemas.items():
+              Draft202012Validator.check_schema(schema)
+              validator = Draft202012Validator(schema, registry=registry)
+              # Force $ref resolution (e.g. suite.json -> grader.json/testcase.json)
+              # by running an empty-object instance through the validator once.
+              list(validator.iter_errors({}))
+              nprops = len(schema.get("properties", {}))
+              print(f"OK {name}.json is a valid Draft 2020-12 schema with {nprops} properties, all $refs resolve")
+          PYEOF
+          python3 /tmp/validate_schemas.py
+      - name: Cross-check schemas against the top-level schema/ mirror
+        run: |
+          for f in suite testcase grader resultset; do
+            diff "spec/schemas/${f}.json" "schema/${f}.json" || (echo "::error::schema/${f}.json is out of sync with spec/schemas/${f}.json" && exit 1)
+          done
+          echo "✓ schema/ mirror is byte-identical to spec/schemas/"
 
   typescript-tests:
     runs-on: ubuntu-latest
@@ -72,7 +101,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install package and test deps
         working-directory: sdk/python
-        run: pip install -e . pytest
+        run: pip install -e ".[test]"
       - name: Run tests
         working-directory: sdk/python
         run: python -m pytest tests/ -v
