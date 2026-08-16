@@ -13,13 +13,15 @@
 
 ## Spec Changes
 
-Changes to `SPEC.md` or JSON Schemas follow an RFC process:
+Changes to `SPEC.md` or JSON Schemas follow an RFC process (also described, in full, inside the spec itself: see [`spec/SPEC.md`'s Governance section](../spec/SPEC.md#governance)):
 
-1. Open a GitHub Discussion with the `[Spec Change]` prefix
+1. Open a GitHub [Discussion](https://github.com/adhabnr-ux/evalport/discussions) in the **Ideas** category, with the `[Spec Change]` prefix
 2. Describe the change, motivation, and impact
 3. 2-week comment period
 4. If consensus, implement in a PR
-5. Working group approval for major version changes
+5. Spec lead sign-off required for changes that break backward compatibility
+
+Four open examples, if it helps to see the shape of a real one before writing your own: [suite/result signing](https://github.com/adhabnr-ux/evalport/discussions/8), [a formal conformance test suite](https://github.com/adhabnr-ux/evalport/discussions/9), [resuming interrupted runs](https://github.com/adhabnr-ux/evalport/discussions/10), and [whether `llm_judge` injection mitigations should be mandatory](https://github.com/adhabnr-ux/evalport/discussions/11) — all things `spec/CRITIQUE.md` flags as deliberately deferred, now with an actual venue for deciding them. Feel free to weigh in on any of these even if you're not proposing a change of your own.
 
 ## Code Style
 
@@ -47,7 +49,7 @@ There are two places a converter can live, depending on scope:
 **Standalone adapter packages** (the easiest way to contribute — start here):
 1. Create a new directory under `adapters/FRAMEWORK-openeval-adapter/`
 2. Follow the structure of [`adapters/autogen-openeval-adapter`](adapters/autogen-openeval-adapter) as a reference: a `pyproject.toml` depending on `evalport-sdk`, a `src/FRAMEWORK_openeval_adapter/__init__.py` exposing `to_openeval()` / `from_openeval()`, a `tests/` directory with a round-trip test that validates against `openeval.validate.validate_suite()`, and a `README.md` explaining install/usage
-3. Open a PR — see the [Adapters Wanted](../../issues) tracking issue for a list of frameworks that don't have one yet
+3. Open a PR — see [Issue #6, "Adapters wanted"](https://github.com/adhabnr-ux/evalport/issues/6) for a list of frameworks that don't have one yet, several already scoped as `good first issue`
 
 This is the lowest-friction way to contribute: it doesn't touch the core SDK, ships independently on PyPI/npm under its own name, and doesn't require waiting on a review of core repo code.
 
