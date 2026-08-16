@@ -10,9 +10,9 @@
 The spec says a Result's `passed` field is "overall pass/fail (all graders passed)" but doesn't define the aggregation logic when graders have different weights. Is it unanimous pass? Weighted majority? Any-fail = fail?
 
 ### Fix Applied
-The spec now states: `passed` is `true` if and only if ALL grader results have `passed: true`. This is strict AND logic. Weighted scoring affects `avg_score` but not the boolean `passed` field. This is unambiguous and matches industry convention (a test suite fails if any test fails).
+The spec now states: `passed` is `true` if and only if ALL grader results have `passed: true`. This is strict AND logic by default (`openeval.aggregation` unset, or explicitly `{"strategy": "all"}`). This is unambiguous and matches industry convention (a test suite fails if any test fails).
 
-**Remaining concern:** Some frameworks use majority-vote or weighted thresholds. The spec addresses this via `metadata.openeval.aggregation` extension, but v1 only mandates AND logic.
+**Resolved in 1.0.0-rc.1:** The `metadata.openeval.aggregation` extension referenced above is now fully specified (see SPEC.md, Extension Mechanism → Aggregation Extension), not just named. It defines four strategies — `all` (default), `any`, `majority` (with an optional custom cutoff), and `weighted` (using each grader's `weight` against a required `threshold`) — and specifies how `score: null` results are excluded from the aggregation rather than counted as failures. Frameworks that need majority-vote or weighted-threshold semantics can now express that declaratively in `metadata` instead of only via `avg_score`, which was previously an informational field with no normative effect on `passed`.
 
 ---
 
@@ -210,24 +210,24 @@ A formal conformance test suite (with graded test cases for each grader type) is
 
 | Critique | Resolution | Status |
 |----------|-----------|--------|
-| Aggregation ambiguity | Defined as strict AND logic | ✅ Fixed |
+| Aggregation ambiguity | Strict AND logic by default; `metadata.openeval.aggregation` now formally specifies `all`/`any`/`majority`/`weighted` as of 1.0.0-rc.1 | ✅ Fixed |
 | Code grader security | Sandbox requirement + opt-in default | ✅ Fixed |
 | Prompt injection risk | SHOULDs for structured output + delimiters | ✅ Partially fixed |
 | Streaming/large suites | JSONL + test_cases_file | ✅ Fixed |
-| Too many grader types | Skip unsupported gracefully | ✅ Fixed |
-| Political adoption barrier | Reframed as interchange, not replacement | ✅ Mitigated |
+| Too many grader types | Skip unsupported gracefully; type is an open string (not a closed enum) as of 1.0.0-rc.1, schema- and SDK-enforced identically | ✅ Fixed |
+| Political adoption barrier | Reframed as interchange, not replacement; validated in practice by 20 shipped adapters and a merged Inspect AI PR | ✅ Mitigated |
 | OTel overlap | Positioned as complementary | ✅ Addressed |
 | Embedding provider ambiguity | Provider field + reproducibility metadata | ✅ Fixed |
 | Suite signing | Deferred to v1.1 | ⏳ Deferred |
 | Cost tracking | Reserved metadata key | ✅ Fixed |
 | Large context arrays | URL-based context references | ✅ Fixed |
 | YAML support | Explicitly supported | ✅ Fixed |
-| Conformance suite | Schemas + validation libs in v1; formal suite in v1.1 | ⏳ Partial |
+| Conformance suite | Schemas + validation libs in v1, now cross-checked against each other in CI (`test_schema_consistency.py`, `schema-consistency.test.ts`); formal conformance suite still planned for v1.1 | ⏳ Partial |
 
 ---
 
 ## Final Verdict
 
-The proposal is **substantially improved** after iteration. The remaining concerns (suite signing, formal conformance suite) are appropriately deferred to v1.1. The spec is ready for community review.
+The proposal is **substantially improved** after iteration. The remaining concerns (suite signing, formal conformance suite) are appropriately deferred to v1.1. As of 1.0.0-rc.1 the spec has moved beyond a paper proposal: it is implemented by 20 shipped framework adapters, merged into Inspect AI's official community extensions (PR #4797), and under active review by TruLens (PR #2697).
 
-**Recommendation:** Approve for community draft status with a 90-day comment period.
+**Recommendation:** Approve for release-candidate status. Promote to 1.0.0 final once the TruLens review concludes and no further breaking feedback surfaces from the community comment period.
