@@ -143,6 +143,7 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 | Vertex AI | [vertexai-openeval-adapter](adapters/vertexai-openeval-adapter/) |
 | DSPy | [dspy-openeval-adapter](adapters/dspy-openeval-adapter/) |
 | Haystack | [haystack-openeval-adapter](adapters/haystack-openeval-adapter/) |
+| Evidently | [evidently-openeval-adapter](adapters/evidently-openeval-adapter/) |
 
 ## Documentation
 
