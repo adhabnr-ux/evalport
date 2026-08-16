@@ -1,7 +1,7 @@
 # EvalPort — The Open Evaluation Standard
 
-**Version:** 1.0.0-draft  
-**Status:** Draft for Community Review  
+**Version:** 1.0.0-rc.1  
+**Status:** Release Candidate — Adopted by Inspect AI (merged), under active review by TruLens, implemented by 20 framework adapters  
 **License:** Apache 2.0  
 **Specification Lead:** EvalPort Working Group
 
@@ -249,6 +249,8 @@ A grader defines how a test case's actual output is scored. Graders are defined 
 2. If no handler is available, mark the grader result as `skipped` with reason `unsupported_grader_type`.
 3. Never fail the entire suite due to an unsupported grader.
 
+**Type openness (normative):** `type` is not a closed enum. Any non-empty string is a valid grader type. The 11 types listed above are "well-known" — validators and runners give them standardized `params` validation and, where applicable, built-in execution support. Any other string (e.g. `"trulens_feedback"`, `"ragas_faithfulness"`) is a valid, framework-specific type name and is validated exactly like `custom`: `params.handler` is REQUIRED. This lets a document declare a framework-native grader type without inventing a fake `custom` wrapper, while still guaranteeing every non-standard grader carries enough information (`handler`) for a runner that doesn't recognize the type to skip it gracefully rather than guess at its semantics. This rule is enforced identically by `spec/schemas/grader.json` (via a catch-all `if type not in [...11 well-known values], then require params.handler` conditional) and by both reference SDKs (`sdk/python/openeval/validate.py`, `sdk/typescript/src/validate.ts`).
+
 ---
 
 ### 3. EvalSuite
@@ -484,13 +486,15 @@ All documents MUST validate against their respective JSON Schemas. Runners MUST 
 
 ### 5. Score Range
 
-- Grader scores MUST be in the range [0.0, 1.0] unless a `score_range` extension is specified.
+- `GraderResult.score` MUST be either `null`, or a number in the closed range [0.0, 1.0]. There is no `score_range` extension — every grader normalizes its native score to [0.0, 1.0] (or `null`; see Rule 6) before it is a valid EvalPort document. This is a hard requirement, not a convention: `spec/schemas/resultset.json` declares `score` as `{"type": ["number", "null"], "minimum": 0, "maximum": 1}`, and both reference SDKs reject an out-of-range or non-numeric (including boolean) score.
+- A grader whose native scoring scale is not already [0.0, 1.0] (e.g. a 1-5 Likert scale, a raw cosine-similarity value that can be negative, a framework-specific 0-100 score) MUST clamp/normalize it to [0.0, 1.0] for the `score` field. To preserve the original value for debugging or re-analysis, use the reserved `metadata.openeval.raw_score` key on the `GraderResult` (see Appendix B) rather than putting an out-of-range value in `score` itself.
 - Pass/fail is determined by comparing the score to the grader's threshold (default threshold: 1.0 for exact match, specified via params for other types).
 
 ### 6. Result Consistency
 
 - Every grader referenced by a test case MUST have a corresponding `GraderResult` in the result set, unless the grader was `skipped`.
-- Skipped graders MUST be represented with `score: null`, `passed: false`, and `metadata.skip_reason`.
+- Skipped or not-yet-executed graders (e.g. `human` review pending, an `unsupported_grader_type`, a runner error before scoring) MUST be represented with `score: null` and `passed: false`. `score: null` means "not verified" — the grader did not produce a score, which is distinct from `passed: false` on a numeric score, which means "verified failing" (the grader ran and the output did not meet the threshold). Consumers MUST NOT treat a `null`-score result as equivalent to a scored failure when computing pass rates, aggregate statistics, or the suite-level `passed` field (see `metadata.openeval.aggregation` in Extension Mechanism) — a `null` score should either be excluded from the aggregate denominator or surfaced separately as "pending/unscored," per the aggregation strategy declared for the run.
+- `GraderResult.type` is REQUIRED and MUST match the `type` of the grader it corresponds to (or, for an inline/ad-hoc grader, the type used to produce the result) — this is what lets a validator or downstream tool apply type-specific interpretation to `score`/`passed` without re-resolving the grader definition from the suite.
 
 ---
 
@@ -529,6 +533,32 @@ Any document may include a `metadata` object with arbitrary keys. Keys with the 
 ### Custom Grader Types
 
 Graders with `type: "custom"` or any type not in the standard set are permitted. The `handler` field in `params` identifies the custom grader implementation. Runners that don't recognize the handler MUST mark the result as `skipped`.
+
+### Aggregation Extension (`metadata.openeval.aggregation`)
+
+By default (Rule 6), a `Result.passed` is the strict logical AND of every non-skipped `GraderResult.passed` for that test case: if any grader failed, the test case failed. This default is intentionally simple and matches most frameworks' native semantics, but it does not fit every use case — some frameworks want a *weighted* combination of scores (e.g. a rubric where some criteria matter more than others), a *majority* vote across graders, or an *any-pass* semantic (at least one grader must pass, useful for "does at least one of these N acceptable answers match"). Rather than leave this as an unspecified gap (as earlier drafts of this document did — see `spec/CRITIQUE.md` item #1), the `metadata.openeval.aggregation` key formally specifies it.
+
+`openeval.aggregation` MAY be set in a suite's top-level `metadata` (declaring the suite's default aggregation policy for every test case in it) and/or in a `Result`'s own `metadata` (overriding the policy for that one result). Its value is an object:
+
+```json
+{
+  "openeval.aggregation": {
+    "strategy": "weighted",
+    "threshold": 0.7
+  }
+}
+```
+
+| `strategy` | Meaning | `threshold` |
+|---|---|---|
+| `all` (default) | `passed` is true iff every non-null-scored `GraderResult.passed` is true. Equivalent to omitting `openeval.aggregation` entirely. | Not used. |
+| `any` | `passed` is true iff at least one non-null-scored `GraderResult.passed` is true. | Not used. |
+| `majority` | `passed` is true iff more than half of the non-null-scored `GraderResult`s have `passed: true`. | Optional; overrides the 0.5 cutoff, e.g. `0.6` requires a 60% majority. |
+| `weighted` | `passed` is true iff the weighted average of `GraderResult.score` (using each grader's `weight`, default 1.0, from its definition in the suite) is `>= threshold`. `GraderResult`s with `score: null` are excluded from both the numerator and the denominator, not treated as 0. | REQUIRED. A number in [0.0, 1.0]. |
+
+In every strategy, a `GraderResult` with `score: null` (per Rule 6, "not verified" — skipped, pending, or errored) is excluded from the aggregation entirely rather than counted as a failure. A test case whose graders are *all* null-scored has no basis for a pass/fail verdict; runners MUST report such a case's `passed` as `false` and SHOULD surface it distinctly (e.g. via `metadata.openeval.aggregation_status: "unscored"`) so it is not silently conflated with a verified failure in downstream reporting.
+
+`openeval.aggregation` changes only how `Result.passed` (and, by extension, any suite-level summary pass rate a runner computes) is derived from the individual `GraderResult`s — it never changes what an individual `GraderResult.passed`/`score` means, and it is never required: a document with no `openeval.aggregation` key uses the `all` default and is fully valid.
 
 ### Extensions Registry
 
@@ -1068,6 +1098,9 @@ A framework-specific grader. The `handler` identifies the implementation. Unreco
 | `openeval.trace_id` | Result | OpenTelemetry trace ID |
 | `openeval.language` | Suite | Primary language of the suite |
 | `openeval.source` | Suite, TestCase | Origin of the data |
+| `openeval.raw_score` | GraderResult | The grader's native, pre-normalization score (e.g. a 1-5 Likert value, a raw cosine similarity that may be negative, a framework's native 0-100 score) preserved for debugging/re-analysis when `score` had to be clamped or rescaled into [0.0, 1.0] to satisfy Validation Rule 5. Type and range are grader-specific and unconstrained by this spec. Adapter authors: emit this whenever your source framework's score isn't already [0.0, 1.0] — several shipped EvalPort adapters (e.g. for frameworks whose graders return confidence scores or Likert ratings) already follow this convention. |
+| `openeval.aggregation` | EvalSuite (default), Result (override) | Declares the pass/fail aggregation strategy across a test case's `GraderResult`s when the default strict-AND-of-all-graders semantic doesn't fit. See Extension Mechanism → Aggregation Extension for the full `{"strategy": ..., "threshold": ...}` schema. |
+| `openeval.aggregation_status` | Result | Set by a runner to `"unscored"` when every `GraderResult` for a test case has `score: null`, so downstream reporting doesn't conflate "no grader produced a verdict" with "a grader ran and failed." See Validation Rule 6. |
 
 ---
 
@@ -1081,4 +1114,5 @@ EvalPort is released under the Apache 2.0 license. The specification, schemas, a
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.0.0-rc.1 | 2026-08-16 | Promoted from draft to release candidate, reflecting real-world adoption: 20 shipped framework adapters, one merged third-party integration (Inspect AI, PR #4797), and one third-party integration under active maintainer review (TruLens, PR #2697). Substantive changes, all verified against the reference SDKs' test suites in this revision: (1) `version` fields now accept full semver 2.0.0 (prerelease + build metadata, e.g. `1.0.0-rc.1`) instead of only `X.Y.Z` or `X.Y.Z-draft` — fixed in `spec/schemas/suite.json`, `spec/schemas/resultset.json`, and both reference SDKs, which previously rejected this document's own version string. (2) Grader `type` is now formally documented and schema-enforced as open rather than a closed 11-value enum: any non-empty type string is valid and is validated like `custom` (`params.handler` required) unless it's one of the 11 well-known types, matching what the Custom Grader Types section already promised but the schema and SDKs didn't actually implement. (3) `spec/schemas/grader.json`'s per-type `allOf` conditionals now correctly require `params` to be present (previously a grader like `{"id": "g1", "type": "custom"}` with no `params` at all passed the JSON Schema despite being rejected by both SDKs — the conditionals constrained `params`'s shape but never required its presence). (4) Removed the never-defined `score_range` extension from Validation Rule 5; added the `openeval.raw_score` reserved metadata key so a grader's native (possibly out-of-[0,1]) score can be preserved when it must be clamped/normalized. (5) Formally specified the `openeval.aggregation` extension (`all`/`any`/`majority`/`weighted` strategies), resolving the gap `spec/CRITIQUE.md` had flagged as fixed while leaving the actual mechanism undefined. (6) Clarified Rule 6 to distinguish `score: null` ("not verified") from a scored failure ("verified failing"), and required `GraderResult.type`. (7) Added `sdk/python/tests/test_schema_consistency.py` and `sdk/typescript/tests/schema-consistency.test.ts`, which cross-validate every JSON Schema file against its corresponding hand-rolled SDK validator on every CI run, as a permanent regression guard against these two validation paths drifting apart again. |
 | 1.0.0-draft | 2026-07-28 | Initial draft for community review |
