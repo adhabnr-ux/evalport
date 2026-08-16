@@ -2,7 +2,12 @@ from __future__ import annotations
 from typing import Any, Literal, Union, Optional, List, Dict
 from dataclasses import dataclass, field
 
-OPENEVAL_VERSION = "1.0.0"
+# Tracks spec/SPEC.md's own **Version** header. Bumped to 1.0.0-rc.1 alongside the
+# spec (see spec/SPEC.md Change Log) now that suite.json/resultset.json's `version`
+# pattern accepts full semver 2.0.0 prerelease identifiers -- prior to that schema
+# fix, stamping "1.0.0-rc.1" into a generated document's `version` field would have
+# been rejected by this project's own JSON Schema.
+OPENEVAL_VERSION = "1.0.0-rc.1"
 
 GraderType = Literal["exact_match","contains","regex","semantic_similarity","llm_judge","json_schema","json_path","code","human","model graded","custom"]
 

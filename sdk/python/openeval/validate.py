@@ -5,6 +5,16 @@ import re
 
 STANDARD_GRADER_TYPES = {"exact_match","contains","regex","semantic_similarity","llm_judge","json_schema","json_path","code","human","model graded","custom"}
 
+# Full semver 2.0.0 pattern (https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions).
+# Was previously hardcoded to accept only "X.Y.Z" or "X.Y.Z-draft" -- rejected legitimate
+# prerelease versions like "1.0.0-rc.1" or "1.1.0-beta.2", which is what this project's own
+# README and public communications already describe the spec version as.
+SEMVER_RE = re.compile(
+    r"^\d+\.\d+\.\d+"
+    r"(?:-(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*)?"
+    r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
+)
+
 def _err(p,m,c): return {"path":p,"message":m,"code":c}
 
 def validate_test_case(tc):
@@ -32,11 +42,17 @@ def validate_grader(g):
     if not isinstance(g,dict): return ValidationResult(False,[_err("$","Must be object","TYPE_ERROR")])
     if not isinstance(g.get("id"),str) or not g["id"]: errors.append(_err("$.id","id required","REQUIRED"))
     gt=g.get("type")
-    if not isinstance(gt,str): errors.append(_err("$.type","type required","REQUIRED"))
-    elif gt not in STANDARD_GRADER_TYPES: errors.append(_err("$.type",f"Unknown: {gt}","UNKNOWN_TYPE"))
+    if not isinstance(gt,str) or not gt: errors.append(_err("$.type","type required","REQUIRED"))
     else:
         p=g.get("params") or {}
-        for e in _vp(gt,p): errors.append(_err(f"$.params.{e['path']}",e["message"],e["code"]))
+        if gt in STANDARD_GRADER_TYPES:
+            for e in _vp(gt,p): errors.append(_err(f"$.params.{e['path']}",e["message"],e["code"]))
+        else:
+            # Non-standard type name: valid, but treated exactly like "custom" -- must
+            # identify a handler so a runner that doesn't recognize it can skip gracefully
+            # instead of guessing. This is what lets an adapter use a descriptive type
+            # (e.g. "trulens_feedback") instead of the generic "custom" bucket.
+            for e in _vp("custom",p): errors.append(_err(f"$.params.{e['path']}",e["message"],e["code"]))
     return ValidationResult(not errors,errors)
 
 def _vp(t,p):
@@ -68,7 +84,7 @@ def _vp(t,p):
 def validate_suite(s):
     errors=[]
     if not isinstance(s,dict): return ValidationResult(False,[_err("$","Must be object","TYPE_ERROR")])
-    if not isinstance(s.get("version"),str) or not re.match(r"^\d+\.\d+\.\d+(-draft)?$",s.get("version","")): errors.append(_err("$.version","semver","INVALID_VERSION"))
+    if not isinstance(s.get("version"),str) or not SEMVER_RE.match(s.get("version","")): errors.append(_err("$.version","semver","INVALID_VERSION"))
     if not isinstance(s.get("id"),str) or not s["id"]: errors.append(_err("$.id","required","REQUIRED"))
     tcs=s.get("test_cases")
     if not isinstance(tcs,list) and not isinstance(s.get("test_cases_file"),str): errors.append(_err("$.test_cases","required","REQUIRED"))
@@ -103,7 +119,7 @@ def validate_suite(s):
 def validate_result_set(r):
     errors=[]
     if not isinstance(r,dict): return ValidationResult(False,[_err("$","Must be object","TYPE_ERROR")])
-    if not isinstance(r.get("version"),str) or not re.match(r"^\d+\.\d+\.\d+(-draft)?$",r.get("version","")): errors.append(_err("$.version","semver","INVALID_VERSION"))
+    if not isinstance(r.get("version"),str) or not SEMVER_RE.match(r.get("version","")): errors.append(_err("$.version","semver","INVALID_VERSION"))
     if not isinstance(r.get("suite_id"),str) or not r["suite_id"]: errors.append(_err("$.suite_id","required","REQUIRED"))
     if not isinstance(r.get("run_id"),str) or not r["run_id"]: errors.append(_err("$.run_id","required","REQUIRED"))
     if not isinstance(r.get("started_at"),str): errors.append(_err("$.started_at","required","REQUIRED"))
@@ -122,7 +138,8 @@ def validate_result_set(r):
                     if not isinstance(gr.get("grader_id"),str): errors.append(_err(f"$.results[{i}].grader_results[{j}].grader_id","required","REQUIRED"))
                     if not isinstance(gr.get("type"),str): errors.append(_err(f"$.results[{i}].grader_results[{j}].type","required","REQUIRED"))
                     sc=gr.get("score")
-                    if not isinstance(sc,(int,float,type(None))): errors.append(_err(f"$.results[{i}].grader_results[{j}].score","number|null","TYPE_ERROR"))
+                    if not isinstance(sc,(int,float,type(None))) or isinstance(sc,bool): errors.append(_err(f"$.results[{i}].grader_results[{j}].score","number|null","TYPE_ERROR"))
+                    elif sc is not None and (sc<0 or sc>1): errors.append(_err(f"$.results[{i}].grader_results[{j}].score","must be in [0,1] or null","OUT_OF_RANGE"))
                     if not isinstance(gr.get("passed"),bool): errors.append(_err(f"$.results[{i}].grader_results[{j}].passed","required","REQUIRED"))
     return ValidationResult(not errors,errors)
 

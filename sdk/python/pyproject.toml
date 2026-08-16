@@ -4,10 +4,34 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "evalport-sdk"
-version = "1.0.0"
+# This is the PACKAGE release version (ordinary semver for the SDK code itself),
+# a distinct axis from openeval.types.OPENEVAL_VERSION (which spec revision this
+# SDK targets/stamps into generated documents, currently 1.0.0-rc.1). Bumped
+# 1.0.0 -> 1.1.0 (MINOR, not a prerelease) for three backward-compatible fixes:
+# semver 2.0.0 acceptance in `version` fields, open (non-enum) grader `type` with
+# params.handler for non-standard types, and enforcement of the [0,1] score range
+# already declared by resultset.json but previously unchecked in this validator.
+# Deliberately NOT "1.0.0-rc.1": all 20 shipped adapters under adapters/ declare
+# `evalport-sdk>=1.0.0`, and a prerelease identifier sorts BELOW its base version
+# in both PEP 440 and semver -- publishing "1.0.0-rc.1" would make pip reject it
+# against every adapter's own dependency constraint. Verified with
+# `packaging.specifiers.SpecifierSet('>=1.0.0')` before making this choice.
+# NOTE: as of this commit, PyPI still serves 1.0.0 (https://pypi.org/project/evalport-sdk/) --
+# publishing this release requires a maintainer to run `twine upload` with a PyPI
+# API token (see MANUAL-ACTIONS.md), which is a manual, credentialed step outside
+# what this repository/session can do.
+version = "1.1.0"
 description = "Python SDK for EvalPort — The Open Evaluation Standard"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.8"
+
+[project.optional-dependencies]
+# jsonschema is used only by tests/test_schema_consistency.py, which cross-checks
+# spec/schemas/*.json (the portable JSON Schema source of truth) against this
+# package's zero-dependency hand-rolled validators to guard against the two
+# validation paths silently drifting apart. The core `openeval` package itself
+# has zero runtime dependencies.
+test = ["pytest", "jsonschema"]
 
 [tool.setuptools.packages.find]
 where = ["."]
