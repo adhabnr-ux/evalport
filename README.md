@@ -160,6 +160,7 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 ## Community
 
 - [Contributing Guide](.github/CONTRIBUTING.md)
+- [Contributors](CONTRIBUTORS.md)
 - [Launch Blog Post](docs/blog/launch-post.md)
 - [Landing Page](docs/landing-page.html)
 
