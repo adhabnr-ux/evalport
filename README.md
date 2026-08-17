@@ -8,7 +8,7 @@
 
 **Version:** 1.0.0-rc.2 | **License:** Apache 2.0
 
-**Adopted by:** [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) — merged to the official community extensions list, [PR #4797](https://github.com/UKGovernmentBEIS/inspect_ai/pull/4797), August 2026. Under active maintainer review at [TruLens](https://github.com/truera/trulens) — [PR #2697](https://github.com/truera/trulens/pull/2697), a full `to_openeval()`/`from_openeval()` module, 17/17 tests passing. 21 framework adapters shipped and independently tested — see [Framework Adapters](#framework-adapters) below.
+**Adopted by:** [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) — merged to the official community extensions list, [PR #4797](https://github.com/UKGovernmentBEIS/inspect_ai/pull/4797), August 2026. Under active maintainer review at [TruLens](https://github.com/truera/trulens) — [PR #2697](https://github.com/truera/trulens/pull/2697), a full `to_openeval()`/`from_openeval()` module, 17/17 tests passing. 22 framework adapters shipped and independently tested — see [Framework Adapters](#framework-adapters) below.
 
 EvalPort is an open specification for portable LLM evaluation test cases, graders, suites, and results. It enables evaluation datasets to be shared across frameworks (DeepEval, Promptfoo, Ragas, Inspect AI, LangSmith, Braintrust, OpenAI Evals, MLflow) without loss of semantic fidelity.
 
@@ -164,6 +164,7 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 | Guardrails AI | [guardrails-openeval-adapter](adapters/guardrails-openeval-adapter/) |
 | Argilla | [argilla-openeval-adapter](adapters/argilla-openeval-adapter/) |
 | Azure AI Evaluation | [azure-ai-evaluation-openeval-adapter](adapters/azure-ai-evaluation-openeval-adapter/) |
+| Arthur Bench | [arthur-bench-openeval-adapter](adapters/arthur-bench-openeval-adapter/) |
 
 ## Documentation
 
