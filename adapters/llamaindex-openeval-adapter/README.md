@@ -8,7 +8,15 @@ Convert [LlamaIndex](https://github.com/run-llama/llama_index) (`llama_index.cor
 pip install llamaindex-openeval-adapter
 ```
 
-This installs `evalport-sdk` as its only hard dependency. `llama-index-core` itself is **not** installed automatically -- add it separately (`pip install llama-index-core`) alongside whichever LLM/embedding integrations your evaluators need (e.g. `llama-index-llms-openai`).
+This installs `evalport-sdk` as its only hard dependency. `to_openeval()` and `batch_eval_result_to_openeval()` never import `llama_index` at all -- they take/produce plain data and opaque evaluator objects, so they work with **any** version you already have installed, or none. `from_openeval()` alone does `from llama_index.core import evaluation` as a lazy import, at the point it's actually called, so `llama-index-core` doesn't need to be present just to `import llamaindex_openeval_adapter`.
+
+If you do plan to call `from_openeval()`, install with the version-constrained extra instead of adding `llama-index-core` separately by hand:
+
+```bash
+pip install "llamaindex-openeval-adapter[llamaindex]"
+```
+
+This pins the same `llama-index-core>=0.11.0` range this adapter is actually tested against (see [Running the tests](#running-the-tests)), so `pip`/`uv`/`poetry` can flag an incompatible resolve instead of failing at import time. It still won't pull in the LLM/embedding integrations your evaluators need (e.g. `llama-index-llms-openai`) -- add those separately either way.
 
 ## Usage
 

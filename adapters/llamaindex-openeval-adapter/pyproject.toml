@@ -24,6 +24,14 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/llamaindex-o
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
+# Real runtime extra for anyone who wants a version-constrained install of
+# the target framework -- `pip install llamaindex-openeval-adapter[llamaindex]`.
+# to_openeval() and batch_eval_result_to_openeval() never import llama_index
+# (they only handle opaque evaluator objects/plain data), so this stays
+# optional rather than a hard dependency; only from_openeval() needs it,
+# via a lazy import, at the point it's actually called. Kept in sync with
+# the `test` extra's pin below by design -- same package, same range.
+llamaindex = ["llama-index-core>=0.11.0"]
 test = ["pytest", "pytest-asyncio", "llama-index-core>=0.11.0"]
 
 [tool.setuptools.packages.find]
