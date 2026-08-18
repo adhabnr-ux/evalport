@@ -24,6 +24,12 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/langfuse-ope
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
+# Real install for anyone actually using this adapter --
+# `pip install langfuse-openeval-adapter[langfuse]`. No version range was
+# pinned in `test` either, so none is invented here -- see EvalPort
+# Discussion #13 (and Issue #14) for tightening this to a real range once
+# it's verified.
+langfuse = ["langfuse"]
 test = ["pytest", "langfuse"]
 
 [tool.setuptools.packages.find]

@@ -24,6 +24,11 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/weave-openev
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
+# Real install for anyone actually using this adapter --
+# `pip install weave-openeval-adapter[weave]`. No version range was pinned
+# in `test` either, so none is invented here -- see EvalPort Discussion #13
+# (and Issue #14) for tightening this to a real range once it's verified.
+weave = ["weave"]
 test = ["pytest", "weave"]
 
 [tool.setuptools.packages.find]

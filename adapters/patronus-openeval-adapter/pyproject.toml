@@ -24,6 +24,11 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/patronus-ope
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
+# Real, version-constrained install for anyone actually using this adapter --
+# `pip install patronus-openeval-adapter[patronus]`. Reuses the exact range
+# already pinned (and tested against) in `test` below; see EvalPort
+# Discussion #13 for the convention this follows.
+patronus = ["patronus>=0.1.0"]
 test = ["pytest", "patronus>=0.1.0"]
 
 [tool.setuptools.packages.find]

@@ -24,6 +24,11 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/azure-ai-eva
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
+# Real, version-constrained install for anyone actually using this adapter --
+# `pip install azure-ai-evaluation-openeval-adapter[azure]`. Reuses the exact
+# range already pinned (and tested against) in `test` below; see EvalPort
+# Discussion #13 for the convention this follows.
+azure = ["azure-ai-evaluation>=1.0.0"]
 test = ["pytest", "azure-ai-evaluation>=1.0.0"]
 
 [tool.setuptools.packages.find]
