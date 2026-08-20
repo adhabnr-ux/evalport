@@ -8,7 +8,7 @@
 
 **Version:** 1.0.0-rc.2 | **License:** Apache 2.0
 
-**Adopted by:** [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) — merged to the official community extensions list, [PR #4797](https://github.com/UKGovernmentBEIS/inspect_ai/pull/4797), August 2026. Approved and awaiting a clean CI run at [TruLens](https://github.com/truera/trulens) — [PR #2697](https://github.com/truera/trulens/pull/2697), a full `to_openeval()`/`from_openeval()` module, 17/17 tests passing. 24 framework adapters shipped and independently tested, including [Hugging Face `evaluate`](adapters/huggingface-evaluate-openeval-adapter/) and [EleutherAI `lm-evaluation-harness`](adapters/lm-eval-harness-openeval-adapter/) — see [Framework Adapters](#framework-adapters) below.
+**Adopted by:** [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) — merged to the official community extensions list, [PR #4797](https://github.com/UKGovernmentBEIS/inspect_ai/pull/4797), August 2026. Approved and awaiting a clean CI run at [TruLens](https://github.com/truera/trulens) — [PR #2697](https://github.com/truera/trulens/pull/2697), a full `to_openeval()`/`from_openeval()` module, 17/17 tests passing. 25 framework adapters shipped and independently tested, including [Hugging Face `evaluate`](adapters/huggingface-evaluate-openeval-adapter/), [EleutherAI `lm-evaluation-harness`](adapters/lm-eval-harness-openeval-adapter/), and [Hugging Face `lighteval`](adapters/lighteval-openeval-adapter/) (the library behind the HF Open LLM Leaderboard) — see [Framework Adapters](#framework-adapters) below.
 
 EvalPort is an open specification for portable LLM evaluation test cases, graders, suites, and results. It enables evaluation datasets to be shared across frameworks (DeepEval, Promptfoo, Ragas, Inspect AI, LangSmith, Braintrust, OpenAI Evals, MLflow) without loss of semantic fidelity.
 
@@ -167,6 +167,7 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 | Arthur Bench | [arthur-bench-openeval-adapter](adapters/arthur-bench-openeval-adapter/) |
 | Hugging Face `evaluate` | [huggingface-evaluate-openeval-adapter](adapters/huggingface-evaluate-openeval-adapter/) |
 | EleutherAI `lm-evaluation-harness` | [lm-eval-harness-openeval-adapter](adapters/lm-eval-harness-openeval-adapter/) |
+| Hugging Face `lighteval` | [lighteval-openeval-adapter](adapters/lighteval-openeval-adapter/) |
 
 ## Documentation
 
