@@ -24,13 +24,11 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/uptrain-open
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
-# Real install for anyone actually using this adapter --
-# `pip install uptrain-openeval-adapter[uptrain]`. No version range was
-# pinned in `test` either, so none is invented here -- see EvalPort
-# Discussion #13 (and Issue #14) for tightening this to a real range once
-# it's verified.
-uptrain = ["uptrain", "pandas"]
-test = ["pytest", "uptrain", "pandas"]
+# Verified 2026-08-20: fresh venv `pip install -e ".[test]"` + `pytest tests/ -v`
+# resolved uptrain==0.7.1 and passed 21/21. See EvalPort Discussion #13 /
+# Issue #14 for the named-extra-reusing-test's-pin convention this follows.
+uptrain = ["uptrain>=0.7.1", "pandas"]
+test = ["pytest", "uptrain>=0.7.1", "pandas"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
