@@ -8,7 +8,7 @@
 
 **Version:** 1.0.0-rc.2 | **License:** Apache 2.0
 
-**Adopted by:** [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) — merged to the official community extensions list, [PR #4797](https://github.com/UKGovernmentBEIS/inspect_ai/pull/4797), August 2026. Under active maintainer review at [TruLens](https://github.com/truera/trulens) — [PR #2697](https://github.com/truera/trulens/pull/2697), a full `to_openeval()`/`from_openeval()` module, 17/17 tests passing. 22 framework adapters shipped and independently tested — see [Framework Adapters](#framework-adapters) below.
+**Adopted by:** [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) — merged to the official community extensions list, [PR #4797](https://github.com/UKGovernmentBEIS/inspect_ai/pull/4797), August 2026. Approved and awaiting a clean CI run at [TruLens](https://github.com/truera/trulens) — [PR #2697](https://github.com/truera/trulens/pull/2697), a full `to_openeval()`/`from_openeval()` module, 17/17 tests passing. 23 framework adapters shipped and independently tested, including [Hugging Face `evaluate`](adapters/huggingface-evaluate-openeval-adapter/) — see [Framework Adapters](#framework-adapters) below.
 
 EvalPort is an open specification for portable LLM evaluation test cases, graders, suites, and results. It enables evaluation datasets to be shared across frameworks (DeepEval, Promptfoo, Ragas, Inspect AI, LangSmith, Braintrust, OpenAI Evals, MLflow) without loss of semantic fidelity.
 
@@ -52,7 +52,7 @@ print(result.valid)  # True
 EvalPort is pre-1.0 and actively shaped by outside contributors — the fastest ways in, from least to most involved:
 
 - **Have an opinion on an open design question?** [`spec/SPEC.md`](spec/SPEC.md#open-design-questions--rfc-topics-we-need-help-with) lists four things the spec has deliberately left unresolved — suite/result signing, a formal conformance test suite, resuming interrupted runs, and whether `llm_judge` injection mitigations should be mandatory. Each has an open [Discussion](https://github.com/adhabnr-ux/evalport/discussions) where the actual decision gets made. No prior EvalPort contribution required.
-- **Want to ship a framework adapter?** [Issue #6](https://github.com/adhabnr-ux/evalport/issues/6) is the map, with five frameworks already scoped as `good first issue`s. [`adapters/autogen-openeval-adapter`](adapters/autogen-openeval-adapter/) is the reference shape to copy: `to_openeval()`, `from_openeval()`, tests against the real validator, a README.
+- **Want to ship a framework adapter?** [Issue #6](https://github.com/adhabnr-ux/evalport/issues/6) is the map. [`adapters/autogen-openeval-adapter`](adapters/autogen-openeval-adapter/) is the reference shape to copy: `to_openeval()`, `from_openeval()`, tests against the real validator, a README.
 - **Want to propose a spec change?** Open a Discussion titled `[Spec Change] <what and why>` — the full process (comment period, what "consensus" means, when the spec lead's sign-off is required) is in [`spec/SPEC.md`'s Governance section](spec/SPEC.md#governance).
 - **How people actually become collaborators:** ship something real and tested, engage substantively, get invited — see [`CONTRIBUTORS.md`](CONTRIBUTORS.md) for who's done that so far. It's not gatekept; a merged, tested PR is what clears the bar.
 
@@ -165,6 +165,7 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 | Argilla | [argilla-openeval-adapter](adapters/argilla-openeval-adapter/) |
 | Azure AI Evaluation | [azure-ai-evaluation-openeval-adapter](adapters/azure-ai-evaluation-openeval-adapter/) |
 | Arthur Bench | [arthur-bench-openeval-adapter](adapters/arthur-bench-openeval-adapter/) |
+| Hugging Face `evaluate` | [huggingface-evaluate-openeval-adapter](adapters/huggingface-evaluate-openeval-adapter/) |
 
 ## Documentation
 

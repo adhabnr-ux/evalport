@@ -1,6 +1,6 @@
 # Contributors
 
-EvalPort is a specification, and specifications only matter if real implementations adopt them. This file credits people who have built real, working EvalPort integrations outside this repository — not just filed issues or left comments, but shipped code against the spec.
+EvalPort is a specification, and specifications only matter if real implementations adopt them. This file credits people who have built real, working EvalPort integrations outside this repository — not just filed issues or left comments, but shipped code against the spec — plus maintainers whose review substantively shaped the spec or an adapter, whether the answer was yes or not yet.
 
 ## Framework Integration Authors
 
@@ -11,12 +11,14 @@ EvalPort is a specification, and specifications only matter if real implementati
 
 ## Maintainer Reviewers
 
-Maintainers who evaluated EvalPort integration proposals on their own merits and gave substantive technical feedback (scope, semver policy, lossiness handling) rather than a rubber-stamp:
+Maintainers who evaluated EvalPort integration proposals on their own merits and gave substantive technical feedback (scope, semver policy, lossiness handling, version-pinning gaps) rather than a rubber-stamp — credited here whether their answer was yes, not yet, or "fix this first":
 
 | Reviewer | Repository | Contribution |
 |---|---|---|
-| [Josh Reini](https://github.com/sfc-gh-jreini) | [truera/trulens](https://github.com/truera/trulens) | Scoped and approved the `to_openeval()`/`from_openeval()` design in [#2680](https://github.com/truera/trulens/issues/2680) before the PR was opened. |
+| [Josh Reini](https://github.com/sfc-gh-jreini) | [truera/trulens](https://github.com/truera/trulens) | Scoped and approved the `to_openeval()`/`from_openeval()` design in [#2680](https://github.com/truera/trulens/issues/2680) before the PR was opened, then reviewed and approved the resulting implementation in [PR #2697](https://github.com/truera/trulens/pull/2697) ("Solid implementation... 17 comprehensive tests validating against real spec validators"). |
 | [Charles Teague](https://github.com/dragonstyle) | [UKGovernmentBEIS/inspect_ai](https://github.com/UKGovernmentBEIS/inspect_ai) | Reviewed, iterated on, and merged EvalPort into Inspect AI's official community extensions list ([PR #4797](https://github.com/UKGovernmentBEIS/inspect_ai/pull/4797)). |
+| [yun520-1](https://github.com/yun520-1) | [run-llama/llama_index](https://github.com/run-llama/llama_index) | Caught a real gap in `llamaindex-openeval-adapter` — the target-framework version constraint lived only in test extras, with no equivalent for a real install ([issue #22709](https://github.com/run-llama/llama_index/issues/22709#issuecomment-5310707592)) — which became [Discussion #13](https://github.com/adhabnr-ux/evalport/discussions/13) and a packaging-convention fix backported across the whole adapter fleet. |
+| [marliessophie](https://github.com/marliessophie) | [langfuse/langfuse](https://github.com/langfuse/langfuse) | Gave a considered, specific answer on why a first-party integration wasn't the right call yet (stability and adoption bar) rather than a silent close ([issue #16174](https://github.com/langfuse/langfuse/issues/16174#issuecomment-5329834060)) — exactly the kind of real engagement this list exists to credit, independent of the outcome. |
 
 ---
 
