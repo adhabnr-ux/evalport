@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lighteval-openeval-adapter"
+version = "0.1.0"
+description = "Convert Hugging Face lighteval per-document evaluation details and results to and from EvalPort"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.9"
+authors = [{ name = "EvalPort Working Group" }]
+dependencies = [
+    "evalport-sdk>=1.0.0",
+]
+
+[project.optional-dependencies]
+lighteval = ["lighteval>=0.13.0"]
+# xxhash<4.0 is a TEST-ONLY workaround for a real bug in lighteval's own
+# DetailsLogger.log() -- see README's "A real bug found while building this
+# adapter" section. This adapter's own code never imports xxhash; the pin
+# exists purely so `pytest` can drive a real Pipeline.evaluate() run without
+# crashing on an unrelated code path.
+test = ["pytest", "lighteval>=0.13.0", "xxhash<4.0"]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+
+[tool.setuptools.packages.find]
+where = ["src"]
