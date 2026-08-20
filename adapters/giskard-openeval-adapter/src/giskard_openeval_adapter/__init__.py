@@ -171,7 +171,7 @@ def _check_to_grader(check: Any, index: int) -> Dict[str, Any]:
     if description:
         grader["description"] = description
 
-    if kind == "equals" and dump.get("key") == _JSON_PATH_ROOT and "expected_value" in dump:
+    if kind == "equals" and dump.get("target_key") == _JSON_PATH_ROOT and "expected_value" in dump:
         grader["type"] = "exact_match"
         grader["params"] = {}
     elif kind == "string_matching" and "keyword" in dump:
@@ -207,8 +207,8 @@ def _check_to_grader(check: Any, index: int) -> Dict[str, Any]:
             "model": "giskard-default",
             "prompt": prompt,
         }
-    elif kind in _COMPARISON_KIND_TO_OPERATOR and "key" in dump and "expected_value" in dump:
-        suffix = _strip_jsonpath_root(dump["key"])
+    elif kind in _COMPARISON_KIND_TO_OPERATOR and "target_key" in dump and "expected_value" in dump:
+        suffix = _strip_jsonpath_root(dump["target_key"])
         if suffix is None:
             grader.update(_opaque_grader(check, dump, kind))
         else:
@@ -313,7 +313,7 @@ def _infer_expected_output(checks: Iterable[Any]) -> Optional[str]:
     for check in checks:
         dump = check.model_dump()
         kind = dump.get("kind")
-        if kind == "equals" and dump.get("key") == _JSON_PATH_ROOT and "expected_value" in dump:
+        if kind == "equals" and dump.get("target_key") == _JSON_PATH_ROOT and "expected_value" in dump:
             value = dump["expected_value"]
             if isinstance(value, str):
                 return value
@@ -393,12 +393,12 @@ def _import_giskard_checks():
     except ImportError as exc:  # pragma: no cover - exercised via a dedicated test
         raise ImportError(
             "from_openeval() needs the giskard-checks package to construct "
-            "real Scenario/Check objects. It isn't published to PyPI yet "
-            "(pre-1.0 beta, monorepo-only as of this writing) -- install it "
-            "from source: pip install "
-            "\"giskard-checks @ git+https://github.com/Giskard-AI/giskard-oss.git"
-            "#subdirectory=libs/giskard-checks\" "
-            "(requires Python >=3.12). See this package's README for details."
+            "real Scenario/Check objects. It's on PyPI as a pre-release "
+            "(currently 1.0.2rc1, no stable 1.0.x yet) and requires Python "
+            ">=3.12 -- install it explicitly to opt into a pre-release "
+            "version: pip install \"giskard-openeval-adapter[giskard]\" "
+            "(or `pip install giskard-checks>=1.0.2rc1` directly). See this "
+            "package's README for details."
         ) from exc
     return gc
 
@@ -415,7 +415,7 @@ def _grader_to_check(gc: Any, grader: Mapping[str, Any], expected_output: Option
         common["description"] = description
 
     if grader_type == "exact_match":
-        return gc.Equals(key=_JSON_PATH_ROOT, expected_value=expected_output, **common)
+        return gc.Equals(target_key=_JSON_PATH_ROOT, expected_value=expected_output, **common)
     if grader_type == "contains":
         return gc.StringMatching(
             keyword=params["substring"],
@@ -439,7 +439,7 @@ def _grader_to_check(gc: Any, grader: Mapping[str, Any], expected_output: Option
         key = _evalpath_to_giskard_key(params["path"])
         expected = params.get("expected")
         if operator == "contains":
-            return gc.StringMatching(text_key=key, keyword=str(expected), **common)
+            return gc.StringMatching(target_key=key, keyword=str(expected), **common)
         comparison_kind = _OPERATOR_TO_COMPARISON_KIND.get(operator, "equals")
         comparison_cls = {
             "equals": gc.Equals,
@@ -449,7 +449,7 @@ def _grader_to_check(gc: Any, grader: Mapping[str, Any], expected_output: Option
             "greater_than_equals": gc.GreaterThanEquals,
             "less_than_equals": gc.LessThanEquals,
         }[comparison_kind]
-        return comparison_cls(key=key, expected_value=expected, **common)
+        return comparison_cls(target_key=key, expected_value=expected, **common)
 
     # Unsupported grader type (code, human, custom, "model graded", or any
     # future type this adapter doesn't yet know how to build a Check for):
@@ -477,8 +477,8 @@ def from_openeval(suite: Mapping[str, Any]) -> List[Any]:
     interacts), so callers can inspect and handle that case rather than
     having the whole suite import silently fail.
 
-    Requires the `giskard-checks` package (not on PyPI yet -- see this
-    package's README for the install command).
+    Requires the `giskard-checks` package (a pre-release on PyPI -- see this
+    package's README for the exact install command).
     """
     gc = _import_giskard_checks()
     scenarios: List[Any] = []

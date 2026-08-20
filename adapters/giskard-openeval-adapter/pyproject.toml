@@ -25,10 +25,15 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/giskard-open
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
-# giskard-checks is not yet published to PyPI (pre-1.0 beta, monorepo-only as of
-# this writing) and requires Python >=3.12. Install it from source before running
-# the test suite -- see README.md "Running the tests" for the exact command.
-test = ["pytest", "pytest-asyncio"]
+# giskard-checks is now on PyPI (verified 2026-08-20) but still pre-1.0 --
+# only 1.0.1a1 through 1.0.2rc1 exist, no stable 1.0.x release yet -- and
+# requires Python >=3.12. The >=1.0.2rc1 floor (rather than a plain >=1.0.0)
+# is required for pip to resolve a pre-release version at all; it's also the
+# exact version this adapter is tested against, real install + real pytest
+# run, not carried over from an older git-source pin. See EvalPort Discussion
+# #13 / Issue #14 for the extras convention this follows.
+giskard = ["giskard-checks>=1.0.2rc1"]
+test = ["pytest", "pytest-asyncio", "giskard-checks>=1.0.2rc1"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
