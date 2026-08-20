@@ -8,11 +8,13 @@ Convert [Giskard](https://github.com/Giskard-AI/giskard-oss) `giskard-checks` Su
 pip install giskard-openeval-adapter
 ```
 
-This installs `evalport-sdk` as its only hard dependency. `giskard-checks` itself is **not** installed automatically -- as of this writing it's a pre-1.0 beta that hasn't been published to PyPI yet (it lives in the [`Giskard-AI/giskard-oss`](https://github.com/Giskard-AI/giskard-oss) monorepo under `libs/giskard-checks`) and requires Python >=3.12. Install it from source alongside this package:
+This installs `evalport-sdk` as its only hard dependency. `giskard-checks` itself is not installed automatically -- it's still pre-1.0 (currently `1.0.2rc1`, a release candidate; PyPI has published `1.0.1a1` through `1.0.2rc1` so far, no stable `1.0.x` yet) and requires Python >=3.12, so it's an opt-in extra rather than a hard dependency:
 
 ```bash
-pip install "giskard-checks @ git+https://github.com/Giskard-AI/giskard-oss.git#subdirectory=libs/giskard-checks"
+pip install "giskard-openeval-adapter[giskard]"
 ```
+
+This was a git-source-only install as recently as this adapter's last README update -- `giskard-checks` has since been published to PyPI (still pre-release, hence the extra needing `giskard-checks>=1.0.2rc1` rather than a plain `>=1.0.0` to opt pip into resolving a pre-release version at all). If you already have an older git-source install, note that `1.0.2rc1`'s public API **renamed `key` to `target_key`** on every comparison check (`Equals`, `NotEquals`, `GreaterThan`, `LessThan`, `GreaterThanEquals`, `LessThanEquals`) and dropped a `text_key` parameter this adapter had (incorrectly) relied on for `StringMatching` -- this adapter's `to_openeval()`/`from_openeval()` were updated to match the real published API and re-verified against it (42/42 tests passing), so upgrading `giskard-checks` to `1.0.2rc1`+ alongside this adapter is safe; upgrading only `giskard-checks` while pinned to an older version of this adapter is not.
 
 ## Usage
 
@@ -24,7 +26,7 @@ from giskard.checks import Scenario, Suite, Equals, StringMatching
 scenario = (
     Scenario("geo_fact")
     .interact("What is the capital of France?", outputs="Paris is the capital of France.")
-    .check(Equals(key="trace.last.outputs", expected_value="Paris is the capital of France."))
+    .check(Equals(target_key="trace.last.outputs", expected_value="Paris is the capital of France."))
 )
 suite = Suite(name="geo_quiz")
 suite.append(scenario)
@@ -76,7 +78,7 @@ Giskard's four-state `CheckStatus` (`PASS`/`FAIL`/`ERROR`/`SKIP`) is treated the
 
 | EvalPort grader `type` | Giskard `Check` | Direction |
 |---|---|---|
-| `exact_match` | `Equals(key="trace.last.outputs", ...)` | both |
+| `exact_match` | `Equals(target_key="trace.last.outputs", ...)` | both |
 | `contains` | `StringMatching` | both |
 | `regex` | `RegexMatching` | both |
 | `semantic_similarity` | `SemanticSimilarity` | both |
@@ -104,11 +106,10 @@ Everything else -- the full original check definition (every field, not just the
 ```bash
 cd adapters/giskard-openeval-adapter
 python3.12 -m venv .venv && .venv/bin/pip install -e ".[test]"
-.venv/bin/pip install "giskard-checks @ git+https://github.com/Giskard-AI/giskard-oss.git#subdirectory=libs/giskard-checks"
 .venv/bin/pytest tests/ -v
 ```
 
-42 tests, all running against the real `giskard.checks` classes (`Scenario`, `Suite`, `Equals`, `StringMatching`, `RegexMatching`, `SemanticSimilarity`, `LLMJudge`, `JsonValid`, the comparison checks, `SuiteResult`/`ScenarioResult`/`TestCaseResult`/`CheckResult`, including two tests that `await suite.run()` for real against deterministic checks) and the real `openeval.validate.validate_suite()`/`validate_result_set()` -- not mocks.
+42 tests, all running against the real, now-published `giskard-checks==1.0.2rc1` classes (`Scenario`, `Suite`, `Equals`, `StringMatching`, `RegexMatching`, `SemanticSimilarity`, `LLMJudge`, `JsonValid`, the comparison checks, `SuiteResult`/`ScenarioResult`/`TestCaseResult`/`CheckResult`, including two tests that `await suite.run()` for real against deterministic checks) and the real `openeval.validate.validate_suite()`/`validate_result_set()` -- not mocks.
 
 ## Spec
 

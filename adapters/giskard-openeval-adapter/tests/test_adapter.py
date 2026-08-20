@@ -2,8 +2,9 @@
 package (Scenario/Suite/Check/SuiteResult objects, not mocks) and the real
 EvalPort validator (`openeval.validate.validate_suite`/`validate_result_set`).
 
-Requires giskard-checks to be installed (not on PyPI yet -- see README.md
-"Running the tests" for the install command) and Python >=3.12.
+Requires giskard-checks to be installed (a PyPI pre-release, currently
+1.0.2rc1 -- see README.md "Running the tests" for the install command) and
+Python >=3.12.
 """
 
 from __future__ import annotations
@@ -61,7 +62,7 @@ class TestToOpenevalSingleStep:
         scenario = (
             Scenario("geo_fact")
             .interact("What is the capital of France?", outputs="Paris is the capital of France.")
-            .check(Equals(key="trace.last.outputs", expected_value="Paris is the capital of France."))
+            .check(Equals(target_key="trace.last.outputs", expected_value="Paris is the capital of France."))
         )
         suite = Suite(name="geo_quiz")
         suite.append(scenario)
@@ -83,13 +84,13 @@ class TestToOpenevalSingleStep:
 
     def test_default_suite_id_is_suite_name(self):
         suite = Suite(name="unnamed_id_suite")
-        suite.append(Scenario("s1").interact("hi", outputs="hey").check(Equals(key="trace.last.outputs", expected_value="hey")))
+        suite.append(Scenario("s1").interact("hi", outputs="hey").check(Equals(target_key="trace.last.outputs", expected_value="hey")))
         eval_suite = to_openeval(suite)
         assert eval_suite["id"] == "unnamed_id_suite"
 
     def test_description_is_passed_through(self):
         suite = Suite(name="s")
-        suite.append(Scenario("s1").interact("hi", outputs="hey").check(Equals(key="trace.last.outputs", expected_value="hey")))
+        suite.append(Scenario("s1").interact("hi", outputs="hey").check(Equals(target_key="trace.last.outputs", expected_value="hey")))
         eval_suite = to_openeval(suite, description="A test suite.")
         assert eval_suite["description"] == "A test suite."
 
@@ -203,7 +204,7 @@ class TestToOpenevalSingleStep:
         scenario = (
             Scenario("count_check")
             .interact("How many?", outputs={"count": 5})
-            .check(GreaterThan(key="trace.last.outputs.count", expected_value=3))
+            .check(GreaterThan(target_key="trace.last.outputs.count", expected_value=3))
         )
         suite = Suite(name="s")
         suite.append(scenario)
@@ -217,7 +218,7 @@ class TestToOpenevalSingleStep:
         scenario = (
             Scenario("len_check")
             .interact("Score?", outputs=7)
-            .check(GreaterThan(key="trace.last.outputs", expected_value=5))
+            .check(GreaterThan(target_key="trace.last.outputs", expected_value=5))
         )
         suite = Suite(name="s")
         suite.append(scenario)
@@ -230,7 +231,7 @@ class TestToOpenevalSingleStep:
         scenario = (
             Scenario("negated_check")
             .interact("Say hi", outputs="hi")
-            .check(Not(check=Equals(key="trace.last.outputs", expected_value="bye")))
+            .check(Not(check=Equals(target_key="trace.last.outputs", expected_value="bye")))
         )
         suite = Suite(name="s")
         suite.append(scenario)
@@ -245,7 +246,7 @@ class TestToOpenevalSingleStep:
         scenario = (
             Scenario("input_len_check")
             .interact("hello", outputs="hi")
-            .check(GreaterThan(key="trace.last.inputs", expected_value="a"))
+            .check(GreaterThan(target_key="trace.last.inputs", expected_value="a"))
         )
         suite = Suite(name="s")
         suite.append(scenario)
@@ -263,9 +264,9 @@ class TestToOpenevalMultiStepAndSkipping:
         scenario = (
             Scenario("multi_turn")
             .interact("Hello", outputs="Hi there!")
-            .check(Equals(key="trace.last.outputs", expected_value="Hi there!"))
+            .check(Equals(target_key="trace.last.outputs", expected_value="Hi there!"))
             .interact("How are you?", outputs="I'm doing well!")
-            .check(Equals(key="trace.last.outputs", expected_value="I'm doing well!"))
+            .check(Equals(target_key="trace.last.outputs", expected_value="I'm doing well!"))
         )
         suite = Suite(name="s")
         suite.append(scenario)
@@ -278,7 +279,7 @@ class TestToOpenevalMultiStepAndSkipping:
         scenario = Scenario("multi_interact")
         scenario.interact("Hello")
         scenario.interact("How are you?")
-        scenario.check(Equals(key="trace.last.outputs", expected_value="fine"))
+        scenario.check(Equals(target_key="trace.last.outputs", expected_value="fine"))
         suite = Suite(name="s")
         suite.append(scenario)
         eval_suite = to_openeval(suite)
@@ -290,7 +291,7 @@ class TestToOpenevalMultiStepAndSkipping:
         scenario = Scenario("dynamic").interact(
             lambda trace: "generated input",
             outputs="some output",
-        ).check(Equals(key="trace.last.outputs", expected_value="some output"))
+        ).check(Equals(target_key="trace.last.outputs", expected_value="some output"))
         suite = Suite(name="s")
         suite.append(scenario)
         eval_suite = to_openeval(suite)
@@ -307,7 +308,7 @@ class TestToOpenevalMultiStepAndSkipping:
         scenario = (
             Scenario("tagged")
             .interact("hi", outputs="hey")
-            .check(Equals(key="trace.last.outputs", expected_value="hey"))
+            .check(Equals(target_key="trace.last.outputs", expected_value="hey"))
             .with_tags(["Category:Greeting"])
         )
         suite = Suite(name="s")
@@ -349,7 +350,7 @@ class TestFromOpeneval:
         check = scenario.steps[0].checks[0]
         assert isinstance(check, Equals)
         assert check.expected_value == "hey"
-        assert check.key == "trace.last.outputs"
+        assert check.target_key == "trace.last.outputs"
 
     def test_contains_builds_string_matching(self):
         suite = _minimal_suite(
@@ -400,7 +401,7 @@ class TestFromOpeneval:
         scenario = from_openeval(suite)[0]
         check = scenario.steps[0].checks[0]
         assert isinstance(check, Equals)
-        assert check.key == "trace.last.outputs.count"
+        assert check.target_key == "trace.last.outputs.count"
         assert check.expected_value == "5"
 
     def test_json_path_gt_builds_greater_than(self):
@@ -418,7 +419,7 @@ class TestFromOpeneval:
         scenario = from_openeval(suite)[0]
         check = scenario.steps[0].checks[0]
         assert isinstance(check, LessThan)
-        assert check.key == "trace.last.outputs"
+        assert check.target_key == "trace.last.outputs"
 
     def test_json_path_contains_builds_string_matching_with_text_key(self):
         suite = _minimal_suite(
@@ -433,7 +434,7 @@ class TestFromOpeneval:
         scenario = from_openeval(suite)[0]
         check = scenario.steps[0].checks[0]
         assert isinstance(check, StringMatching)
-        assert check.text_key == "trace.last.outputs.message"
+        assert check.target_key == "trace.last.outputs.message"
         assert check.keyword == "hello"
 
     def test_unsupported_grader_type_is_clean_skipped(self):
@@ -491,7 +492,7 @@ class TestSuiteResultToOpenevalWithRealRun:
         s1 = (
             Scenario("geo_fact")
             .interact("What is the capital of France?", outputs="Paris is the capital of France.")
-            .check(Equals(key="trace.last.outputs", expected_value="Paris is the capital of France."))
+            .check(Equals(target_key="trace.last.outputs", expected_value="Paris is the capital of France."))
         )
         s2 = (
             Scenario("keyword_check")
@@ -501,7 +502,7 @@ class TestSuiteResultToOpenevalWithRealRun:
         s3 = (
             Scenario("failing_check")
             .interact("2+2?", outputs="5")
-            .check(Equals(key="trace.last.outputs", expected_value="4"))
+            .check(Equals(target_key="trace.last.outputs", expected_value="4"))
         )
         suite = Suite(name="mixed")
         for s in (s1, s2, s3):
