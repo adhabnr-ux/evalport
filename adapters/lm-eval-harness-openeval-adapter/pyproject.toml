@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lm-eval-harness-openeval-adapter"
+version = "0.1.0"
+description = "Convert EleutherAI lm-evaluation-harness per-document samples and aggregate results to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["lm-eval", "lm-evaluation-harness", "eleutherai", "evalport", "openeval", "llm", "evaluation", "eval", "benchmark"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/lm-eval-harness-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+
+[project.optional-dependencies]
+# Verified 2026-08-20: fresh venv `pip install -e ".[test]"` + `pytest tests/ -v`
+# resolved lm-eval==0.4.12 and passed, running real `simple_evaluate(model="dummy", ...)`
+# calls against real tasks (copa, boolq, gsm8k) pulled live from the HF Hub.
+lm-eval = ["lm-eval>=0.4.12"]
+test = ["pytest", "lm-eval>=0.4.12"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
