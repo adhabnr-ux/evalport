@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "huggingface-evaluate-openeval-adapter"
+version = "0.1.0"
+description = "Convert Hugging Face evaluate metric definitions and computed scores to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["huggingface", "evaluate", "evalport", "openeval", "llm", "evaluation", "eval", "metrics"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/huggingface-evaluate-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+
+[project.optional-dependencies]
+# Verified 2026-08-20: fresh venv `pip install -e ".[test]"` + `pytest tests/ -v`
+# resolved evaluate==0.4.6 and passed. See EvalPort Discussion #13 / Issue #14
+# for the named-extra-reusing-test's-pin convention this follows.
+evaluate = ["evaluate>=0.4.6"]
+test = ["pytest", "evaluate>=0.4.6", "scikit-learn>=1.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
