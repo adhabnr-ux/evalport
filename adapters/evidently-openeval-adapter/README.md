@@ -5,8 +5,10 @@ Convert [Evidently](https://github.com/evidentlyai/evidently) evaluation DataFra
 ## Install
 
 ```bash
-pip install evidently-openeval-adapter
+pip install "evidently-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/evidently-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 ## Usage
 

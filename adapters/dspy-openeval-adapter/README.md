@@ -5,8 +5,10 @@ Convert [DSPy](https://github.com/stanfordnlp/dspy) devsets and `dspy.Evaluate` 
 ## Install
 
 ```bash
-pip install dspy-openeval-adapter
+pip install "dspy-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/dspy-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 ## Usage
 

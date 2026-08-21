@@ -5,13 +5,15 @@ Convert [Giskard](https://github.com/Giskard-AI/giskard-oss) `giskard-checks` Su
 ## Install
 
 ```bash
-pip install giskard-openeval-adapter
+pip install "giskard-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/giskard-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 This installs `evalport-sdk` as its only hard dependency. `giskard-checks` itself is not installed automatically -- it's still pre-1.0 (currently `1.0.2rc1`, a release candidate; PyPI has published `1.0.1a1` through `1.0.2rc1` so far, no stable `1.0.x` yet) and requires Python >=3.12, so it's an opt-in extra rather than a hard dependency:
 
 ```bash
-pip install "giskard-openeval-adapter[giskard]"
+pip install "giskard-openeval-adapter[giskard] @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/giskard-openeval-adapter"
 ```
 
 This was a git-source-only install as recently as this adapter's last README update -- `giskard-checks` has since been published to PyPI (still pre-release, hence the extra needing `giskard-checks>=1.0.2rc1` rather than a plain `>=1.0.0` to opt pip into resolving a pre-release version at all). If you already have an older git-source install, note that `1.0.2rc1`'s public API **renamed `key` to `target_key`** on every comparison check (`Equals`, `NotEquals`, `GreaterThan`, `LessThan`, `GreaterThanEquals`, `LessThanEquals`) and dropped a `text_key` parameter this adapter had (incorrectly) relied on for `StringMatching` -- this adapter's `to_openeval()`/`from_openeval()` were updated to match the real published API and re-verified against it (42/42 tests passing), so upgrading `giskard-checks` to `1.0.2rc1`+ alongside this adapter is safe; upgrading only `giskard-checks` while pinned to an older version of this adapter is not.

@@ -5,8 +5,10 @@ Convert [Azure AI Evaluation SDK](https://pypi.org/project/azure-ai-evaluation/)
 ## Install
 
 ```bash
-pip install azure-ai-evaluation-openeval-adapter
+pip install "azure-ai-evaluation-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/azure-ai-evaluation-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 ## Usage
 

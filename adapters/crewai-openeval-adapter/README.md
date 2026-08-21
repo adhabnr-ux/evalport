@@ -9,8 +9,10 @@ A proposal for native EvalPort support has been open on [crewAIInc/crewAI#6711](
 ## Install
 
 ```bash
-pip install crewai-openeval-adapter
+pip install "crewai-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/crewai-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 ## Usage
 

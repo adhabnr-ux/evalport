@@ -5,8 +5,10 @@ Convert [Guardrails AI](https://github.com/guardrails-ai/guardrails) `Guard` val
 ## Install
 
 ```bash
-pip install guardrails-openeval-adapter
+pip install "guardrails-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/guardrails-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 ## Usage
 

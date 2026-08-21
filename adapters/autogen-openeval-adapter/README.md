@@ -20,8 +20,10 @@ outside, so you get EvalPort import/export today.
 ## Install
 
 ```
-pip install autogen-openeval-adapter
+pip install "autogen-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/autogen-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 ## Usage
 

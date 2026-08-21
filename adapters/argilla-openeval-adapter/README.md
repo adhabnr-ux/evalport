@@ -9,8 +9,10 @@ An Argilla `Record` more or less *is* an evaluation-dataset row: `fields` are th
 ## Install
 
 ```bash
-pip install argilla-openeval-adapter
+pip install "argilla-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/argilla-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 ## A real constraint this adapter works *around*, not into
 

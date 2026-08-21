@@ -5,8 +5,10 @@ Convert [Arthur Bench](https://github.com/arthur-ai/bench) (`arthur-bench`) `Tes
 ## Install
 
 ```bash
-pip install arthur-bench-openeval-adapter
+pip install "arthur-bench-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/arthur-bench-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 ## Usage
 
