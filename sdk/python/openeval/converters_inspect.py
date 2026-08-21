@@ -54,9 +54,25 @@ def _inspect_scorer_to_grader(gid: str, scorer: str) -> Dict:
     if "exact" in s:
         return {"id": gid, "type": "exact_match"}
     if "pattern" in s or "regex" in s:
-        return {"id": gid, "type": "regex", "params": {"pattern": ".*"}}
+        # inspect_ai's real pattern()/regex scorers are constructed with the actual
+        # regex to check against, but that pattern is scorer-construction-time
+        # configuration this converter never receives (from_inspect() only gets a
+        # bare scorer *name*, e.g. "pattern") -- there is no honest single pattern to
+        # put here. EvalPort's "regex" grader requires a non-empty `pattern` (see
+        # validate.py's _vp), so filling one in would mean fabricating a value
+        # (".*" matches everything unconditionally, silently turning this into a
+        # no-op that always "passes"). Route to `custom` instead, preserving the
+        # real scorer name, the same convention every adapter in this ecosystem
+        # uses for a grader type it can't honestly represent.
+        return {"id": gid, "type": "custom", "params": {"handler": f"inspect:{scorer}"}}
     if "includes" in s or "contains" in s:
-        return {"id": gid, "type": "contains", "params": {"substring": ""}}
+        # Same reasoning as pattern/regex above: inspect_ai's real includes()
+        # scorer checks each sample's *own* target text, which is per-sample data
+        # already captured in tc["expected_output"] -- not a single fixed string a
+        # suite-level grader could hold. EvalPort's "contains" grader requires a
+        # non-empty `substring`, so an empty-string default would be a fabricated,
+        # always-true no-op rather than a real check. Route to `custom` instead.
+        return {"id": gid, "type": "custom", "params": {"handler": f"inspect:{scorer}"}}
     if "json" in s:
         return {"id": gid, "type": "json_schema", "params": {"schema": {"type": "object"}}}
     if "model_graded" in s or "modelgraded" in s or "llm" in s:
