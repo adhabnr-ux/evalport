@@ -29,8 +29,15 @@ Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 # calling the real opencompass.datasets.custom.CustomDataset.load(), the real
 # opencompass.datasets.custom.OptionSimAccEvaluator, and the real
 # opencompass.openicl.icl_evaluator.AccEvaluator directly -- not mocks.
+#
+# test self-references the opencompass extra (rather than duplicating the version
+# string) per the packaging convention settled in
+# https://github.com/adhabnr-ux/evalport/discussions/13 -- confirmed working with a
+# real `pip install -e ".[test]"` (self-referential extras resolve correctly via
+# recursive-extras support in modern pip), so the two can't silently drift apart the
+# way the original 22 adapters' duplicated-version-string convention could.
 opencompass = ["opencompass>=0.5.0"]
-test = ["pytest", "opencompass>=0.5.0"]
+test = ["pytest", "opencompass-openeval-adapter[opencompass]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

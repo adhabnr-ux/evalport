@@ -49,7 +49,14 @@ There are two places a converter can live, depending on scope:
 **Standalone adapter packages** (the easiest way to contribute — start here):
 1. Create a new directory under `adapters/FRAMEWORK-openeval-adapter/`
 2. Follow the structure of [`adapters/autogen-openeval-adapter`](adapters/autogen-openeval-adapter) as a reference: a `pyproject.toml` depending on `evalport-sdk`, a `src/FRAMEWORK_openeval_adapter/__init__.py` exposing `to_openeval()` / `from_openeval()`, a `tests/` directory with a round-trip test that validates against `openeval.validate.validate_suite()`, and a `README.md` explaining install/usage
-3. Open a PR — see [Issue #6, "Adapters wanted"](https://github.com/adhabnr-ux/evalport/issues/6) for a list of frameworks that don't have one yet, several already scoped as `good first issue`
+3. **Declare a named, pinned extra for the target framework** — not just in `test`. `pyproject.toml` needs a `[project.optional-dependencies]` entry named after the target package (or a short alias, for multi-package targets) with a real, verified minimum version, and `test` should self-reference it rather than duplicate the version string, so the two can never silently drift apart:
+   ```toml
+   [project.optional-dependencies]
+   yourframework = ["yourframework-package>=X.Y.Z"]
+   test = ["pytest", "your-adapter-name[yourframework]"]
+   ```
+   Pin the real minimum you verified — run `pip install -e ".[test]"` in a fresh venv and `pytest tests/ -v` against it before choosing a number, don't guess. This convention exists because a version-pinned extra is what actually catches a breaking upstream API change automatically (a user on a newer, incompatible release gets a clear dependency-resolution failure instead of a confusing runtime error with no indication it's a version-skew problem) — see the real example, including a genuine breaking-API-change catch on `giskard-openeval-adapter`, in [Discussion #13](https://github.com/adhabnr-ux/evalport/discussions/13).
+4. Open a PR — see [Issue #6, "Adapters wanted"](https://github.com/adhabnr-ux/evalport/issues/6) for a list of frameworks that don't have one yet, several already scoped as `good first issue`
 
 This is the lowest-friction way to contribute: it doesn't touch the core SDK, ships independently on PyPI/npm under its own name, and doesn't require waiting on a review of core repo code.
 
