@@ -8,7 +8,7 @@
 
 **Version:** 1.0.0-rc.2 | **License:** Apache 2.0
 
-**Adopted by:** [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) — merged to the official community extensions list, [PR #4797](https://github.com/UKGovernmentBEIS/inspect_ai/pull/4797), August 2026. Approved and awaiting a clean CI run at [TruLens](https://github.com/truera/trulens) — [PR #2697](https://github.com/truera/trulens/pull/2697), a full `to_openeval()`/`from_openeval()` module, 17/17 tests passing. 26 framework adapters shipped and independently tested, including [Hugging Face `evaluate`](adapters/huggingface-evaluate-openeval-adapter/), [EleutherAI `lm-evaluation-harness`](adapters/lm-eval-harness-openeval-adapter/), [Hugging Face `lighteval`](adapters/lighteval-openeval-adapter/) (the library behind the HF Open LLM Leaderboard), and [OpenCompass](adapters/opencompass-openeval-adapter/) — see [Framework Adapters](#framework-adapters) below.
+**Adopted by:** [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) — merged to the official community extensions list, [PR #4797](https://github.com/UKGovernmentBEIS/inspect_ai/pull/4797), August 2026. Approved and awaiting a clean CI run at [TruLens](https://github.com/truera/trulens) — [PR #2697](https://github.com/truera/trulens/pull/2697), a full `to_openeval()`/`from_openeval()` module, 17/17 tests passing. 27 framework adapters shipped and independently tested, including [Hugging Face `evaluate`](adapters/huggingface-evaluate-openeval-adapter/), [EleutherAI `lm-evaluation-harness`](adapters/lm-eval-harness-openeval-adapter/), [Hugging Face `lighteval`](adapters/lighteval-openeval-adapter/) (the library behind the HF Open LLM Leaderboard), [OpenCompass](adapters/opencompass-openeval-adapter/), and [FinanceBench](adapters/financebench-openeval-adapter/) (a real benchmark dataset, not a live SDK) — see [Framework Adapters](#framework-adapters) below.
 
 EvalPort is an open specification for portable LLM evaluation test cases, graders, suites, and results. It enables evaluation datasets to be shared across frameworks (DeepEval, Promptfoo, Ragas, Inspect AI, LangSmith, Braintrust, OpenAI Evals, MLflow) without loss of semantic fidelity.
 
@@ -67,21 +67,21 @@ openeval/
 │   ├── ADOPTION.md            # Adoption strategy
 │   ├── CRITIQUE.md            # Self-critique and hostile review
 │   ├── schemas/               # JSON Schemas (4 files)
-│   └── examples/              # Example suites and conversions
+│   ├── examples/              # Example suites and conversions
 ├── sdk/
 │   ├── typescript/            # evalport-sdk (npm)
 │   └── python/                # openeval (PyPI)
-├── cli/                       # evalport-cli
-├── api/                      # Example REST API server
+├── cli/                      # evalport-cli
+├── api/                     # Example REST API server
 ├── docs/
-│   ├── getting-started/      # 5-minute quickstart
+│   ├── getting-started/       # 5-minute quickstart
 │   ├── grader-reference/      # All 11 grader types
 │   ├── migration-guides/      # Promptfoo, DeepEval, Inspect AI
 │   ├── api/                   # REST API docs
 │   ├── blog/                  # Launch posts
 │   └── landing-page.html      # Landing page
-├── examples/                # Example eval suites
-├── adapters/                # Standalone to_openeval()/from_openeval() packages per framework
+├── examples/                  # Example eval suites
+├── adapters/                  # Standalone to_openeval()/from_openeval() packages per framework
 ├── benchmarks/                # 14 public benchmarks converted to validated EvalPort suites
 ├── .github/                   # CI, CONTRIBUTING, issue templates
 ├── LICENSE                    # Apache 2.0
@@ -169,6 +169,7 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 | EleutherAI `lm-evaluation-harness` | [lm-eval-harness-openeval-adapter](adapters/lm-eval-harness-openeval-adapter/) |
 | Hugging Face `lighteval` | [lighteval-openeval-adapter](adapters/lighteval-openeval-adapter/) |
 | OpenCompass | [opencompass-openeval-adapter](adapters/opencompass-openeval-adapter/) |
+| FinanceBench | [financebench-openeval-adapter](adapters/financebench-openeval-adapter/) |
 
 ## Documentation
 
