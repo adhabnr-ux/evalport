@@ -7,13 +7,15 @@ Convert [Hugging Face `lighteval`](https://github.com/huggingface/lighteval) per
 ## Install
 
 ```bash
-pip install lighteval-openeval-adapter
+pip install "lighteval-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/lighteval-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 This installs `evalport-sdk` as its only hard dependency. `lighteval` itself is an opt-in extra:
 
 ```bash
-pip install "lighteval-openeval-adapter[lighteval]"
+pip install "lighteval-openeval-adapter[lighteval] @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/lighteval-openeval-adapter"
 ```
 
 ## A real bug found while building this adapter

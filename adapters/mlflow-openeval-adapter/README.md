@@ -9,8 +9,10 @@ This follows the same playbook that already worked for [autogen-openeval-adapter
 ## Install
 
 ```bash
-pip install mlflow-openeval-adapter
+pip install "mlflow-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/mlflow-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 ## Usage
 

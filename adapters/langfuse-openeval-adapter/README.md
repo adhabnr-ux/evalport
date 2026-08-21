@@ -5,8 +5,10 @@ Convert [Langfuse](https://github.com/langfuse/langfuse) datasets and experiment
 ## Install
 
 ```bash
-pip install langfuse-openeval-adapter
+pip install "langfuse-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/langfuse-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 ## Usage
 

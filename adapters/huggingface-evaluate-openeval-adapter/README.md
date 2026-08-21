@@ -5,13 +5,15 @@ Convert [Hugging Face `evaluate`](https://github.com/huggingface/evaluate) metri
 ## Install
 
 ```bash
-pip install huggingface-evaluate-openeval-adapter
+pip install "huggingface-evaluate-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/huggingface-evaluate-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 This installs `evalport-sdk` as its only hard dependency. `evaluate` itself is an opt-in extra:
 
 ```bash
-pip install "huggingface-evaluate-openeval-adapter[evaluate]"
+pip install "huggingface-evaluate-openeval-adapter[evaluate] @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/huggingface-evaluate-openeval-adapter"
 ```
 
 ## Why this adapter looks a little different from the others

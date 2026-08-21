@@ -7,13 +7,15 @@ Convert [EleutherAI `lm-evaluation-harness`](https://github.com/EleutherAI/lm-ev
 ## Install
 
 ```bash
-pip install lm-eval-harness-openeval-adapter
+pip install "lm-eval-harness-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/lm-eval-harness-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 This installs `evalport-sdk` as its only hard dependency. `lm-eval` itself is an opt-in extra:
 
 ```bash
-pip install "lm-eval-harness-openeval-adapter[lm-eval]"
+pip install "lm-eval-harness-openeval-adapter[lm-eval] @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/lm-eval-harness-openeval-adapter"
 ```
 
 ## Why this adapter only needs one export function, not a workaround

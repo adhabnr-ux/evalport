@@ -9,8 +9,10 @@ When [opik#7798](https://github.com/comet-ml/opik/issues/7798) was filed proposi
 ## Install
 
 ```bash
-pip install opik-openeval-adapter
+pip install "opik-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/opik-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 ## Usage
 

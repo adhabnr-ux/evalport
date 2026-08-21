@@ -5,8 +5,10 @@ Convert [Patronus AI](https://github.com/patronus-ai/patronus-python) (`patronus
 ## Install
 
 ```bash
-pip install patronus-openeval-adapter
+pip install "patronus-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/patronus-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 This installs `evalport-sdk` as its only hard dependency. The `patronus` package itself is **not** installed automatically -- add it separately (`pip install patronus`).
 

@@ -5,8 +5,10 @@ Convert [Haystack](https://github.com/deepset-ai/haystack) (deepset) evaluation 
 ## Install
 
 ```bash
-pip install haystack-openeval-adapter
+pip install "haystack-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/haystack-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 ## Usage
 

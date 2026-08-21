@@ -5,8 +5,10 @@ Convert [Arize Phoenix](https://github.com/Arize-ai/phoenix) datasets and experi
 ## Install
 
 ```bash
-pip install phoenix-openeval-adapter
+pip install "phoenix-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/phoenix-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 ## Usage
 

@@ -5,8 +5,10 @@ Convert [Weights & Biases Weave](https://github.com/wandb/weave) datasets and ev
 ## Install
 
 ```bash
-pip install weave-openeval-adapter
+pip install "weave-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/weave-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 ## Usage
 

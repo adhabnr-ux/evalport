@@ -5,8 +5,10 @@ Convert [UpTrain](https://github.com/uptrain-ai/uptrain) evaluation datasets and
 ## Install
 
 ```bash
-pip install uptrain-openeval-adapter
+pip install "uptrain-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/uptrain-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 ## Usage
 

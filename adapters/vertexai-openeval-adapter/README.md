@@ -5,8 +5,10 @@ Convert [Vertex AI's Gen AI Evaluation Service](https://cloud.google.com/vertex-
 ## Install
 
 ```bash
-pip install vertexai-openeval-adapter
+pip install "vertexai-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/vertexai-openeval-adapter"
 ```
+
+Not yet published to PyPI — this installs directly from source via pip's `git+`/`#subdirectory=` support (verified working).
 
 This installs `evalport-sdk` as its only hard dependency. `google-cloud-aiplatform[evaluation]` itself is **not** installed automatically -- add it separately.
 
