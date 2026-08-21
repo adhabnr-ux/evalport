@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "financebench-openeval-adapter"
+version = "0.1.0"
+description = "Convert FinanceBench financial-QA benchmark rows and scored model completions to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["financebench", "patronus", "finance", "evalport", "openeval", "llm", "evaluation", "eval", "benchmark"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/financebench-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Dataset = "https://github.com/patronus-ai/financebench"
+
+[project.optional-dependencies]
+# FinanceBench is a static-data benchmark (two JSONL files + a results/
+# directory of JSONL files), not a Python package -- there is nothing to pip
+# install for it. This adapter therefore has no third-party runtime
+# dependency beyond evalport-sdk. "test" exists only so the same
+# `pip install -e ".[test]"` convention used by every other adapter in this
+# repo still works here.
+#
+# Verified 2026-08-21: fresh venv `pip install -e ".[test]"` + `pytest tests/ -v`
+# passed against real rows downloaded from
+# https://raw.githubusercontent.com/patronus-ai/financebench/main/data/financebench_open_source.jsonl,
+# .../financebench_document_information.jsonl, and
+# .../results/gpt-4_sharedStore.jsonl (trimmed to a real-data fixture, not
+# fabricated) -- and against openeval.validate.validate_suite() /
+# validate_result_set() directly. See Discussion #13 / CONTRIBUTING.md for the
+# named-extra convention; there's no target-framework extra to declare here.
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
