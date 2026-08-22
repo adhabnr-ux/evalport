@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "deepeval-openeval-adapter"
+version = "0.1.0"
+description = "Convert DeepEval's LLMTestCase/TestResult/MetricData to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["deepeval", "evalport", "openeval", "llm", "evaluation", "eval"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/deepeval-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+
+# Pinned to the real installed/tested surface (deepeval==4.1.10): LLMTestCase,
+# ToolCall, TestResult, MetricData, EvaluationResult from deepeval.test_case /
+# deepeval.evaluate.types / deepeval.test_run.api. This adapter itself never
+# imports `deepeval` at runtime (it converts already-constructed objects the
+# caller passes in), so the extra is for users who also want the real SDK
+# installed alongside it.
+[project.optional-dependencies]
+deepeval = ["deepeval>=4.0.0,<5"]
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
