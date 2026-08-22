@@ -2,13 +2,15 @@ from __future__ import annotations
 from typing import Any, Literal, Union, Optional, List, Dict
 from dataclasses import dataclass, field
 
-# Tracks spec/SPEC.md's own **Version** header. Bumped to 1.0.0-rc.3 alongside the
-# spec (see spec/SPEC.md Change Log). NOTE: this constant had drifted -- it was
-# still hardcoded to "1.0.0-rc.1" after spec/SPEC.md itself moved to 1.0.0-rc.2,
-# meaning every document this SDK generated was silently stamping a stale spec
-# version. Caught and fixed while implementing the 1.0.0-rc.3 changes (Discussions
-# #9, #10, #11) rather than left for a future drift-detection pass to find.
-OPENEVAL_VERSION = "1.0.0-rc.3"
+# Tracks spec/SPEC.md's own **Version** header. Bumped to 1.0.0-rc.4 alongside the
+# spec (see spec/SPEC.md Change Log). NOTE: this constant had drifted once before --
+# it was still hardcoded to "1.0.0-rc.1" after spec/SPEC.md itself moved to
+# 1.0.0-rc.2, meaning every document this SDK generated was silently stamping a
+# stale spec version. Caught and fixed while implementing the 1.0.0-rc.3 changes
+# (Discussions #9, #10, #11); test_convert.py now imports this constant instead of
+# hardcoding a version literal, specifically so this bump (Discussion #8, suite
+# signing) can't drift the same way undetected.
+OPENEVAL_VERSION = "1.0.0-rc.4"
 
 GraderType = Literal["exact_match","contains","regex","semantic_similarity","llm_judge","json_schema","json_path","code","human","model graded","custom"]
 

@@ -1,10 +1,14 @@
-// Tracks spec/SPEC.md's own **Version** header. Bumped to 1.0.0-rc.3 alongside the
-// spec (see spec/SPEC.md Change Log). NOTE: this constant had drifted -- it was
-// still hardcoded to "1.0.0-rc.1" after spec/SPEC.md itself moved to 1.0.0-rc.2,
-// meaning every document this SDK generated was silently stamping a stale spec
-// version. Caught and fixed while implementing the 1.0.0-rc.3 changes (Discussions
-// #9, #10, #11) rather than left for a future drift-detection pass to find.
-export const OPENEVAL_VERSION = "1.0.0-rc.3";
+// Tracks spec/SPEC.md's own **Version** header. Bumped to 1.0.0-rc.4 alongside the
+// spec (see spec/SPEC.md Change Log). NOTE: this constant had drifted once before --
+// it was still hardcoded to "1.0.0-rc.1" after spec/SPEC.md itself moved to
+// 1.0.0-rc.2, meaning every document this SDK generated was silently stamping a
+// stale spec version. Caught and fixed while implementing the 1.0.0-rc.3 changes
+// (Discussions #9, #10, #11); src/convert.ts imports this constant rather than
+// hardcoding a version literal, and tests/convert.test.ts (added alongside this
+// 1.0.0-rc.4 bump, mirroring the equivalent guard sdk/python/tests/test_convert.py
+// already had) now asserts every document convert.ts produces stamps this exact
+// value, so this kind of drift can't happen silently on the TypeScript side either.
+export const OPENEVAL_VERSION = "1.0.0-rc.4";
 
 export type GraderType =
   | "exact_match"

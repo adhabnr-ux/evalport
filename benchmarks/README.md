@@ -127,6 +127,42 @@ in full since their native splits are already smaller than the default cap.
 Every README linked in the index above states the exact case count and, for
 capped suites, how many cases were available upstream.
 
+## Verifying suite integrity
+
+Every suite here is redistributed well beyond a direct `git clone` of this
+repo — mirrors, package managers, someone's copy pasted into their own
+project. Nothing about the EvalPort document format itself proves a suite
+you downloaded from one of those is byte-for-byte what this repo actually
+published; `metadata.source` is a claim, not a proof. Starting with the
+first release cut after 1.0.0-rc.4, CI signs every file in this directory
+with a keyless [Sigstore](https://www.sigstore.dev/) signature (resolves
+[Discussion #8](https://github.com/adhabnr-ux/evalport/discussions/8) —
+see `spec/SPEC.md`'s Extension Mechanism → Suite/ResultSet Signing for the
+full convention) and attaches the signature bundles to that GitHub
+Release.
+
+To verify a suite you downloaded actually matches what this repo signed:
+
+```bash
+pip install sigstore
+
+# 1. Download the suite itself, e.g. benchmarks/gsm8k/gsm8k.json
+# 2. Download that release's benchmark-signatures-<tag>.tar.gz asset from
+#    https://github.com/adhabnr-ux/evalport/releases and extract it
+# 3. Verify:
+python3 spec/tools/verify_signature.py verify gsm8k.json \
+  --bundle gsm8k.json.sigstore.json \
+  --cert-identity-regex '^https://github\.com/adhabnr-ux/evalport/\.github/workflows/ci\.yml@refs/tags/.*$' \
+  --cert-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+Exit code `0` means the file is exactly what this repo's release CI
+published. This is entirely optional — every suite here is just as
+spec-valid unsigned as signed, and `_tools/validate_all.py` (above) is
+what actually confirms a suite is well-formed. Signing only answers "did
+this specific file change since the release," a different and narrower
+question than "is this a valid EvalPort suite."
+
 ## Contributing a new benchmark
 
 1. Verify the benchmark's license permits data redistribution — check the
