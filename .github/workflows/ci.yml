@@ -137,6 +137,96 @@ jobs:
       - name: Validate every benchmark suite against the real EvalPort validator
         run: python3 benchmarks/_tools/validate_all.py
 
+  verify-signature-tool:
+    # Discussion #8 / spec/tools/verify_signature.py -- regression-tests the
+    # signature verifier itself against real, independently-published
+    # Sigstore bundles (see spec/tools/tests/fixtures/NOTICE.md for exact
+    # provenance). Runs on every push/PR, independent of sign-benchmarks
+    # below (which only runs on a real release, and needs this script to
+    # already be correct before it's trusted to gate that release).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install sigstore + pytest
+        run: pip install sigstore pytest
+      - name: Run verify_signature.py's own test suite
+        run: python -m pytest spec/tools/tests/ -v
+
+  sign-benchmarks:
+    # Discussion #8 -- signs every benchmark suite in this release with a
+    # keyless Sigstore signature, so a consumer who downloaded a suite from
+    # somewhere other than a direct git clone of this repo (a mirror, a
+    # package registry, a copy in someone else's project) can verify it
+    # wasn't tampered with. spec/tools/verify_signature.py is the reference
+    # verifier a consumer runs; spec/SPEC.md's Extension Mechanism ->
+    # Suite/ResultSet Signing is the normative convention this implements.
+    # Uses the exact same GitHub Actions OIDC trust root as publish-npm and
+    # publish-pypi's Trusted Publishing below -- no long-lived signing key
+    # exists anywhere for anyone to leak, rotate, or revoke. Signing is
+    # optional and out-of-band: nothing in validate-benchmarks above (or any
+    # EvalPort validator) depends on or checks for a signature.
+    needs: [validate-benchmarks, verify-signature-tool]
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # exchanged for a short-lived Fulcio cert per file signed
+      contents: write  # to attach the signature bundle archive to this release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install sigstore
+        run: pip install sigstore
+      - name: Sign every benchmark suite (detached bundle, raw published bytes)
+        # sigstore's CLI auto-detects the GitHub Actions ambient OIDC
+        # credential from the environment variables the id-token: write
+        # permission above causes GitHub to set -- no explicit token
+        # handling needed here, the same way publish-pypi/publish-npm below
+        # need no PYPI_TOKEN/NPM_TOKEN. `--bundle` only supports one input
+        # file at a time (sigstore's own CLI restriction), hence the loop
+        # rather than one `sigstore sign` call across all 22 suites.
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/signed-benchmarks
+          find benchmarks -name '*.json' -print0 | while IFS= read -r -d '' f; do
+            rel="${f#benchmarks/}"
+            out="/tmp/signed-benchmarks/${rel}.sigstore.json"
+            mkdir -p "$(dirname "$out")"
+            python -m sigstore sign --bundle "$out" "$f"
+            echo "signed: $f -> $out"
+          done
+      - name: Self-verify every signature just produced
+        # Round-trips every bundle through the same reference verifier a
+        # real consumer uses, checked against this exact workflow's own
+        # identity (github.workflow_ref is already formatted as
+        # "OWNER/REPO/.github/workflows/ci.yml@REF"). Catches a signing
+        # misconfiguration here, before anything is published as a release
+        # asset, rather than letting a consumer discover it later.
+        run: |
+          set -euo pipefail
+          find benchmarks -name '*.json' -print0 | while IFS= read -r -d '' f; do
+            rel="${f#benchmarks/}"
+            python3 spec/tools/verify_signature.py verify "$f" \
+              --bundle "/tmp/signed-benchmarks/${rel}.sigstore.json" \
+              --cert-identity "https://github.com/${{ github.workflow_ref }}" \
+              --cert-oidc-issuer https://token.actions.githubusercontent.com
+          done
+      - name: Package signature bundles
+        working-directory: /tmp/signed-benchmarks
+        run: tar czf "/tmp/benchmark-signatures-${{ github.event.release.tag_name }}.tar.gz" .
+      - name: Attach signature bundle archive to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" \
+            "/tmp/benchmark-signatures-${{ github.event.release.tag_name }}.tar.gz" \
+            --repo "${{ github.repository }}" \
+            --clobber
+
   publish-npm:
     needs: [validate-schemas, typescript-tests]
     if: github.event_name == 'release'
