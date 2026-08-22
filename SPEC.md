@@ -1,7 +1,7 @@
 # EvalPort — The Open Evaluation Standard
 
-**Version:** 1.0.0-rc.2  
-**Status:** Release Candidate — Adopted by Inspect AI (merged), under active review by TruLens, implemented by 20 framework adapters, governance and 4 open RFC topics tracked for community input  
+**Version:** 1.0.0-rc.3  
+**Status:** Release Candidate — Adopted by Inspect AI (merged), under active review by TruLens, implemented by 30 framework adapters, governance in place with 3 of 4 open RFC topics landed and 1 (suite/result signing) still tracked for community input  
 **License:** Apache 2.0  
 **Specification Lead:** EvalPort Working Group
 
@@ -438,6 +438,7 @@ A result set is the output of running an eval suite. It contains one result per 
 | `grader_results` | array (required) | Results from each grader. |
 | `passed` | boolean (required) | Overall pass/fail (all graders passed). |
 | `duration_ms` | integer | Execution time. |
+| `completed_at` | string (ISO 8601) | Timestamp this individual result was produced. Distinct from the `ResultSet`-level `completed_at` (whole-run finish time). Used as the merge tiebreaker for resumed/partial runs — see Extension Mechanism → Resumable Runs & Partial ResultSets. |
 | `error` | object | Error details if the test case errored. |
 | `error.message` | string | Error message. |
 | `error.type` | string | Error type (`timeout`, `provider_error`, `runner_error`). |
@@ -560,6 +561,38 @@ In every strategy, a `GraderResult` with `score: null` (per Rule 6, "not verifie
 
 `openeval.aggregation` changes only how `Result.passed` (and, by extension, any suite-level summary pass rate a runner computes) is derived from the individual `GraderResult`s — it never changes what an individual `GraderResult.passed`/`score` means, and it is never required: a document with no `openeval.aggregation` key uses the `all` default and is fully valid.
 
+### Resumable Runs & Partial ResultSets (`metadata.openeval.partial`, `Result.completed_at`)
+
+Results can already be written incrementally by any runner, but prior to this section the spec defined no way to mark a `ResultSet` as covering only part of its suite (e.g. a run interrupted by a crash, a rate limit, or a manual stop) or to merge two partial `ResultSet`s from the same interrupted run back together. Resolves [Discussion #10](https://github.com/adhabnr-ux/evalport/discussions/10), deferred from `spec/CRITIQUE.md` item #4 ("should be added in v1.1").
+
+**Marking a `ResultSet` partial** needs no schema change — `ResultSet.metadata` already permits arbitrary keys:
+
+```json
+{ "metadata": { "openeval.partial": true } }
+```
+
+A `ResultSet` with no `openeval.partial` key, or `openeval.partial: false`, is assumed complete (covers every test case in its suite) — this is fully backward compatible with every `ResultSet` produced before this section existed.
+
+**Merging two partial `ResultSet`s** for the same `run_id` needs a tiebreaker when both cover the same `test_case_id` with different results (e.g. a retried test case). `Result.completed_at` (optional, `date-time`, distinct from the `ResultSet`-level `completed_at` which marks when the *whole run* finished) is the field that makes this decidable:
+
+1. For any `test_case_id` present in both partials, the `Result` with the later `completed_at` wins.
+2. If either `Result` is missing `completed_at` (an older or non-conforming producer), a merge tool MUST NOT guess an ordering — it SHOULD reject the merge and require the caller to specify precedence explicitly. Silently picking a default order for untimestamped partials produces a confidently-wrong merged `ResultSet` with no way to detect it after the fact, the same failure shape Rule 6 already guards against at the individual-`GraderResult` level.
+3. The merged `ResultSet` SHOULD drop `openeval.partial` (or set it `false`) only once it genuinely covers every `test_case_id` in the suite — a merge of two partials that still leaves gaps is itself still partial.
+
+This section defines the convention; it does not mandate a specific CLI merge command or its exact interface — that's a reasonable follow-up for whichever runner or the `evalport-cli` package wants to implement it, not something this spec revision blocks on. See `spec/conformance/fixtures/partial_resultset_resumable_run.json` for a worked example.
+
+### Judge Hardening Self-Report (`metadata.openeval.judge_hardening`)
+
+Resolves [Discussion #11](https://github.com/adhabnr-ux/evalport/discussions/11) ("Should `llm_judge` injection mitigations be a MUST, not a SHOULD?"), deferred from `spec/CRITIQUE.md` item #3 ("partially fixed"). Structured output, delimiting untrusted content, and output-length caps remain SHOULDs (not MUSTs) for `llm_judge` graders — see Security Considerations → Prompt Injection in Graders — because a spec-level MUST would need to either standardize prompt assembly itself (out of scope: every framework's judge prompt is different) or promote one reference implementation's behavior to the required one before any alternate implementation has been confirmed to match it.
+
+Instead, a runner executing an `llm_judge` grader MAY self-report which mitigations it actually applied on the corresponding `GraderResult.metadata`:
+
+```json
+{ "metadata": { "openeval.judge_hardening": "structured_output+delimited+length_capped" } }
+```
+
+The value is a free-text, `+`-joined set of mitigation names — not a schema-enforced enum, since the mitigations worth naming will grow over time and standardizing the name set itself is a separate, smaller question from whether self-reporting is useful at all. This needs no schema change (`GraderResult.metadata` already permits arbitrary keys) and mirrors a pattern that already independently emerged across several shipped adapters for the analogous problem of an opaque judge internals: `giskard-openeval-adapter` and `llamaindex-openeval-adapter` both document, rather than fabricate, a judge's actual prompt/model when the source framework doesn't expose one directly. `openeval.judge_hardening` is the same "state honestly what you know, don't assert what you don't" shape, applied specifically to injection-hardening claims. A runner that claims a mitigation without applying it is simply lying in its own metadata — self-report is not a substitute for a runner actually being hardened, only a way to make that fact inspectable after the run. `spec/conformance/fixtures/judge_hardening_self_report.json` confirms the *convention itself* validates cleanly (a `GraderResult` carrying this key is spec-valid); it does not and cannot verify that a runner's claimed mitigation actually held under a real injection attempt, since that's runtime grading behavior, not document structure — see `spec/conformance/README.md`'s "What this doesn't cover (yet)" for that gap.
+
 ### Extensions Registry
 
 EvalPort maintains an extensions registry at `https://evalport.org/extensions` where the community can register:
@@ -622,6 +655,8 @@ Errors MUST be structured, not string messages. The `error` object in results co
 - Judge prompts SHOULD use structured output (JSON schema) to constrain the judge's response.
 - Judge prompts SHOULD include the output in a delimited section, not concatenated with instructions.
 - Runners SHOULD cap judge LLM output length.
+
+These remain SHOULDs rather than MUSTs — see [Discussion #11](https://github.com/adhabnr-ux/evalport/discussions/11) for why promoting them to MUST isn't straightforward (it would require either standardizing prompt assembly itself or promoting one reference implementation's behavior ahead of independent confirmation). A runner MAY self-report which of these it actually applied via the `metadata.openeval.judge_hardening` key on the `GraderResult` — see Extension Mechanism → Judge Hardening Self-Report — making the claim inspectable downstream even though the spec doesn't mandate the mitigations themselves.
 
 ### Code Grader Execution
 
@@ -924,6 +959,7 @@ The EvalPort reference implementation includes:
 4. **CLI** — `openeval` command-line tool for validation, conversion, and suite initialization
 5. **Example API** — A REST API for serving and running eval suites
 6. **Example integrations** — Migrated eval suites from DeepEval, Promptfoo, and Inspect AI formats
+7. **Conformance test suite** — `spec/conformance/` (resolves [Discussion #9](https://github.com/adhabnr-ux/evalport/discussions/9)): portable JSON fixtures, each a `(document, expected valid/invalid)` pair independently checked against both the JSON Schema files and the Python SDK's hand-rolled validator, so a conformance implementation in any language — not just the two reference SDKs — can test against the same fixtures without depending on this repo's code.
 
 See the `README.md` for installation and usage instructions.
 
@@ -1101,6 +1137,8 @@ A framework-specific grader. The `handler` identifies the implementation. Unreco
 | `openeval.raw_score` | GraderResult | The grader's native, pre-normalization score (e.g. a 1-5 Likert value, a raw cosine similarity that may be negative, a framework's native 0-100 score) preserved for debugging/re-analysis when `score` had to be clamped or rescaled into [0.0, 1.0] to satisfy Validation Rule 5. Type and range are grader-specific and unconstrained by this spec. Adapter authors: emit this whenever your source framework's score isn't already [0.0, 1.0] — several shipped EvalPort adapters (e.g. for frameworks whose graders return confidence scores or Likert ratings) already follow this convention. |
 | `openeval.aggregation` | EvalSuite (default), Result (override) | Declares the pass/fail aggregation strategy across a test case's `GraderResult`s when the default strict-AND-of-all-graders semantic doesn't fit. See Extension Mechanism → Aggregation Extension for the full `{"strategy": ..., "threshold": ...}` schema. |
 | `openeval.aggregation_status` | Result | Set by a runner to `"unscored"` when every `GraderResult` for a test case has `score: null`, so downstream reporting doesn't conflate "no grader produced a verdict" with "a grader ran and failed." See Validation Rule 6. |
+| `openeval.partial` | ResultSet | `true` if this `ResultSet` covers only part of its suite (e.g. an interrupted run). See Extension Mechanism → Resumable Runs & Partial ResultSets. |
+| `openeval.judge_hardening` | GraderResult | Free-text, `+`-joined self-report of which prompt-injection mitigations a runner actually applied to an `llm_judge` grader (e.g. `"structured_output+delimited"`). See Extension Mechanism → Judge Hardening Self-Report and Security Considerations → Prompt Injection in Graders. |
 
 ---
 
@@ -1121,14 +1159,14 @@ EvalPort is currently stewarded by its original author ([@adhabnr-ux](https://gi
 
 ## Open Design Questions — RFC Topics We Need Help With
 
-The self-critique in [`spec/CRITIQUE.md`](https://github.com/adhabnr-ux/evalport/blob/main/spec/CRITIQUE.md) flags several items as deliberately deferred rather than resolved. Rather than let those sit as prose nobody acts on, each has an open Discussion where the actual design work happens. These are good entry points if you want to shape the spec itself rather than build a framework adapter — no prior EvalPort contribution required, just a considered opinion and, ideally, prior art from a comparable problem you've seen solved (or badly solved) elsewhere.
+The self-critique in [`spec/CRITIQUE.md`](https://github.com/adhabnr-ux/evalport/blob/main/spec/CRITIQUE.md) flags several items as deliberately deferred rather than resolved. Rather than let those sit as prose nobody acts on, each has an open Discussion where the actual design work happens. These are good entry points if you want to shape the spec itself rather than build a framework adapter — no prior EvalPort contribution required, just a considered opinion and, ideally, prior art from a comparable problem you've seen solved (or badly solved) elsewhere. Three of the four below have since landed a concrete spec change plus a reference implementation, exactly the way [Discussion #13](https://github.com/adhabnr-ux/evalport/discussions/13) (adapter packaging convention) previously did — the Discussion threads stay open for anyone who wants to refine or push back on the shipped design, they're just no longer *unimplemented*.
 
-| Topic | Why it's open | Discuss |
+| Topic | Status | Discuss |
 |---|---|---|
-| Suite/result signing for integrity verification | No way to detect a publicly-hosted suite (e.g. anything in `benchmarks/`) was tampered with after publication. Explicitly deferred to v1.1/v2.0 in `CRITIQUE.md` #9. | [Discussion #8](https://github.com/adhabnr-ux/evalport/discussions/8) |
-| Formal conformance test suite for runners | Today "EvalPort-compliant" is only enforced by the JSON Schemas and the two reference SDKs' validators agreeing with *each other* — there's no independent fixture suite a third-party runner (Rust, Go, etc.) could test against. `CRITIQUE.md` #14, status "Partial." | [Discussion #9](https://github.com/adhabnr-ux/evalport/discussions/9) |
-| Resuming interrupted runs and merging partial ResultSets | Results can already be written incrementally, but the spec defines no way to mark a `ResultSet` partial or merge two partial ones from an interrupted run. `CRITIQUE.md` #4, flagged as "should be added in v1.1." | [Discussion #10](https://github.com/adhabnr-ux/evalport/discussions/10) |
-| `llm_judge` prompt-injection mitigations: MUST or SHOULD? | Structured output, delimiting, and output-length caps are all SHOULDs today, with no spec-level way to detect a runner skipped them. `CRITIQUE.md` #3, status "Partially fixed." | [Discussion #11](https://github.com/adhabnr-ux/evalport/discussions/11) |
+| Suite/result signing for integrity verification | Still open. No way to detect a publicly-hosted suite (e.g. anything in `benchmarks/`) was tampered with after publication. Explicitly deferred to v1.1/v2.0 in `CRITIQUE.md` #9. | [Discussion #8](https://github.com/adhabnr-ux/evalport/discussions/8) |
+| Formal conformance test suite for runners | **Landed in 1.0.0-rc.3.** `spec/conformance/` — 8 portable JSON fixtures, each independently checked against the JSON Schemas and the Python SDK's hand-rolled validator, wired into CI. See Reference Implementation above. `CRITIQUE.md` #14 status updated from "Partial" to "Addressed." | [Discussion #9](https://github.com/adhabnr-ux/evalport/discussions/9) |
+| Resuming interrupted runs and merging partial ResultSets | **Landed in 1.0.0-rc.3.** `Result.completed_at` (schema addition) plus `metadata.openeval.partial` (metadata convention, no schema change) — see Extension Mechanism → Resumable Runs & Partial ResultSets. `CRITIQUE.md` #4 status updated from "should be added in v1.1" to "Addressed." | [Discussion #10](https://github.com/adhabnr-ux/evalport/discussions/10) |
+| `llm_judge` prompt-injection mitigations: MUST or SHOULD? | **Landed in 1.0.0-rc.3.** Mitigations stay SHOULDs (a spec-level MUST isn't tractable without standardizing prompt assembly), but a runner can now self-report which it applied via `metadata.openeval.judge_hardening` — see Extension Mechanism → Judge Hardening Self-Report. `CRITIQUE.md` #3 status updated from "Partially fixed" to "Addressed (self-report), MUST question itself resolved as won't-fix — see Discussion for reasoning." | [Discussion #11](https://github.com/adhabnr-ux/evalport/discussions/11) |
 
 If you've got a fifth topic that belongs on this list — something the spec should address but doesn't yet — open a `[Spec Change]` Discussion for it directly; this table gets updated to reflect whatever's actually open, not maintained as a fixed roadmap.
 
@@ -1144,6 +1182,7 @@ EvalPort is released under the Apache 2.0 license. The specification, schemas, a
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.0.0-rc.3 | 2026-08-22 | Landed 3 of the 4 Open Design Questions RFC topics as concrete, tested implementations (following the precedent set by Discussion #13's resolution), all verified against both reference SDKs' test suites in this revision. **Discussion #9 (conformance suite):** added `spec/conformance/` — a portable, language-agnostic fixture format (`fixtures/*.json`, each an `{expect, document}` pair) covering 8 real edge cases pulled from building the 30 shipped adapters plus the two RFC conventions below; a reference runner (`run.py`) verified against both the hand-rolled Python validator and the raw JSON Schema; a README; and a new `conformance-suite` CI job. **Discussion #10 (resumable runs / partial ResultSets):** added optional `Result.completed_at` (ISO 8601 timestamp) to `spec/schemas/resultset.json` and both SDKs' `Result` types, plus the schema-change-free `metadata.openeval.partial` convention for marking an in-progress ResultSet — see Extension Mechanism → Resumable Runs & Partial ResultSets. **Discussion #11 (judge hardening):** documented `metadata.openeval.judge_hardening`, a self-report convention (grounded in the pattern independently used by the giskard and llamaindex adapters) letting a runner declare which prompt-injection mitigations it applied to an `llm_judge` grader, since a spec-level MUST isn't tractable without standardizing prompt assembly — see Extension Mechanism → Judge Hardening Self-Report. Also fixed a drift bug: both SDKs' `OPENEVAL_VERSION` constant had been left at `"1.0.0-rc.1"` after the spec's own Version header advanced to `1.0.0-rc.2`, silently stamping every generated document with a stale spec version; now correctly `"1.0.0-rc.3"` in both. Added 3 new regression tests per SDK (`test_schema_consistency.py`, `schema-consistency.test.ts`) covering the new field and convention in both validation paths. Discussion #8 (suite/result signing) remains open. |
 | 1.0.0-rc.2 | 2026-08-16 | Added a **Governance** section (spec lead, the RFC process restated in full inside the spec itself rather than only in CONTRIBUTING.md, and the actual path to becoming a collaborator) and an **Open Design Questions** table. The table links each item `spec/CRITIQUE.md` explicitly deferred to v1.1/v2.0 -- suite/result signing, a formal conformance test suite, resumable runs and partial-ResultSet merging, and whether `llm_judge` injection mitigations should be MUST instead of SHOULD -- to a live GitHub Discussion (#8-#11) where the actual design work happens, instead of leaving them as unlinked prose nobody could act on. |
 | 1.0.0-rc.1 | 2026-08-16 | Promoted from draft to release candidate, reflecting real-world adoption: 20 shipped framework adapters, one merged third-party integration (Inspect AI, PR #4797), and one third-party integration under active maintainer review (TruLens, PR #2697). Substantive changes, all verified against the reference SDKs' test suites in this revision: (1) `version` fields now accept full semver 2.0.0 (prerelease + build metadata, e.g. `1.0.0-rc.1`) instead of only `X.Y.Z` or `X.Y.Z-draft` — fixed in `spec/schemas/suite.json`, `spec/schemas/resultset.json`, and both reference SDKs, which previously rejected this document's own version string. (2) Grader `type` is now formally documented and schema-enforced as open rather than a closed 11-value enum: any non-empty type string is valid and is validated like `custom` (`params.handler` required) unless it's one of the 11 well-known types, matching what the Custom Grader Types section already promised but the schema and SDKs didn't actually implement. (3) `spec/schemas/grader.json`'s per-type `allOf` conditionals now correctly require `params` to be present (previously a grader like `{"id": "g1", "type": "custom"}` with no `params` at all passed the JSON Schema despite being rejected by both SDKs — the conditionals constrained `params`'s shape but never required its presence). (4) Removed the never-defined `score_range` extension from Validation Rule 5; added the `openeval.raw_score` reserved metadata key so a grader's native (possibly out-of-[0,1]) score can be preserved when it must be clamped/normalized. (5) Formally specified the `openeval.aggregation` extension (`all`/`any`/`majority`/`weighted` strategies), resolving the gap `spec/CRITIQUE.md` had flagged as fixed while leaving the actual mechanism undefined. (6) Clarified Rule 6 to distinguish `score: null` ("not verified") from a scored failure ("verified failing"), and required `GraderResult.type`. (7) Added `sdk/python/tests/test_schema_consistency.py` and `sdk/typescript/tests/schema-consistency.test.ts`, which cross-validate every JSON Schema file against its corresponding hand-rolled SDK validator on every CI run, as a permanent regression guard against these two validation paths drifting apart again. |
 | 1.0.0-draft | 2026-07-28 | Initial draft for community review |
