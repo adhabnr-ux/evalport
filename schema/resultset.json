@@ -74,6 +74,11 @@
             "type": "string",
             "description": "The output produced by the LLM."
           },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp this individual result was produced (ISO 8601). Optional; distinct from the ResultSet-level completed_at, which marks when the whole run finished. Lets a resumed or incrementally-written run establish a per-result tiebreaker when merging two partial ResultSets for the same run_id -- see Extension Mechanism -> Resumable Runs & Partial ResultSets."
+          },
           "grader_results": {
             "type": "array",
             "description": "Results from each grader.",
