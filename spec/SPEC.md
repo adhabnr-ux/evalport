@@ -11,7 +11,7 @@
 
 EvalPort is an open, language-agnostic specification for representing LLM evaluation test cases, scoring criteria (graders), evaluation suites, and result sets. It defines a portable data format that enables evaluation datasets and results to be shared across evaluation frameworks (DeepEval, Promptfoo, Ragas, Inspect AI, LangSmith, Braintrust, OpenAI Evals, MLflow, and others) without loss of semantic fidelity.
 
-The specification consists of four JSON document types — **TestCase**, **Grader,**, **EvalSuite**, and **ResultSet** — each defined by a JSON Schema, together with a grader type system, validation rules, versioning policy, and extension mechanism. Reference implementations are provided as TypeScript and Python SDKs, a CLI tool, and example integrations.
+The specification consists of four JSON document types — **TestCase**, **Grader**, **EvalSuite**, and **ResultSet** — each defined by a JSON Schema, together with a grader type system, validation rules, versioning policy, and extension mechanism. Reference implementations are provided as TypeScript and Python SDKs, a CLI tool, and example integrations.
 
 ---
 
@@ -86,4 +86,76 @@ This is not a one-time cost — it repeats for every framework transition, every
 
 ### Document Model
 
-The specification defines four document types: Eval Suite (containing Test Cases and Graders), and Result Set (containing Results and Summary Statistics). A Suite Configuration section holds provider and default settings. Running a suite produces a result set.
+```
+┌─────────────────────────────────────────────────────┐
+│                    Eval Suite                         │
+│                                                      │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐          │
+│  │ Test Case │  │ Test Case │  │ Test Case │  ...    │
+│  │  #1       │  │  #2       │  │  #3       │          │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘          │
+│       │              │              │                 │
+│       └─────────────┼───────────────┘                 │
+│                      ▼                                │
+│              ┌──────────────┐                        │
+│              │   Graders    │  (shared definitions)   │
+│              │  (referenced │                         │
+│              │   by ID)     │                         │
+│              └──────────────┘                        │
+│                                                      │
+│  ┌──────────────────────────────────┐               │
+│  │       Suite Configuration         │               │
+│  │  (provider, model, defaults)      │               │
+│  └──────────────────────────────────┘               │
+└─────────────────────────────────────────────────────┘
+
+                        │ run
+
+                        ▼
+
+┌─────────────────────────────────────────────────────┐
+│                    Result Set                        │
+│                                                      │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐    │
+│  │  Result #1  │  │  Result #2  │  │  Result #3  │   │
+│  │  (score,    │  │  (score,    │  │  (score,    │   │
+│  │   pass/fail)│  │   pass/fail)│  │   pass/fail)│   │
+│  └────────────┘  └────────────┘  └────────────┘    │
+│                                                      │
+│  ┌──────────────────────────────────┐               │
+│  │       Summary Statistics          │               │
+│  │  (pass rate, avg score, per-grader│               │
+│  │   breakdown, duration)            │               │
+│  └──────────────────────────────────┘               │
+└─────────────────────────────────────────────────────┘
+```
+
+### Document Relationships
+
+- An **Eval Suite** contains 1..N **Test Cases** and 0..N **Grader** definitions.
+- Each **Test Case** references 1..N graders by ID.
+- A **Result Set** contains 1..N **Results**, one per test case in the source suite.
+- Each **Result** contains 1..N **Grader Results**, one per grader applied to that test case.
+
+### File Formats
+
+- **JSON** is the canonical format. All schemas are defined against JSON Schema 2020-12.
+- **YAML** is supported as an alternative serialization. YAML files MUST be convertible to semantically identical JSON.
+- **JSONL** (JSON Lines) is supported for streaming test cases. Each line is a complete `TestCase` document.
+
+---
+
+## Data Model
+
+### 1. TestCase
+
+A test case is the atomic unit of evaluation. It represents a single input to an LLM system and the criteria for evaluating the output.
+
+```json
+{
+  "$schema": "https://evalport.org/schema/testcase.json",
+  "id": "tc_001",
+  "input": "What is the capital of France?",
+  "expected_output": "Paris",
+  "context": [
+    "France is a country in Western Europe. Its capital is Paris."
