@@ -1,0 +1,10 @@
+{
+  "description": "Grader type is open, not a closed enum: any non-empty type string is valid and is validated exactly like 'custom' (params.handler required) unless it's one of the 11 well-known types. This is what lets an adapter use a descriptive type name (e.g. a framework-native grader name) instead of the generic 'custom' bucket, as long as it still identifies a handler.",
+  "type": "grader",
+  "expect": { "valid": true },
+  "document": {
+    "id": "g_conformance_good",
+    "type": "trulens_feedback",
+    "params": { "handler": "trulens.feedback:groundedness" }
+  }
+}

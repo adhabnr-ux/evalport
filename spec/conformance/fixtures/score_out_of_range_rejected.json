@@ -1,0 +1,28 @@
+{
+  "description": "A GraderResult.score of 1.5 violates Validation Rule 5 (score range [0.0, 1.0], or null) -- a runner MUST clamp/rescale a native out-of-range score before emitting it (preserving the original under metadata.openeval.raw_score if useful for debugging), never pass it through raw. A conformance implementation must REJECT this document.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": ["$.results[0].grader_results[0].score"]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_conformance",
+    "run_id": "run_conformance_003",
+    "started_at": "2026-08-22T00:00:00Z",
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_bad",
+            "type": "custom",
+            "score": 1.5,
+            "passed": true
+          }
+        ]
+      }
+    ]
+  }
+}

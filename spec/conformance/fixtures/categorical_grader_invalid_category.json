@@ -1,0 +1,31 @@
+{
+  "description": "A categorical grader with MORE THAN TWO categories (e.g. correct / incorrect / invalid, or reference / candidate / equal / invalid) must map its non-pass/non-fail 'could not judge' category to score: null, passed: false -- the same rule as an unparseable llm_judge output, but reached from a different native shape (a closed category enum rather than free text). Folding the 'invalid' category into the failure bucket silently overcounts a categorical grader's failure rate by conflating 'confidently wrong' with 'couldn't judge at all'. Derived from a real case in arthur-bench-openeval-adapter: qa_correctness returns incorrect/correct/invalid, and summary_quality returns reference/candidate/equal/invalid -- both adapters map their 'invalid' category to this exact shape.",
+  "type": "resultset",
+  "expect": { "valid": true },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_qa_eval",
+    "run_id": "run_conformance_002",
+    "started_at": "2026-08-22T00:00:00Z",
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "actual_output": "I'm not sure how to answer that.",
+        "passed": false,
+        "grader_results": [
+          {
+            "grader_id": "gr_qa_correctness",
+            "type": "custom",
+            "score": null,
+            "passed": false,
+            "reason": "Categorical grader returned 'invalid' -- could not judge correctness, distinct from a confidently-wrong 'incorrect' verdict.",
+            "metadata": {
+              "native_category": "invalid",
+              "native_category_set": ["incorrect", "correct", "invalid"]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

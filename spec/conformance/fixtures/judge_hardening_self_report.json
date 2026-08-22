@@ -1,0 +1,29 @@
+{
+  "description": "Demonstrates the openeval.judge_hardening convention from Discussion #11: a runner executing an llm_judge grader self-reports which prompt-injection mitigations it actually applied (e.g. structured output, delimited untrusted content, output-length caps), rather than the spec asserting mitigations were applied. This needs no schema change -- GraderResult.metadata already allows arbitrary keys -- but a conformance implementation must accept it without complaint, and the value itself is a free-text convention (a '+'-joined set of mitigation names), not schema-enforced, since standardizing prompt-assembly itself is explicitly out of scope (see Discussion #11).",
+  "type": "resultset",
+  "expect": { "valid": true },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_conformance",
+    "run_id": "run_conformance_005",
+    "started_at": "2026-08-22T00:00:00Z",
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "actual_output": "Paris is the capital of France.",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_llm_judge_correctness",
+            "type": "llm_judge",
+            "score": 1.0,
+            "passed": true,
+            "metadata": {
+              "openeval": { "judge_hardening": "structured_output+delimited+length_capped" }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

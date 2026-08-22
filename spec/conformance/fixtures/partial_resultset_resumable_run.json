@@ -1,0 +1,34 @@
+{
+  "description": "Demonstrates the resumable-run convention from Discussion #10: a ResultSet that only covers part of its suite's test cases (e.g. an interrupted run) is marked with metadata.openeval.partial: true (needs no schema change -- ResultSet.metadata already allows arbitrary keys), and each result carries its own completed_at timestamp (a schema addition -- see spec/schemas/resultset.json) so two partial ResultSets for the same run_id can be merged deterministically: for any test_case_id present in both, the result with the later completed_at wins. A merge tool encountering a result with no completed_at at all (an older or non-conforming producer) should refuse to guess an ordering and require the caller to specify precedence explicitly, rather than silently picking a default that could produce a confidently-wrong merged ResultSet.",
+  "type": "resultset",
+  "expect": { "valid": true },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_long_running_eval",
+    "run_id": "run_20260822_interrupted",
+    "started_at": "2026-08-22T09:00:00Z",
+    "metadata": {
+      "openeval": { "partial": true }
+    },
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "actual_output": "Paris",
+        "completed_at": "2026-08-22T09:00:04Z",
+        "passed": true,
+        "grader_results": [
+          { "grader_id": "gr_exact_match", "type": "exact_match", "score": 1.0, "passed": true }
+        ]
+      },
+      {
+        "test_case_id": "tc_002",
+        "actual_output": "Berlin",
+        "completed_at": "2026-08-22T09:00:09Z",
+        "passed": false,
+        "grader_results": [
+          { "grader_id": "gr_exact_match", "type": "exact_match", "score": 0.0, "passed": false }
+        ]
+      }
+    ]
+  }
+}

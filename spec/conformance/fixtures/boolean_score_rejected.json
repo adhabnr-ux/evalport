@@ -1,0 +1,28 @@
+{
+  "description": "A cross-language gotcha worth an explicit fixture: GraderResult.score must be a number or null, never a boolean. This matters because Python's bool is a subclass of int (isinstance(True, int) is True), so a naive numeric-range check in a Python-based runner could silently accept True/False as scores 1/0 -- and a JS/TS runner using typeof could hit an analogous looseness depending on how the value was coerced upstream. A conformance implementation must REJECT this document structurally (score is not of type number|null), not just range-check it.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": ["$.results[0].grader_results[0].score"]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_conformance",
+    "run_id": "run_conformance_004",
+    "started_at": "2026-08-22T00:00:00Z",
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_bad",
+            "type": "exact_match",
+            "score": true,
+            "passed": true
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "description": "An llm_judge grader whose output couldn't be parsed into a verdict (e.g. the judge model returned unstructured text instead of the expected format) MUST be represented as score: null, passed: false -- per Validation Rule 6, this is a distinct state from a scored failure (a numeric score below threshold). A conformance implementation must accept this document as spec-valid, and downstream tooling that computes pass rates or aggregate statistics from a ResultSet like this must exclude the null-scored grader_result from the denominator rather than counting it as a verified 0/1 failure. Derived from a real case in llamaindex-openeval-adapter: llama_index's EvaluationResult.invalid_result=True (the judge's output couldn't be parsed) maps to exactly this shape, distinct from invalid_result=False, score=0.0 (the judge parsed fine and said 'no').",
+  "type": "resultset",
+  "expect": { "valid": true },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_rag_eval",
+    "run_id": "run_conformance_001",
+    "started_at": "2026-08-22T00:00:00Z",
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "actual_output": "The answer is somewhere in the retrieved context.",
+        "passed": false,
+        "grader_results": [
+          {
+            "grader_id": "gr_llm_judge_faithfulness",
+            "type": "llm_judge",
+            "score": null,
+            "passed": false,
+            "reason": "Judge output could not be parsed into YES/NO/UNSURE -- not a scored verdict, no verdict was produced.",
+            "metadata": {
+              "openeval": { "aggregation_status": "unscored" }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

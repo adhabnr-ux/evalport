@@ -1,0 +1,12 @@
+{
+  "description": "A grader of type 'custom' (or any non-standard type name, which is validated identically -- see the Custom Grader Types section of spec/SPEC.md) MUST declare params.handler so a runner that doesn't recognize the type can still identify what to call, or skip gracefully with a clear reason, instead of guessing. A grader with type: custom and no params object at all must be REJECTED.",
+  "type": "grader",
+  "expect": {
+    "valid": false,
+    "error_paths": ["$.params.handler"]
+  },
+  "document": {
+    "id": "g_conformance_bad",
+    "type": "custom"
+  }
+}
