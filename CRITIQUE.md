@@ -45,6 +45,8 @@ The spec recommends:
 
 **Remaining concern:** These are SHOULDs, not MUSTs. The spec cannot enforce prompt injection resistance at the data format level. This is a runner implementation concern, but the spec should at least make it a MUST to document the risk in runner documentation.
 
+**Update (1.0.0-rc.3, [Discussion #11](https://github.com/adhabnr-ux/evalport/discussions/11)):** the MUST-vs-SHOULD question itself is resolved as won't-fix — a spec-level MUST isn't tractable without also standardizing prompt assembly, which is out of scope for a data-interchange format. What did land: `metadata.openeval.judge_hardening`, a reserved key a runner can set to self-report which of the three SHOULD mitigations it actually applied to a given `llm_judge` grader (see SPEC.md's Extension Mechanism → Judge Hardening Self-Report, and Security Considerations → Prompt Injection in Graders). This makes the "document the risk" ask above concrete and machine-checkable rather than left to runner docs, without claiming to solve prompt injection resistance itself — that remains a runner implementation concern, honestly out of this suite's structural-validation scope (see `spec/conformance/README.md`'s "What this doesn't cover" section).
+
 ---
 
 ## 4. Scalability: No support for streaming or partial results
@@ -59,6 +61,8 @@ The spec now includes:
 3. Result sets can be written incrementally (each result is a complete object)
 
 **Remaining concern:** The spec doesn't define a standard way to resume an interrupted run or merge partial result sets. This should be added in v1.1.
+
+**Update (1.0.0-rc.3, [Discussion #10](https://github.com/adhabnr-ux/evalport/discussions/10)):** addressed. `Result.completed_at` (new optional field, `spec/schemas/resultset.json`) timestamps each individual result as it's produced, and `metadata.openeval.partial` (a metadata convention, no schema change needed) marks a ResultSet as in-progress. Together they define a concrete merge algorithm for combining two partial ResultSets from the same `run_id` — last-write-wins per `test_case_id` keyed by `completed_at`, falling back to rejecting the merge if either side is missing a timestamp — documented in SPEC.md's Extension Mechanism → Resumable Runs & Partial ResultSets, with a conformance fixture (`spec/conformance/fixtures/partial_resultset_resumable_run.json`) and cross-SDK regression tests in both `test_schema_consistency.py` and `schema-consistency.test.ts`.
 
 ---
 
@@ -204,6 +208,8 @@ The reference implementation includes:
 
 A formal conformance test suite (with graded test cases for each grader type) is planned for v1.1.
 
+**Update (1.0.0-rc.3, [Discussion #9](https://github.com/adhabnr-ux/evalport/discussions/9)):** addressed. `spec/conformance/` ships 8 portable, language-agnostic fixtures (`fixtures/*.json`, each a self-contained `{type, expect, document}` triple) covering real edge cases pulled from building the 30 shipped adapters — the null-vs-scored-failure distinction (Rule 6), score-range enforcement (Rule 5), the boolean-is-not-a-valid-score cross-language gotcha, custom/non-standard grader `params.handler` requirements — plus fixtures for the two conventions that landed alongside it (Discussions #10 and #11). A reference runner (`run.py`) checks every fixture against this repo's own hand-rolled Python validator and is wired into CI as a dedicated `conformance-suite` job; every fixture has also been independently verified against the raw JSON Schema files (`Draft202012Validator`), not just the hand-rolled path, so `expect.valid` reflects genuine agreement between both validation paths this project maintains. Any third-party implementation in another language can load these same fixture files and check its own validator's answer against `expect.valid` without depending on this repo's Python or TypeScript code — see `spec/conformance/README.md`, which also states plainly what this suite does *not* yet cover (CLI runtime behavior, cross-document referential rules beyond the existing checks).
+
 ---
 
 ## Summary of Iterations
@@ -212,22 +218,23 @@ A formal conformance test suite (with graded test cases for each grader type) is
 |----------|-----------|--------|
 | Aggregation ambiguity | Strict AND logic by default; `metadata.openeval.aggregation` now formally specifies `all`/`any`/`majority`/`weighted` as of 1.0.0-rc.1 | ✅ Fixed |
 | Code grader security | Sandbox requirement + opt-in default | ✅ Fixed |
-| Prompt injection risk | SHOULDs for structured output + delimiters | ✅ Partially fixed |
+| Prompt injection risk | SHOULDs for structured output + delimiters; MUST-vs-SHOULD resolved won't-fix, `metadata.openeval.judge_hardening` self-report convention added as of 1.0.0-rc.3 ([Discussion #11](https://github.com/adhabnr-ux/evalport/discussions/11)) | ✅ Addressed (self-report); underlying SHOULDs stand |
 | Streaming/large suites | JSONL + test_cases_file | ✅ Fixed |
 | Too many grader types | Skip unsupported gracefully; type is an open string (not a closed enum) as of 1.0.0-rc.1, schema- and SDK-enforced identically | ✅ Fixed |
-| Political adoption barrier | Reframed as interchange, not replacement; validated in practice by 20 shipped adapters and a merged Inspect AI PR | ✅ Mitigated |
+| Political adoption barrier | Reframed as interchange, not replacement; validated in practice by 30 shipped adapters and a merged Inspect AI PR | ✅ Mitigated |
 | OTel overlap | Positioned as complementary | ✅ Addressed |
 | Embedding provider ambiguity | Provider field + reproducibility metadata | ✅ Fixed |
-| Suite signing | Deferred to v1.1 | ⏳ Deferred |
+| Suite signing | Deferred to v1.1; still open as of 1.0.0-rc.3 ([Discussion #8](https://github.com/adhabnr-ux/evalport/discussions/8)) | ⏳ Deferred |
 | Cost tracking | Reserved metadata key | ✅ Fixed |
 | Large context arrays | URL-based context references | ✅ Fixed |
 | YAML support | Explicitly supported | ✅ Fixed |
-| Conformance suite | Schemas + validation libs in v1, now cross-checked against each other in CI (`test_schema_consistency.py`, `schema-consistency.test.ts`); formal conformance suite still planned for v1.1 | ⏳ Partial |
+| Resumable/partial runs | `Result.completed_at` + `metadata.openeval.partial` as of 1.0.0-rc.3 ([Discussion #10](https://github.com/adhabnr-ux/evalport/discussions/10)) | ✅ Addressed |
+| Conformance suite | Schemas + validation libs in v1, cross-checked against each other in CI since 1.0.0-rc.1; formal portable conformance suite (`spec/conformance/`, 8 fixtures, CI-wired) shipped in 1.0.0-rc.3 ([Discussion #9](https://github.com/adhabnr-ux/evalport/discussions/9)) | ✅ Addressed |
 
 ---
 
 ## Final Verdict
 
-The proposal is **substantially improved** after iteration. The remaining concerns (suite signing, formal conformance suite) are appropriately deferred to v1.1. As of 1.0.0-rc.1 the spec has moved beyond a paper proposal: it is implemented by 20 shipped framework adapters, merged into Inspect AI's official community extensions (PR #4797), and under active review by TruLens (PR #2697).
+The proposal is **substantially improved** after iteration. As of 1.0.0-rc.3, three of the four items this document originally flagged as deferred — the conformance suite, resumable/partial runs, and the judge-hardening self-report convention — have shipped as concrete, tested spec changes with reference implementations, following the same Discussion-then-PR process used for every other change in this log. The one item still genuinely open is suite/result signing (Discussion #8) — it needs either community input on a signing scheme or a spec-lead decision, and unlike the other three it can't be fully exercised in every environment (a genuine Sigstore/Fulcio signature requires real CI OIDC identity), so it's being scoped carefully rather than rushed. As of 1.0.0-rc.3 the spec is implemented by 30 shipped framework adapters, merged into Inspect AI's official community extensions (PR #4797), and under active review by TruLens (PR #2697).
 
 **Recommendation:** Approve for release-candidate status. Promote to 1.0.0 final once the TruLens review concludes and no further breaking feedback surfaces from the community comment period.
