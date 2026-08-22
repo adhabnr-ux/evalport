@@ -106,6 +106,24 @@ jobs:
         working-directory: sdk/python
         run: python -m pytest tests/ -v
 
+  conformance-suite:
+    # Discussion #9 / spec/conformance/ -- runs every portable fixture in
+    # spec/conformance/fixtures/*.json through the real hand-rolled Python
+    # validator and fails the build if any fixture's own expect.valid claim
+    # doesn't hold. Separate job (not folded into python-tests) because these
+    # fixtures are the portable, language-agnostic artifact this repo ships
+    # for third-party (non-Python, non-TypeScript) runners to test against --
+    # keeping it as its own CI job makes that scope explicit rather than
+    # burying it inside the Python SDK's own pytest run.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run conformance fixtures against the reference Python validator
+        run: python3 spec/conformance/run.py
+
   validate-benchmarks:
     runs-on: ubuntu-latest
     steps:
