@@ -184,3 +184,68 @@ describe("resultset: [0,1] score range enforcement agrees", () => {
     });
   }
 });
+
+// Mirrors sdk/python/tests/test_schema_consistency.py's per-result `completed_at`
+// tests (added for resumable/partial runs, Discussion #10). The hand-rolled
+// validator never enforced additionalProperties, so it already silently accepted
+// an unknown `completed_at` key -- but the JSON Schema's `additionalProperties:
+// false` on the result item would have REJECTED it until the schema declared the
+// field. Before that schema change, this exact fixture would have failed jsOk
+// while still passing handOk.
+describe("resultset: per-result completed_at (Discussion #10) agrees", () => {
+  test("present validates in both paths", () => {
+    const doc = {
+      version: "1.0.0",
+      suite_id: "s1",
+      run_id: "run1",
+      started_at: "2026-08-16T00:00:00Z",
+      results: [
+        {
+          test_case_id: "tc1",
+          completed_at: "2026-08-16T00:00:05Z",
+          grader_results: [{ grader_id: "g1", type: "exact_match", score: 1.0, passed: true }],
+          passed: true,
+        },
+      ],
+    };
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+  });
+
+  test("absent still validates in both paths (optional field)", () => {
+    const doc = {
+      version: "1.0.0",
+      suite_id: "s1",
+      run_id: "run1",
+      started_at: "2026-08-16T00:00:00Z",
+      results: [
+        {
+          test_case_id: "tc1",
+          grader_results: [{ grader_id: "g1", type: "exact_match", score: 0.9, passed: true }],
+          passed: true,
+        },
+      ],
+    };
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+  });
+
+  test("metadata.openeval.partial marker needs no schema change and validates in both paths", () => {
+    const doc = {
+      version: "1.0.0",
+      suite_id: "s1",
+      run_id: "run1",
+      started_at: "2026-08-16T00:00:00Z",
+      metadata: { openeval: { partial: true } },
+      results: [
+        {
+          test_case_id: "tc1",
+          grader_results: [{ grader_id: "g1", type: "exact_match", score: 0.9, passed: true }],
+          passed: true,
+        },
+      ],
+    };
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+  });
+});

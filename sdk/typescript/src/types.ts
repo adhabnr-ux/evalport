@@ -1,9 +1,10 @@
-// Tracks spec/SPEC.md's own **Version** header. Bumped to 1.0.0-rc.1 alongside the
-// spec (see spec/SPEC.md Change Log) now that suite.json/resultset.json's `version`
-// pattern accepts full semver 2.0.0 prerelease identifiers -- prior to that schema
-// fix, stamping "1.0.0-rc.1" into a generated document's `version` field would have
-// been rejected by this project's own JSON Schema.
-export const OPENEVAL_VERSION = "1.0.0-rc.1";
+// Tracks spec/SPEC.md's own **Version** header. Bumped to 1.0.0-rc.3 alongside the
+// spec (see spec/SPEC.md Change Log). NOTE: this constant had drifted -- it was
+// still hardcoded to "1.0.0-rc.1" after spec/SPEC.md itself moved to 1.0.0-rc.2,
+// meaning every document this SDK generated was silently stamping a stale spec
+// version. Caught and fixed while implementing the 1.0.0-rc.3 changes (Discussions
+// #9, #10, #11) rather than left for a future drift-detection pass to find.
+export const OPENEVAL_VERSION = "1.0.0-rc.3";
 
 export type GraderType =
   | "exact_match"
@@ -98,6 +99,7 @@ export interface Result {
   grader_results: GraderResult[];
   passed: boolean;
   duration_ms?: number;
+  completed_at?: string;
   error?: {
     type: "timeout" | "provider_error" | "runner_error";
     message?: string;
