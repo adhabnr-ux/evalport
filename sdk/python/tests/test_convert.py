@@ -15,6 +15,7 @@ list of `{id, model, ...}` provider configs referenced by the eval config.
 from __future__ import annotations
 
 from openeval.convert import compute_summary, create_result_set, from_promptfoo
+from openeval.types import OPENEVAL_VERSION
 from openeval.validate import validate_result_set, validate_suite
 
 
@@ -40,7 +41,11 @@ def test_from_promptfoo_produces_spec_valid_suite():
     suite = from_promptfoo(pf)
     result = validate_suite(suite)
     assert result.valid, result.errors
-    assert suite["version"] == "1.0.0-rc.1"
+    # Asserted against the live constant, not a hardcoded literal: a hardcoded
+    # "1.0.0-rc.1" here is exactly the kind of silent-drift bug that let
+    # OPENEVAL_VERSION itself go stale for a full spec revision undetected
+    # (fixed in 1.0.0-rc.3 -- see openeval/types.py's comment on the constant).
+    assert suite["version"] == OPENEVAL_VERSION
     assert len(suite["test_cases"]) == 2
 
 

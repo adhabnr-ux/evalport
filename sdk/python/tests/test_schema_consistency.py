@@ -257,6 +257,58 @@ def test_resultset_score_range_json_schema_and_hand_rolled_agree(name, score, ex
     assert hand_ok == expected, f"{name}: hand-rolled validator acceptance was {hand_ok}, expected {expected}"
 
 
+# ---------------------------------------------------------------------------
+# ResultSet: per-result `completed_at` (added for resumable/partial runs,
+# Discussion #10 -- https://github.com/adhabnr-ux/evalport/discussions/10).
+# This is exactly the class of drift test_schema_consistency.py exists to catch:
+# the hand-rolled validator never enforced additionalProperties, so it already
+# silently accepted an unknown `completed_at` key on a result item -- but the
+# JSON Schema's `additionalProperties: false` on that object would have REJECTED
+# it until the schema was updated to declare the field. Before this schema change,
+# this exact fixture would have failed js_ok while still passing hand_ok.
+# ---------------------------------------------------------------------------
+
+def test_result_completed_at_present_validates_in_both_paths():
+    doc = {
+        "version": "1.0.0",
+        "suite_id": "s1",
+        "run_id": "run1",
+        "started_at": "2026-08-16T00:00:00Z",
+        "results": [
+            {
+                "test_case_id": "tc1",
+                "completed_at": "2026-08-16T00:00:05Z",
+                "grader_results": [
+                    {"grader_id": "g1", "type": "exact_match", "score": 1.0, "passed": True}
+                ],
+                "passed": True,
+            }
+        ],
+    }
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+
+
+def test_result_completed_at_absent_still_validates_in_both_paths():
+    # Optional field -- a ResultSet from a runner that doesn't emit per-result
+    # timestamps must remain fully valid.
+    doc = _minimal_result_set("1.0.0")
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+    assert "completed_at" not in doc["results"][0]
+
+
+def test_resultset_partial_marker_via_metadata_validates_in_both_paths():
+    # metadata.openeval.partial (Discussion #10) needs no schema change --
+    # ResultSet.metadata already declares additionalProperties: true -- but this
+    # fixture proves that end to end rather than just asserting it from reading
+    # the schema.
+    doc = _minimal_result_set("1.0.0")
+    doc["metadata"] = {"openeval": {"partial": True}}
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+
+
 def test_boolean_score_rejected_by_both_python_bool_is_int_subclass():
     # Python's bool is a subclass of int, so a naive `isinstance(x, (int, float))`
     # range check would silently accept True/False as scores 1/0. Guard against

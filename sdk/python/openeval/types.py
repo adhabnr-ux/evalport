@@ -2,12 +2,13 @@ from __future__ import annotations
 from typing import Any, Literal, Union, Optional, List, Dict
 from dataclasses import dataclass, field
 
-# Tracks spec/SPEC.md's own **Version** header. Bumped to 1.0.0-rc.1 alongside the
-# spec (see spec/SPEC.md Change Log) now that suite.json/resultset.json's `version`
-# pattern accepts full semver 2.0.0 prerelease identifiers -- prior to that schema
-# fix, stamping "1.0.0-rc.1" into a generated document's `version` field would have
-# been rejected by this project's own JSON Schema.
-OPENEVAL_VERSION = "1.0.0-rc.1"
+# Tracks spec/SPEC.md's own **Version** header. Bumped to 1.0.0-rc.3 alongside the
+# spec (see spec/SPEC.md Change Log). NOTE: this constant had drifted -- it was
+# still hardcoded to "1.0.0-rc.1" after spec/SPEC.md itself moved to 1.0.0-rc.2,
+# meaning every document this SDK generated was silently stamping a stale spec
+# version. Caught and fixed while implementing the 1.0.0-rc.3 changes (Discussions
+# #9, #10, #11) rather than left for a future drift-detection pass to find.
+OPENEVAL_VERSION = "1.0.0-rc.3"
 
 GraderType = Literal["exact_match","contains","regex","semantic_similarity","llm_judge","json_schema","json_path","code","human","model graded","custom"]
 
@@ -62,6 +63,7 @@ class Result:
     grader_results: List[GraderResult]
     actual_output: Optional[str] = None
     duration_ms: Optional[int] = None
+    completed_at: Optional[str] = None
     error: Optional[Dict[str, Any]] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
