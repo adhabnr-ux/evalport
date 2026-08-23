@@ -10,21 +10,15 @@ the open interchange format for portable LLM evaluation datasets.
 pip install "literalai-openeval-adapter @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/literalai-openeval-adapter"
 ```
 
-Not yet published to PyPI — this installs directly from source via pip's
+Not yet published to PyPI — installs directly from source via pip's
 `git+` / `#subdirectory=` support (verified working).
-
-To also install the real Literal AI SDK (needed to work with actual Literal AI
-objects rather than plain dicts):
-
-```
-pip install "literalai-openeval-adapter[literalai] @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/literalai-openeval-adapter"
-```
-
-Verified minimum: `literalai==0.1.300`.
 
 ## Usage
 
 ### Datasets → EvalPort suite
+
+Pass a Literal AI `Dataset` object, or a dict with `"name"`, optional `"id"`, and `"items"` (a list of
+DatasetItem-shaped dicts):
 
 ```python
 import literalai
@@ -33,11 +27,8 @@ from literalai_openeval_adapter import to_openeval
 client = literalai.LiteralClient(api_key="...")
 dataset = client.api.get_dataset(name="my-dataset")
 
-suite = to_openeval(
-    dataset.items,
-    suite_id=dataset.id,
-    suite_name=dataset.name,
-)
+suite = to_openeval(dataset)           # exact_match grader (default)
+# suite = to_openeval(dataset, grader_type="llm_judge")  # for free-form answers
 
 from openeval.validate import validate_suite
 assert validate_suite(suite).valid
@@ -53,7 +44,7 @@ with open("my_suite.json", "w") as f:
 from literalai_openeval_adapter import from_openeval
 
 items = from_openeval(suite)
-# Each item is a dict ready for Dataset.create_item()
+# items is a list of dicts ready for Dataset.create_item()
 for item in items:
     dataset.create_item(
         input=item["input"],
@@ -68,10 +59,11 @@ for item in items:
 from literalai_openeval_adapter import results_to_openeval
 
 experiment = client.api.get_dataset_experiment(id="my-exp-id")
+
 result_set = results_to_openeval(
-    experiment.items,
-    result_set_id=experiment.id,
-    experiment_name=experiment.name,
+    experiment,
+    suite_id=dataset.id,
+    run_id=experiment.id,
 )
 
 from openeval.validate import validate_result_set
@@ -83,21 +75,26 @@ assert validate_result_set(result_set).valid
 Three translation challenges are handled explicitly:
 
 ### 1. `input` / `expected_output` flattening
+
 Literal AI datasets are schema-free key-value rows
 (e.g. `{"question": "What is 2+2?", "context": "..."}`).
-EvalPort requires a plain string. This adapter picks the value of the first
-key whose name looks like an input (`question`, `query`, `input`, `prompt`,
-`text`, …) and falls back to JSON-serialising the whole dict so nothing is
-silently dropped. The original raw dict is always preserved in
-`metadata["_literalai_raw"]` so you can reconstruct it with `from_openeval()`.
+EvalPort requires a plain string. `flatten_dict_field()` picks the value of the
+first key matching a preferred name (`question`, `query`, `input`, `prompt`,
+`text`), then falls back to the first string-valued field in the dict.
+If the dict contains **no string-valued fields at all**, it falls back to JSON-serializing the whole dict (instead of raising) — an empty dict still raises `ValueError`, since there's nothing to represent.
+
+The original dict is always preserved under `metadata.literalai.original_input` so
+`from_openeval()` can restore it losslessly.
 
 ### 2. Score clamping
+
 Literal AI's `Score.value` is an unbounded `float` (e.g. `8.5` or `100`).
 EvalPort's `GraderResult.score` must be in `[0, 1]` or `null`. This adapter
-**clamps** the value and stores the original in `metadata["_raw_score"]` so
-no information is lost.
+**clamps** the value and preserves the original under the spec's own reserved
+metadata key, `metadata.openeval.raw_score` so no information is lost.
 
 ### 3. Score type mapping
+
 Literal AI's `Score.type` is a 3-way tag: `"HUMAN"` / `"CODE"` / `"AI"`.
 EvalPort grader types are `"human"` / `"code"` / `"llm_judge"`.
 
