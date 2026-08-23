@@ -1,6 +1,6 @@
 # Contributors
 
-EvalPort is a specification, and specifications only matter if real implementations adopt them. This file credits people who have built real, working EvalPort integrations outside this repository — not just filed issues or left comments, but shipped code against the spec — plus maintainers whose review substantively shaped the spec or an adapter, whether the answer was yes or not yet.
+EvalPort is a specification, and specifications only matter if real implementations adopt them. This file credits people who have built real, working EvalPort integrations — whether that's a native integration shipped in another project's own repository, or a standalone adapter package shipped inside this repo's `adapters/` directory — not just filed issues or left comments, but shipped code against the spec — plus maintainers whose review substantively shaped the spec or an adapter, whether the answer was yes or not yet.
 
 ## Framework Integration Authors
 
@@ -8,6 +8,14 @@ EvalPort is a specification, and specifications only matter if real implementati
 |---|---|
 | [SparshGarg999](https://github.com/SparshGarg999) | Built native OpenEval dataset import/export helpers directly into `openai/openai-python` ([PR #3619](https://github.com/openai/openai-python/pull/3619), closing [#3549](https://github.com/openai/openai-python/issues/3549)) — `to_openeval()`/`from_openeval()` conforming to `spec/schemas/testcase.json`, with lossless round-tripping of multi-turn conversations, tool calls, and multimodal content preserved under `metadata`. |
 | [DresdenGman](https://github.com/DresdenGman) | Built the AutoGen OpenEval adapter ([PR #8009](https://github.com/microsoft/autogen/pull/8009), closing [#8005](https://github.com/microsoft/autogen/issues/8005)) — `autogenstudio.eval.openeval` with `to_openeval()`/`from_openeval()`, migrated cleanly to the renamed `evalport-sdk` distribution when the project renamed from OpenEval, and kept backward-compatible imports for existing users. |
+
+## Adapter Package Contributors
+
+People who built a standalone `to_openeval()`/`from_openeval()` package that ships inside this repo's own `adapters/` directory — real, tested, merged code, not just a request or an idea:
+
+| Contributor | Contribution |
+|---|---|
+| [VimalN2005](https://github.com/VimalN2005) | Built [`parea-openeval-adapter`](adapters/parea-openeval-adapter/) ([PR #19](https://github.com/adhabnr-ux/evalport/pull/19), closing [#17](https://github.com/adhabnr-ux/evalport/issues/17)) — their first contribution to the project. Addressed a full round of review feedback (score clamping, an accidentally-committed lockfile, an empty-name fallback, a numeric-id cast fix) correctly on the first pass, with real test coverage added for each fix. |
 
 ## Maintainer Reviewers
 
