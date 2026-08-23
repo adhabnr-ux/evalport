@@ -6,9 +6,9 @@
 [![Discussions](https://img.shields.io/github/discussions/adhabnr-ux/evalport?label=Discussions)](https://github.com/adhabnr-ux/evalport/discussions)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-**Version:** 1.0.0-rc.2 | **License:** Apache 2.0
+**Version:** 1.0.0-rc.4 | **License:** Apache 2.0
 
-**Adopted by:** [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) — merged to the official community extensions list, [PR #4797](https://github.com/UKGovernmentBEIS/inspect_ai/pull/4797), August 2026. Approved and awaiting a clean CI run at [TruLens](https://github.com/truera/trulens) — [PR #2697](https://github.com/truera/trulens/pull/2697), a full `to_openeval()`/`from_openeval()` module, 17/17 tests passing. 30 framework adapters shipped and independently tested, including [Hugging Face `evaluate`](adapters/huggingface-evaluate-openeval-adapter/), [EleutherAI `lm-evaluation-harness`](adapters/lm-eval-harness-openeval-adapter/), [Hugging Face `lighteval`](adapters/lighteval-openeval-adapter/) (the library behind the HF Open LLM Leaderboard), [OpenCompass](adapters/opencompass-openeval-adapter/), [FinanceBench](adapters/financebench-openeval-adapter/) (a real benchmark dataset, not a live SDK), [Athina](adapters/athina-openeval-adapter/), [DeepEval](adapters/deepeval-openeval-adapter/), and [Galileo](adapters/galileo-openeval-adapter/) — see [Framework Adapters](#framework-adapters) below.
+**Adopted by:** [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) — merged to the official community extensions list, [PR #4797](https://github.com/UKGovernmentBEIS/inspect_ai/pull/4797), August 2026. Approved with a clean CI run at [TruLens](https://github.com/truera/trulens) — [PR #2697](https://github.com/truera/trulens/pull/2697), a full `to_openeval()`/`from_openeval()` module, 17/17 tests passing, awaiting merge. 31 framework adapters shipped and independently tested — including [Agenta](adapters/agenta-openeval-adapter/) (built at the explicit request of the Agenta-AI maintainer, [Agenta-AI/agenta#6222](https://github.com/Agenta-AI/agenta/issues/6222)), [Hugging Face `evaluate`](adapters/huggingface-evaluate-openeval-adapter/), [EleutherAI `lm-evaluation-harness`](adapters/lm-eval-harness-openeval-adapter/), [Hugging Face `lighteval`](adapters/lighteval-openeval-adapter/) (the library behind the HF Open LLM Leaderboard), [OpenCompass](adapters/opencompass-openeval-adapter/), [FinanceBench](adapters/financebench-openeval-adapter/) (a real benchmark dataset, not a live SDK), [Athina](adapters/athina-openeval-adapter/), [DeepEval](adapters/deepeval-openeval-adapter/), and [Galileo](adapters/galileo-openeval-adapter/) — plus a Parea AI adapter from a first-time external contributor under review right now ([PR #19](https://github.com/adhabnr-ux/evalport/pull/19)) — see [Framework Adapters](#framework-adapters) below.
 
 EvalPort is an open specification for portable LLM evaluation test cases, graders, suites, and results. It enables evaluation datasets to be shared across frameworks (DeepEval, Promptfoo, Ragas, Inspect AI, LangSmith, Braintrust, OpenAI Evals, MLflow) without loss of semantic fidelity.
 
@@ -51,7 +51,7 @@ print(result.valid)  # True
 
 EvalPort is pre-1.0 and actively shaped by outside contributors — the fastest ways in, from least to most involved:
 
-- **Have an opinion on an open design question?** [`spec/SPEC.md`](spec/SPEC.md#open-design-questions--rfc-topics-we-need-help-with) lists four things the spec has deliberately left unresolved — suite/result signing, a formal conformance test suite, resuming interrupted runs, and whether `llm_judge` injection mitigations should be mandatory. Each has an open [Discussion](https://github.com/adhabnr-ux/evalport/discussions) where the actual decision gets made. No prior EvalPort contribution required.
+- **Have an opinion on an open design question?** [`spec/SPEC.md`](spec/SPEC.md#open-design-questions--rfc-topics-we-need-help-with) tracks what's genuinely unresolved. Right now that's [Discussion #22](https://github.com/adhabnr-ux/evalport/discussions/22) — how `ResultSet` should represent repeated-attempt evals (`num_repetitions`, epochs), raised by a real downstream consumer, not an internal critique. Four earlier questions on the same list (suite/result signing, a formal conformance test suite, resuming interrupted runs, and whether `llm_judge` injection mitigations should be mandatory) already went through this exact process and landed as shipped spec changes — the table shows how each one resolved. No prior EvalPort contribution required, just a considered opinion.
 - **Want to ship a framework adapter?** [Issue #6](https://github.com/adhabnr-ux/evalport/issues/6) is the map. [`adapters/autogen-openeval-adapter`](adapters/autogen-openeval-adapter/) is the reference shape to copy: `to_openeval()`, `from_openeval()`, tests against the real validator, a README.
 - **Want to propose a spec change?** Open a Discussion titled `[Spec Change] <what and why>` — the full process (comment period, what "consensus" means, when the spec lead's sign-off is required) is in [`spec/SPEC.md`'s Governance section](spec/SPEC.md#governance).
 - **How people actually become collaborators:** ship something real and tested, engage substantively, get invited — see [`CONTRIBUTORS.md`](CONTRIBUTORS.md) for who's done that so far. It's not gatekept; a merged, tested PR is what clears the bar.
@@ -143,6 +143,7 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 
 | Framework | Package |
 |---|---|
+| Agenta | [agenta-openeval-adapter](adapters/agenta-openeval-adapter/) |
 | AutoGen | [autogen-openeval-adapter](adapters/autogen-openeval-adapter/) |
 | CrewAI | [crewai-openeval-adapter](adapters/crewai-openeval-adapter/) |
 | Ragas | [ragas-openeval-adapter](adapters/ragas-openeval-adapter/) |
@@ -188,7 +189,7 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 
 - [Contributing Guide](.github/CONTRIBUTING.md)
 - [Governance & the RFC process](spec/SPEC.md#governance)
-- [Open Design Questions](spec/SPEC.md#open-design-questions--rfc-topics-we-need-help-with) — four live Discussions, no prior contribution required
+- [Open Design Questions](spec/SPEC.md#open-design-questions--rfc-topics-we-need-help-with) — live Discussions on unresolved spec questions, no prior contribution required
 - [GitHub Discussions](https://github.com/adhabnr-ux/evalport/discussions)
 - [Contributors](CONTRIBUTORS.md)
 - [Launch Blog Post](docs/blog/launch-post.md)

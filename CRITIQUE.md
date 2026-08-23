@@ -214,6 +214,16 @@ A formal conformance test suite (with graded test cases for each grader type) is
 
 ---
 
+## 15. ResultSet has no repetition/attempt semantics
+
+### Attack
+`ResultSet.results[]` is documented as "one result per test case," but that's only a documentation convention — neither `resultset.json` nor `validate_result_set()` actually enforces uniqueness of `test_case_id` (confirmed by reading both directly; contrast with `validate_suite()`, which does track and reject duplicate `test_case.id`). So a producer emitting several `Result`s for the same `test_case_id` today is silently unaddressed: nothing says why there are several, nothing joins them, and `summary` computation has no defined behavior when it happens. This isn't hypothetical — LangSmith's `num_repetitions`, Promptfoo's per-test repeats, and Inspect AI's `epochs` all produce exactly this shape upstream, and anyone converting their output into EvalPort today either collapses repeats into one result (losing the data) or fragments them across `k` separate `ResultSet`s that only relate by convention (losing the ordered-pairing structure that stability/regression analysis over repeated trials actually needs).
+
+### Response
+Raised externally by AgentVerity's maintainer via [issue #20](https://github.com/adhabnr-ux/evalport/issues/20), not caught internally — flagged here for the same reason every other item in this document is: because leaving a known gap undocumented until someone else finds it in production is worse than admitting it early. Formalized as [Discussion #22](https://github.com/adhabnr-ux/evalport/discussions/22), open as of this revision. Current lean is an optional `attempt` + `isolation` field on `Result`, additive and backward-compatible, matching how item #4 (resumable runs) was solved rather than restructuring the document — but this is explicitly not settled, and the requester has been asked to confirm the design covers AgentVerity's real flip-rate/stability computation before any schema or SDK change lands. See the Discussion for the full option comparison (three directions were proposed) and reasoning.
+
+---
+
 ## Summary of Iterations
 
 | Critique | Resolution | Status |
@@ -232,11 +242,12 @@ A formal conformance test suite (with graded test cases for each grader type) is
 | YAML support | Explicitly supported | ✅ Fixed |
 | Resumable/partial runs | `Result.completed_at` + `metadata.openeval.partial` as of 1.0.0-rc.3 ([Discussion #10](https://github.com/adhabnr-ux/evalport/discussions/10)) | ✅ Addressed |
 | Conformance suite | Schemas + validation libs in v1, cross-checked against each other in CI since 1.0.0-rc.1; formal portable conformance suite (`spec/conformance/`, 8 fixtures, CI-wired) shipped in 1.0.0-rc.3 ([Discussion #9](https://github.com/adhabnr-ux/evalport/discussions/9)) | ✅ Addressed |
+| ResultSet repetition/attempt semantics | Gap identified by an external consumer (AgentVerity), formalized as [Discussion #22](https://github.com/adhabnr-ux/evalport/discussions/22) — an additive `attempt`/`isolation` field on `Result` is the current lean, not yet implemented | 🔵 Open (proposal posted, not yet landed) |
 
 ---
 
 ## Final Verdict
 
-The proposal is **substantially improved** after iteration. As of 1.0.0-rc.4, all four items this document originally flagged as deferred — the conformance suite, resumable/partial runs, the judge-hardening self-report convention, and suite/result signing — have shipped as concrete, tested spec changes with reference implementations, following the same Discussion-then-PR process used for every other change in this log. Signing (Discussion #8) is the one item that, by its own nature, can't be *fully* exercised in every environment: verifying is fully testable anywhere (and has been, against real, independently-published Sigstore bundles — see item #9 above), but actually minting a signature requires a genuine CI OIDC identity that only this repo's own release pipeline has. That asymmetry is stated plainly rather than glossed over — the verifier's correctness is proven; the signing CI job's correctness is proven only once it runs for real. As of 1.0.0-rc.4 the spec is implemented by 30 shipped framework adapters, merged into Inspect AI's official community extensions (PR #4797), and under active review by TruLens (PR #2697).
+The proposal is **substantially improved** after iteration. As of 1.0.0-rc.4, all four items this document originally flagged as deferred — the conformance suite, resumable/partial runs, the judge-hardening self-report convention, and suite/result signing — have shipped as concrete, tested spec changes with reference implementations, following the same Discussion-then-PR process used for every other change in this log. Signing (Discussion #8) is the one item that, by its own nature, can't be *fully* exercised in every environment: verifying is fully testable anywhere (and has been, against real, independently-published Sigstore bundles — see item #9 above), but actually minting a signature requires a genuine CI OIDC identity that only this repo's own release pipeline has. That asymmetry is stated plainly rather than glossed over — the verifier's correctness is proven; the signing CI job's correctness is proven only once it runs for real. A fifth gap (item #15, repetition/attempt semantics) surfaced immediately after, this time from a real external consumer rather than internal self-critique — evidence the deferred-items process itself is working as intended, catching real gaps whether they're found from inside or outside the project. As of 1.0.0-rc.4 the spec is implemented by 31 shipped framework adapters, merged into Inspect AI's official community extensions (PR #4797), and approved with a clean CI run at TruLens (PR #2697, awaiting merge).
 
-**Recommendation:** Approve for release-candidate status. Promote to 1.0.0 final once the TruLens review concludes and no further breaking feedback surfaces from the community comment period.
+**Recommendation:** Approve for release-candidate status. Promote to 1.0.0 final once the TruLens PR merges, Discussion #22 converges, and no further breaking feedback surfaces from the community comment period.
