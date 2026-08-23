@@ -24,9 +24,21 @@ def _get(obj: Any, key: str, default: Any = None) -> Any:
     return getattr(obj, key, default)
 
 
-def _slugify(name: str) -> str:
+def _slugify(name: str, fallback_index: int = 0) -> str:
     """Normalize metric name into a grader_id."""
-    return "_".join(name.strip().lower().replace("-", " ").split())
+    slug = "_".join(name.strip().lower().replace("-", " ").split())
+    slug = "".join(c for c in slug if c.isalnum() or c == "_")
+    if not slug:
+        return f"metric_{fallback_index}"
+    return slug
+
+
+def _clamp01(value: Any) -> Optional[float]:
+    """Clamp a score into EvalPort's required [0, 1] range."""
+    if value is None:
+        return None
+    return max(0.0, min(1.0, float(value)))
+
 
 
 def _get_input_string(inputs: Any) -> str:
@@ -191,6 +203,11 @@ def from_openeval(suite: Dict[str, Any]) -> List[Dict[str, Any]]:
     cases: List[Dict[str, Any]] = []
     for tc in suite.get("test_cases", []):
         tc_id = tc.get("id")
+        try:
+            if tc_id is not None and str(tc_id).isdigit():
+                tc_id = int(tc_id)
+        except Exception:
+            pass
         input_val = tc.get("input")
         target_val = tc.get("expected_output")
         tags_val = tc.get("tags")
@@ -307,16 +324,17 @@ def experiment_to_openeval(
         scores = _get(trace_log, "scores") or []
 
         grader_results: List[Dict[str, Any]] = []
-        for s in scores:
+        for j, s in enumerate(scores):
             score_val = _get(s, "score")
             score_name = _get(s, "name") or "unknown"
             reason = _get(s, "reason")
 
+            clamped_score = _clamp01(score_val)
             gr = {
-                "grader_id": _slugify(score_name),
+                "grader_id": _slugify(score_name, j),
                 "type": "custom",
-                "score": float(score_val) if score_val is not None else None,
-                "passed": score_val >= 0.5 if score_val is not None else False,
+                "score": clamped_score,
+                "passed": clamped_score >= 0.5 if clamped_score is not None else False,
             }
             if reason:
                 gr["reason"] = str(reason)
@@ -374,16 +392,17 @@ def experiment_to_openeval(
         scores = _get(trace_stat, "scores") or []
 
         grader_results: List[Dict[str, Any]] = []
-        for s in scores:
+        for j, s in enumerate(scores):
             score_val = _get(s, "score")
             score_name = _get(s, "name") or "unknown"
             reason = _get(s, "reason")
 
+            clamped_score = _clamp01(score_val)
             gr = {
-                "grader_id": _slugify(score_name),
+                "grader_id": _slugify(score_name, j),
                 "type": "custom",
-                "score": float(score_val) if score_val is not None else None,
-                "passed": score_val >= 0.5 if score_val is not None else False,
+                "score": clamped_score,
+                "passed": clamped_score >= 0.5 if clamped_score is not None else False,
             }
             if reason:
                 gr["reason"] = str(reason)

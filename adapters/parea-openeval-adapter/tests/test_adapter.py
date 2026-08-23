@@ -44,7 +44,7 @@ def test_test_case_collection_conversion():
     # Convert back to Parea-compatible dicts
     rebuilt = from_openeval(suite)
     assert len(rebuilt) == 3
-    assert rebuilt[0]["id"] == "1"
+    assert rebuilt[0]["id"] == 1
     assert rebuilt[0]["inputs"] == {"question": "What is 2+2?"}
     assert rebuilt[0]["target"] == "4"
     assert rebuilt[0]["tags"] == ["math", "easy"]
@@ -161,3 +161,66 @@ def test_trace_log_conversion_and_merging():
     # Verify start and end times resolved from logs
     assert result_set["started_at"] == "2026-08-23T00:00:00Z"
     assert result_set["completed_at"] == "2026-08-23T00:00:03Z"
+
+
+def test_test_case_empty_input_error():
+    # Verify ValueError is raised when inputs/input string is empty
+    tc = TestCase(id=1, test_case_collection_id=42, inputs={}, target=None, tags=[])
+    with pytest.raises(ValueError, match="has no non-empty input"):
+        to_openeval([tc])
+
+
+def test_score_clamping():
+    # Parea score values out of [0, 1] range
+    score_high = EvaluationResultSchema(name="high_score", score=1.5)
+    score_low = EvaluationResultSchema(name="low_score", score=-0.5)
+
+    stat = TraceStatsSchema(
+        trace_id="trace_1",
+        latency=0.5,
+        scores=[score_high, score_low]
+    )
+    experiment_stats = ExperimentStatsSchema(parent_trace_stats=[stat])
+
+    result_set = experiment_to_openeval(
+        experiment_stats,
+        suite_id="clamp_suite",
+        run_id="clamp_run"
+    )
+
+    # Validate against EvalPort SDK validator
+    validation = validate_result_set(result_set)
+    assert validation.valid, f"Validation failed: {validation.errors}"
+
+    grader_results = result_set["results"][0]["grader_results"]
+    assert grader_results[0]["score"] == 1.0  # Clamped to 1.0
+    assert grader_results[1]["score"] == 0.0  # Clamped to 0.0
+
+
+def test_from_openeval_rebuilds_valid_parea_objects():
+    # Original collection
+    tc = TestCase(id=1, test_case_collection_id=42, inputs={"question": "What is 2+2?"}, target="4", tags=["math"])
+    collection = TestCaseCollection(
+        id=42,
+        name="Collection",
+        created_at="2026-08-23T00:00:00Z",
+        last_updated_at="2026-08-23T00:00:00Z",
+        column_names=["inputs", "target", "tags"],
+        test_cases={1: tc}
+    )
+
+    # Export to suite
+    suite = to_openeval(collection)
+
+    # Import back to Parea-compatible dicts
+    imported_items = from_openeval(suite)
+    assert len(imported_items) == 1
+
+    # Feed imported item into real TestCase constructor and check validity
+    rebuilt_tc = TestCase(**imported_items[0])
+    assert rebuilt_tc.id == 1
+    assert rebuilt_tc.test_case_collection_id == 42
+    assert rebuilt_tc.inputs == {"question": "What is 2+2?"}
+    assert rebuilt_tc.target == "4"
+    assert rebuilt_tc.tags == ["math"]
+
