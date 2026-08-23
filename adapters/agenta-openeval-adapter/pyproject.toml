@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agenta-openeval-adapter"
+version = "0.1.0"
+description = "Convert Agenta testsets and evaluator invocation results to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+dependencies = ["evalport-sdk>=1.0.0", "agenta>=0.113.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["agenta", "evalport", "openeval", "llm", "evaluation", "testset", "eval"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/agenta-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Issue = "https://github.com/Agenta-AI/agenta/issues/6222"
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+# Agenta's own pydantic models (TestsetRevision, TestsetRevisionData, Testcase)
+# are named Test* and get imported into tests/test_adapter.py -- narrow class
+# collection to actual "*Tests" test-class names so pytest doesn't try (and
+# warn about failing) to collect them as test classes.
+python_classes = ["*Tests"]
