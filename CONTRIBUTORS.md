@@ -1,3 +1,4 @@
+
 # Contributors
 
 EvalPort is a specification, and specifications only matter if real implementations adopt them. This file credits people who have built real, working EvalPort integrations — whether that's a native integration shipped in another project's own repository, or a standalone adapter package shipped inside this repo's `adapters/` directory — not just filed issues or left comments, but shipped code against the spec — plus maintainers whose review substantively shaped the spec or an adapter, whether the answer was yes or not yet.
@@ -15,7 +16,7 @@ People who built a standalone `to_openeval()`/`from_openeval()` package that shi
 
 | Contributor | Contribution |
 |---|---|
-| [VimalN2005](https://github.com/VimalN2005) | Built [`parea-openeval-adapter`](adapters/parea-openeval-adapter/) ([PR #19](https://github.com/adhabnr-ux/evalport/pull/19), closing [#17](https://github.com/adhabnr-ux/evalport/issues/17)) — their first contribution to the project. Addressed a full round of review feedback (score clamping, an accidentally-committed lockfile, an empty-name fallback, a numeric-id cast fix) correctly on the first pass, with real test coverage added for each fix. |
+| [VimalN2005](https://github.com/VimalN2005) | Built [`parea-openeval-adapter`](adapters/parea-openeval-adapter/) ([PR #19](https://github.com/adhabnr-ux/evalport/pull/19), closing [#17](https://github.com/adhabnr-ux/evalport/issues/17)) — their first contribution to the project. Addressed a full round of review feedback (score clamping, an accidentally-committed lockfile, an empty-name fallback, a numeric-id cast fix) correctly on the first pass, with real test coverage added for each fix. Followed up with [`humanloop-openeval-adapter`](adapters/humanloop-openeval-adapter/) ([PR #26](https://github.com/adhabnr-ux/evalport/pull/26), closing [#15](https://github.com/adhabnr-ux/evalport/issues/15)) — a clean second contribution handling Humanloop's dual `inputs`/`messages` datapoint shapes and all four `EvaluatorReturnTypeEnum` judgment types (boolean/numeric/select/text) honestly, merged after independent verification against the real `humanloop` SDK and EvalPort spec validators. |
 
 ## Maintainer Reviewers
 
