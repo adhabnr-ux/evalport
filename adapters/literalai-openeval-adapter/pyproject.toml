@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "literalai-openeval-adapter"
+version = "0.1.0"
+description = "Convert Literal AI Dataset/DatasetItem/DatasetExperiment data to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Siddharth"}]
+keywords = ["literalai", "literal-ai", "evalport", "openeval", "llm", "evaluation", "dataset", "eval"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/literalai-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+
+[project.optional-dependencies]
+# Verified minimum: literalai 0.1.300 installs and imports cleanly.
+# The SDK is not a hard runtime dep (the adapter works against plain dicts),
+# but you need it installed to run tests against real Literal AI objects.
+literalai = ["literalai>=0.1.300"]
+test = ["pytest", "literalai>=0.1.300"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
