@@ -19,9 +19,11 @@ This adapter never imports ``athina`` itself. It converts the plain dicts and
   - ``Faithfulness.required_args()`` -> ``["context", "response"]``
   - ``CustomGrader.required_args()`` -> ``["response"]``
 
-- ``LlmEvalResult`` (``athina.interfaces.result.LlmEvalResult``) — the ``TypedDict`` every
+- ``EvalResult`` (``athina.interfaces.result.EvalResult``, called ``LlmEvalResult`` in
+  athina<1.7.39 and renamed upstream since — verified 2026-08-23 against the currently
+  installed ``athina==1.7.39``, which exports the new name) — the ``TypedDict`` every
   one of the above evaluators' ``.run()``/``.run_batch()`` returns:
-  ``{name, data, failure, reason, runtime, model}``. There is no separate numeric
+  ``{name, data, failure, reason, runtime, model, ...}``. There is no separate numeric
   confidence score in this shape — Athina's LLM evaluators are pass/fail plus a
   natural-language ``reason``, nothing else. See "Why score is a booleanized 0/1" below.
 
@@ -30,7 +32,7 @@ Why this adapter is scoped to `athina.evals.llm.*` only
 Athina also ships function evals (regex/contains/PII/...), Ragas-wrapping evals, safety
 evals, and conversation evals, each under its own subpackage. Reading the installed
 package's source showed those are *not* uniformly built on the same
-``LlmEvaluator``/``LlmEvalResult`` contract that the four public LLM evaluators share
+``LlmEvaluator``/``EvalResult`` contract that the four public LLM evaluators share
 (different base classes, different result shapes for at least the function-eval family).
 Rather than guess a mapping for surface this adapter hasn't actually verified against real
 classes, it covers only the one data model it read and tested against directly: the four
@@ -44,7 +46,7 @@ Round-trip design
 ``evaluator.run_batch(data)`` and builds an EvalPort suite from it *before* running
 anything — the suite describes the inputs, not yet the outputs.
 
-``result_to_openeval()`` takes that same ``data`` plus the ``List[LlmEvalResult]``
+``result_to_openeval()`` takes that same ``data`` plus the ``List[EvalResult]``
 ``run_batch()`` returned and builds an EvalPort ``ResultSet`` — now with outputs and
 grades.
 
@@ -194,7 +196,7 @@ def result_to_openeval(
 
     Args:
         data: the same list passed to to_openeval() / run_batch().
-        eval_results: the `List[LlmEvalResult]` (or None entries for errored rows --
+        eval_results: the `List[EvalResult]` (or None entries for errored rows --
             `_run_batch_generator` in athina's own source yields None on a per-row
             exception rather than raising) that run_batch() returned. Must be the same
             length and order as `data`.
@@ -210,7 +212,7 @@ def result_to_openeval(
 
     Why score is a booleanized 0/1, not a continuous confidence value
     ---------------------------------------------------------------------
-    `LlmEvalResult` (verified against the installed athina==1.7.39 source) carries only
+    `EvalResult` (verified against the installed athina==1.7.39 source) carries only
     `failure: bool` and a natural-language `reason` -- there is no separate numeric
     confidence/probability field the underlying LLM judge exposes. EvalPort's
     GraderResult.score is `[0, 1] | null`; this adapter reports `1.0` for a pass and

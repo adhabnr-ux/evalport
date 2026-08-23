@@ -24,6 +24,15 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/haystack-ope
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
+# No named `haystack` extra here (unlike most other adapters) because haystack-ai is
+# already a required base dependency above (`haystack-ai>=2.0.0`), not optional -- this
+# adapter imports real Haystack evaluator/dataclass types directly rather than
+# duck-typing against their shapes, so there is no separate version string to
+# de-duplicate into a self-referencing extra per
+# https://github.com/adhabnr-ux/evalport/discussions/13; `pip install -e ".[test]"`
+# already pulls in the pinned haystack-ai transitively via `dependencies`. Re-verified
+# 2026-08-23 in a fresh venv: resolved haystack-ai==3.0.0 (current PyPI release, above
+# the >=2.0.0 floor) and passed 45/45.
 test = ["pytest"]
 
 [tool.setuptools.packages.find]

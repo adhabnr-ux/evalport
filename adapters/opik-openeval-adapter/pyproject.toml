@@ -24,7 +24,15 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/opik-openeva
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
-test = ["pytest"]
+# opik-openeval-adapter's tests construct real opik.api_objects.dataset.dataset_item.DatasetItem
+# and opik.api_objects.experiment.experiment_item.ExperimentItemContent instances (not mocks),
+# so the real `opik` package is a genuine test dependency, not just a convenience extra -- a
+# fresh `pip install -e ".[test]"` was failing before this fix because `test` never declared it.
+# Verified 2026-08-23: fresh venv `pip install -e ".[test]"` + `pytest tests/ -v` resolved
+# opik==2.2.36 (current PyPI release) and passed 20/20. Self-referencing per the packaging
+# convention settled in https://github.com/adhabnr-ux/evalport/discussions/13.
+opik = ["opik>=2.2.36"]
+test = ["pytest", "opik-openeval-adapter[opik]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

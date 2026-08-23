@@ -28,7 +28,7 @@ Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 # resolved weave==0.53.6 and passed 23/23. See EvalPort Discussion #13 /
 # Issue #14 for the named-extra-reusing-test's-pin convention this follows.
 weave = ["weave>=0.53.6"]
-test = ["pytest", "weave>=0.53.6"]
+test = ["pytest", "weave-openeval-adapter[weave]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

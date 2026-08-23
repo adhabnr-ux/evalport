@@ -24,7 +24,20 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/mlflow-opene
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
-test = ["pytest"]
+# mlflow-openeval-adapter's to_openeval()/from_openeval() are duck-typed against
+# mlflow's public object/dict shapes (attribute- and key-based access) rather than
+# importing the real package directly, so mlflow was never a hard or test
+# dependency and this adapter's own tests build hand-rolled stand-in fixtures instead
+# of real mlflow objects -- that design choice is unchanged by this extra.
+# This named extra exists purely for downstream convenience: `pip install
+# mlflow-openeval-adapter[mlflow]` gets you a real, version-constrained mlflow install
+# alongside the adapter, the same discoverable pattern every other adapter in this
+# repo offers, per https://github.com/adhabnr-ux/evalport/discussions/13. Verified
+# 2026-08-23: fresh venv install of mlflow==3.15.1 (current PyPI release)
+# alongside this adapter resolves cleanly with no conflicts, and the adapter's own
+# test suite still passes unchanged with the real package present.
+mlflow = ["mlflow>=3.15.1"]
+test = ["pytest", "mlflow-openeval-adapter[mlflow]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

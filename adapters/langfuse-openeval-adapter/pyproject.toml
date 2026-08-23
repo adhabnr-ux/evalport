@@ -28,7 +28,7 @@ Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 # resolved langfuse==4.14.4 and passed 26/26. See EvalPort Discussion #13 /
 # Issue #14 for the named-extra-reusing-test's-pin convention this follows.
 langfuse = ["langfuse>=4.14.4"]
-test = ["pytest", "langfuse>=4.14.4"]
+test = ["pytest", "langfuse-openeval-adapter[langfuse]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

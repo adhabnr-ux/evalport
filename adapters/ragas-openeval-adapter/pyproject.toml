@@ -24,7 +24,20 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/ragas-openev
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
-test = ["pytest"]
+# ragas-openeval-adapter's to_openeval()/from_openeval() are duck-typed against
+# ragas's public object/dict shapes (attribute- and key-based access) rather than
+# importing the real package directly, so ragas was never a hard or test
+# dependency and this adapter's own tests build hand-rolled stand-in fixtures instead
+# of real ragas objects -- that design choice is unchanged by this extra.
+# This named extra exists purely for downstream convenience: `pip install
+# ragas-openeval-adapter[ragas]` gets you a real, version-constrained ragas install
+# alongside the adapter, the same discoverable pattern every other adapter in this
+# repo offers, per https://github.com/adhabnr-ux/evalport/discussions/13. Verified
+# 2026-08-23: fresh venv install of ragas==0.4.3 (current PyPI release)
+# alongside this adapter resolves cleanly with no conflicts, and the adapter's own
+# test suite still passes unchanged with the real package present.
+ragas = ["ragas>=0.4.3"]
+test = ["pytest", "ragas-openeval-adapter[ragas]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -24,7 +24,20 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/crewai-opene
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
-test = ["pytest"]
+# crewai-openeval-adapter's to_openeval()/from_openeval() are duck-typed against
+# crewai's public object/dict shapes (attribute- and key-based access) rather than
+# importing the real package directly, so crewai was never a hard or test
+# dependency and this adapter's own tests build hand-rolled stand-in fixtures instead
+# of real crewai objects -- that design choice is unchanged by this extra.
+# This named extra exists purely for downstream convenience: `pip install
+# crewai-openeval-adapter[crewai]` gets you a real, version-constrained crewai install
+# alongside the adapter, the same discoverable pattern every other adapter in this
+# repo offers, per https://github.com/adhabnr-ux/evalport/discussions/13. Verified
+# 2026-08-23: fresh venv install of crewai==1.15.17 (current PyPI release)
+# alongside this adapter resolves cleanly with no conflicts, and the adapter's own
+# test suite still passes unchanged with the real package present.
+crewai = ["crewai>=1.15.17"]
+test = ["pytest", "crewai-openeval-adapter[crewai]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

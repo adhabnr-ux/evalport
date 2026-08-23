@@ -29,7 +29,7 @@ Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 # range already pinned (and tested against) in `test` below; see EvalPort
 # Discussion #13 for the convention this follows.
 arthur-bench = ["arthur-bench>=0.3.0"]
-test = ["pytest", "arthur-bench>=0.3.0"]
+test = ["pytest", "arthur-bench-openeval-adapter[arthur-bench]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

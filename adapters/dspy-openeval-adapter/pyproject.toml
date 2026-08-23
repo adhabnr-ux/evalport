@@ -24,6 +24,14 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/dspy-openeva
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
+# No named `dspy` extra here (unlike most other adapters) because dspy is already a
+# required base dependency above (`dspy>=2.5.0`), not optional -- this adapter's
+# to_openeval()/from_openeval() import dspy directly rather than duck-typing against
+# its shapes, so there is no separate version string to de-duplicate into a
+# self-referencing extra per https://github.com/adhabnr-ux/evalport/discussions/13;
+# `pip install -e ".[test]"` already pulls in the pinned dspy transitively via
+# `dependencies`. Re-verified 2026-08-23 in a fresh venv: resolved dspy==3.3.1
+# (current PyPI release, well above the >=2.5.0 floor) and passed 27/27.
 test = ["pytest"]
 
 [tool.setuptools.packages.find]

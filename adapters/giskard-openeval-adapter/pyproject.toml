@@ -33,7 +33,7 @@ Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 # run, not carried over from an older git-source pin. See EvalPort Discussion
 # #13 / Issue #14 for the extras convention this follows.
 giskard = ["giskard-checks>=1.0.2rc1"]
-test = ["pytest", "pytest-asyncio", "giskard-checks>=1.0.2rc1"]
+test = ["pytest", "pytest-asyncio", "giskard-openeval-adapter[giskard]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

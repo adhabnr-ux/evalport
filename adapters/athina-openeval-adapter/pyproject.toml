@@ -28,9 +28,31 @@ Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 # CustomGrader) verified against athina==1.7.39. This adapter itself never imports `athina`
 # (it converts already-computed DataPoint/LlmEvalResult dicts), so the extra is for users who
 # also want the real SDK installed alongside it.
+#
+# The langchain-community and qdrant-client upper bounds are required, not
+# optional style preference: verified 2026-08-23 that a *bare* `pip install
+# "athina>=1.7.0,<2"` with no other constraints currently fails at import time
+# on a fresh install --
+#   ragas 0.2.15 (pulled in transitively by athina) imports
+#   langchain_community.chat_models.vertexai, which langchain-community
+#   removed in its 0.4.x line, so an unconstrained resolve picks the latest
+#   langchain-community (0.4.2) and `import athina` raises ModuleNotFoundError;
+#   pinning langchain-community<0.4 fixes that but then exposes a second,
+#   independent break: llama-index-vector-stores-qdrant (another athina
+#   transitive dependency) imports IDF_EMBEDDING_MODELS from
+#   qdrant_client.qdrant_fastembed, which newer qdrant-client dropped, so an
+#   unconstrained qdrant-client also fails.
+# Both are real upstream packaging gaps in athina-evals' own dependency
+# pinning, not anything specific to this adapter -- confirmed by reproducing
+# the identical failures with a bare `pip install athina` and no adapter code
+# involved at all. langchain-community==0.3.31 + qdrant-client==1.11.3 (both
+# resolved automatically by these bounds) import cleanly end to end. Test
+# self-references the athina extra (rather than duplicating these version
+# strings) per the packaging convention settled in
+# https://github.com/adhabnr-ux/evalport/discussions/13.
 [project.optional-dependencies]
-athina = ["athina>=1.7.0,<2"]
-test = ["pytest"]
+athina = ["athina>=1.7.0,<2", "langchain-community<0.4", "qdrant-client<1.12"]
+test = ["pytest", "athina-openeval-adapter[athina]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

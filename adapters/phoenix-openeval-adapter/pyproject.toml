@@ -29,7 +29,7 @@ Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 # Discussion #13 / Issue #14 for the named-extra-reusing-test's-pin convention
 # this follows.
 phoenix = ["arize-phoenix-client>=3.2.0"]
-test = ["pytest", "arize-phoenix-client>=3.2.0"]
+test = ["pytest", "phoenix-openeval-adapter[phoenix]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -24,6 +24,15 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/evidently-op
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
+# No named `evidently` extra here (unlike most other adapters) because evidently is
+# already a required base dependency above (`evidently>=0.4.25`), not optional -- this
+# adapter imports real Evidently Dataset/descriptor types directly rather than
+# duck-typing against their shapes, so there is no separate version string to
+# de-duplicate into a self-referencing extra per
+# https://github.com/adhabnr-ux/evalport/discussions/13; `pip install -e ".[test]"`
+# already pulls in the pinned evidently transitively via `dependencies`. Re-verified
+# 2026-08-23 in a fresh venv: resolved evidently==0.7.21 (current PyPI release, well
+# above the >=0.4.25 floor) and passed 44/44.
 test = ["pytest"]
 
 [tool.setuptools.packages.find]

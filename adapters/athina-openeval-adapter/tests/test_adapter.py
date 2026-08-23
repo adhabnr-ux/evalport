@@ -1,8 +1,9 @@
 """
 Tests for athina-openeval-adapter.
 
-These construct real `athina.loaders.loader.DataPoint` / `athina.interfaces.result.LlmEvalResult`
-instances (verified against the installed athina==1.7.39 package's actual source) rather than
+These construct real `athina.loaders.loader.DataPoint` / `athina.interfaces.result.EvalResult`
+(called `LlmEvalResult` in older athina releases; renamed upstream, verified 2026-08-23 against
+the currently installed athina==1.7.39, which exports the new name) instances rather than
 inventing an ad hoc shape. TypedDict has no runtime behavior of its own -- constructing "a real
 DataPoint" and "a plain dict with the same keys" are the same object at runtime -- so what makes
 these real is that every field name and required_args() combination below was read directly out
@@ -14,7 +15,7 @@ not a hand-rolled schema check.
 
 import pytest
 from athina.loaders.loader import DataPoint
-from athina.interfaces.result import LlmEvalResult
+from athina.interfaces.result import EvalResult
 
 from openeval.validate import validate_suite, validate_result_set
 
@@ -74,7 +75,7 @@ def _custom_grader_data():
 
 
 def _llm_eval_result(*, failure, reason, model="gpt-4-1106-preview", runtime=842, data=None):
-    return LlmEvalResult(
+    return EvalResult(
         name="does_response_answer_query",
         data=data or {},
         failure=failure,

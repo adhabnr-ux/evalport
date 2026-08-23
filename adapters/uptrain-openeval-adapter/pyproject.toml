@@ -28,7 +28,7 @@ Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 # resolved uptrain==0.7.1 and passed 21/21. See EvalPort Discussion #13 /
 # Issue #14 for the named-extra-reusing-test's-pin convention this follows.
 uptrain = ["uptrain>=0.7.1", "pandas"]
-test = ["pytest", "uptrain>=0.7.1", "pandas"]
+test = ["pytest", "uptrain-openeval-adapter[uptrain]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -24,6 +24,14 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/argilla-open
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
+# No named `argilla` extra here (unlike most other adapters) because argilla is
+# already a required base dependency above (`argilla>=2.0.0`), not optional -- this
+# adapter imports real argilla Record/response types directly rather than duck-typing
+# against their shapes, so there is no separate version string to de-duplicate into a
+# self-referencing extra per https://github.com/adhabnr-ux/evalport/discussions/13;
+# `pip install -e ".[test]"` already pulls in the pinned argilla transitively via
+# `dependencies`. Re-verified 2026-08-23 in a fresh venv: resolved argilla==2.8.0
+# (current PyPI release, above the >=2.0.0 floor) and passed 34/34.
 test = ["pytest"]
 
 [tool.setuptools.packages.find]

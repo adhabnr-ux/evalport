@@ -24,6 +24,19 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/autogen-open
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
+# Deliberately no named `autogen` extra, unlike most other adapters -- and unlike the
+# other 5 duck-typed adapters in this repo (ragas/langsmith/braintrust/mlflow/crewai)
+# that do get one purely for install-time convenience. Re-checked PyPI 2026-08-23:
+# "AutoGen" currently names three separate, actively released, non-identical packages
+# -- pyautogen (0.10.0), ag2 (1.0.2, the community fork that continued after
+# microsoft/autogen#8005/#8009), and autogen-agentchat (0.7.5, Microsoft's own
+# successor package) -- and this adapter's own README explains it was built precisely
+# to stay usable against any of them, working "against AutoGen's public eval
+# task/result shapes (objects or dicts) from the outside" rather than importing a
+# specific package. Pinning one here would silently pick a side in that fork and
+# contradict the adapter's documented design intent, so this is a considered decision
+# to skip the extra, not an oversight -- see
+# https://github.com/adhabnr-ux/evalport/issues/18 for the tracking discussion.
 test = ["pytest"]
 
 [tool.setuptools.packages.find]
