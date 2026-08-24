@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "traccia-openeval-adapter"
+version = "0.1.0"
+description = "Convert traccia.eval.evaluate() results to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["traccia", "evalport", "openeval", "llm", "evaluation", "observability", "eval"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/traccia-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Upstream = "https://github.com/traccia-ai/traccia-py"
+Proposal = "https://github.com/traccia-ai/traccia-py/issues/35"
+
+[project.optional-dependencies]
+# Self-referencing pinned extra (per https://github.com/adhabnr-ux/evalport/discussions/13):
+# unlike autogen/crewai/braintrust above (which work against duck-typed shapes and
+# never import their host package), this adapter's row_to_result()/results_to_openeval()
+# are written directly against traccia's real EvaluateResult dict shape (see
+# eval/evaluate.py) and its tests instantiate a real EvaluateResult by calling the
+# real evaluate(), so traccia is a genuine test dependency, not just install-time
+# convenience. Pinned to the exact version this adapter was built and tested against
+# (traccia 0.1.28, verified on PyPI 2026-08-24) -- traccia is still Beta-classified
+# and evaluate() is fairly new, so an unpinned floor risked silently drifting under
+# a shape change.
+traccia = ["traccia==0.1.28"]
+test = ["pytest", "traccia-openeval-adapter[traccia]"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
