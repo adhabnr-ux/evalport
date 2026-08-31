@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "halumem-openeval-adapter"
+version = "0.1.0"
+description = "Convert MemTensor/HaluMem operation-level QA, extraction, and update evaluation records to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["halumem", "memtensor", "memory", "hallucination", "evalport", "openeval", "llm", "evaluation", "eval", "benchmark"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/halumem-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Dataset = "https://github.com/MemTensor/HaluMem"
+Issue = "https://github.com/MemTensor/HaluMem/issues/12"
+
+[project.optional-dependencies]
+# HaluMem's eval/ pipeline (eval/evaluation.py, eval/eval_tools.py) is not a
+# pip-installable package either -- it's a set of scripts run against a
+# locally cloned checkout, that read/write plain JSON on disk. There is
+# nothing to pip install for it, so -- same as financebench-openeval-adapter
+# -- this adapter's only runtime dependency is evalport-sdk. "test" exists
+# only so the same `pip install -e ".[test]"` convention used by every other
+# adapter in this repo still works here.
+#
+# Per CC BY-NC-ND 4.0 (the HaluMem repo/dataset license) and the maintainer's
+# request in MemTensor/HaluMem#12, this adapter operates on a user's own
+# locally-generated HaluMem eval_results output and ships NO redistributed
+# HaluMem code or dataset content -- tests/fixtures/*.json here are entirely
+# synthetic, hand-written to match the real record shapes documented in
+# eval/evaluation.py and eval/eval_tools.py on the HaluMem `main` branch
+# (verified by reading those files directly), not downloaded or derived from
+# real HaluMem dataset rows.
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

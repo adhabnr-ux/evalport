@@ -1,0 +1,211 @@
+{
+  "_fixture_note": "Entirely synthetic (hand-written), NOT downloaded or derived from the real HaluMem dataset (CC BY-NC-ND 4.0) -- shaped to match the real record fields documented in eval/evaluation.py and eval/eval_tools.py on MemTensor/HaluMem's main branch. See MemTensor/HaluMem#12.",
+  "overall_score": {
+    "memory_integrity": {
+      "recall(all)": 0.3333333333333333,
+      "weighted_recall(all)": 0.5,
+      "interference_accuracy(all)": 0.5
+    },
+    "memory_accuracy": {
+      "target_accuracy(all)": 0.75,
+      "weighted_accuracy(all)": 0.5
+    },
+    "memory_extraction_f1": 0.46153846153846156,
+    "memory_update": {
+      "correct_update_memory_ratio(all)": 0.25,
+      "hallucination_update_memory_ratio(all)": 0.25,
+      "omission_update_memory_ratio(all)": 0.25,
+      "other_update_memory_ratio(all)": 0.25
+    },
+    "question_answering": {
+      "correct_qa_ratio(all)": 0.25,
+      "hallucination_qa_ratio(all)": 0.25,
+      "omission_qa_ratio(all)": 0.25,
+      "correct_qa_ratio(valid)": 0.3333333333333333,
+      "hallucination_qa_ratio(valid)": 0.3333333333333333,
+      "omission_qa_ratio(valid)": 0.3333333333333333
+    }
+  },
+  "question_answering_records": [
+    {
+      "uuid": "user_001",
+      "ssession_id": 0,
+      "question": "What city does Alex live in?",
+      "answer": "Portland",
+      "evidence": [
+        {"memory_content": "Alex moved to Portland in March.", "memory_type": "Event Memory"},
+        {"memory_content": "Alex's apartment is near downtown Portland.", "memory_type": "Persona Memory"}
+      ],
+      "question_type": "single-hop",
+      "difficulty": "easy",
+      "system_response": "Alex lives in Portland.",
+      "search_duration_ms": 340,
+      "result_type": "Correct"
+    },
+    {
+      "uuid": "user_001",
+      "ssession_id": 1,
+      "question": "What is Alex's favorite coffee order?",
+      "answer": "A oat-milk latte",
+      "evidence": [
+        {"memory_content": "Alex always orders an oat-milk latte.", "memory_type": "Persona Memory"}
+      ],
+      "question_type": "single-hop",
+      "difficulty": "easy",
+      "system_response": "Alex prefers a caramel macchiato.",
+      "search_duration_ms": 280,
+      "result_type": "Hallucination"
+    },
+    {
+      "uuid": "user_002",
+      "ssession_id": 0,
+      "question": "Who is Alex's manager at work?",
+      "answer": "Priya",
+      "evidence": [
+        {"memory_content": "Alex's manager Priya approved the request.", "memory_type": "Relationship Memory"}
+      ],
+      "question_type": "single-hop",
+      "difficulty": "medium",
+      "system_response": "I don't have that information.",
+      "search_duration_ms": 190,
+      "result_type": "Omission"
+    },
+    {
+      "uuid": "user_002",
+      "ssession_id": 1,
+      "question": "Where did Alex go to college?",
+      "answer": "Unknown / not discussed",
+      "evidence": [],
+      "question_type": "single-hop",
+      "difficulty": "hard",
+      "system_response": "n/a",
+      "search_duration_ms": 50,
+      "result_type": "Unscored"
+    }
+  ],
+  "memory_integrity_records": [
+    {
+      "uuid": "user_001",
+      "ssession_id": 0,
+      "memory_content": "Alex moved to Portland in March.",
+      "memory_type": "Event Memory",
+      "importance": 3,
+      "memory_source": "dialogue",
+      "is_update": "False",
+      "memory_integrity_score": 2
+    },
+    {
+      "uuid": "user_001",
+      "ssession_id": 0,
+      "memory_content": "Alex's apartment is near downtown Portland.",
+      "memory_type": "Persona Memory",
+      "importance": 2,
+      "memory_source": "dialogue",
+      "is_update": "False",
+      "memory_integrity_score": 1
+    },
+    {
+      "uuid": "user_002",
+      "ssession_id": 0,
+      "memory_content": "Alex's manager Priya approved the request.",
+      "memory_type": "Relationship Memory",
+      "importance": 3,
+      "memory_source": "dialogue",
+      "is_update": "False",
+      "memory_integrity_score": 0
+    },
+    {
+      "uuid": "user_002",
+      "ssession_id": 1,
+      "memory_content": "Alex once considered moving to Canada.",
+      "memory_type": "Persona Memory",
+      "importance": 1,
+      "memory_source": "interference",
+      "is_update": "False",
+      "memory_integrity_score": 0
+    },
+    {
+      "uuid": "user_002",
+      "ssession_id": 1,
+      "memory_content": "Alex dislikes cold weather.",
+      "memory_type": "Persona Memory",
+      "importance": 1,
+      "memory_source": "interference",
+      "is_update": "False",
+      "memory_integrity_score": 2
+    }
+  ],
+  "memory_accuracy_records": [
+    {
+      "uuid": "user_001",
+      "ssession_id": 0,
+      "memory_content": "Alex moved to Portland in March.",
+      "memory_accuracy_score": 2,
+      "is_included_in_golden_memories": "true"
+    },
+    {
+      "uuid": "user_001",
+      "ssession_id": 0,
+      "memory_content": "Alex has a pet dog named Rex.",
+      "memory_accuracy_score": 0,
+      "is_included_in_golden_memories": "false"
+    },
+    {
+      "uuid": "user_002",
+      "ssession_id": 0,
+      "memory_content": "Alex's manager is Priya, based in the Seattle office.",
+      "memory_accuracy_score": 1,
+      "is_included_in_golden_memories": "true"
+    }
+  ],
+  "memory_update_records": [
+    {
+      "uuid": "user_001",
+      "ssession_id": 2,
+      "memory_content": "Alex now lives in Seattle, having relocated from Portland.",
+      "original_memories": ["Alex moved to Portland in March."],
+      "memories_from_system": ["Alex relocated from Portland to Seattle."],
+      "importance": 3,
+      "memory_type": "Event Memory",
+      "memory_source": "dialogue",
+      "is_update": "True",
+      "memory_update_type": "Correct"
+    },
+    {
+      "uuid": "user_001",
+      "ssession_id": 2,
+      "memory_content": "Alex's coffee order changed to a plain espresso.",
+      "original_memories": ["Alex always orders an oat-milk latte."],
+      "memories_from_system": ["Alex still drinks oat-milk lattes."],
+      "importance": 1,
+      "memory_type": "Persona Memory",
+      "memory_source": "dialogue",
+      "is_update": "True",
+      "memory_update_type": "Hallucination"
+    },
+    {
+      "uuid": "user_002",
+      "ssession_id": 2,
+      "memory_content": "Alex's manager changed to Sam after the reorg.",
+      "original_memories": ["Alex's manager Priya approved the request."],
+      "memories_from_system": [],
+      "importance": 2,
+      "memory_type": "Relationship Memory",
+      "memory_source": "dialogue",
+      "is_update": "True",
+      "memory_update_type": "Omission"
+    },
+    {
+      "uuid": "user_002",
+      "ssession_id": 2,
+      "memory_content": "Alex's title changed to Senior Engineer.",
+      "original_memories": ["Alex is an engineer."],
+      "memories_from_system": ["Alex got promoted, details unclear."],
+      "importance": 2,
+      "memory_type": "Persona Memory",
+      "memory_source": "dialogue",
+      "is_update": "True",
+      "memory_update_type": "Other"
+    }
+  ]
+}
