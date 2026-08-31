@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nuguard-openeval-adapter"
+version = "0.1.0"
+description = "Convert nuguard Finding/ValidateRunResult objects to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.10"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["nuguard", "evalport", "openeval", "llm", "security", "redteam", "evaluation"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Security",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/nuguard-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Issue = "https://github.com/NuGuardAI/nuguard/issues/355"
+
+[project.optional-dependencies]
+# to_openeval()/from_openeval() are duck-typed against nuguard's public
+# Finding/ValidateRunResult shapes (pydantic model, .model_dump() dict, or
+# plain dict all work via the _get() accessor) rather than importing nuguard
+# directly, so nuguard was never a hard or test dependency -- this adapter's
+# own tests build hand-rolled fixture dicts/objects instead of a real nuguard
+# install. This extra exists purely for downstream convenience, mirroring the
+# same discoverable pattern the other adapters in this repo already use
+# (e.g. crewai-openeval-adapter's `[crewai]` extra).
+nuguard = ["nuguard"]
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
