@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "geobenchx-openeval-adapter"
+version = "0.1.0"
+description = "Convert GeoBenchX's Task/Solution/ScoreValues to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["geobenchx", "evalport", "openeval", "llm", "evaluation", "agents", "eval", "geospatial"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/geobenchx-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+GeoBenchX = "https://github.com/Solirinai/GeoBenchX"
+Issue = "https://github.com/Solirinai/GeoBenchX/issues/3"
+
+[project.optional-dependencies]
+# geobenchx-openeval-adapter's to_openeval()/from_openeval() are duck-typed against
+# GeoBenchX's public Task/Solution/Step/TaskSet shapes (pydantic model attribute
+# access, or an equivalent dict) rather than importing the geobenchx package
+# directly, so a hard dependency on `geobenchx` was never required at runtime.
+# GeoBenchX itself is also not published to PyPI and has no installable
+# package metadata at its repo root (no pyproject.toml/setup.py) -- only
+# requirements.txt -- so it cannot be declared as a normal PyPI dependency
+# anyway. This extra documents the actual working setup for anyone who wants
+# the real GeoBenchX pydantic classes (Task, Solution, Step, TaskSet,
+# ScoreValues, TaskLabels) alongside this adapter, e.g. for building fixtures
+# or running this adapter against a real benchmark_set/*.json file: clone
+# https://github.com/Solirinai/GeoBenchX and put its repo root on PYTHONPATH
+# (only `geobenchx.dataclasses`/`geobenchx.constants`/`geobenchx.utils` are
+# needed for this adapter's purposes, and those three modules only require
+# numpy, pandas, and pydantic -- not GeoBenchX's much heavier geopandas/
+# langchain toolset in geobenchx/tools.py, which this adapter never imports).
+# Verified 2026-08-31: `git clone https://github.com/Solirinai/GeoBenchX` at
+# commit 0edf610, with numpy/pandas/pydantic installed, importing
+# `geobenchx.dataclasses.Task/Solution/Step/TaskSet` and
+# `geobenchx.constants.ScoreValues/TaskLabels` works with no other install step.
+geobenchx = ["numpy", "pandas", "pydantic"]
+test = ["pytest", "geobenchx-openeval-adapter[geobenchx]"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
