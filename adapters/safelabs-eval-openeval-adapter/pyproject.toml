@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safelabs-eval-openeval-adapter"
+version = "0.1.0"
+description = "Convert safelabs-eval (AgentSafeLabs) OWASP-ASI red-team eval prompts/results to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.11"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["safelabs-eval", "agentsafelabs", "evalport", "openeval", "owasp", "asi", "red-teaming", "llm", "evaluation"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Security",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/safelabs-eval-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Proposal = "https://github.com/AgentSafeLabs/safelabs-eval/issues/1"
+
+[project.optional-dependencies]
+# safelabs-eval-openeval-adapter's to_openeval()/from_openeval() are duck-typed
+# against safelabs-eval's public PromptEntry/EvalRecord/EvalResult/ScoringResult
+# shapes (attribute-based access, matching pydantic model field names exactly)
+# rather than importing the real package directly, so safelabs-eval was never a
+# hard dependency and the adapter's own unit tests build hand-rolled stand-in
+# fixtures instead of real safelabs-eval objects -- same "outside" pattern as
+# crewai-openeval-adapter and langsmith-openeval-adapter.
+# This named extra exists for downstream convenience and so this adapter's own
+# test suite can *also* run a second, higher-fidelity pass against genuine
+# safelabs-eval pydantic model instances (PromptEntry, EvalRecord, EvalResult,
+# ScoringResult) when it's installed -- see the two
+# test_real_safelabs_eval_*_round_trip tests at the bottom of
+# tests/test_adapter.py, each of which uses pytest.importorskip and is
+# skipped (not failed) when this extra isn't installed.
+safelabs-eval = ["safelabs-eval>=0.2.2"]
+test = ["pytest", "safelabs-eval-openeval-adapter[safelabs-eval]"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
