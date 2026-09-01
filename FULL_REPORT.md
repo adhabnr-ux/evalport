@@ -70,13 +70,12 @@ EvalPort is an open standard for portable LLM evaluation datasets, launched July
 - **Status:** Issue closed as "not planned." Door left open for future.
 - **Significance:** Braintrust is a well-funded eval platform. Luca is experienced (prev at Supabase and Sentry). Soft no for now, but not a rejection of the spec.
 
-### 6. SUJAL KANDI (Bryan-eng-lng) — CrewAI Community Contributor
-- **GitHub:** @Bryan-eng-lng — https://github.com/Bryan-eng-lng
-- **Bio:** "AI Engineer | Agentic AI & LLM Systems | LangGraph · LangChain · RAG | Building autonomous agents that think, research, and self-correct" | **Followers:** 2 | **Public repos:** 20 | **Joined:** Jul 2025
-- **Role:** New contributor, interested in agent eval
+### 6. Sujal Kandi (Sujal-Kandi) — CrewAI Community Contributor
+- **GitHub:** @Sujal-Kandi — https://github.com/Sujal-Kandi
+- **Role:** Community member, asked whether the CrewAI proposal was open for a contributor to pick up
 - **What they said:** "Would the maintainers like a contributor to pick this up?"
 - **What I replied:** Said yes, provided code example for CrewAI task → EvalPort TestCase mapping.
-- **Status:** Waiting for Bryan to open a PR. No action yet.
+- **Status:** No contributor ever opened a PR on crewAIInc/crewAI#6711 — this line previously claimed a "Bryan-eng-lng" was waiting to; that GitHub handle does not exist and never commented on the issue. The only real comment other than mine is Sujal-Kandi's question above. `crewai-openeval-adapter` was later built independently, without CrewAI-side review — see that adapter's README Credit section.
 
 ### 7. eslam-ahmed43 — Ollama Community Contributor
 - **GitHub:** @eslam-ahmed43 — https://github.com/eslam-ahmed43
@@ -96,7 +95,7 @@ EvalPort is an open standard for portable LLM evaluation datasets, launched July
 |------|-------|-------|--------|
 | microsoft/autogen | #8005 / PR #8009 | DresdenGman | ✅ PR OPEN — reviewed |
 | UKGovernmentBEIS/inspect_ai | #4681 | Charles Teague, Kohsheen Tiku | ✅ Maintainer engaged — simplified ask pending response |
-| crewAIInc/crewAI | #6711 | Bryan-eng-lng | ✅ Contributor ready — awaiting PR |
+| crewAIInc/crewAI | #6711 | Sujal-Kandi | ⏳ Asked if a contributor could pick it up — no PR ever followed |
 | Arize-ai/openinference | #3458 | Mikyo King | ⏳ Awaiting response to clarification |
 | ollama/ollama | #17463 | eslam-ahmed43 | ✅ Contributor ready — awaiting PR |
 
@@ -166,3 +165,7 @@ promptfoo/promptfoo, confident-ai/deepeval, vibrantlabsai/ragas, langchain-ai/la
 - Inspect AI adds doc cross-reference → "Supported by UK AISI"
 - 2 more PRs from CrewAI/Ollama → "3 frameworks integrating"
 - 100+ GitHub stars → visible community interest
+
+---
+
+**Editorial note (added during an integrity audit, see repo history for this commit):** This report is a very early, informal status snapshot from Day 5 of the project (Aug 2, 2026) and predates the more carefully verified `spec/ADOPTION.md`, which is the actively maintained adoption-status document and re-verifies its claims against live GitHub/PyPI/npm state. Only entry #6 above (the fabricated "Bryan-eng-lng" identity) was corrected in this pass, because it was the specific issue this audit was scoped to find and fix. The other entries in this file (Charles Teague, Kohsheen Tiku, Mikyo King, Luca Forstner, eslam-ahmed43, and the metrics table) were not independently re-verified here and should not be treated as confirmed accurate — cross-check against `spec/ADOPTION.md` and the live issue threads before relying on anything in this file, or consider retiring it in favor of `spec/ADOPTION.md`.
