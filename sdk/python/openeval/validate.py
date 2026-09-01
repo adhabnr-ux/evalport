@@ -144,7 +144,14 @@ def validate_result_set(r):
                 attempt=x["attempt"]
                 if not isinstance(attempt,int) or isinstance(attempt,bool) or attempt<1:
                     errors.append(_err(f"$.results[{i}].attempt","must be an integer >= 1","OUT_OF_RANGE"))
-                else:
+                elif isinstance(x.get("test_case_id"),str) and isinstance(run_id,str):
+                    # Only build the uniqueness key once test_case_id/run_id are
+                    # confirmed strings: an unhashable type (list/dict) here would
+                    # raise TypeError on the `in`/`add` below, and either field
+                    # being malformed already produces its own structured error
+                    # above ($.run_id / $.results[i].test_case_id), so skipping
+                    # the dedup check for those entries -- rather than crashing
+                    # -- is safe.
                     key=(x.get("test_case_id"),run_id,attempt)
                     if key in seen_attempts:
                         errors.append(_err(f"$.results[{i}].attempt",f"duplicate (test_case_id, run_id, attempt): {key}","DUPLICATE_ATTEMPT"))

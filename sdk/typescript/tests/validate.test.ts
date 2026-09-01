@@ -273,6 +273,53 @@ test("attempt/isolation-free result set still validates (backward compatibility)
   expect(validateResultSet(doc).valid).toBe(true);
 });
 
+// --- PR #35 post-merge Copilot review: attempt-uniqueness key must not throw
+// on a non-string test_case_id/run_id (github.com/adhabnr-ux/evalport/pull/35) ---
+
+test("non-string test_case_id with attempt reports an error without throwing", () => {
+  // Before the fix, JSON.stringify([x.test_case_id, runId, attempt]) could
+  // throw (e.g. BigInt anywhere in the tuple) instead of returning a
+  // structured validation error. A plain non-string test_case_id exercises
+  // the same code path without needing a BigInt fixture.
+  const doc = {
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    results: [
+      { test_case_id: ["not", "a", "string"] as unknown as string, attempt: 1, passed: true, grader_results: [graderResult()] },
+    ],
+  };
+  let r: ReturnType<typeof validateResultSet> | undefined;
+  expect(() => { r = validateResultSet(doc); }).not.toThrow();
+  expect(r!.valid).toBe(false);
+  expect(r!.errors.some(e => e.path === "$.results[0].test_case_id" && e.code === "REQUIRED")).toBe(true);
+});
+
+test("BigInt run_id with attempt reports an error without throwing", () => {
+  const doc = {
+    version: "1.0.0", suite_id: "s", run_id: 1n as unknown as string, started_at: "2026-01-01T00:00:00Z",
+    results: [
+      { test_case_id: "tc1", attempt: 1, passed: true, grader_results: [graderResult()] },
+    ],
+  };
+  let r: ReturnType<typeof validateResultSet> | undefined;
+  expect(() => { r = validateResultSet(doc); }).not.toThrow();
+  expect(r!.valid).toBe(false);
+  expect(r!.errors.some(e => e.path === "$.run_id" && e.code === "REQUIRED")).toBe(true);
+});
+
+test("duplicate attempt still caught when test_case_id and run_id are valid strings", () => {
+  // Guard against a regression where the crash fix above accidentally
+  // disables the uniqueness check for the normal (all-strings) case.
+  const r = validateResultSet({
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    results: [
+      { test_case_id: "tc1", attempt: 1, passed: true, grader_results: [graderResult()] },
+      { test_case_id: "tc1", attempt: 1, passed: false, grader_results: [graderResult(0.0, false)] },
+    ],
+  });
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.code === "DUPLICATE_ATTEMPT")).toBe(true);
+});
+
 // --- validateDocument dispatch ---
 
 test("validateDocument dispatches by type", () => {

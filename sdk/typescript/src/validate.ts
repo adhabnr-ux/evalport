@@ -215,7 +215,12 @@ export function validateResultSet(r: unknown): ValidationResult {
         const attempt = x.attempt;
         if (typeof attempt !== "number" || !Number.isInteger(attempt) || attempt < 1) {
           errors.push(err(`$.results[${i}].attempt`, "must be an integer >= 1", "OUT_OF_RANGE"));
-        } else {
+        } else if (typeof x.test_case_id === "string" && typeof runId === "string") {
+          // Only build the uniqueness key once test_case_id/run_id are confirmed
+          // strings: JSON.stringify throws on values like BigInt, and either
+          // field being malformed already produces its own structured error
+          // above ($.run_id / $.results[i].test_case_id), so skipping the
+          // dedup check for those entries -- rather than crashing -- is safe.
           const key = JSON.stringify([x.test_case_id, runId, attempt]);
           if (seenAttempts.has(key)) {
             errors.push(err(`$.results[${i}].attempt`, `duplicate (test_case_id, run_id, attempt): ${key}`, "DUPLICATE_ATTEMPT"));

@@ -155,3 +155,48 @@ def test_attempt_and_isolation_free_resultset_still_validates():
     assert result.valid
     assert "attempt" not in rs["results"][0]
     assert "isolation" not in rs
+
+# --- PR #35 post-merge Copilot review: attempt-uniqueness key must not crash
+# on unhashable test_case_id/run_id (github.com/adhabnr-ux/evalport/pull/35) ---
+
+def test_non_string_test_case_id_with_attempt_reports_error_without_crashing():
+    # Before the fix, building the (test_case_id, run_id, attempt) uniqueness
+    # key with an unhashable test_case_id (e.g. a list, as a malformed
+    # producer might emit) raised an uncaught TypeError instead of returning
+    # a structured validation error.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "results": [
+            {"test_case_id": ["not", "a", "string"], "attempt": 1, "passed": True, "grader_results": [_grader_result()]},
+        ],
+    }
+    result = validate_result_set(rs)  # must not raise
+    assert not result.valid
+    assert any(e["path"] == "$.results[0].test_case_id" and e["code"] == "REQUIRED" for e in result.errors)
+
+def test_unhashable_run_id_with_attempt_reports_error_without_crashing():
+    # Same failure mode as above, but for run_id: an unhashable run_id (e.g. a
+    # dict) must not crash the uniqueness-key computation.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": {"not": "a string"}, "started_at": "2026-01-01T00:00:00Z",
+        "results": [
+            {"test_case_id": "tc1", "attempt": 1, "passed": True, "grader_results": [_grader_result()]},
+        ],
+    }
+    result = validate_result_set(rs)  # must not raise
+    assert not result.valid
+    assert any(e["path"] == "$.run_id" and e["code"] == "REQUIRED" for e in result.errors)
+
+def test_duplicate_attempt_still_caught_when_test_case_id_and_run_id_are_valid():
+    # Guard against a regression where the crash fix above accidentally
+    # disables the uniqueness check for the normal (all-strings) case.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "results": [
+            {"test_case_id": "tc1", "attempt": 1, "passed": True, "grader_results": [_grader_result()]},
+            {"test_case_id": "tc1", "attempt": 1, "passed": False, "grader_results": [_grader_result(0.0, False)]},
+        ],
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["code"] == "DUPLICATE_ATTEMPT" for e in result.errors)
