@@ -1,0 +1,21 @@
+{
+  "test_case": "myrecipes/leave-review",
+  "task_json_sha256": "af1c9e2b3d4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b",
+  "instruction": "Leave a 4-star review on the recipe page saying the dish needed more seasoning, and suggest adding a pinch of salt.",
+  "model": "claude-sonnet-4-6",
+  "harness": "hermes",
+  "thinking_level": null,
+  "temperature": 0.0,
+  "max_tokens": 4096,
+  "email_used": "agent-eval-01@example.com",
+  "timestamp": "2026-08-30T14:02:11Z",
+  "time_limit_minutes": 15,
+  "duration_seconds": 187,
+  "intercepted": true,
+  "result_category": "passed",
+  "failure_category": null,
+  "infra_failure": false,
+  "adjusted_eligible": true,
+  "infra_flags": [],
+  "task_id": "myrecipes/leave-review#0001"
+}

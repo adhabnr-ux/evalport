@@ -1,0 +1,11 @@
+{
+  "match": true,
+  "reason": "The POST body submits rating=4 and a tip mentioning 'add a pinch of salt', fulfilling the instruction.",
+  "judge_model": "deepseek-v4-pro",
+  "raw": "{\"match\": true, \"reason\": \"The POST body submits rating=4 and a tip mentioning 'add a pinch of salt', fulfilling the instruction.\"}",
+  "error": null,
+  "task_id": "myrecipes/leave-review#0001",
+  "test_case": "myrecipes/leave-review",
+  "original_intercepted": true,
+  "rubric": "lenient"
+}

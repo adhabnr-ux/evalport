@@ -1,0 +1,11 @@
+{
+  "match": false,
+  "reason": "The intercepted order is for the paperback edition, not the hardcover edition the instruction specified.",
+  "judge_model": "deepseek-v4-pro",
+  "raw": "{\"match\": false, \"reason\": \"The intercepted order is for the paperback edition, not the hardcover edition the instruction specified.\"}",
+  "error": null,
+  "task_id": "bookhaven/gift-wrap#0003",
+  "test_case": "bookhaven/gift-wrap",
+  "original_intercepted": true,
+  "rubric": "lenient"
+}

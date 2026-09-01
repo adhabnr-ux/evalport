@@ -1,0 +1,39 @@
+{
+  "batch_dir": "/home/eval/work/ClawBench/claw-output/sweep/claude-sonnet-4-6/batch-20260830-140000",
+  "n_total": 3,
+  "n_intercepted": 2,
+  "tasks": [
+    {
+      "task_id": "myrecipes/leave-review#0001",
+      "test_case": "myrecipes/leave-review",
+      "intercepted": true,
+      "match_lenient": true,
+      "reason_lenient": "The POST body submits rating=4 and a tip mentioning 'add a pinch of salt', fulfilling the instruction."
+    },
+    {
+      "task_id": "shopmart/checkout-flow#0002",
+      "test_case": "shopmart/checkout-flow",
+      "intercepted": false,
+      "match_lenient": null,
+      "reason_lenient": ""
+    },
+    {
+      "task_id": "bookhaven/gift-wrap#0003",
+      "test_case": "bookhaven/gift-wrap",
+      "intercepted": true,
+      "match_lenient": false,
+      "reason_lenient": "The intercepted order is for the paperback edition, not the hardcover edition the instruction specified."
+    }
+  ],
+  "n_match_lenient": 1,
+  "n_mismatch_lenient": 1,
+  "n_judge_err_lenient": 0,
+  "pass_rate_stage1_only": 0.6666666666666666,
+  "reward_pct_lenient": 0.3333333333333333,
+  "n_judge_match": 1,
+  "n_judge_mismatch": 1,
+  "n_judge_error": 0,
+  "pass_rate_with_judge": 0.3333333333333333,
+  "judge_model": "deepseek-v4-pro",
+  "rubrics": ["lenient"]
+}
