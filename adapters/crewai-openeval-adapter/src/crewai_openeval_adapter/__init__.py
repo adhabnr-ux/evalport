@@ -12,9 +12,10 @@ it works against CrewAI's public Task/TaskOutput/Crew shapes (objects or
 dicts) from the outside, so you get EvalPort import/export today without
 needing anything merged into CrewAI's core.
 
-Design credit: the to_openeval()/from_openeval() surface mirrors the mapping
-proposed in https://github.com/adhabnr-ux/evalport/issues/5 and discussed
-with @Bryan-eng-lng on crewAIInc/crewAI#6711.
+Design note: the to_openeval()/from_openeval() surface follows the same
+shape as this repo's other standalone adapters (see
+https://github.com/adhabnr-ux/evalport/issues/5 for the original proposal
+thread on crewAIInc/crewAI#6711, which received no contributor pickup).
 """
 from __future__ import annotations
 
