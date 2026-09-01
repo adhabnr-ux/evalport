@@ -194,6 +194,60 @@ def test_stable_id_matches_across_fresh_interpreter_process(eval_results, tmp_pa
     assert subprocess_id == this_process_suite["test_cases"][0]["id"]
 
 
+def test_duplicate_content_in_same_session_gets_distinct_ids(eval_results):
+    # MemTensor/HaluMem#12, maintainer's second follow-up (2026-08-31): the digest
+    # was operation+uuid+ssession_id+content only, so two records with identical
+    # content in the same user/session/operation collided onto the same ID. Build
+    # two memory_accuracy records that are identical in every field the old digest
+    # hashed (same uuid, same ssession_id, same memory_content) but are genuinely
+    # distinct records -- as HaluMem can really produce (e.g. two separate extracted
+    # candidates that happen to repeat the same phrase from two different turns).
+    records = [
+        {
+            "uuid": "user_003",
+            "ssession_id": 0,
+            "memory_content": "Alex likes tea.",
+            "memory_accuracy_score": 2,
+            "is_included_in_golden_memories": "true",
+        },
+        {
+            "uuid": "user_003",
+            "ssession_id": 0,
+            "memory_content": "Alex likes tea.",
+            "memory_accuracy_score": 0,
+            "is_included_in_golden_memories": "false",
+        },
+    ]
+    suite = to_openeval(records, "memory_accuracy", judge_model="m")
+    ids = [tc["id"] for tc in suite["test_cases"]]
+    assert len(ids) == 2
+    assert ids[0] != ids[1], "duplicate content in the same uuid/session must not collide onto one ID"
+
+    # result_to_openeval() must derive the SAME two IDs (by position), so that each
+    # result still references its own distinct test case rather than colliding too.
+    rs = result_to_openeval(records, "memory_accuracy", suite_id=suite["id"], run_id="r1", judge_model="m")
+    result_ids = [r["test_case_id"] for r in rs["results"]]
+    assert result_ids == ids
+    # And each result's grader_results still carry the record's OWN score, not a
+    # collapsed/duplicated pair -- confirming the fix didn't just dedupe IDs while
+    # losing which score belongs to which record.
+    assert rs["results"][0]["grader_results"][0]["metadata"]["halumem.memory_accuracy_score"] == 2
+    assert rs["results"][1]["grader_results"][0]["metadata"]["halumem.memory_accuracy_score"] == 0
+
+
+def test_duplicate_content_ids_still_stable_and_digest_based(eval_results):
+    # The fix must not regress point 4: IDs stay a deterministic digest (not e.g. a
+    # bare incrementing counter), reproducible across independent calls.
+    records = [
+        {"uuid": "u", "ssession_id": 0, "question": "Same question?", "answer": "A"},
+        {"uuid": "u", "ssession_id": 0, "question": "Same question?", "answer": "B"},
+    ]
+    suite_a = to_openeval(records, "qa", judge_model="m")
+    suite_b = to_openeval(records, "qa", judge_model="m")
+    assert [tc["id"] for tc in suite_a["test_cases"]] == [tc["id"] for tc in suite_b["test_cases"]]
+    assert suite_a["test_cases"][0]["id"] != suite_a["test_cases"][1]["id"]
+
+
 def test_stable_ids_match_between_suite_and_resultset(eval_results):
     # A Result.test_case_id MUST reference a real TestCase.id in the same suite --
     # validate_suite() checks dangling grader refs, but the test_case_id <-> suite
