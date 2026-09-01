@@ -39,6 +39,19 @@ HaluMem maintainer (@hush-cd) raised on the initial proposal:
    randomized per-process for strings unless ``PYTHONHASHSEED`` is fixed; a real digest
    has no such caveat).
 
+Two further points the maintainer raised on 2026-08-31, after reviewing the merged
+adapter, are also addressed:
+
+5. **ID collision on duplicate content.** The digest in point 4 originally hashed only
+   ``operation + uuid + ssession_id + content``, so two records with identical content
+   in the same user/session/operation (e.g. two distinct ``memory_accuracy`` candidates
+   that happen to extract the same text) collided onto the same ID. ``_stable_id()`` now
+   also folds in the record's position within the record list, which disambiguates that
+   case while staying a deterministic function of the input (not an incrementing
+   process-local counter).
+6. **Scope framing and judge-model guidance in the README** -- see the "Scope: what
+   this adapter is (and is not)" section below.
+
 ## What this module operates on
 
 HaluMem's real evaluation output (``eval/evaluation.py``'s ``main()``) is a single
@@ -158,13 +171,23 @@ def load_eval_results(path: str) -> Dict[str, Any]:
         return json.load(f)
 
 
-def _stable_id(operation: str, uuid_: Any, ssession_id: Any, content: Any) -> str:
+def _stable_id(operation: str, uuid_: Any, ssession_id: Any, index: Any, content: Any) -> str:
     """Deterministic test-case / result ID: a SHA-256 digest over HaluMem's own
     identifiers, per MemTensor/HaluMem#12 point 4. NOT Python's built-in `hash()`,
     which is per-process-randomized for strings and therefore unusable for an ID
     that has to mean the same thing on the next run or in a different process.
+
+    `index` is the record's position in the operation's record list (as passed to
+    to_openeval()/result_to_openeval() -- the same list, so the same position for a
+    given record in both calls). Per MemTensor/HaluMem#12's second follow-up
+    (2026-08-31): the original digest was operation+uuid+ssession_id+content only,
+    so two records with identical content in the same user/session/operation (a
+    real, observed HaluMem shape -- e.g. two distinct memory_accuracy candidates
+    that happen to extract the same text from two different turns) collided onto
+    the same ID. Folding in the record's position disambiguates that case while
+    staying deterministic and reproducible across processes/runs.
     """
-    raw = "\x1f".join(str(x) for x in (operation, uuid_, ssession_id, content))
+    raw = "\x1f".join(str(x) for x in (operation, uuid_, ssession_id, index, content))
     digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
     return f"halumem_{operation}_{uuid_}_s{ssession_id}_{digest}"
 
@@ -319,7 +342,7 @@ def _test_case_qa(idx: int, record: Dict[str, Any]) -> Dict[str, Any]:
     uuid_ = record.get("uuid")
     ssession_id = record.get("ssession_id")
     question = record.get("question", "")
-    tc_id = _stable_id("qa", uuid_, ssession_id, question)
+    tc_id = _stable_id("qa", uuid_, ssession_id, idx, question)
 
     evidence = record.get("evidence") or []
     context = [e.get("memory_content", "") for e in evidence if isinstance(e, dict) and e.get("memory_content")]
@@ -351,7 +374,7 @@ def _test_case_memory_integrity(idx: int, record: Dict[str, Any]) -> Dict[str, A
     uuid_ = record.get("uuid")
     ssession_id = record.get("ssession_id")
     content = record.get("memory_content", "")
-    tc_id = _stable_id("memory_integrity", uuid_, ssession_id, content)
+    tc_id = _stable_id("memory_integrity", uuid_, ssession_id, idx, content)
 
     metadata: Dict[str, Any] = {
         "halumem.operation": "memory_integrity",
@@ -379,7 +402,7 @@ def _test_case_memory_accuracy(idx: int, record: Dict[str, Any]) -> Dict[str, An
     uuid_ = record.get("uuid")
     ssession_id = record.get("ssession_id")
     content = record.get("memory_content", "")
-    tc_id = _stable_id("memory_accuracy", uuid_, ssession_id, content)
+    tc_id = _stable_id("memory_accuracy", uuid_, ssession_id, idx, content)
 
     metadata: Dict[str, Any] = {
         "halumem.operation": "memory_accuracy",
@@ -402,7 +425,7 @@ def _test_case_memory_update(idx: int, record: Dict[str, Any]) -> Dict[str, Any]
     uuid_ = record.get("uuid")
     ssession_id = record.get("ssession_id")
     content = record.get("memory_content", "")
-    tc_id = _stable_id("memory_update", uuid_, ssession_id, content)
+    tc_id = _stable_id("memory_update", uuid_, ssession_id, idx, content)
 
     metadata: Dict[str, Any] = {
         "halumem.operation": "memory_update",
@@ -484,11 +507,11 @@ def to_openeval(
 # ---------------------------------------------------------------------------
 
 
-def _result_qa(record: Dict[str, Any]) -> Dict[str, Any]:
+def _result_qa(idx: int, record: Dict[str, Any]) -> Dict[str, Any]:
     uuid_ = record.get("uuid")
     ssession_id = record.get("ssession_id")
     question = record.get("question", "")
-    tc_id = _stable_id("qa", uuid_, ssession_id, question)
+    tc_id = _stable_id("qa", uuid_, ssession_id, idx, question)
 
     result_type = record.get("result_type")
     recognized = result_type in _QA_KNOWN_RESULT_TYPES
@@ -529,11 +552,11 @@ def _result_qa(record: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _result_memory_integrity(record: Dict[str, Any]) -> Dict[str, Any]:
+def _result_memory_integrity(idx: int, record: Dict[str, Any]) -> Dict[str, Any]:
     uuid_ = record.get("uuid")
     ssession_id = record.get("ssession_id")
     content = record.get("memory_content", "")
-    tc_id = _stable_id("memory_integrity", uuid_, ssession_id, content)
+    tc_id = _stable_id("memory_integrity", uuid_, ssession_id, idx, content)
 
     raw_score = record.get("memory_integrity_score")
     is_interference = record.get("memory_source") == "interference"
@@ -579,11 +602,11 @@ def _result_memory_integrity(record: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _result_memory_accuracy(record: Dict[str, Any]) -> Dict[str, Any]:
+def _result_memory_accuracy(idx: int, record: Dict[str, Any]) -> Dict[str, Any]:
     uuid_ = record.get("uuid")
     ssession_id = record.get("ssession_id")
     content = record.get("memory_content", "")
-    tc_id = _stable_id("memory_accuracy", uuid_, ssession_id, content)
+    tc_id = _stable_id("memory_accuracy", uuid_, ssession_id, idx, content)
 
     raw_score = record.get("memory_accuracy_score")
     included_raw = record.get("is_included_in_golden_memories")
@@ -622,11 +645,11 @@ def _result_memory_accuracy(record: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _result_memory_update(record: Dict[str, Any]) -> Dict[str, Any]:
+def _result_memory_update(idx: int, record: Dict[str, Any]) -> Dict[str, Any]:
     uuid_ = record.get("uuid")
     ssession_id = record.get("ssession_id")
     content = record.get("memory_content", "")
-    tc_id = _stable_id("memory_update", uuid_, ssession_id, content)
+    tc_id = _stable_id("memory_update", uuid_, ssession_id, idx, content)
 
     update_type = record.get("memory_update_type")
     recognized = update_type in _UPDATE_KNOWN_TYPES
@@ -697,7 +720,7 @@ def result_to_openeval(
     records = _records_for(data, operation)
     resolved_model = _resolve_judge_model(judge_model)
     builder = _RESULT_BUILDERS[operation]
-    results = [builder(r) for r in records]
+    results = [builder(i, r) for i, r in enumerate(records)]
 
     return {
         "version": _SPEC_VERSION,
