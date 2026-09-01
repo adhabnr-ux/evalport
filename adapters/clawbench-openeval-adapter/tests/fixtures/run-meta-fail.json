@@ -1,0 +1,21 @@
+{
+  "test_case": "shopmart/checkout-flow",
+  "task_json_sha256": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+  "instruction": "Add the cheapest 32oz water bottle to the cart and complete checkout using the saved payment method.",
+  "model": "claude-sonnet-4-6",
+  "harness": "hermes",
+  "thinking_level": null,
+  "temperature": 0.0,
+  "max_tokens": 4096,
+  "email_used": "agent-eval-02@example.com",
+  "timestamp": "2026-08-30T14:05:44Z",
+  "time_limit_minutes": 15,
+  "duration_seconds": 902,
+  "intercepted": false,
+  "result_category": "failed",
+  "failure_category": "time_limit_exceeded",
+  "infra_failure": false,
+  "adjusted_eligible": true,
+  "infra_flags": [],
+  "task_id": "shopmart/checkout-flow#0002"
+}

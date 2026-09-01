@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clawbench-openeval-adapter"
+version = "0.1.0"
+description = "Convert ClawBench's run-meta.json / rescore-summary.json results to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["clawbench", "evalport", "openeval", "llm", "agent", "eval", "evaluation", "benchmark"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/clawbench-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Issue = "https://github.com/TIGER-AI-Lab/ClawBench/issues/322"
+
+[project.optional-dependencies]
+# run_to_result()/to_openeval() take already-parsed dicts (json.load() on
+# run-meta.json / the judge verdict file / rescore-summary.json), so this
+# adapter never depends on ClawBench itself -- there is nothing to pip
+# install alongside it.
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
