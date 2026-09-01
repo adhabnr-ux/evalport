@@ -44,7 +44,7 @@ When a task has `tools` (read directly off the task, or off `task.agent.tools`),
 
 ## Credit
 
-The `to_openeval()` / `from_openeval()` mapping follows the design discussed with [@Bryan-eng-lng](https://github.com/Bryan-eng-lng) on [crewAIInc/crewAI#6711](https://github.com/crewAIInc/crewAI/issues/6711) and tracked as [evalport#5](https://github.com/adhabnr-ux/evalport/issues/5).
+This adapter follows the same standalone-package approach as [autogen-openeval-adapter](../autogen-openeval-adapter). It's informed by the real proposal thread at [crewAIInc/crewAI#6711](https://github.com/crewAIInc/crewAI/issues/6711) (opened July 2026 — the thread got a "would a contributor like to pick this up?" comment, but no contributor ever did) and tracked as [evalport#5](https://github.com/adhabnr-ux/evalport/issues/5). No CrewAI maintainer or contributor reviewed or shaped this specific mapping — it was designed and built independently against CrewAI's public `Task`/`TaskOutput`/`Crew` shapes, the same way the rest of this repo's standalone adapters are.
 
 ## Spec
 
