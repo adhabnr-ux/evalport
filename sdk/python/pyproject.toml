@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "evalport-sdk"
 # This is the PACKAGE release version (ordinary semver for the SDK code itself),
 # a distinct axis from openeval.types.OPENEVAL_VERSION (which spec revision this
-# SDK targets/stamps into generated documents, now 1.0.0-rc.3). Bumped
+# SDK targets/stamps into generated documents, now 1.0.0-rc.5). Bumped
 # 1.0.0 -> 1.1.0 (MINOR, not a prerelease) for three backward-compatible fixes:
 # semver 2.0.0 acceptance in `version` fields, open (non-enum) grader `type` with
 # params.handler for non-standard types, and enforcement of the [0,1] score range
@@ -17,6 +17,14 @@ name = "evalport-sdk"
 # "1.0.0-rc.1" while the spec had already moved to "1.0.0-rc.2" -- now correctly
 # tracks "1.0.0-rc.3"). Neither change removes or narrows any existing field, so
 # this stays MINOR, not MAJOR.
+# Bumped again 1.2.0 -> 1.3.0 (MINOR) for the 1.0.0-rc.5 spec change (Discussion
+# #22 / issue #20, repetition/attempt tracking): new optional `Result.attempt`
+# (int >= 1) and `ResultSet.isolation` (open string, declared once per
+# ResultSet -- see spec/SPEC.md Extension Mechanism -> Repetition & Attempt
+# Tracking) fields, plus a validate_result_set() rule rejecting a duplicate
+# (test_case_id, run_id, attempt). Additive and backward-compatible: an
+# existing ResultSet with no attempt/isolation fields is untouched and stays
+# fully valid, so this stays MINOR, not MAJOR.
 # Deliberately NOT a prerelease tag like "1.0.0-rc.1": all 30 shipped adapters
 # under adapters/ declare `evalport-sdk>=1.0.0`, and a prerelease identifier
 # sorts BELOW its base version in both PEP 440 and semver -- publishing a
@@ -27,7 +35,7 @@ name = "evalport-sdk"
 # publishing this release requires a maintainer to run `twine upload` with a PyPI
 # API token (see MANUAL-ACTIONS.md), which is a manual, credentialed step outside
 # what this repository/session can do.
-version = "1.2.0"
+version = "1.3.0"
 description = "Python SDK for EvalPort — The Open Evaluation Standard"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.8"

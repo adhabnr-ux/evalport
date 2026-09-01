@@ -1,0 +1,41 @@
+{
+  "description": "Demonstrates the repetition/attempt tracking convention from Discussion #22 / issue #20 (raised by AgentVerity's maintainer): a ResultSet representing 3 repeated trials of the same test case, each carrying an ascending attempt (1-indexed, observation order) that pairs with test_case_id + run_id as the join key stability/flip-rate analysis needs. isolation is declared once at the ResultSet level (not per-Result -- see spec/SPEC.md Extension Mechanism -> Repetition & Attempt Tracking for why), meaning every attempt in this ResultSet shares the same fresh-session claim. A ResultSet like this MUST validate: attempt values are unique per (test_case_id, run_id, attempt), each is a positive integer, and isolation is a plain (non-enum) string.",
+  "type": "resultset",
+  "expect": { "valid": true },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_stability_eval",
+    "run_id": "run_20260830_repeated",
+    "started_at": "2026-08-30T09:00:00Z",
+    "isolation": "fresh",
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "attempt": 1,
+        "actual_output": "Paris",
+        "passed": true,
+        "grader_results": [
+          { "grader_id": "gr_exact_match", "type": "exact_match", "score": 1.0, "passed": true }
+        ]
+      },
+      {
+        "test_case_id": "tc_001",
+        "attempt": 2,
+        "actual_output": "Paris",
+        "passed": true,
+        "grader_results": [
+          { "grader_id": "gr_exact_match", "type": "exact_match", "score": 1.0, "passed": true }
+        ]
+      },
+      {
+        "test_case_id": "tc_001",
+        "attempt": 3,
+        "actual_output": "Lyon",
+        "passed": false,
+        "grader_results": [
+          { "grader_id": "gr_exact_match", "type": "exact_match", "score": 0.0, "passed": false }
+        ]
+      }
+    ]
+  }
+}

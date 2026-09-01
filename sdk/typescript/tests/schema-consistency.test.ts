@@ -230,6 +230,84 @@ describe("resultset: per-result completed_at (Discussion #10) agrees", () => {
     expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
   });
 
+  test("multi-attempt ResultSet with ResultSet-level isolation validates in both paths", () => {
+    // Discussion #22 / issue #20: multiple Results per test_case_id,
+    // distinguished by ascending attempt, plus a single ResultSet-level
+    // isolation. Mirrors spec/conformance/fixtures/multi_attempt_resultset_valid.json.
+    const doc = {
+      version: "1.0.0",
+      suite_id: "s1",
+      run_id: "run1",
+      started_at: "2026-08-16T00:00:00Z",
+      isolation: "fresh",
+      results: [
+        {
+          test_case_id: "tc1",
+          attempt: 1,
+          grader_results: [{ grader_id: "g1", type: "exact_match", score: 1.0, passed: true }],
+          passed: true,
+        },
+        {
+          test_case_id: "tc1",
+          attempt: 2,
+          grader_results: [{ grader_id: "g1", type: "exact_match", score: 0.0, passed: false }],
+          passed: false,
+        },
+      ],
+    };
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+  });
+
+  test("duplicate (test_case_id, run_id, attempt) rejected by the hand-rolled validator", () => {
+    // Cross-item uniqueness like (test_case_id, run_id, attempt) can't be
+    // expressed by JSON Schema's per-item `minimum: 1` on attempt -- it's a
+    // hand-rolled-validator-only rule, by design, the same way DUPLICATE_ID
+    // for suite test case ids is. So this is checked only against the
+    // hand-rolled path, not asserted to also fail the raw JSON Schema.
+    const doc = {
+      version: "1.0.0",
+      suite_id: "s1",
+      run_id: "run1",
+      started_at: "2026-08-16T00:00:00Z",
+      results: [
+        {
+          test_case_id: "tc1",
+          attempt: 1,
+          grader_results: [{ grader_id: "g1", type: "exact_match", score: 1.0, passed: true }],
+          passed: true,
+        },
+        {
+          test_case_id: "tc1",
+          attempt: 1,
+          grader_results: [{ grader_id: "g1", type: "exact_match", score: 0.0, passed: false }],
+          passed: false,
+        },
+      ],
+    };
+    const r = validateResultSet(doc);
+    expect(r.valid).toBe(false);
+    expect(r.errors.some((e) => e.code === "DUPLICATE_ATTEMPT")).toBe(true);
+  });
+
+  test("attempt/isolation absent still validates in both paths (backward compatibility)", () => {
+    const doc = {
+      version: "1.0.0",
+      suite_id: "s1",
+      run_id: "run1",
+      started_at: "2026-08-16T00:00:00Z",
+      results: [
+        {
+          test_case_id: "tc1",
+          grader_results: [{ grader_id: "g1", type: "exact_match", score: 0.9, passed: true }],
+          passed: true,
+        },
+      ],
+    };
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+  });
+
   test("metadata.openeval.partial marker needs no schema change and validates in both paths", () => {
     const doc = {
       version: "1.0.0",

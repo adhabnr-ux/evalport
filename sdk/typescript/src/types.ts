@@ -1,14 +1,13 @@
-// Tracks spec/SPEC.md's own **Version** header. Bumped to 1.0.0-rc.4 alongside the
+// Tracks spec/SPEC.md's own **Version** header. Bumped to 1.0.0-rc.5 alongside the
 // spec (see spec/SPEC.md Change Log). NOTE: this constant had drifted once before --
 // it was still hardcoded to "1.0.0-rc.1" after spec/SPEC.md itself moved to
 // 1.0.0-rc.2, meaning every document this SDK generated was silently stamping a
 // stale spec version. Caught and fixed while implementing the 1.0.0-rc.3 changes
 // (Discussions #9, #10, #11); src/convert.ts imports this constant rather than
-// hardcoding a version literal, and tests/convert.test.ts (added alongside this
-// 1.0.0-rc.4 bump, mirroring the equivalent guard sdk/python/tests/test_convert.py
-// already had) now asserts every document convert.ts produces stamps this exact
-// value, so this kind of drift can't happen silently on the TypeScript side either.
-export const OPENEVAL_VERSION = "1.0.0-rc.4";
+// hardcoding a version literal, and tests/convert.test.ts asserts every document
+// convert.ts produces stamps this exact value, so a bump like this one
+// (Discussion #22, repetition/attempt tracking) can't drift silently either.
+export const OPENEVAL_VERSION = "1.0.0-rc.5";
 
 export type GraderType =
   | "exact_match"
@@ -104,6 +103,12 @@ export interface Result {
   passed: boolean;
   duration_ms?: number;
   completed_at?: string;
+  // 1-indexed repetition number for this test_case_id within this run_id;
+  // ascending = observation order. Absent means single-attempt (no change for
+  // existing producers). Pairs with test_case_id + run_id as the join key for
+  // repeated trials -- see Discussion #22 / spec/SPEC.md Extension Mechanism ->
+  // Repetition & Attempt Tracking.
+  attempt?: number;
   error?: {
     type: "timeout" | "provider_error" | "runner_error";
     message?: string;
@@ -140,6 +145,12 @@ export interface ResultSet {
   completed_at?: string;
   provider?: ProviderConfig;
   runner?: { name: string; version: string };
+  // Trial isolation mode ("fresh" | "shared" | any other open string) for
+  // repeated attempts represented in `results` -- declared once per ResultSet,
+  // not per Result, per Discussion #22 / issue #20: a ResultSet is one
+  // collection of evidence and should make one isolation claim; a producer
+  // that genuinely mixes isolation modes should emit two ResultSets instead.
+  isolation?: string;
   results: Result[];
   summary?: Summary;
   metadata?: Record<string, unknown>;

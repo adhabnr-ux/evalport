@@ -187,10 +187,96 @@ test("missing required top-level fields rejected", () => {
   expect(validateResultSet({}).valid).toBe(false);
 });
 
+// --- result set: attempt + isolation (Discussion #22 / issue #20) ---
+
+function graderResult(score = 1.0, passed = true) {
+  return { grader_id: "g1", type: "exact_match", score, passed };
+}
+
+test("multiple attempts per test_case_id validate", () => {
+  const r = validateResultSet({
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    results: [
+      { test_case_id: "tc1", attempt: 1, passed: true, grader_results: [graderResult()] },
+      { test_case_id: "tc1", attempt: 2, passed: true, grader_results: [graderResult()] },
+      { test_case_id: "tc1", attempt: 3, passed: false, grader_results: [graderResult(0.0, false)] },
+    ],
+  });
+  expect(r.valid, JSON.stringify(r.errors)).toBe(true);
+});
+
+test("duplicate (test_case_id, run_id, attempt) rejected", () => {
+  const r = validateResultSet({
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    results: [
+      { test_case_id: "tc1", attempt: 1, passed: true, grader_results: [graderResult()] },
+      { test_case_id: "tc1", attempt: 1, passed: false, grader_results: [graderResult(0.0, false)] },
+    ],
+  });
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.code === "DUPLICATE_ATTEMPT")).toBe(true);
+});
+
+test("same attempt number on different test_case_id is not a collision", () => {
+  const r = validateResultSet({
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    results: [
+      { test_case_id: "tc1", attempt: 1, passed: true, grader_results: [graderResult()] },
+      { test_case_id: "tc2", attempt: 1, passed: true, grader_results: [graderResult()] },
+    ],
+  });
+  expect(r.valid).toBe(true);
+});
+
+test("attempt must be a positive integer", () => {
+  const r = validateResultSet({
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    results: [{ test_case_id: "tc1", attempt: 0, passed: true, grader_results: [graderResult()] }],
+  });
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.code === "OUT_OF_RANGE" && e.path === "$.results[0].attempt")).toBe(true);
+});
+
+test("ResultSet-level isolation validates fine", () => {
+  const r = validateResultSet({
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    isolation: "fresh",
+    results: [{ test_case_id: "tc1", attempt: 1, passed: true, grader_results: [graderResult()] }],
+  });
+  expect(r.valid).toBe(true);
+});
+
+test("isolation is an open string, not a closed enum", () => {
+  const r = validateResultSet({
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    isolation: "sandboxed_container_per_attempt",
+    results: [{ test_case_id: "tc1", passed: true, grader_results: [graderResult()] }],
+  });
+  expect(r.valid).toBe(true);
+});
+
+test("non-string isolation rejected", () => {
+  const r = validateResultSet({
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    isolation: 123 as unknown as string,
+    results: [{ test_case_id: "tc1", passed: true, grader_results: [graderResult()] }],
+  });
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.isolation")).toBe(true);
+});
+
+test("attempt/isolation-free result set still validates (backward compatibility)", () => {
+  const doc = {
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    results: [{ test_case_id: "tc1", passed: true, grader_results: [graderResult()] }],
+  };
+  expect(validateResultSet(doc).valid).toBe(true);
+});
+
 // --- validateDocument dispatch ---
 
 test("validateDocument dispatches by type", () => {
   expect(validateDocument({id:"g1",type:"exact_match"}, "grader").valid).toBe(true);
   expect(validateDocument({id:"tc1",input:"hi",graders:["g1"]}, "testcase").valid).toBe(true);
-  expect(() => validateDocument({}, "bogus" as unknown as "suite")).toThrow();
+  expect(() => validateDocument({}, "bogus" as unknown as "suite").valid).toThrow();
 });

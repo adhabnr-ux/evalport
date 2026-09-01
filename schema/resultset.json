@@ -57,9 +57,13 @@
       },
       "additionalProperties": false
     },
+    "isolation": {
+      "type": "string",
+      "description": "Trial isolation mode for repeated attempts represented in this ResultSet's results (see attempt, below): whether repeats ran in fresh sessions/model instances or a shared session/context, which changes what a stability or flip-rate computation over those repeats can actually support statistically. An open string, not a closed enum -- \"fresh\" and \"shared\" are conventional values, not an exhaustive list, so a new isolation strategy never needs a spec change just to be nameable. Declared once per ResultSet, not per Result: a single ResultSet is one collection of evidence and should make one isolation claim; a producer whose repeats genuinely mix isolation modes SHOULD emit separate ResultSets rather than mix modes within one (see Extension Mechanism -> Repetition & Attempt Tracking). Absent means unknown/not declared -- existing ResultSets need no change."
+    },
     "results": {
       "type": "array",
-      "description": "One result per test case.",
+      "description": "One result per test case, or -- when using attempt -- multiple results per test case representing repeated trials of it.",
       "minItems": 1,
       "items": {
         "type": "object",
@@ -73,6 +77,11 @@
           "actual_output": {
             "type": "string",
             "description": "The output produced by the LLM."
+          },
+          "attempt": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "1-indexed repetition number for this test_case_id within this run_id; ascending values are observation order (attempt 2 was observed after attempt 1, etc.), giving consumers a documented ordering guarantee instead of having to infer one from completed_at or array position. Absent, or 1 with no sibling attempts, means a single-attempt result -- existing single-shot ResultSets need no change. Together with test_case_id and run_id this forms the join key for pairing repeated trials of the same case (e.g. LangSmith's num_repetitions, Promptfoo's per-test repeats, Inspect AI's epochs) for stability/flip-rate analysis; (test_case_id, run_id, attempt) MUST be unique across results when attempt is present -- see Validation Rules -> Uniqueness and Extension Mechanism -> Repetition & Attempt Tracking."
           },
           "completed_at": {
             "type": "string",

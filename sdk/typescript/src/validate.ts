@@ -190,15 +190,40 @@ export function validateResultSet(r: unknown): ValidationResult {
   if (!isNonEmptyString(r.suite_id)) errors.push(err("$.suite_id", "required", "REQUIRED"));
   if (!isNonEmptyString(r.run_id)) errors.push(err("$.run_id", "required", "REQUIRED"));
   if (typeof r.started_at !== "string") errors.push(err("$.started_at", "required", "REQUIRED"));
+  const runId = r.run_id;
+  if (r.isolation !== undefined && r.isolation !== null && typeof r.isolation !== "string") {
+    errors.push(err("$.isolation", "must be string", "TYPE_ERROR"));
+  }
 
   const rs = r.results;
   if (!Array.isArray(rs) || rs.length === 0) {
     errors.push(err("$.results", "required", "REQUIRED"));
   } else {
+    // Discussion #22 / issue #20: (test_case_id, run_id, attempt) must be
+    // unique across results whenever attempt is present -- the join key for
+    // repeated trials of the same test case (LangSmith num_repetitions,
+    // Promptfoo repeats, Inspect AI epochs). attempt is absent-by-default and
+    // single-attempt-per-case ResultSets need no change; this check is a no-op
+    // unless a producer actually opts into attempt.
+    const seenAttempts = new Set<string>();
     rs.forEach((x, i) => {
       if (!isPlainObject(x)) { errors.push(err(`$.results[${i}]`, "object", "TYPE_ERROR")); return; }
       if (typeof x.test_case_id !== "string") errors.push(err(`$.results[${i}].test_case_id`, "required", "REQUIRED"));
       if (typeof x.passed !== "boolean") errors.push(err(`$.results[${i}].passed`, "required", "REQUIRED"));
+
+      if (x.attempt !== undefined && x.attempt !== null) {
+        const attempt = x.attempt;
+        if (typeof attempt !== "number" || !Number.isInteger(attempt) || attempt < 1) {
+          errors.push(err(`$.results[${i}].attempt`, "must be an integer >= 1", "OUT_OF_RANGE"));
+        } else {
+          const key = JSON.stringify([x.test_case_id, runId, attempt]);
+          if (seenAttempts.has(key)) {
+            errors.push(err(`$.results[${i}].attempt`, `duplicate (test_case_id, run_id, attempt): ${key}`, "DUPLICATE_ATTEMPT"));
+          } else {
+            seenAttempts.add(key);
+          }
+        }
+      }
 
       const grs = x.grader_results;
       if (!Array.isArray(grs)) {
