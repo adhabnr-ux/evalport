@@ -121,15 +121,35 @@ def validate_result_set(r):
     if not isinstance(r,dict): return ValidationResult(False,[_err("$","Must be object","TYPE_ERROR")])
     if not isinstance(r.get("version"),str) or not SEMVER_RE.match(r.get("version","")): errors.append(_err("$.version","semver","INVALID_VERSION"))
     if not isinstance(r.get("suite_id"),str) or not r["suite_id"]: errors.append(_err("$.suite_id","required","REQUIRED"))
-    if not isinstance(r.get("run_id"),str) or not r["run_id"]: errors.append(_err("$.run_id","required","REQUIRED"))
+    run_id=r.get("run_id")
+    if not isinstance(run_id,str) or not run_id: errors.append(_err("$.run_id","required","REQUIRED"))
     if not isinstance(r.get("started_at"),str): errors.append(_err("$.started_at","required","REQUIRED"))
+    isolation=r.get("isolation")
+    if isolation is not None and not isinstance(isolation,str): errors.append(_err("$.isolation","must be string","TYPE_ERROR"))
     rs=r.get("results")
     if not isinstance(rs,list) or not rs: errors.append(_err("$.results","required","REQUIRED"))
     else:
+        # Discussion #22 / issue #20: (test_case_id, run_id, attempt) must be
+        # unique across results whenever attempt is present -- the join key for
+        # repeated trials of the same test case (LangSmith num_repetitions,
+        # Promptfoo repeats, Inspect AI epochs). attempt is absent-by-default
+        # and single-attempt-per-case ResultSets need no change; this check is a
+        # no-op unless a producer actually opts into attempt.
+        seen_attempts=set()
         for i,x in enumerate(rs):
             if not isinstance(x,dict): errors.append(_err(f"$.results[{i}]","object","TYPE_ERROR"));continue
             if not isinstance(x.get("test_case_id"),str): errors.append(_err(f"$.results[{i}].test_case_id","required","REQUIRED"))
             if not isinstance(x.get("passed"),bool): errors.append(_err(f"$.results[{i}].passed","required","REQUIRED"))
+            if "attempt" in x and x["attempt"] is not None:
+                attempt=x["attempt"]
+                if not isinstance(attempt,int) or isinstance(attempt,bool) or attempt<1:
+                    errors.append(_err(f"$.results[{i}].attempt","must be an integer >= 1","OUT_OF_RANGE"))
+                else:
+                    key=(x.get("test_case_id"),run_id,attempt)
+                    if key in seen_attempts:
+                        errors.append(_err(f"$.results[{i}].attempt",f"duplicate (test_case_id, run_id, attempt): {key}","DUPLICATE_ATTEMPT"))
+                    else:
+                        seen_attempts.add(key)
             grs=x.get("grader_results")
             if not isinstance(grs,list): errors.append(_err(f"$.results[{i}].grader_results","required","REQUIRED"))
             else:

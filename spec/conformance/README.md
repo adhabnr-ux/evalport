@@ -48,6 +48,8 @@ Every fixture here has also been independently checked against the raw JSON Sche
 | `judge_hardening_self_report.json` | The `openeval.judge_hardening` self-report convention from Discussion #11. |
 | `custom_grader_missing_handler_rejected.json` | A `custom` (or any non-standard) grader type without `params.handler` is rejected. |
 | `non_standard_grader_type_with_handler_valid.json` | Grader `type` is open, not a closed enum, as long as `params.handler` is present. |
+| `multi_attempt_resultset_valid.json` | The repetition/attempt tracking convention from Discussion #22 / issue #20: multiple `Result`s for one `test_case_id` distinguished by ascending `attempt`, plus a single `ResultSet`-level `isolation`. |
+| `duplicate_attempt_collision_rejected.json` | Discussion #22 / issue #20's uniqueness rule: a duplicate `(test_case_id, run_id, attempt)` is rejected. |
 
 This set is deliberately not exhaustive — it's the fixtures that came directly out of building 30 real framework adapters and encountering these exact edge cases in practice (see the `description` field on each fixture for which adapter surfaced it), plus the two open-RFC conventions (#10, #11) it made sense to ship fixtures for at the same time their spec text landed. Contributions of new fixtures — especially ones derived from a *real* edge case you hit building or consuming an EvalPort document, not a hypothetical one — are welcome via the same RFC process as any other spec change (see `spec/SPEC.md`'s Governance section); a new fixture that isn't also a spec/behavior change doesn't need the full two-week comment period, just a PR.
 

@@ -309,6 +309,67 @@ def test_resultset_partial_marker_via_metadata_validates_in_both_paths():
     assert validate_result_set(doc).valid
 
 
+def test_multi_attempt_resultset_valid_in_both_paths():
+    # Discussion #22 / issue #20: multiple Results per test_case_id,
+    # distinguished by ascending attempt, plus a single ResultSet-level
+    # isolation. Mirrors spec/conformance/fixtures/multi_attempt_resultset_valid.json.
+    doc = _minimal_result_set("1.0.0")
+    doc["isolation"] = "fresh"
+    doc["results"] = [
+        {
+            "test_case_id": "tc1",
+            "attempt": 1,
+            "grader_results": [{"grader_id": "g1", "type": "exact_match", "score": 1.0, "passed": True}],
+            "passed": True,
+        },
+        {
+            "test_case_id": "tc1",
+            "attempt": 2,
+            "grader_results": [{"grader_id": "g1", "type": "exact_match", "score": 0.0, "passed": False}],
+            "passed": False,
+        },
+    ]
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+
+
+def test_duplicate_test_case_id_run_id_attempt_rejected_by_hand_rolled_validator():
+    # additionalProperties: false + the JSON Schema's own `minimum: 1` on
+    # attempt does NOT (and structurally cannot) express a cross-item
+    # uniqueness constraint like (test_case_id, run_id, attempt) -- that's a
+    # hand-rolled-validator-only rule, by design, the same way DUPLICATE_ID for
+    # suite test case ids is. So this fixture is intentionally checked against
+    # only the hand-rolled path, not asserted to also fail the raw JSON Schema.
+    doc = _minimal_result_set("1.0.0")
+    doc["results"] = [
+        {
+            "test_case_id": "tc1",
+            "attempt": 1,
+            "grader_results": [{"grader_id": "g1", "type": "exact_match", "score": 1.0, "passed": True}],
+            "passed": True,
+        },
+        {
+            "test_case_id": "tc1",
+            "attempt": 1,
+            "grader_results": [{"grader_id": "g1", "type": "exact_match", "score": 0.0, "passed": False}],
+            "passed": False,
+        },
+    ]
+    result = validate_result_set(doc)
+    assert not result.valid
+    assert any(e["code"] == "DUPLICATE_ATTEMPT" for e in result.errors)
+
+
+def test_resultset_isolation_absent_still_validates_in_both_paths():
+    # Optional field -- backward compatibility for every ResultSet produced
+    # before this change.
+    doc = _minimal_result_set("1.0.0")
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+    assert "isolation" not in doc
+    assert "attempt" not in doc["results"][0]
+
+
 def test_boolean_score_rejected_by_both_python_bool_is_int_subclass():
     # Python's bool is a subclass of int, so a naive `isinstance(x, (int, float))`
     # range check would silently accept True/False as scores 1/0. Guard against

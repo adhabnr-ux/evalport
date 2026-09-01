@@ -58,3 +58,100 @@ def test_bool_is_not_a_valid_score():
     base_result = {"test_case_id":"tc1","passed":True,"grader_results":[{"grader_id":"g1","type":"exact_match","score":True,"passed":True}]}
     rs = {"version":"1.0.0","suite_id":"s","run_id":"r","started_at":"2026-01-01T00:00:00Z","results":[base_result]}
     assert not validate_result_set(rs).valid
+
+# --- Discussion #22 / issue #20: attempt + isolation ---
+
+def _grader_result(score=1.0, passed=True):
+    return {"grader_id":"g1","type":"exact_match","score":score,"passed":passed}
+
+def test_multiple_attempts_per_test_case_id_valid():
+    # Repeated trials of the same test_case_id, distinguished by ascending
+    # attempt, are exactly what Discussion #22 added attempt to represent.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "results": [
+            {"test_case_id": "tc1", "attempt": 1, "passed": True, "grader_results": [_grader_result()]},
+            {"test_case_id": "tc1", "attempt": 2, "passed": True, "grader_results": [_grader_result()]},
+            {"test_case_id": "tc1", "attempt": 3, "passed": False, "grader_results": [_grader_result(0.0, False)]},
+        ],
+    }
+    result = validate_result_set(rs)
+    assert result.valid, result.errors
+
+def test_duplicate_test_case_id_run_id_attempt_rejected():
+    # The normative uniqueness rule: (test_case_id, run_id, attempt) must be
+    # unique across results[] whenever attempt is present. Two Results for the
+    # same test_case_id both stamped attempt: 1 is a collision, not a second
+    # repetition (which would be attempt: 2).
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "results": [
+            {"test_case_id": "tc1", "attempt": 1, "passed": True, "grader_results": [_grader_result()]},
+            {"test_case_id": "tc1", "attempt": 1, "passed": False, "grader_results": [_grader_result(0.0, False)]},
+        ],
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["code"] == "DUPLICATE_ATTEMPT" for e in result.errors)
+
+def test_same_attempt_number_different_test_case_id_is_not_a_collision():
+    # attempt uniqueness is scoped to (test_case_id, run_id, attempt) -- two
+    # different test cases can both have an attempt: 1 with no conflict.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "results": [
+            {"test_case_id": "tc1", "attempt": 1, "passed": True, "grader_results": [_grader_result()]},
+            {"test_case_id": "tc2", "attempt": 1, "passed": True, "grader_results": [_grader_result()]},
+        ],
+    }
+    assert validate_result_set(rs).valid
+
+def test_attempt_must_be_positive_integer():
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "results": [{"test_case_id": "tc1", "attempt": 0, "passed": True, "grader_results": [_grader_result()]}],
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["code"] == "OUT_OF_RANGE" and e["path"] == "$.results[0].attempt" for e in result.errors)
+
+def test_resultset_level_isolation_validates_fine():
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "isolation": "fresh",
+        "results": [{"test_case_id": "tc1", "attempt": 1, "passed": True, "grader_results": [_grader_result()]}],
+    }
+    assert validate_result_set(rs).valid
+
+def test_isolation_is_an_open_string_not_an_enum():
+    # mrwersa's explicit ask in Discussion #22: isolation values stay an open
+    # string so a new isolation strategy never needs a spec change just to be
+    # nameable. Any non-empty string, not just "fresh"/"shared", is valid.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "isolation": "sandboxed_container_per_attempt",
+        "results": [{"test_case_id": "tc1", "passed": True, "grader_results": [_grader_result()]}],
+    }
+    assert validate_result_set(rs).valid
+
+def test_non_string_isolation_rejected():
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "isolation": 123,
+        "results": [{"test_case_id": "tc1", "passed": True, "grader_results": [_grader_result()]}],
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.isolation" for e in result.errors)
+
+def test_attempt_and_isolation_free_resultset_still_validates():
+    # Backward compatibility: a ResultSet with neither field (every ResultSet
+    # produced before this change) must remain fully valid, unchanged.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "results": [{"test_case_id": "tc1", "passed": True, "grader_results": [_grader_result()]}],
+    }
+    result = validate_result_set(rs)
+    assert result.valid
+    assert "attempt" not in rs["results"][0]
+    assert "isolation" not in rs
