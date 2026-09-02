@@ -4,6 +4,8 @@ Convert [ClawBench](https://github.com/TIGER-AI-Lab/ClawBench)'s run results (`r
 
 **Optional and additive.** This package only reads files ClawBench already writes after a run finishes. It does not change `make_run_meta()`, the two-stage scoring pipeline, `clawbench-rescore`, or any other part of the runner/eval code, and pulling it in adds no dependency for anyone who isn't using it. See [TIGER-AI-Lab/ClawBench#322](https://github.com/TIGER-AI-Lab/ClawBench/issues/322) for the discussion that scoped it this way — this is the *results* side, complementing the existing *test-case* import adapters (`clawbench-harbor-adapt`, `clawbench-edgebench-adapt`) that run the other direction.
 
+> **This package is superseded by [TIGER-AI-Lab/ClawBench#336](https://github.com/TIGER-AI-Lab/ClawBench/pull/336).** It shipped here first as an interim home while this session had no way to fork/PR directly against `TIGER-AI-Lab/ClawBench`; that's now resolved, and #336 ports the same tested logic into `scripts/export_openeval.py` — the shape the maintainer actually asked for on #322 — rather than a standalone package. Once #336 merges, use that instead; this package is kept here for reference and for anyone who prefers installing it as a package pending that merge.
+
 ## What it maps
 
 | ClawBench | EvalPort |
@@ -80,7 +82,7 @@ rows = from_openeval(result_set)
 
 ## Status
 
-Discussed and scoped in [TIGER-AI-Lab/ClawBench#322](https://github.com/TIGER-AI-Lab/ClawBench/issues/322). Maintainer Perry2004 confirmed the results-vs-test-case distinction and said a PR would be welcome, suggesting it land as a simple script rather than a new package under ClawBench's own `adapters/`. This package was built and tested first, against ClawBench's real current source (not just `docs/scoring.md`); it ships here, in EvalPort's own `adapters/`, because this session has no write access to open a branch/PR directly against `TIGER-AI-Lab/ClawBench` and no fork of it exists yet to PR from. See that issue thread for the up-to-date status — the intent is still a `script/` contribution on the ClawBench side per Perry2004's preference, once that's actually possible to open.
+Discussed and scoped in [TIGER-AI-Lab/ClawBench#322](https://github.com/TIGER-AI-Lab/ClawBench/issues/322). Maintainer Perry2004 confirmed the results-vs-test-case distinction and said a PR would be welcome, suggesting it land as a simple script rather than a new package under ClawBench's own `adapters/`. This package was built and tested first, against ClawBench's real current source (not just `docs/scoring.md`), while this session had no way to fork/PR directly against `TIGER-AI-Lab/ClawBench` yet. That's now resolved: [TIGER-AI-Lab/ClawBench#336](https://github.com/TIGER-AI-Lab/ClawBench/pull/336) ports this same logic into `scripts/export_openeval.py`, exactly the shape Perry2004 asked for — that's the PR to watch/review; this package remains here as a reference and as an installable fallback until it merges.
 
 ## Spec
 
