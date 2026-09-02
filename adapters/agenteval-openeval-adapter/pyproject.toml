@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agenteval-openeval-adapter"
+version = "0.1.0"
+description = "Export AgentEval determinism-sampling reports to the EvalPort ResultSet format (attempt/isolation)"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+# Result.attempt / ResultSet.isolation (Discussion #22, spec 1.0.0-rc.5) are
+# only present from evalport-sdk 1.3.0 onward. As of this package's initial
+# version, PyPI still serves evalport-sdk 1.0.0 (pre-attempt/isolation) --
+# see sdk/python/pyproject.toml's own note. Until 1.3.0 is published,
+# install this adapter's dependency from source (see README) rather than
+# relying on `pip install agenteval-openeval-adapter` to resolve a working
+# evalport-sdk on its own.
+dependencies = ["evalport-sdk>=1.3.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["agenteval", "evalport", "openeval", "llm", "evaluation", "agents", "eval", "determinism"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/agenteval-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Upstream = "https://github.com/lokesh75-kank/agenteval"
+Proposal = "https://github.com/lokesh75-kank/agenteval/issues/13"
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
