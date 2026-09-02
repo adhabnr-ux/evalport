@@ -1,9 +1,18 @@
 {
   "name": "evalport-sdk",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "TypeScript SDK for EvalPort",
   "main": "src/index.ts",
   "types": "src/index.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adhabnr-ux/evalport.git",
+    "directory": "sdk/typescript"
+  },
+  "homepage": "https://github.com/adhabnr-ux/evalport#readme",
+  "bugs": {
+    "url": "https://github.com/adhabnr-ux/evalport/issues"
+  },
   "scripts": {
     "build": "tsc",
     "test": "vitest run"

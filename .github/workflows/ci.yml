@@ -274,3 +274,9 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: sdk/python/dist
+          # A version already on PyPI can never be re-uploaded (immutable),
+          # so a re-run of this job against a version this workflow already
+          # published successfully (e.g. because a sibling job like
+          # publish-npm failed and the release needs a partial re-run) skips
+          # cleanly instead of hard-failing the whole run.
+          skip-existing: true
