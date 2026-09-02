@@ -53,7 +53,6 @@ EvalPort is pre-1.0 and actively shaped by outside contributors — the fastest 
 
 - **Have an opinion on an open design question?** [`spec/SPEC.md`](spec/SPEC.md#open-design-questions--rfc-topics-we-need-help-with) tracks what's genuinely unresolved. All five questions raised on that list so far — suite/result signing, a formal conformance test suite, resuming interrupted runs, whether `llm_judge` injection mitigations should be mandatory, and (most recently, [Discussion #22](https://github.com/adhabnr-ux/evalport/discussions/22)) how `ResultSet` should represent repeated-attempt evals (`num_repetitions`, epochs) — have gone through this exact process and landed as shipped spec changes; the table shows how each one resolved. There's no genuinely open item on the list right now, but the process is the same for the next one: no prior EvalPort contribution required, just a considered opinion.
 - **Want to ship a framework adapter?** [Issue #6](https://github.com/adhabnr-ux/evalport/issues/6) is the map. [`adapters/autogen-openeval-adapter`](adapters/autogen-openeval-adapter/) is the reference shape to copy: `to_openeval()`, `from_openeval()`, tests against the real validator, a README.
-- **Built your own EvalPort integration in another project?** [`docs/community-integrations.md`](docs/community-integrations.md) lists real-world, independently-owned integrations (as opposed to the adapter packages above, which live in and are maintained by this repo) — open a PR to add yours.
 - **Want to propose a spec change?** Open a Discussion titled `[Spec Change] <what and why>` — the full process (comment period, what "consensus" means, when the spec lead's sign-off is required) is in [`spec/SPEC.md`'s Governance section](spec/SPEC.md#governance).
 - **How people actually become collaborators:** ship something real and tested, engage substantively, get invited — see [`CONTRIBUTORS.md`](CONTRIBUTORS.md) for who's done that so far. It's not gatekept; a merged, tested PR is what clears the bar.
 
@@ -78,7 +77,6 @@ openeval/
 │   ├── getting-started/       # 5-minute quickstart
 │   ├── grader-reference/      # All 11 grader types
 │   ├── migration-guides/      # Promptfoo, DeepEval, Inspect AI
-│   ├── community-integrations.md  # Real-world integrations built by other projects
 │   ├── api/                   # REST API docs
 │   ├── blog/                  # Launch posts
 │   └── landing-page.html      # Landing page
@@ -177,15 +175,13 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 | Athina | [athina-openeval-adapter](adapters/athina-openeval-adapter/) |
 | DeepEval | [deepeval-openeval-adapter](adapters/deepeval-openeval-adapter/) |
 | Galileo | [galileo-openeval-adapter](adapters/galileo-openeval-adapter/) |
-
-Separately, [`docs/community-integrations.md`](docs/community-integrations.md) tracks real-world, independently-built integrations that live in *other* projects' own codebases rather than as a package here — starting with [ragbits-evaluate's `EvalPortDataLoader`](docs/community-integrations.md#ragbits-evaluate-deepsense-airagbits).
+| AgentEval | [agenteval-openeval-adapter](adapters/agenteval-openeval-adapter/) |
 
 ## Documentation
 
 - [Getting Started](docs/getting-started/README.md)
 - [Grader Type Reference](docs/grader-reference/README.md)
 - [Migration Guides](docs/migration-guides/)
-- [Community Integrations](docs/community-integrations.md)
 - [REST API](docs/api/README.md)
 - [Full Specification](spec/SPEC.md)
 - [Adoption Strategy](spec/ADOPTION.md)
