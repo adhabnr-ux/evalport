@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "journeyman-openeval-adapter"
+version = "0.1.0"
+description = "Convert codechu/journeyman's cell records / report.json to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["journeyman", "evalport", "openeval", "llm", "agents", "evaluation", "eval"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/journeyman-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/SPEC.md"
+Upstream = "https://github.com/codechu/journeyman"
+Discussion = "https://github.com/codechu/journeyman/issues/1"
+
+# This adapter never imports `journeyman` at runtime (it converts
+# already-produced cell records / report.json dicts the caller passes in),
+# so the extra is for users who also want the real package installed
+# alongside it -- e.g. to run its test suite, which drives the real
+# journeyman pipeline. Pinned to the real, installed, tested surface:
+# journeyman-bench==0.4.0 (report.schema.json schema_version 1).
+[project.optional-dependencies]
+journeyman = ["journeyman-bench>=0.4.0,<0.5"]
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
