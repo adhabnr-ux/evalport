@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 
 import pytest
 
@@ -194,7 +195,7 @@ def test_stable_id_matches_across_fresh_interpreter_process(eval_results, tmp_pa
     assert subprocess_id == this_process_suite["test_cases"][0]["id"]
 
 
-def test_duplicate_content_in_same_session_gets_distinct_ids(eval_results):
+def test_duplicate_content_in_same_session_gets_distinct_ids():
     # MemTensor/HaluMem#12, maintainer's second follow-up (2026-08-31): the digest
     # was operation+uuid+ssession_id+content only, so two records with identical
     # content in the same user/session/operation collided onto the same ID. Build
@@ -235,17 +236,26 @@ def test_duplicate_content_in_same_session_gets_distinct_ids(eval_results):
     assert rs["results"][1]["grader_results"][0]["metadata"]["halumem.memory_accuracy_score"] == 0
 
 
-def test_duplicate_content_ids_still_stable_and_digest_based(eval_results):
+def test_duplicate_content_ids_still_stable_and_digest_based():
     # The fix must not regress point 4: IDs stay a deterministic digest (not e.g. a
-    # bare incrementing counter), reproducible across independent calls.
+    # bare incrementing counter), reproducible across independent calls. Beyond
+    # determinism/distinctness, also check the ID structurally looks like what
+    # _stable_id() actually produces -- a trailing 16-lowercase-hex-char SHA-256
+    # digest suffix -- so this test can't silently pass for e.g. an incrementing
+    # counter formatted to look plausible.
     records = [
         {"uuid": "u", "ssession_id": 0, "question": "Same question?", "answer": "A"},
         {"uuid": "u", "ssession_id": 0, "question": "Same question?", "answer": "B"},
     ]
     suite_a = to_openeval(records, "qa", judge_model="m")
     suite_b = to_openeval(records, "qa", judge_model="m")
-    assert [tc["id"] for tc in suite_a["test_cases"]] == [tc["id"] for tc in suite_b["test_cases"]]
-    assert suite_a["test_cases"][0]["id"] != suite_a["test_cases"][1]["id"]
+    ids_a = [tc["id"] for tc in suite_a["test_cases"]]
+    assert ids_a == [tc["id"] for tc in suite_b["test_cases"]]
+    assert ids_a[0] != ids_a[1]
+    for tc_id in ids_a:
+        assert re.search(r"_[0-9a-f]{16}$", tc_id), (
+            f"ID {tc_id!r} doesn't end in a 16-lowercase-hex-char SHA-256 digest suffix"
+        )
 
 
 def test_stable_ids_match_between_suite_and_resultset(eval_results):
