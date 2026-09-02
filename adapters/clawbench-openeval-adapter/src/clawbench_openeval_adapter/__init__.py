@@ -103,6 +103,17 @@ def run_to_result(
     is available, a minimal stand-in with at least ``test_case``/
     ``task_id`` and ``intercepted`` -- see ``to_openeval()``).
 
+    ``Result.test_case_id`` prefers ``run_meta["test_case"]``; when that's
+    missing, it falls back to ``run_meta["task_id"]`` with its ``#<run
+    suffix>`` stripped (ClawBench's real ``task_id`` values look like
+    ``"myrecipes/leave-review#0001"`` -- see ``make_run_meta()`` in
+    ``src/clawbench/runner/run_support/metadata.py`` -- where the part
+    before ``#`` is the same stable task identity ``test_case`` itself
+    carries). Using the raw, un-stripped ``task_id`` here would make
+    ``test_case_id`` inconsistent with the ``test_case``-derived id used
+    whenever that field IS present, and harder to aggregate multiple runs
+    of the same task across an EvalPort ``ResultSet``.
+
     ``judge`` is the dict already parsed from that run's judge verdict
     file (``judge_llm.json``/``judge.json``, or the ``match``/``reason``
     pulled from a ``rescore-summary.json`` task row for a given rubric).
@@ -122,7 +133,14 @@ def run_to_result(
     ``Result.passed`` is ``intercepted AND match is True``, i.e. the
     ``final_pass`` rule from ``docs/scoring.md``.
     """
-    test_case_id = _get(run_meta, "test_case") or _get(run_meta, "task_id")
+    test_case_id = _get(run_meta, "test_case")
+    if not test_case_id:
+        task_id = _get(run_meta, "task_id")
+        if task_id:
+            # Strip the "#<run suffix>" ClawBench appends to task_id (e.g.
+            # "myrecipes/leave-review#0001" -> "myrecipes/leave-review") so
+            # the fallback lines up with what `test_case` would have been.
+            test_case_id = str(task_id).split("#", 1)[0]
     if not test_case_id:
         raise ValueError("run_meta must have a 'test_case' or 'task_id' to become a Result.test_case_id")
 
@@ -220,11 +238,26 @@ def to_openeval(
     ``rubric`` selects which of ``rescore_summary["rubrics"]``
     (``"lenient"`` and/or ``"strict"``) to score against; defaults to the
     first entry in ``rescore_summary["rubrics"]``, or ``"lenient"`` if
-    that key is absent (matching ``clawbench-rescore``'s own default).
+    that key is absent (matching ``clawbench-rescore``'s own default). If
+    given, it must actually be one of ``rescore_summary["rubrics"]`` --
+    passing a rubric that batch was never scored against would otherwise
+    silently miss every ``match_<rubric>``/``reason_<rubric>`` key on every
+    task row (they're keyed by the rubrics that actually ran), so every
+    run would come out looking never-judged / failed with no error raised.
+    Raises ``ValueError`` for an unknown rubric instead.
     """
     run_metas = run_metas or {}
     rubrics = rescore_summary.get("rubrics") or ["lenient"]
-    active_rubric = rubric or rubrics[0]
+    if rubric is not None:
+        if rubric not in rubrics:
+            raise ValueError(
+                f"rubric {rubric!r} is not in rescore_summary['rubrics'] "
+                f"({rubrics!r}); pass one of those, or omit rubric to use "
+                f"the first one"
+            )
+        active_rubric = rubric
+    else:
+        active_rubric = rubrics[0]
 
     results: List[Dict[str, Any]] = []
     for task_row in rescore_summary.get("tasks", []):
@@ -256,7 +289,15 @@ def to_openeval(
 
     total = len(results)
     passed = sum(1 for r in results if r["passed"])
-    n_intercepted = sum(1 for r in results if r["grader_results"][0]["passed"])
+    # Look the interception grader up by grader_id rather than assuming it's
+    # always grader_results[0] -- that ordering is run_to_result()'s own
+    # implementation detail, not a contract this summary should depend on.
+    n_intercepted = sum(
+        1
+        for r in results
+        for gr in r["grader_results"]
+        if gr["grader_id"] == INTERCEPTION_GRADER_ID and gr["passed"]
+    )
 
     batch_dir = rescore_summary.get("batch_dir")
     resolved_suite_id = suite_id or (
@@ -289,11 +330,24 @@ def to_openeval(
 
 
 def from_openeval(result_set: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Import an EvalPort ``ResultSet`` into ClawBench-``rescore-summary``-shaped rows.
+    """Import an EvalPort ``ResultSet`` into ClawBench-run-shaped rows.
 
-    Intentionally best-effort/lossy, the same way this repo's other
-    adapters are for their reverse direction: EvalPort's ``Result`` has no
-    first-class slot for ClawBench's ``result_category``/
+    Each returned row carries the same per-task fields a real
+    ``rescore-summary.json`` ``tasks[]`` row does -- ``test_case``,
+    ``task_id``, ``intercepted`` -- plus a single generic ``match``/
+    ``reason`` pair (from whichever grader this ``Result`` actually carries,
+    not a specific named rubric). This is deliberately NOT the same shape as
+    a real ``tasks[]`` row, which keys the judge verdict per rubric as
+    ``match_<rubric>``/``reason_<rubric>`` (one pair per rubric that batch
+    was scored against) -- an EvalPort ``Result`` only ever carries one
+    ``gr_judge_match`` grader, with no record of which rubric produced it
+    beyond whatever ``to_openeval()`` happened to stash under
+    ``Result.metadata["rubric"]``, so reconstructing genuine
+    ``match_<rubric>`` keys isn't possible from a ``ResultSet`` alone.
+
+    Intentionally best-effort/lossy otherwise, the same way this repo's
+    other adapters are for their reverse direction: EvalPort's ``Result``
+    has no first-class slot for ClawBench's ``result_category``/
     ``failure_category``/``adjusted_eligible`` taxonomy, so those are only
     recovered when they were carried through under ``Result.metadata`` by
     this adapter's own ``to_openeval()`` (or a producer following the same

@@ -95,6 +95,24 @@ def test_run_to_result_requires_test_case_or_task_id():
         raise AssertionError("expected ValueError for a run_meta with no test_case/task_id")
 
 
+def test_run_to_result_task_id_fallback_strips_run_suffix():
+    # ClawBench's real task_id carries a "#<run suffix>" (see run-meta-pass.json's
+    # task_id "myrecipes/leave-review#0001" vs. its test_case
+    # "myrecipes/leave-review") -- when test_case is absent, the task_id fallback
+    # must strip that suffix so test_case_id stays consistent/aggregatable with
+    # what test_case-derived IDs from other runs of the same task look like.
+    run_meta = {"task_id": "myrecipes/leave-review#0001", "intercepted": True}
+    result = run_to_result(run_meta)
+    assert result["test_case_id"] == "myrecipes/leave-review"
+
+
+def test_run_to_result_task_id_fallback_without_run_suffix_unchanged():
+    # A task_id with no "#" suffix at all should pass through unchanged.
+    run_meta = {"task_id": "myrecipes/leave-review", "intercepted": True}
+    result = run_to_result(run_meta)
+    assert result["test_case_id"] == "myrecipes/leave-review"
+
+
 # ---------------------------------------------------------------------------
 # to_openeval: rescore-summary.json (+ optional run_metas) -> ResultSet
 # ---------------------------------------------------------------------------
@@ -167,6 +185,38 @@ def test_to_openeval_requires_run_id_and_started_at():
         pass
     else:
         raise AssertionError("run_id/started_at should be required keyword args")
+
+
+def test_to_openeval_rejects_rubric_not_in_rescore_summary():
+    # This fixture's rescore-summary.json only ran the "lenient" rubric
+    # (rubrics: ["lenient"]) -- asking for "strict" must raise, not silently
+    # produce a ResultSet where every task_row's match_strict lookup misses
+    # and every run comes out looking never-judged/failed.
+    rescore_summary = load("rescore-summary.json")
+    try:
+        to_openeval(
+            rescore_summary,
+            run_id="r1",
+            started_at="2026-08-30T14:00:00Z",
+            rubric="strict",
+        )
+    except ValueError as e:
+        assert "strict" in str(e)
+        assert "lenient" in str(e)
+    else:
+        raise AssertionError("expected ValueError for a rubric not in rescore_summary['rubrics']")
+
+
+def test_to_openeval_accepts_rubric_that_is_in_rescore_summary():
+    rescore_summary = load("rescore-summary.json")
+    result_set = to_openeval(
+        rescore_summary,
+        run_id="r1",
+        started_at="2026-08-30T14:00:00Z",
+        rubric="lenient",
+    )
+    assert result_set["metadata"]["clawbench_rubric"] == "lenient"
+    assert result_set["summary"]["passed"] == 1
 
 
 def test_to_openeval_empty_tasks_still_valid_shape():
