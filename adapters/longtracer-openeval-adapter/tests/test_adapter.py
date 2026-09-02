@@ -237,6 +237,27 @@ def test_batch_of_results():
     assert validation.valid, validation.errors
 
 
+def test_batch_detection_works_for_non_list_tuple_sequences():
+    """`to_openeval()` is annotated to accept `Sequence[Any]`, not just
+    `list`/`tuple` -- a `deque` (or any other real Sequence) must also be
+    treated as a batch, not misread as a single VerificationResult."""
+    from collections import deque
+
+    vr1 = _all_supported_result()
+    vr2 = _mixed_result()
+
+    rs_deque = to_openeval(deque([vr1, vr2]), run_id="deque_run")
+    assert len(rs_deque["results"]) == 2
+    assert rs_deque["results"][0]["test_case_id"] == "claim_verification_0"
+    assert rs_deque["results"][1]["test_case_id"] == "claim_verification_1"
+    assert rs_deque["summary"]["total"] == 2
+    validation = validate_result_set(rs_deque)
+    assert validation.valid, validation.errors
+
+    rs_tuple = to_openeval((vr1, vr2), run_id="tuple_run")
+    assert len(rs_tuple["results"]) == 2
+
+
 def test_batch_with_explicit_test_case_ids_and_response_texts():
     vr1 = _all_supported_result()
     vr2 = _mixed_result()
@@ -298,3 +319,40 @@ def test_dict_input_also_supported():
 
     validation = validate_result_set(rs)
     assert validation.valid, validation.errors
+
+
+def test_runner_version_uses_importlib_metadata_not_a_real_import():
+    """`_longtracer_version()` must resolve the installed `longtracer`
+    distribution's version via `importlib.metadata`, never `import
+    longtracer` -- the real package pulls in sentence-transformers + torch
+    at import time (see module docstring), so an actual import would add
+    multi-second load time and heavy side effects to every to_openeval()
+    call whenever longtracer happens to be installed. `longtracer` is not
+    installed in this test environment (see this file's own module
+    docstring), so confirm to_openeval() doesn't error trying to import it,
+    doesn't add `longtracer` to sys.modules as a side effect, and reports no
+    version rather than raising."""
+    import sys
+
+    assert "longtracer" not in sys.modules
+
+    vr = _all_supported_result()
+    rs = to_openeval(vr)
+
+    assert rs["runner"]["name"] == "longtracer"
+    assert rs["runner"]["version"] is None
+    assert "longtracer" not in sys.modules
+
+
+def test_runner_version_reads_installed_distribution_metadata(monkeypatch):
+    """When a `longtracer` distribution IS installed, its version comes from
+    distribution metadata (importlib.metadata.version), not from importing
+    the package and reading `__version__` off it."""
+    import longtracer_openeval_adapter as adapter_module
+
+    monkeypatch.setattr(
+        adapter_module._importlib_metadata, "version", lambda name: "9.9.9" if name == "longtracer" else None
+    )
+    vr = _all_supported_result()
+    rs = to_openeval(vr)
+    assert rs["runner"]["version"] == "9.9.9"

@@ -9,8 +9,9 @@ ENDEVSOLS/LongTracer#15). The maintainer's stated preference is for this to
 eventually live in LongTracer itself as an optional
 `longtracer/adapters/evalport.py` module with no hard EvalPort dependency for
 LongTracer users -- this package is a drop-in for exactly that: everything
-below is a single, dependency-light module (only `openeval-sdk` at runtime,
-used solely for the `OPENEVAL_VERSION` constant) that a maintainer can copy
+below is a single, dependency-light module (only `evalport-sdk` at runtime --
+the package providing the `openeval.*` modules this file imports -- used
+solely for the `OPENEVAL_VERSION` constant) that a maintainer can copy
 into `longtracer/adapters/evalport.py` largely as-is, or that anyone can
 `pip install longtracer-openeval-adapter` and use against their own
 LongTracer results today.
@@ -43,7 +44,9 @@ as of ENDEVSOLS/LongTracer@bf1cc72 (`longtracer/guard/nli_model.py`).
 """
 from __future__ import annotations
 
+import collections.abc as _abc
 import datetime as _dt
+from importlib import metadata as _importlib_metadata
 from typing import Any, Dict, List, Optional, Sequence, Union
 
 try:
@@ -66,6 +69,28 @@ def _get(obj: Any, key: str, default: Any = None) -> Any:
     if isinstance(obj, dict):
         return obj.get(key, default)
     return getattr(obj, key, default)
+
+
+def _is_batch(results: Any) -> bool:
+    """Decide whether `results` (the `to_openeval()` argument) is a batch of
+    `VerificationResult`s, rather than a single one.
+
+    `to_openeval()`'s type hint is `Union[Any, Sequence[Any]]`, but the
+    original implementation only ever treated `list`/`tuple` as a batch --
+    any other `Sequence` (a `deque`, a generator-backed custom `Sequence`,
+    etc, as `CitationVerifier.verify_batch()` could in principle return, or a
+    caller could hand-build) was silently misread as a single result and
+    then failed downstream once `_get()` tried to read `VerificationResult`
+    attributes off it. A single `VerificationResult` is itself never a
+    `collections.abc.Sequence` (it's a dataclass, or a dict when duck-typed
+    -- see `_get()`), so testing for `Sequence` membership (excluding
+    str/bytes/bytearray, which are technically Sequences but are never a
+    valid `results` value here) correctly covers `list`/`tuple`/`deque`/any
+    other real sequence type alike, without misclassifying a single result.
+    """
+    if isinstance(results, (str, bytes, bytearray)):
+        return False
+    return isinstance(results, _abc.Sequence)
 
 
 def _clamp01(value: Any) -> Optional[float]:
@@ -234,7 +259,7 @@ def to_openeval(
     it to `openeval.validate.validate_result_set()` to confirm compliance,
     or `json.dump()` it directly to share as a `.json` result-set file.
     """
-    single = not isinstance(results, (list, tuple))
+    single = not _is_batch(results)
     result_list: List[Any] = [results] if single else list(results)
 
     if test_case_ids is not None and len(test_case_ids) != len(result_list):
@@ -291,10 +316,18 @@ def _longtracer_version() -> Optional[str]:
     This adapter does not depend on `longtracer` being installed at all
     (see module docstring), so this is purely a nice-to-have for the
     `ResultSet.runner.version` field when it happens to be available.
+
+    Reads the version via `importlib.metadata` (installed-distribution
+    metadata) rather than `import longtracer` -- the real `longtracer`
+    package imports `sentence-transformers` + `torch` at import time (see
+    module docstring / `tests/test_adapter.py`'s own note on why its stand-in
+    dataclass avoids the real import), so actually importing it here just to
+    read `__version__` would add multi-second load time and heavy-dependency
+    side effects to every `to_openeval()` call whenever LongTracer happens to
+    be installed alongside this adapter -- entirely avoidable, since package
+    version metadata is available without running any of the package's code.
     """
     try:
-        import longtracer  # type: ignore
-
-        return getattr(longtracer, "__version__", None)
-    except ImportError:
+        return _importlib_metadata.version("longtracer")
+    except _importlib_metadata.PackageNotFoundError:
         return None
