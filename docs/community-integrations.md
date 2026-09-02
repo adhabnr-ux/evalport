@@ -1,7 +1,8 @@
 # Community Integrations
 
-This page tracks real-world projects that have built their **own** native support
-for EvalPort's test-case format, independently of this repository.
+This page tracks real-world projects that have built, or are actively building
+in an open upstream PR, their **own** native support for EvalPort's test-case
+format, independently of this repository.
 
 This is a different thing from [`adapters/`](../adapters/): those packages are
 `to_openeval()`/`from_openeval()` converters that EvalPort itself authors and
@@ -63,6 +64,6 @@ test-case field names; this entry will be updated if the PR's status changes.
 
 ---
 
-Know of another project with a genuine, working EvalPort integration? Open a
-PR adding it here, or start a
+Know of another project with a genuine EvalPort integration — merged, or in
+an open upstream PR? Open a PR adding it here, or start a
 [Discussion](https://github.com/adhabnr-ux/evalport/discussions).
