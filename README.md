@@ -8,7 +8,7 @@
 
 **Version:** 1.0.0-rc.5 | **License:** Apache 2.0
 
-**Adopted by:** [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) — merged to the official community extensions list, [PR #4797](https://github.com/UKGovernmentBEIS/inspect_ai/pull/4797), August 2026. Approved with a clean CI run at [TruLens](https://github.com/truera/trulens) — [PR #2697](https://github.com/truera/trulens/pull/2697), a full `to_openeval()`/`from_openeval()` module, 17/17 tests passing, awaiting merge. 32 framework adapters shipped and independently tested — including [Agenta](adapters/agenta-openeval-adapter/) (built at the explicit request of the Agenta-AI maintainer, [Agenta-AI/agenta#6222](https://github.com/Agenta-AI/agenta/issues/6222)), [Parea AI](adapters/parea-openeval-adapter/) (a first-time external contributor's [PR #19](https://github.com/adhabnr-ux/evalport/pull/19), merged after review and an independent re-run of its test suite), [Hugging Face `evaluate`](adapters/huggingface-evaluate-openeval-adapter/), [EleutherAI `lm-evaluation-harness`](adapters/lm-eval-harness-openeval-adapter/), [Hugging Face `lighteval`](adapters/lighteval-openeval-adapter/) (the library behind the HF Open LLM Leaderboard), [OpenCompass](adapters/opencompass-openeval-adapter/), [FinanceBench](adapters/financebench-openeval-adapter/) (a real benchmark dataset, not a live SDK), [Athina](adapters/athina-openeval-adapter/), [DeepEval](adapters/deepeval-openeval-adapter/), and [Galileo](adapters/galileo-openeval-adapter/) — plus a Literal AI adapter in review right now from another new contributor ([PR #25](https://github.com/adhabnr-ux/evalport/pull/25)) — see [Framework Adapters](#framework-adapters) below.
+**Adopted by:** [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) — merged to the official community extensions list, [PR #4797](https://github.com/UKGovernmentBEIS/inspect_ai/pull/4797), August 2026. Approved with a clean CI run at [TruLens](https://github.com/truera/trulens) — [PR #2697](https://github.com/truera/trulens/pull/2697), a full `to_openeval()`/`from_openeval()` module, 17/17 tests passing, awaiting merge. 48 framework adapters shipped and independently tested — including [Agenta](adapters/agenta-openeval-adapter/) (built at the explicit request of the Agenta-AI maintainer, [Agenta-AI/agenta#6222](https://github.com/Agenta-AI/agenta/issues/6222)), [Parea AI](adapters/parea-openeval-adapter/) (a first-time external contributor's [PR #19](https://github.com/adhabnr-ux/evalport/pull/19), merged after review and an independent re-run of its test suite), [Literal AI](adapters/literalai-openeval-adapter/) and [Humanloop](adapters/humanloop-openeval-adapter/) (both from external contributors — see [CONTRIBUTORS.md](CONTRIBUTORS.md)), [Hugging Face `evaluate`](adapters/huggingface-evaluate-openeval-adapter/), [EleutherAI `lm-evaluation-harness`](adapters/lm-eval-harness-openeval-adapter/), [Hugging Face `lighteval`](adapters/lighteval-openeval-adapter/) (the library behind the HF Open LLM Leaderboard), [OpenCompass](adapters/opencompass-openeval-adapter/), [FinanceBench](adapters/financebench-openeval-adapter/) (a real benchmark dataset, not a live SDK), [Athina](adapters/athina-openeval-adapter/), [DeepEval](adapters/deepeval-openeval-adapter/), and [Galileo](adapters/galileo-openeval-adapter/) — plus several adapters built directly against upstream maintainer review, including [Journeyman](adapters/journeyman-openeval-adapter/) (codechu/journeyman's maintainer walked the mapping through two rounds of corrections before signing off — [journeyman#1](https://github.com/codechu/journeyman/issues/1)), [TB-Science](adapters/terminal-bench-science-openeval-adapter/) (approved by the harbor-framework maintainer, [PR #1652](https://github.com/harbor-framework/terminal-bench-science/pull/1652)), and [ARES](adapters/ares-openeval-adapter/) (IBM's red-teaming framework, built at a maintainer's steer toward `experimental-plugins/` — [IBM/ares#563](https://github.com/IBM/ares/issues/563)) — see [Framework Adapters](#framework-adapters) below.
 
 EvalPort is an open specification for portable LLM evaluation test cases, graders, suites, and results. It enables evaluation datasets to be shared across frameworks (DeepEval, Promptfoo, Ragas, Inspect AI, LangSmith, Braintrust, OpenAI Evals, MLflow) without loss of semantic fidelity.
 
@@ -176,6 +176,21 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 | DeepEval | [deepeval-openeval-adapter](adapters/deepeval-openeval-adapter/) |
 | Galileo | [galileo-openeval-adapter](adapters/galileo-openeval-adapter/) |
 | AgentEval | [agenteval-openeval-adapter](adapters/agenteval-openeval-adapter/) |
+| ARES (IBM red-teaming) | [ares-openeval-adapter](adapters/ares-openeval-adapter/) |
+| ClawBench | [clawbench-openeval-adapter](adapters/clawbench-openeval-adapter/) |
+| Freeplay | [freeplay-openeval-adapter](adapters/freeplay-openeval-adapter/) |
+| GeoBenchX | [geobenchx-openeval-adapter](adapters/geobenchx-openeval-adapter/) |
+| HaluMem | [halumem-openeval-adapter](adapters/halumem-openeval-adapter/) |
+| Humanloop | [humanloop-openeval-adapter](adapters/humanloop-openeval-adapter/) |
+| Journeyman | [journeyman-openeval-adapter](adapters/journeyman-openeval-adapter/) |
+| Literal AI | [literalai-openeval-adapter](adapters/literalai-openeval-adapter/) |
+| LongTracer | [longtracer-openeval-adapter](adapters/longtracer-openeval-adapter/) |
+| nuguard | [nuguard-openeval-adapter](adapters/nuguard-openeval-adapter/) |
+| ragrank | [ragrank-openeval-adapter](adapters/ragrank-openeval-adapter/) |
+| safelabs-eval (AgentSafeLabs) | [safelabs-eval-openeval-adapter](adapters/safelabs-eval-openeval-adapter/) |
+| terminal-bench-science | [terminal-bench-science-openeval-adapter](adapters/terminal-bench-science-openeval-adapter/) |
+| traccia | [traccia-openeval-adapter](adapters/traccia-openeval-adapter/) |
+| Vellum | [vellum-openeval-adapter](adapters/vellum-openeval-adapter/) |
 
 ## Documentation
 
