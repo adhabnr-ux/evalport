@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "benchflow-openeval-adapter"
+version = "0.1.0"
+description = "Export BenchFlow (benchflow-ai/benchflow) rollout results.jsonl to the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.10"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["benchflow", "evalport", "openeval", "llm", "evaluation", "eval", "rl", "agent-benchmarks"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/benchflow-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Discussion = "https://github.com/benchflow-ai/benchflow/issues/1072"
+
+[project.optional-dependencies]
+# benchflow-openeval-adapter's tests build results.jsonl rows via the real
+# benchflow.trajectories.results.build_rollout_results_record (not
+# hand-typed fixtures), so a shape drift in that function is caught here
+# instead of only in a fake that mirrors last year's row shape. `benchflow`
+# requires Python >=3.12 (this adapter itself only needs 3.10+ -- it has no
+# import-time dependency on the `benchflow` package, only on the documented
+# shape of the JSON rows it writes), so the `test` extra is only
+# installable on 3.12+; CI runs it there. See README "Testing" for what a
+# <3.12 contributor should do instead.
+benchflow = ["benchflow>=0.7.6.dev0"]
+test = ["pytest", "benchflow-openeval-adapter[benchflow]"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
