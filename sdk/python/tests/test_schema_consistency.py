@@ -370,6 +370,75 @@ def test_resultset_isolation_absent_still_validates_in_both_paths():
     assert "attempt" not in doc["results"][0]
 
 
+# ---------------------------------------------------------------------------
+# ResultSet: `group` (Discussion #45, proposed -- grouped/sibling ResultSets).
+# additionalProperties: false on the ResultSet object means the raw JSON Schema
+# would have rejected a `group` key before this schema change landed here,
+# exactly the same class of drift test_result_completed_at_present_validates_
+# in_both_paths documents above for `completed_at` -- both sides (schema +
+# hand-rolled validator) must be updated together, which is what this section
+# checks.
+# ---------------------------------------------------------------------------
+
+def test_group_with_group_id_only_valid_in_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {"group_id": "mutation-sweep-2026-09-01"}
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+
+
+def test_group_with_all_fields_valid_in_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {
+        "group_id": "mutation-sweep-2026-09-01",
+        "role": "mutant",
+        "label": "mutant_017 (relational-operator-swap in billing.py:42)",
+        "sequence": 17,
+    }
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+
+
+def test_group_absent_still_valid_in_both_paths():
+    # Optional field -- backward compatibility for every ResultSet produced
+    # before this proposal.
+    doc = _minimal_result_set("1.0.0")
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+    assert "group" not in doc
+
+
+def test_group_missing_group_id_rejected_by_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {"role": "mutant"}  # group_id is REQUIRED when group is present
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+def test_group_unknown_subfield_rejected_by_json_schema():
+    # additionalProperties: false on the group object itself -- a typo'd
+    # sub-field (e.g. "gruop_id") must be caught structurally by the JSON
+    # Schema even though the hand-rolled validator (like every other optional
+    # object in this file) doesn't police unknown keys.
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {"group_id": "g1", "not_a_real_field": "oops"}
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+
+
+def test_group_sequence_must_be_non_negative_integer_in_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {"group_id": "g1", "sequence": -1}
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+def test_group_wrong_type_rejected_by_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = "mutation-sweep-2026-09-01"  # must be an object, not a string
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
 def test_boolean_score_rejected_by_both_python_bool_is_int_subclass():
     # Python's bool is a subclass of int, so a naive `isinstance(x, (int, float))`
     # range check would silently accept True/False as scores 1/0. Guard against
