@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pytector-openeval-adapter"
+version = "0.1.0"
+description = "Convert pytector GuardDecision screening results to EvalPort/OpenEval ResultSet JSON"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.8"
+authors = [{ name = "EvalPort Working Group" }]
+keywords = ["evalport", "openeval", "pytector", "prompt-injection", "llm-eval", "security"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Software Development :: Testing",
+]
+
+# Deliberately NOT a dependency on `pytector` itself -- see the "No hard
+# dependency on pytector" section of README.md / the module docstring:
+# pytector's PromptInjectionDetector unconditionally loads a Hugging Face
+# model, a GGUF model, or a Groq client, so requiring it here would drag in
+# torch/transformers/groq just to convert an already-computed GuardDecision
+# to JSON. This package works against anything shaped like the real
+# GuardDecision dataclass, including the real thing when pytector IS
+# installed by the caller (which most users of this package will already
+# have, since they're the ones running pytector's guard in the first place).
+dependencies = ["evalport-sdk>=1.0.0"]
+
+[project.optional-dependencies]
+# Installs the real pytector so the test suite can exercise real
+# GuardDecision/ToolOutputGuard instances (with a fake detector injected to
+# avoid downloading ML model weights in CI -- see tests/test_adapter.py).
+test = ["pytest", "pytector>=0.4.0"]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/pytector-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Source = "https://github.com/MaxMLang/pytector"
+
+[tool.setuptools.packages.find]
+where = ["src"]
