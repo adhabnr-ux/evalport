@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "luml-openeval-adapter"
+version = "0.1.0"
+description = "Convert luml EvalItem/EvalResult/EvalResults evaluation data to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["luml", "evalport", "openeval", "llm", "evaluation", "eval"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/luml-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+
+[project.optional-dependencies]
+# luml-openeval-adapter's to_openeval()/from_openeval() (and the *_suite()
+# pair) are duck-typed against luml's public EvalItem/EvalResult/EvalResults
+# dataclass shapes (attribute- or key-based access via the module's _get()
+# helper) rather than importing the real package directly. luml was never a
+# hard or test dependency: its real package (luml_sdk, requires Python
+# >=3.12) is not published to PyPI as of 2026-09 (confirmed via
+# `pip index versions luml_sdk` / `pip download luml_sdk`, both reporting no
+# matching distribution), so it cannot be installed here even optionally.
+# This adapter's own tests build hand-rolled stand-in fixtures matching the
+# real dataclasses' documented fields instead (verified directly against
+# https://github.com/luml-ai/luml's source, see the __init__.py module
+# docstring for exact file paths read).
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
