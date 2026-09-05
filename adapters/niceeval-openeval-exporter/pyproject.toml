@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "niceeval-openeval-exporter"
+version = "0.1.0"
+description = "Export NiceEval Inspection query results (run.summary / attempt.get) to the EvalPort open evaluation ResultSet format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["niceeval", "evalport", "openeval", "llm", "evaluation", "eval", "inspection"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/niceeval-openeval-exporter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+NiceEval = "https://github.com/NiceEval/NiceEval"
+OriginIssue = "https://github.com/NiceEval/NiceEval/issues/196"
+
+[project.optional-dependencies]
+# This package is deliberately implemented in Python, not TypeScript, even
+# though NiceEval itself is a TypeScript project: NiceEval's Inspection
+# query protocol (packages/niceeval/src/inspection/results.ts) is plain,
+# Effect-Schema-encoded JSON end to end -- the real `niceeval query run
+# --request <file>` CLI command (packages/niceeval/src/inspection/cli/
+# contribution.ts) writes exactly that JSON to stdout -- so a Python package
+# can consume it directly with zero NiceEval runtime dependency, exactly the
+# way this adapter's own tests validate every output against the real
+# openeval.validate.validate_result_set() (the same rigor already used for
+# every other adapter in this repo). A TypeScript exporter would have had to
+# either re-implement that validation against evalport's raw JSON Schema or
+# skip it. This package's tests build hand-rolled fixtures matching NiceEval's
+# real Effect Schema shapes instead of running the real NiceEval CLI, see the
+# module docstring in src/niceeval_openeval_exporter/__init__.py for exactly
+# which NiceEval source files (with paths) those shapes were verified
+# against.
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
