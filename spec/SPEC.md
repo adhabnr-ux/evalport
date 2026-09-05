@@ -427,6 +427,7 @@ A result set is the output of running an eval suite. It contains one result per 
 | `runner.name` | string | Runner name (e.g., "deepeval", "promptfoo"). |
 | `runner.version` | string | Runner version. |
 | `isolation` | string | Trial isolation mode for repeated attempts in this `ResultSet`'s `results` — an open string (`"fresh"`/`"shared"` conventional, not exhaustive). Declared once per `ResultSet`, not per `Result` — a producer that genuinely mixes isolation modes SHOULD emit separate `ResultSet`s instead. See Extension Mechanism → Repetition & Attempt Tracking. |
+| `group` | object | **PROPOSED, [Discussion #45](https://github.com/adhabnr-ux/evalport/discussions/45), not yet finalized.** Membership in a named group of sibling `ResultSet`s (a sweep, a mutation-testing run, a multi-model comparison). `group.group_id` (string) is required when `group` is present; `group.role`/`group.label` (strings) and `group.sequence` (integer ≥ 0) are optional. See Extension Mechanism → Grouped/Sibling ResultSets. |
 | `summary` | object | Aggregated statistics. |
 | `metadata` | object | Free-form metadata. |
 
@@ -647,6 +648,47 @@ Resolves [Discussion #22](https://github.com/adhabnr-ux/evalport/discussions/22)
 ```
 
 See `spec/conformance/fixtures/multi_attempt_resultset_valid.json` (a valid multi-attempt `ResultSet`) and `spec/conformance/fixtures/duplicate_attempt_collision_rejected.json` (a same-`(test_case_id, run_id, attempt)` collision correctly rejected) — contributed against these exact field names per AgentVerity's offer in Discussion #22.
+
+### Grouped/Sibling ResultSets (`ResultSet.group`) — PROPOSED, not yet finalized
+
+> **Status:** this section documents [Discussion #45](https://github.com/adhabnr-ux/evalport/discussions/45), open for comment. The schema addition, SDK validators, and conformance fixtures described here exist on a reference-implementation branch/PR referenced from that discussion — **not on `main`** — so they can be reviewed and tested without being mistaken for a landed spec change. This subsection will be rewritten in the past tense (matching Repetition & Attempt Tracking above) if and when the RFC concludes and actually merges, the same path [Discussion #22](https://github.com/adhabnr-ux/evalport/discussions/22) took to become the section above.
+
+Grew out of [issue #36](https://github.com/adhabnr-ux/evalport/issues/36) ("No representation for grouped/sweep ResultSets with rollup semantics"), itself raised from a cross-project conversation in [AshwinUgale/muteval#44](https://github.com/AshwinUgale/muteval/issues/44). The gap: nothing in the schema relates one `ResultSet` to a set of sibling `ResultSet`s — `Repetition & Attempt Tracking` above fixed repeated trials *within* one `run_id`, but did nothing for grouping *across* several `run_id`s (a mutation-testing sweep's one-`ResultSet`-per-mutant, a hyperparameter grid search's one-`ResultSet`-per-trial, a multi-model comparison's one-`ResultSet`-per-model).
+
+**`ResultSet.group`** (optional object, required sub-field `group_id`) is the proposed join key, modeled directly on precedent from three real systems that already solve part of this problem — W&B Sweeps (`Run.sweep_id`), MLflow nested runs (`mlflow.get_parent_run`), and Stryker's `mutation-testing-report-schema` (per-mutant `status`, no rollup field) — all of which independently converged on the same shape: **the join key lives on the member and points at the group; the group-level rollup is computed by the consumer, not stored as a schema-mandated document.** This spec deliberately follows that precedent rather than also standardizing a separate rollup/manifest document — see Discussion #45 for the full reasoning, including why the informal alternative (relying on `suite_id` conventions) was rejected the same way an equivalent informal option was rejected for `isolation`.
+
+- `group.group_id` (string, required when `group` is present) — identifier shared by every `ResultSet` in the group. An open, producer-chosen string (UUID, slug, timestamp-based, ...), the same design as `suite_id`/`run_id`.
+- `group.role` (optional string) — this member's role or outcome within the group, e.g. `"mutant"`, `"seed"`, `"baseline"`, `"candidate"`. An **open string, not a closed enum**, for the same reason `isolation` isn't one (see above).
+- `group.label` (optional string) — a human-readable name for this member, for display only, not a join key.
+- `group.sequence` (optional integer, `minimum: 0`) — this member's 0-indexed position within the group, for producers that know the group's total size at emission time.
+
+```json
+{
+  "version": "1.1.0",
+  "suite_id": "billing-suite",
+  "run_id": "mutant-017-run",
+  "started_at": "2026-09-01T10:00:00Z",
+  "isolation": "fresh",
+  "group": {
+    "group_id": "mutation-sweep-2026-09-01",
+    "role": "mutant",
+    "label": "mutant_017 (relational-operator-swap in billing.py:42)",
+    "sequence": 17
+  },
+  "results": [
+    { "test_case_id": "case_1", "attempt": 1, "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": true } ] },
+    { "test_case_id": "case_2", "attempt": 1, "passed": false, "grader_results": [ { "grader_id": "gr1", "type": "exact_match", "score": 0.0, "passed": false } ] }
+  ]
+}
+```
+
+**Whether `sequence` is meaningful depends on the producer knowing the group's total size upfront — verified, not assumed, for the motivating case.** Reading `AshwinUgale/muteval`'s actual current `src/muteval/runner.py`: `run_mutation_testing()` calls `select_mutants()`, which fully materializes the mutant list via `generate_mutants()` — synchronously, before any per-mutant evaluation begins (whether run serially or via `ThreadPoolExecutor.map`, which preserves input order). So for mutation testing specifically, the total mutant count and each mutant's position genuinely are known before its `ResultSet` would be emitted; `sequence` is not dead weight there. A producer whose grouping strategy discovers members incrementally (e.g. a search that doesn't know its own trial count upfront) can simply omit `sequence` — it's optional for exactly that reason.
+
+**On a standard `role` vocabulary for mutation testing specifically:** muteval's real per-mutant outcome (`MutantOutcome` in `runner.py`) is not a single flat status string the way Stryker's `Killed`/`Survived`/`NoCoverage`/... enum is — it's several orthogonal signals (`killed: bool`, `errored: bool`, `output_changed: Optional[bool]` distinguishing a real coverage gap from an inert/equivalent mutant, and a separate `severity: "high"|"medium"|"low"` ranking). Collapsing all of that into one closed `role` enum would either lose information or invent a combinatorial vocabulary nobody asked for. The module docstring's own framing — a mutant is *"killed"* (suite failed, caught the injected regression) or *"survives"* (suite still passed) or, on a harness error, *"errored"* — is the one dimension that maps cleanly to a single `role` value, so `"killed"` / `"survived"` / `"errored"` are documented here as a **conventional, non-enforced** starting vocabulary for mutation-testing producers; severity and inert-vs-real status stay better expressed via `group.label` or domain metadata, not folded into `role`. This is offered as a considered default pending confirmation from an actual muteval-side integration, not asserted as final.
+
+**What this deliberately does not do:** it does not standardize how a rollup (mutation score, best-trial selection, win-rate) is computed — that differs too much by domain to bake into the core spec, matching how stability/flip-rate computation over repeated `attempt`s was deliberately deferred out of Discussion #22 as well. A `profile:mutation-score-v1`-style convention (see Profile Extensions, below) is the natural home for that once there's a second and third real consumer to generalize from.
+
+See `spec/conformance/fixtures/group_membership_valid.json` (a valid grouped `ResultSet`, composing `group` with `attempt`/`isolation` from the previous section) and `spec/conformance/fixtures/group_missing_group_id_rejected.json` (`group` present without `group_id`, correctly rejected) on the reference-implementation branch referenced from Discussion #45.
 
 ### Extensions Registry
 
