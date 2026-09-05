@@ -332,3 +332,33 @@ def test_group_sequence_bool_rejected():
     result = validate_result_set(rs)
     assert not result.valid
     assert any(e["path"] == "$.group.sequence" and e["code"] == "OUT_OF_RANGE" for e in result.errors)
+
+def test_group_hyperparameter_sweep_second_domain_is_valid():
+    # Discussion #45's own generalization claim (mutation testing, seed sweeps,
+    # model comparisons) is only as credible as its weakest-checked domain --
+    # this fixture mirrors spec/conformance/fixtures/group_hyperparameter_sweep_valid.json,
+    # a hyperparameter grid search unrelated to mutation testing, with a
+    # different role value ("candidate" rather than "mutant") and a sequence
+    # populated the way optuna/optuna's real FrozenTrial.number is documented
+    # to work ("unique and consecutive... zero-based") for a grid search whose
+    # trial count is known upfront. Proves role isn't silently mutation-testing-shaped.
+    rs = {
+        "version": "1.1.0", "suite_id": "rag-retrieval-suite", "run_id": "trial-003-run",
+        "started_at": "2026-09-05T14:00:00Z",
+        "group": {
+            "group_id": "lr-batchsize-grid-2026-09-05",
+            "role": "candidate",
+            "label": "lr=1e-4, batch_size=32",
+            "sequence": 3,
+        },
+        "results": [
+            {"test_case_id": "case_1", "passed": True, "grader_results": [
+                {"grader_id": "gr1", "type": "semantic_similarity", "score": 0.88, "passed": True}
+            ]},
+            {"test_case_id": "case_2", "passed": True, "grader_results": [
+                {"grader_id": "gr1", "type": "semantic_similarity", "score": 0.91, "passed": True}
+            ]},
+        ],
+    }
+    result = validate_result_set(rs)
+    assert result.valid, result.errors
