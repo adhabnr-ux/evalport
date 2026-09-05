@@ -92,6 +92,17 @@ class ResultSet:
     # collection of evidence and should make one isolation claim; a producer
     # that genuinely mixes isolation modes should emit two ResultSets instead.
     isolation: Optional[str] = None
+    # Membership in a named group of sibling ResultSets (a sweep, a
+    # mutation-testing run, a multi-model comparison, ...). The join key
+    # (`group_id`, required when `group` is present) lives on the member,
+    # mirroring W&B Sweep.sweep_id and MLflow's parent-run link -- EvalPort does
+    # not standardize a separate group-level rollup document; that stays
+    # consumer-computed (see Stryker's mutation-testing-report-schema, which
+    # made the same call). Optional `role`/`label`/`sequence` -- see
+    # spec/SPEC.md Extension Mechanism -> Grouped/Sibling ResultSets.
+    # PROPOSED in Discussion #45, not yet finalized -- see that discussion for
+    # the RFC this field is a reference implementation of.
+    group: Optional[Dict[str, Any]] = None
     summary: Optional[Dict[str, Any]] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 

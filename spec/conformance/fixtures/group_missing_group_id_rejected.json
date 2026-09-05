@@ -1,0 +1,27 @@
+{
+  "description": "Discussion #45 (proposed)'s normative requirement: group_id is REQUIRED whenever a ResultSet's group object is present -- role/label/sequence alone don't identify which sibling group this ResultSet belongs to, which is the entire point of the field. This fixture has a group object naming a role but omitting group_id. A conforming validator MUST REJECT this document.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": ["$.group.group_id"]
+  },
+  "document": {
+    "version": "1.1.0",
+    "suite_id": "billing-suite",
+    "run_id": "mutant-017-run",
+    "started_at": "2026-09-01T10:00:00Z",
+    "group": {
+      "role": "mutant",
+      "label": "mutant_017 (relational-operator-swap in billing.py:42)"
+    },
+    "results": [
+      {
+        "test_case_id": "case_1",
+        "passed": true,
+        "grader_results": [
+          { "grader_id": "gr_refund_policy", "type": "exact_match", "score": 1.0, "passed": true }
+        ]
+      }
+    ]
+  }
+}

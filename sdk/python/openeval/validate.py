@@ -126,6 +126,22 @@ def validate_result_set(r):
     if not isinstance(r.get("started_at"),str): errors.append(_err("$.started_at","required","REQUIRED"))
     isolation=r.get("isolation")
     if isolation is not None and not isinstance(isolation,str): errors.append(_err("$.isolation","must be string","TYPE_ERROR"))
+    # Discussion #45 (proposed): optional group membership joining sibling
+    # ResultSets (a sweep, a mutation-testing run, a multi-model comparison).
+    # Absent by default -- a no-op for every ResultSet produced before this.
+    group=r.get("group")
+    if group is not None:
+        if not isinstance(group,dict): errors.append(_err("$.group","must be object","TYPE_ERROR"))
+        else:
+            gid=group.get("group_id")
+            if not isinstance(gid,str) or not gid: errors.append(_err("$.group.group_id","required","REQUIRED"))
+            role=group.get("role")
+            if role is not None and not isinstance(role,str): errors.append(_err("$.group.role","must be string","TYPE_ERROR"))
+            label=group.get("label")
+            if label is not None and not isinstance(label,str): errors.append(_err("$.group.label","must be string","TYPE_ERROR"))
+            if "sequence" in group and group["sequence"] is not None:
+                seq=group["sequence"]
+                if not isinstance(seq,int) or isinstance(seq,bool) or seq<0: errors.append(_err("$.group.sequence","must be an integer >= 0","OUT_OF_RANGE"))
     rs=r.get("results")
     if not isinstance(rs,list) or not rs: errors.append(_err("$.results","required","REQUIRED"))
     else:
