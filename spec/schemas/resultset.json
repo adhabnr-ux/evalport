@@ -61,6 +61,32 @@
       "type": "string",
       "description": "Trial isolation mode for repeated attempts represented in this ResultSet's results (see attempt, below): whether repeats ran in fresh sessions/model instances or a shared session/context, which changes what a stability or flip-rate computation over those repeats can actually support statistically. An open string, not a closed enum -- \"fresh\" and \"shared\" are conventional values, not an exhaustive list, so a new isolation strategy never needs a spec change just to be nameable. Declared once per ResultSet, not per Result: a single ResultSet is one collection of evidence and should make one isolation claim; a producer whose repeats genuinely mix isolation modes SHOULD emit separate ResultSets rather than mix modes within one (see Extension Mechanism -> Repetition & Attempt Tracking). Absent means unknown/not declared -- existing ResultSets need no change."
     },
+    "group": {
+      "type": "object",
+      "description": "Membership of this ResultSet in a named group of sibling ResultSets -- a sweep, a mutation-testing run, a multi-model comparison, or similar. The join key lives here on the member (mirroring W&B Sweep.sweep_id and MLflow's parent-run link), not on a separate group document: EvalPort has no place to durably store a 'group object' independent of its members, and precedent from W&B/MLflow/Stryker's mutation-testing-report-schema is that the rollup itself is consumer-computed, not schema-mandated. Absent means this ResultSet is not part of a declared group -- existing ResultSets need no change. See Extension Mechanism -> Grouped/Sibling ResultSets and Discussion #45 (proposed, not yet finalized as of this revision).",
+      "required": ["group_id"],
+      "properties": {
+        "group_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Identifier shared by every ResultSet in this group. An open string with producer-chosen scheme (UUID, slug, timestamp-based, ...), the same design as suite_id/run_id -- EvalPort does not mint or validate identifiers, it just requires them to be stable and unique enough for a consumer to group on."
+        },
+        "role": {
+          "type": "string",
+          "description": "Open string naming this member's role or outcome within the group, e.g. \"mutant\", \"seed\", \"baseline\", \"candidate\". Not a closed enum, for the same reason ResultSet.isolation isn't one: a new grouping strategy should never need a spec change just to be nameable. Absent means unspecified role."
+        },
+        "label": {
+          "type": "string",
+          "description": "Optional human-readable name for this member, e.g. \"mutant_017 (relational-operator-swap in billing.py:42)\" or \"seed=1337\". For display; not a join key."
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Optional 0-indexed position of this ResultSet within its group, for producers that know the group's total size at emission time (e.g. mutant 17 of 240). Absent means unknown or not applicable -- consumers MUST NOT assume contiguous or complete sequences from a partial set of group members."
+        }
+      },
+      "additionalProperties": false
+    },
     "results": {
       "type": "array",
       "description": "One result per test case, or -- when using attempt -- multiple results per test case representing repeated trials of it.",
