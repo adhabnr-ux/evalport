@@ -200,3 +200,135 @@ def test_duplicate_attempt_still_caught_when_test_case_id_and_run_id_are_valid()
     result = validate_result_set(rs)
     assert not result.valid
     assert any(e["code"] == "DUPLICATE_ATTEMPT" for e in result.errors)
+
+# --- Discussion #45 (proposed): grouped/sibling ResultSets ---
+
+def _minimal_result_list():
+    return [{"test_case_id": "tc1", "passed": True, "grader_results": [_grader_result()]}]
+
+def test_group_absent_still_validates_unchanged():
+    # Backward compatibility: a ResultSet with no group field (every ResultSet
+    # produced before this proposal) must remain fully valid, unchanged.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "results": _minimal_result_list(),
+    }
+    result = validate_result_set(rs)
+    assert result.valid
+    assert "group" not in rs
+
+def test_group_with_only_group_id_is_valid():
+    # group_id is the only required sub-field -- role/label/sequence are all optional.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "mutant-017-run", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"group_id": "mutation-sweep-2026-09-01"},
+        "results": _minimal_result_list(),
+    }
+    assert validate_result_set(rs).valid
+
+def test_group_with_all_fields_populated_is_valid():
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "mutant-017-run", "started_at": "2026-01-01T00:00:00Z",
+        "group": {
+            "group_id": "mutation-sweep-2026-09-01",
+            "role": "mutant",
+            "label": "mutant_017 (relational-operator-swap in billing.py:42)",
+            "sequence": 17,
+        },
+        "results": _minimal_result_list(),
+    }
+    assert validate_result_set(rs).valid
+
+def test_group_missing_group_id_rejected():
+    # group_id is REQUIRED whenever group is present -- an empty/absent group_id
+    # is exactly the "which sweep is this?" ambiguity the field exists to remove.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"role": "mutant"},
+        "results": _minimal_result_list(),
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.group_id" and e["code"] == "REQUIRED" for e in result.errors)
+
+def test_group_empty_string_group_id_rejected():
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"group_id": ""},
+        "results": _minimal_result_list(),
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.group_id" and e["code"] == "REQUIRED" for e in result.errors)
+
+def test_group_must_be_an_object():
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": "mutation-sweep-2026-09-01",  # a bare string is not a valid group
+        "results": _minimal_result_list(),
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group" and e["code"] == "TYPE_ERROR" for e in result.errors)
+
+def test_group_role_is_an_open_string_not_an_enum():
+    # Mirrors isolation's precedent (Discussion #22): role stays a free string so
+    # a new grouping strategy never needs a spec change just to be nameable --
+    # not just the mutation-testing-flavored values used in the RFC's examples.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"group_id": "grid-search-42", "role": "candidate_config_7"},
+        "results": _minimal_result_list(),
+    }
+    assert validate_result_set(rs).valid
+
+def test_group_non_string_role_rejected():
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"group_id": "g1", "role": 42},
+        "results": _minimal_result_list(),
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.role" and e["code"] == "TYPE_ERROR" for e in result.errors)
+
+def test_group_non_string_label_rejected():
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"group_id": "g1", "label": ["not", "a", "string"]},
+        "results": _minimal_result_list(),
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.label" and e["code"] == "TYPE_ERROR" for e in result.errors)
+
+def test_group_sequence_must_be_non_negative_integer():
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"group_id": "g1", "sequence": -1},
+        "results": _minimal_result_list(),
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.sequence" and e["code"] == "OUT_OF_RANGE" for e in result.errors)
+
+def test_group_sequence_zero_is_valid():
+    # sequence is 0-indexed -- the first member of a group is sequence 0, not 1.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"group_id": "g1", "sequence": 0},
+        "results": _minimal_result_list(),
+    }
+    assert validate_result_set(rs).valid
+
+def test_group_sequence_bool_rejected():
+    # bool is a subclass of int in Python -- same class of gotcha as the
+    # boolean-score check above; True/False must not sneak through as 1/0.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"group_id": "g1", "sequence": True},
+        "results": _minimal_result_list(),
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.sequence" and e["code"] == "OUT_OF_RANGE" for e in result.errors)
