@@ -1,0 +1,33 @@
+{
+  "description": "Demonstrates the grouped/sibling ResultSets proposal from Discussion #45 (proposed, not yet finalized) in a second, unrelated domain from the RFC's original motivating case: a hyperparameter grid search rather than mutation testing. group.sequence here mirrors Optuna's real FrozenTrial.number semantics -- verified against optuna/optuna's actual source (optuna/trial/_frozen.py), which documents that field as 'unique and consecutive... for each Study' using 'zero-based numbering', independently confirming the same 0-indexed-position-known-upfront design already verified against AshwinUgale/muteval's select_mutants() for mutation testing. group.role uses 'candidate' rather than mutation testing's 'mutant', since role is an open string and each domain names its own group members -- this fixture exists specifically to prove the schema doesn't silently assume a mutation-testing-shaped role vocabulary.",
+  "type": "resultset",
+  "expect": { "valid": true },
+  "document": {
+    "version": "1.1.0",
+    "suite_id": "rag-retrieval-suite",
+    "run_id": "trial-003-run",
+    "started_at": "2026-09-05T14:00:00Z",
+    "group": {
+      "group_id": "lr-batchsize-grid-2026-09-05",
+      "role": "candidate",
+      "label": "lr=1e-4, batch_size=32",
+      "sequence": 3
+    },
+    "results": [
+      {
+        "test_case_id": "case_1",
+        "passed": true,
+        "grader_results": [
+          { "grader_id": "gr1", "type": "semantic_similarity", "score": 0.88, "passed": true }
+        ]
+      },
+      {
+        "test_case_id": "case_2",
+        "passed": true,
+        "grader_results": [
+          { "grader_id": "gr1", "type": "semantic_similarity", "score": 0.91, "passed": true }
+        ]
+      }
+    ]
+  }
+}
