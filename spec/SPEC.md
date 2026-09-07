@@ -745,9 +745,33 @@ This also sharpens rather than weakens the "producer must know the total upfront
 
 Here `role: "candidate"` (rather than mutation testing's `"mutant"`) names what this member *is* within its group — the RFC's `role` field was proposed as an open string specifically so a grid search doesn't have to borrow mutation-testing vocabulary or invent a spec change to name its own members. A model-comparison sweep would use the same shape with `role: "baseline"` / `role: "challenger"`, or whatever vocabulary that domain's own producers converge on — this spec doesn't pick one for them, the same restraint already applied to `role`'s mutation-testing vocabulary above.
 
+**A third, independent domain grounds the second half of the RFC's own generalization claim.** Issue #36 named two use cases beyond mutation testing: "a seed-sweep or a multi-model comparison." The hyperparameter sweep above grounded the first; the second — multi-model comparison — had, until now, only been asserted in the paragraph immediately above, not checked against a real system. Reading `promptfoo/promptfoo`'s actual current `src/types/index.ts` closes that gap: `EvaluateResult.provider: Pick<ProviderOptions, 'id' | 'label'>` identifies which model produced a given row when the same test cases run across multiple configured providers, and `CompletedPrompt.provider: string` paired with `CompletedPrompt.metrics: PromptMetricsSchema` (`score`, `testPassCount`, `testFailCount`, `assertPassCount`, ...) is exactly the consumer-computed, per-provider rollup this RFC's `group` design already assumes rather than mandates — independently confirming the same join-key-on-member/rollup-computed-by-consumer shape a fifth time, after W&B, MLflow, Stryker, and Optuna. `providers` is configured as an ordered array (`providers: z.array(ApiProviderSchema)`) and evaluated in that order, so — like Optuna's grid search, and unlike an adaptive sampler that must omit it — `sequence` is well-defined here too: a producer knows each provider's position in its own configured list upfront.
+
+**Worked example: a multi-model comparison, using promptfoo's own real example.** The provider ids and premise below (grading how accurately each of three models describes an image) are taken directly from promptfoo's own current `examples/compare-claude-vs-gpt-image/promptfooconfig.yaml`, a real example built for exactly this use case — not a hypothetical. One `ResultSet` for the middle provider in that file's list of three (`sequence: 1`, 0-indexed, matching `providers`' configured order):
+
+```json
+{
+  "version": "1.1.0",
+  "suite_id": "image-description-suite",
+  "run_id": "openai-gpt-4.1-run",
+  "started_at": "2026-09-07T10:00:00Z",
+  "group": {
+    "group_id": "claude-vs-gpt-vs-gemini-image-2026-09-07",
+    "role": "openai:gpt-4.1",
+    "label": "GPT-4.1 (image description accuracy)",
+    "sequence": 1
+  },
+  "results": [
+    { "test_case_id": "great_wave_off_kanagawa", "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "llm_judge", "score": 0.92, "passed": true } ] }
+  ]
+}
+```
+
+`role` here is the model's own real provider id string (`"openai:gpt-4.1"`) rather than mutation testing's `"mutant"` or the grid search fixture's `"candidate"` — a third distinct vocabulary from a third distinct domain, each chosen by its own producers with zero spec changes, exactly as `role` being an open string was designed to allow. With all three `ResultSet`s in this group emitted (Claude, GPT-4.1, Gemini), a consumer builds promptfoo's own comparison table — one column per `group.role`, one row per `test_case_id` — purely from `group` plus the shared `test_case_id`s already in `results`, the same consumer-computed rollup pattern as muteval's raw/effective score and Optuna's best-trial selection above.
+
 **What this deliberately does not do:** it does not standardize how a rollup (mutation score, best-trial selection, win-rate) is computed — that differs too much by domain to bake into the core spec, matching how stability/flip-rate computation over repeated `attempt`s was deliberately deferred out of Discussion #22 as well. A `profile:mutation-score-v1`-style convention (see Profile Extensions, below) is the natural home for that once there's a second and third real consumer to generalize from.
 
-See `spec/conformance/fixtures/group_membership_valid.json` (a valid grouped `ResultSet`, composing `group` with `attempt`/`isolation` from the previous section), `spec/conformance/fixtures/group_missing_group_id_rejected.json` (`group` present without `group_id`, correctly rejected), `spec/conformance/fixtures/group_hyperparameter_sweep_valid.json` (the grid-search example above, demonstrating the same field validates cleanly for a non-mutation-testing domain), and `spec/conformance/fixtures/group_role_metadata_real_gap_valid.json` / `spec/conformance/fixtures/group_role_metadata_inert_survivor_valid.json` (the maintainer-confirmed `role`+`metadata.output_changed` split above, both branches) on the reference-implementation branch referenced from Discussion #45.
+See `spec/conformance/fixtures/group_membership_valid.json` (a valid grouped `ResultSet`, composing `group` with `attempt`/`isolation` from the previous section), `spec/conformance/fixtures/group_missing_group_id_rejected.json` (`group` present without `group_id`, correctly rejected), `spec/conformance/fixtures/group_hyperparameter_sweep_valid.json` (the grid-search example above, demonstrating the same field validates cleanly for a non-mutation-testing domain), `spec/conformance/fixtures/group_role_metadata_real_gap_valid.json` / `spec/conformance/fixtures/group_role_metadata_inert_survivor_valid.json` (the maintainer-confirmed `role`+`metadata.output_changed` split above, both branches), and `spec/conformance/fixtures/group_multi_model_comparison_valid.json` (the promptfoo-grounded multi-model comparison example above, closing out issue #36's own two named use cases) on the reference-implementation branch referenced from Discussion #45.
 
 ### Extensions Registry
 
