@@ -1,0 +1,26 @@
+{
+  "description": "Demonstrates the role+metadata refinement AshwinUgale raised on Discussion #45 (proposed, not yet finalized): muteval's real per-mutant 'survived' outcome isn't one thing -- a survivor is either a genuine coverage gap or an inert/equivalent mutant muteval excludes from its effective mutation score, so a consumer reconstructing that effective score from group.role alone would get muteval's raw score instead. This fixture is the inert/equivalent-mutant branch: role stays the same coarse 'survived' verdict as the real-gap case (both mutants really did survive the suite unkilled), but metadata.output_changed: false (reusing muteval's own MutantOutcome field name from runner.py) marks this member as one an effective-score rollup should exclude. See spec/conformance/fixtures/group_role_metadata_real_gap_valid.json for the paired real-coverage-gap case -- the two fixtures together show both branches validate cleanly with zero schema changes and no growth in role's vocabulary.",
+  "type": "resultset",
+  "expect": { "valid": true },
+  "document": {
+    "version": "1.1.0",
+    "suite_id": "billing-suite",
+    "run_id": "mutant-022-run",
+    "started_at": "2026-09-06T09:00:05Z",
+    "group": {
+      "group_id": "mutation-sweep-2026-09-06",
+      "role": "survived",
+      "sequence": 22
+    },
+    "metadata": { "output_changed": false },
+    "results": [
+      {
+        "test_case_id": "case_1",
+        "passed": true,
+        "grader_results": [
+          { "grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": true }
+        ]
+      }
+    ]
+  }
+}
