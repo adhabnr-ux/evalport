@@ -362,3 +362,111 @@ def test_group_hyperparameter_sweep_second_domain_is_valid():
     }
     result = validate_result_set(rs)
     assert result.valid, result.errors
+
+def test_group_role_survived_with_real_gap_metadata_is_valid():
+    # AshwinUgale's Discussion #45 refinement: muteval's "survived" isn't one
+    # thing -- a survivor is either a real coverage gap or an inert/equivalent
+    # mutant muteval excludes from its effective mutation score. role stays
+    # the coarse, conventional "survived" verdict (schema doesn't distinguish
+    # further); the real-gap-vs-inert bit rides in free-form metadata instead,
+    # reusing muteval's own MutantOutcome.output_changed field name rather than
+    # inventing new spec vocabulary. This is the real-coverage-gap branch --
+    # mirrors spec/conformance/fixtures/group_role_metadata_real_gap_valid.json.
+    rs = {
+        "version": "1.1.0", "suite_id": "billing-suite", "run_id": "mutant-021-run",
+        "started_at": "2026-09-06T09:00:00Z",
+        "group": {"group_id": "mutation-sweep-2026-09-06", "role": "survived", "sequence": 21},
+        "metadata": {"output_changed": True},
+        "results": [
+            {"test_case_id": "case_1", "passed": True, "grader_results": [
+                {"grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": True}
+            ]},
+        ],
+    }
+    result = validate_result_set(rs)
+    assert result.valid, result.errors
+
+def test_group_role_survived_with_inert_metadata_is_valid():
+    # Paired case: same coarse role: "survived" verdict, but
+    # metadata.output_changed: False marks this member as one an
+    # effective-mutation-score rollup should exclude -- muteval's own
+    # distinction, not folded into role. Mirrors
+    # spec/conformance/fixtures/group_role_metadata_inert_survivor_valid.json.
+    rs = {
+        "version": "1.1.0", "suite_id": "billing-suite", "run_id": "mutant-022-run",
+        "started_at": "2026-09-06T09:00:05Z",
+        "group": {"group_id": "mutation-sweep-2026-09-06", "role": "survived", "sequence": 22},
+        "metadata": {"output_changed": False},
+        "results": [
+            {"test_case_id": "case_1", "passed": True, "grader_results": [
+                {"grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": True}
+            ]},
+        ],
+    }
+    result = validate_result_set(rs)
+    assert result.valid, result.errors
+
+def test_group_role_metadata_lets_consumer_reconstruct_raw_and_effective_score():
+    # End-to-end proof of the RFC refinement's actual point: given a full
+    # 3-mutant group (one killed, one survived-real-gap, one
+    # survived-inert-equivalent), a consumer can derive BOTH muteval's raw
+    # mutation score (killed / total) and its effective score
+    # (killed / (total - inert-excluded)) purely from group.role +
+    # metadata.output_changed -- no schema change, no growth in role's
+    # vocabulary, exactly what AshwinUgale's comment asked whether this
+    # design could support.
+    group_id = "mutation-sweep-2026-09-06-full"
+    members = [
+        {
+            "version": "1.1.0", "suite_id": "billing-suite", "run_id": "mutant-020-run",
+            "started_at": "2026-09-06T08:59:55Z",
+            "group": {"group_id": group_id, "role": "killed", "sequence": 20},
+            "results": [
+                {"test_case_id": "case_1", "passed": False, "grader_results": [
+                    {"grader_id": "gr1", "type": "exact_match", "score": 0.0, "passed": False}
+                ]},
+            ],
+        },
+        {
+            "version": "1.1.0", "suite_id": "billing-suite", "run_id": "mutant-021-run",
+            "started_at": "2026-09-06T09:00:00Z",
+            "group": {"group_id": group_id, "role": "survived", "sequence": 21},
+            "metadata": {"output_changed": True},
+            "results": [
+                {"test_case_id": "case_1", "passed": True, "grader_results": [
+                    {"grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": True}
+                ]},
+            ],
+        },
+        {
+            "version": "1.1.0", "suite_id": "billing-suite", "run_id": "mutant-022-run",
+            "started_at": "2026-09-06T09:00:05Z",
+            "group": {"group_id": group_id, "role": "survived", "sequence": 22},
+            "metadata": {"output_changed": False},
+            "results": [
+                {"test_case_id": "case_1", "passed": True, "grader_results": [
+                    {"grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": True}
+                ]},
+            ],
+        },
+    ]
+    for rs in members:
+        result = validate_result_set(rs)
+        assert result.valid, result.errors
+
+    # Consumer-side rollup math (deliberately NOT part of the schema/validator
+    # -- the RFC explicitly declines to standardize this, see "What this
+    # deliberately does not do" in SPEC.md). Demonstrated here only to prove
+    # both numbers are actually reconstructible from the documents above.
+    total = len(members)
+    killed = sum(1 for m in members if m["group"]["role"] == "killed")
+    inert_excluded = sum(
+        1 for m in members
+        if m["group"]["role"] == "survived" and m.get("metadata", {}).get("output_changed") is False
+    )
+    raw_score = killed / total
+    effective_score = killed / (total - inert_excluded)
+
+    assert raw_score == 1 / 3
+    assert effective_score == 1 / 2
+    assert effective_score > raw_score  # excluding the inert survivor raises the score, as it should
