@@ -273,6 +273,272 @@ test("attempt/isolation-free result set still validates (backward compatibility)
   expect(validateResultSet(doc).valid).toBe(true);
 });
 
+// --- result set: group (Discussion #45, proposed -- grouped/sibling ResultSets) ---
+// Mirrors sdk/python/tests/test_validate.py's group section rule-for-rule so
+// both SDKs' hand-rolled validators agree on what's valid.
+
+function minimalResultList() {
+  return [{ test_case_id: "tc1", passed: true, grader_results: [graderResult()] }];
+}
+
+test("group absent still validates unchanged (backward compatibility)", () => {
+  const doc = {
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    results: minimalResultList(),
+  };
+  expect(validateResultSet(doc).valid).toBe(true);
+  expect("group" in doc).toBe(false);
+});
+
+test("group with only group_id is valid", () => {
+  // group_id is the only required sub-field -- role/label/sequence are all optional.
+  const doc = {
+    version: "1.0.0", suite_id: "s", run_id: "mutant-017-run", started_at: "2026-01-01T00:00:00Z",
+    group: { group_id: "mutation-sweep-2026-09-01" },
+    results: minimalResultList(),
+  };
+  expect(validateResultSet(doc).valid).toBe(true);
+});
+
+test("group with all fields populated is valid", () => {
+  const doc = {
+    version: "1.0.0", suite_id: "s", run_id: "mutant-017-run", started_at: "2026-01-01T00:00:00Z",
+    group: {
+      group_id: "mutation-sweep-2026-09-01",
+      role: "mutant",
+      label: "mutant_017 (relational-operator-swap in billing.py:42)",
+      sequence: 17,
+    },
+    results: minimalResultList(),
+  };
+  expect(validateResultSet(doc).valid).toBe(true);
+});
+
+test("group missing group_id rejected", () => {
+  const doc = {
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    group: { role: "mutant" },
+    results: minimalResultList(),
+  };
+  const r = validateResultSet(doc);
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.group.group_id" && e.code === "REQUIRED")).toBe(true);
+});
+
+test("group empty string group_id rejected", () => {
+  const doc = {
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    group: { group_id: "" },
+    results: minimalResultList(),
+  };
+  const r = validateResultSet(doc);
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.group.group_id" && e.code === "REQUIRED")).toBe(true);
+});
+
+test("group must be an object", () => {
+  const doc = {
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    group: "mutation-sweep-2026-09-01" as unknown as object, // a bare string is not a valid group
+    results: minimalResultList(),
+  };
+  const r = validateResultSet(doc);
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.group" && e.code === "TYPE_ERROR")).toBe(true);
+});
+
+test("group role is an open string, not an enum", () => {
+  // Mirrors isolation's precedent (Discussion #22): role stays a free string so
+  // a new grouping strategy never needs a spec change just to be nameable --
+  // not just the mutation-testing-flavored values used in the RFC's examples.
+  const doc = {
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    group: { group_id: "grid-search-42", role: "candidate_config_7" },
+    results: minimalResultList(),
+  };
+  expect(validateResultSet(doc).valid).toBe(true);
+});
+
+test("group non-string role rejected", () => {
+  const doc = {
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    group: { group_id: "g1", role: 42 as unknown as string },
+    results: minimalResultList(),
+  };
+  const r = validateResultSet(doc);
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.group.role" && e.code === "TYPE_ERROR")).toBe(true);
+});
+
+test("group non-string label rejected", () => {
+  const doc = {
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    group: { group_id: "g1", label: ["not", "a", "string"] as unknown as string },
+    results: minimalResultList(),
+  };
+  const r = validateResultSet(doc);
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.group.label" && e.code === "TYPE_ERROR")).toBe(true);
+});
+
+test("group sequence must be a non-negative integer", () => {
+  const doc = {
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    group: { group_id: "g1", sequence: -1 },
+    results: minimalResultList(),
+  };
+  const r = validateResultSet(doc);
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.group.sequence" && e.code === "OUT_OF_RANGE")).toBe(true);
+});
+
+test("group sequence zero is valid", () => {
+  // sequence is 0-indexed -- the first member of a group is sequence 0, not 1.
+  const doc = {
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    group: { group_id: "g1", sequence: 0 },
+    results: minimalResultList(),
+  };
+  expect(validateResultSet(doc).valid).toBe(true);
+});
+
+test("group sequence non-integer number rejected", () => {
+  // No JS bool/int aliasing gotcha to guard against here (that's Python-
+  // specific: bool is an int subclass there). TS/JS instead needs a guard
+  // against non-integer numbers, since typeof 2.5 === "number" too.
+  const doc = {
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    group: { group_id: "g1", sequence: 2.5 },
+    results: minimalResultList(),
+  };
+  const r = validateResultSet(doc);
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.group.sequence" && e.code === "OUT_OF_RANGE")).toBe(true);
+});
+
+test("group hyperparameter sweep (second domain) is valid", () => {
+  // Discussion #45's own generalization claim (mutation testing, seed sweeps,
+  // model comparisons) is only as credible as its weakest-checked domain --
+  // this mirrors spec/conformance/fixtures/group_hyperparameter_sweep_valid.json,
+  // a hyperparameter grid search unrelated to mutation testing, with a
+  // different role value ("candidate" rather than "mutant") and a sequence
+  // populated the way optuna/optuna's real FrozenTrial.number is documented
+  // to work ("unique and consecutive... zero-based") for a grid search whose
+  // trial count is known upfront. Proves role isn't silently mutation-testing-shaped.
+  const doc = {
+    version: "1.1.0", suite_id: "rag-retrieval-suite", run_id: "trial-003-run",
+    started_at: "2026-09-05T14:00:00Z",
+    group: {
+      group_id: "lr-batchsize-grid-2026-09-05",
+      role: "candidate",
+      label: "lr=1e-4, batch_size=32",
+      sequence: 3,
+    },
+    results: [
+      { test_case_id: "case_1", passed: true, grader_results: [{ grader_id: "gr1", type: "semantic_similarity", score: 0.88, passed: true }] },
+      { test_case_id: "case_2", passed: true, grader_results: [{ grader_id: "gr1", type: "semantic_similarity", score: 0.91, passed: true }] },
+    ],
+  };
+  const r = validateResultSet(doc);
+  expect(r.valid, JSON.stringify(r.errors)).toBe(true);
+});
+
+test("group role 'survived' with real-gap metadata is valid", () => {
+  // AshwinUgale's Discussion #45 refinement: muteval's "survived" isn't one
+  // thing -- a survivor is either a real coverage gap or an inert/equivalent
+  // mutant muteval excludes from its effective mutation score. role stays
+  // the coarse, conventional "survived" verdict (schema doesn't distinguish
+  // further); the real-gap-vs-inert bit rides in free-form metadata instead,
+  // reusing muteval's own MutantOutcome.output_changed field name rather than
+  // inventing new spec vocabulary. This is the real-coverage-gap branch --
+  // mirrors spec/conformance/fixtures/group_role_metadata_real_gap_valid.json.
+  const doc = {
+    version: "1.1.0", suite_id: "billing-suite", run_id: "mutant-021-run",
+    started_at: "2026-09-06T09:00:00Z",
+    group: { group_id: "mutation-sweep-2026-09-06", role: "survived", sequence: 21 },
+    metadata: { output_changed: true },
+    results: [
+      { test_case_id: "case_1", passed: true, grader_results: [{ grader_id: "gr1", type: "exact_match", score: 1.0, passed: true }] },
+    ],
+  };
+  const r = validateResultSet(doc);
+  expect(r.valid, JSON.stringify(r.errors)).toBe(true);
+});
+
+test("group role 'survived' with inert metadata is valid", () => {
+  // Paired case: same coarse role: "survived" verdict, but
+  // metadata.output_changed: false marks this member as one an
+  // effective-mutation-score rollup should exclude -- muteval's own
+  // distinction, not folded into role. Mirrors
+  // spec/conformance/fixtures/group_role_metadata_inert_survivor_valid.json.
+  const doc = {
+    version: "1.1.0", suite_id: "billing-suite", run_id: "mutant-022-run",
+    started_at: "2026-09-06T09:00:05Z",
+    group: { group_id: "mutation-sweep-2026-09-06", role: "survived", sequence: 22 },
+    metadata: { output_changed: false },
+    results: [
+      { test_case_id: "case_1", passed: true, grader_results: [{ grader_id: "gr1", type: "exact_match", score: 1.0, passed: true }] },
+    ],
+  };
+  const r = validateResultSet(doc);
+  expect(r.valid, JSON.stringify(r.errors)).toBe(true);
+});
+
+test("group role + metadata lets a consumer reconstruct raw and effective mutation score", () => {
+  // End-to-end proof of the RFC refinement's actual point: given a full
+  // 3-mutant group (one killed, one survived-real-gap, one
+  // survived-inert-equivalent), a consumer can derive BOTH muteval's raw
+  // mutation score (killed / total) and its effective score
+  // (killed / (total - inert-excluded)) purely from group.role +
+  // metadata.output_changed -- no schema change, no growth in role's
+  // vocabulary, exactly what AshwinUgale's comment asked whether this
+  // design could support.
+  const groupId = "mutation-sweep-2026-09-06-full";
+  const members = [
+    {
+      version: "1.1.0", suite_id: "billing-suite", run_id: "mutant-020-run",
+      started_at: "2026-09-06T08:59:55Z",
+      group: { group_id: groupId, role: "killed", sequence: 20 },
+      results: [{ test_case_id: "case_1", passed: false, grader_results: [{ grader_id: "gr1", type: "exact_match", score: 0.0, passed: false }] }],
+    },
+    {
+      version: "1.1.0", suite_id: "billing-suite", run_id: "mutant-021-run",
+      started_at: "2026-09-06T09:00:00Z",
+      group: { group_id: groupId, role: "survived", sequence: 21 },
+      metadata: { output_changed: true },
+      results: [{ test_case_id: "case_1", passed: true, grader_results: [{ grader_id: "gr1", type: "exact_match", score: 1.0, passed: true }] }],
+    },
+    {
+      version: "1.1.0", suite_id: "billing-suite", run_id: "mutant-022-run",
+      started_at: "2026-09-06T09:00:05Z",
+      group: { group_id: groupId, role: "survived", sequence: 22 },
+      metadata: { output_changed: false },
+      results: [{ test_case_id: "case_1", passed: true, grader_results: [{ grader_id: "gr1", type: "exact_match", score: 1.0, passed: true }] }],
+    },
+  ];
+
+  for (const m of members) {
+    const r = validateResultSet(m);
+    expect(r.valid, JSON.stringify(r.errors)).toBe(true);
+  }
+
+  // Consumer-side rollup math (deliberately NOT part of the schema/validator
+  // -- the RFC explicitly declines to standardize this, see "What this
+  // deliberately does not do" in SPEC.md). Demonstrated here only to prove
+  // both numbers are actually reconstructible from the documents above.
+  const total = members.length;
+  const killed = members.filter(m => m.group.role === "killed").length;
+  const inertExcluded = members.filter(
+    m => m.group.role === "survived" && (m as { metadata?: { output_changed?: boolean } }).metadata?.output_changed === false
+  ).length;
+  const rawScore = killed / total;
+  const effectiveScore = killed / (total - inertExcluded);
+
+  expect(rawScore).toBeCloseTo(1 / 3);
+  expect(effectiveScore).toBeCloseTo(1 / 2);
+  expect(effectiveScore).toBeGreaterThan(rawScore); // excluding the inert survivor raises the score, as it should
+});
+
 // --- PR #35 post-merge Copilot review: attempt-uniqueness key must not throw
 // on a non-string test_case_id/run_id (github.com/adhabnr-ux/evalport/pull/35) ---
 

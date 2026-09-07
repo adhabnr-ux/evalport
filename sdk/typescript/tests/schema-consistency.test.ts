@@ -327,3 +327,85 @@ describe("resultset: per-result completed_at (Discussion #10) agrees", () => {
     expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
   });
 });
+
+// ---------------------------------------------------------------------------
+// ResultSet: `group` (Discussion #45, proposed -- grouped/sibling ResultSets).
+// additionalProperties: false on the ResultSet object means the raw JSON Schema
+// would have rejected a `group` key before this schema change landed here,
+// exactly the same class of drift the per-result completed_at tests above
+// document -- both sides (schema + hand-rolled validator) must be updated
+// together, which is what this section checks. Mirrors
+// sdk/python/tests/test_schema_consistency.py's group section rule-for-rule.
+// ---------------------------------------------------------------------------
+
+describe("resultset: group (Discussion #45, proposed) agrees", () => {
+  function minimalResultSetDoc(overrides: Record<string, unknown> = {}) {
+    return {
+      version: "1.0.0",
+      suite_id: "s1",
+      run_id: "run1",
+      started_at: "2026-08-16T00:00:00Z",
+      results: [
+        {
+          test_case_id: "tc1",
+          grader_results: [{ grader_id: "g1", type: "exact_match", score: 0.9, passed: true }],
+          passed: true,
+        },
+      ],
+      ...overrides,
+    };
+  }
+
+  test("with group_id only valid in both paths", () => {
+    const doc = minimalResultSetDoc({ group: { group_id: "mutation-sweep-2026-09-01" } });
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+  });
+
+  test("with all fields valid in both paths", () => {
+    const doc = minimalResultSetDoc({
+      group: {
+        group_id: "mutation-sweep-2026-09-01",
+        role: "mutant",
+        label: "mutant_017 (relational-operator-swap in billing.py:42)",
+        sequence: 17,
+      },
+    });
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+  });
+
+  test("absent still valid in both paths (backward compatibility)", () => {
+    const doc = minimalResultSetDoc();
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+    expect("group" in doc).toBe(false);
+  });
+
+  test("missing group_id rejected by both paths", () => {
+    const doc = minimalResultSetDoc({ group: { role: "mutant" } }); // group_id is REQUIRED when group is present
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(false);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
+  });
+
+  test("unknown subfield rejected by JSON Schema", () => {
+    // additionalProperties: false on the group object itself -- a typo'd
+    // sub-field (e.g. "gruop_id") must be caught structurally by the JSON
+    // Schema even though the hand-rolled validator (like every other optional
+    // object in this file) doesn't police unknown keys.
+    const doc = minimalResultSetDoc({ group: { group_id: "g1", not_a_real_field: "oops" } });
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(false);
+  });
+
+  test("sequence must be a non-negative integer in both paths", () => {
+    const doc = minimalResultSetDoc({ group: { group_id: "g1", sequence: -1 } });
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(false);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
+  });
+
+  test("wrong type (string instead of object) rejected by both paths", () => {
+    const doc = minimalResultSetDoc({ group: "mutation-sweep-2026-09-01" }); // must be an object, not a string
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(false);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
+  });
+});
