@@ -1,7 +1,7 @@
 # EvalPort — The Open Evaluation Standard
 
 **Version:** 1.0.0-rc.5  
-**Status:** Release Candidate — Adopted by Inspect AI (merged), under active review by TruLens, implemented by 30 framework adapters, governance in place with all 5 of 5 open RFC topics landed as concrete spec changes with reference implementations  
+**Status:** Release Candidate — listed in Inspect AI's community extensions directory (PR merged, a docs listing rather than a native code integration); a standalone `to_openeval()`/`from_openeval()` module for TruLens has been reviewed and approved by a TruLens maintainer but is not yet merged (blocked on CI/rename, see spec/ADOPTION.md); 46 standalone adapter packages exist in this repo's own `adapters/` directory, built by the EvalPort maintainer against each framework's public data shapes — these are standalone packages in this repo, not adoptions by the upstream frameworks; governance in place with all 5 of 5 open RFC topics landed as concrete spec changes with reference implementations  
 **License:** Apache 2.0  
 **Specification Lead:** EvalPort Working Group
 
