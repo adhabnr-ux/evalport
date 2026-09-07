@@ -87,7 +87,7 @@ This is not a one-time cost — it repeats for every framework transition, every
 ### Document Model
 
 ```
-┌─────────────────────────────────────────────────────┐
+┌───────────────────────────────────────────────────┐
 │                    Eval Suite                         │
 │                                                      │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐          │
@@ -103,17 +103,17 @@ This is not a one-time cost — it repeats for every framework transition, every
 │              │   by ID)     │                         │
 │              └──────────────┘                        │
 │                                                      │
-│  ┌──────────────────────────────────┐               │
+│  ┌───────────────────────────────┐               │
 │  │       Suite Configuration         │               │
 │  │  (provider, model, defaults)      │               │
-│  └──────────────────────────────────┘               │
-└─────────────────────────────────────────────────────┘
+│  └───────────────────────────────┘               │
+└───────────────────────────────────────────────────┘
 
                         │ run
 
                         ▼
 
-┌─────────────────────────────────────────────────────┐
+┌───────────────────────────────────────────────────┐
 │                    Result Set                        │
 │                                                      │
 │  ┌────────────┐  ┌────────────┐  ┌────────────┐    │
@@ -122,12 +122,12 @@ This is not a one-time cost — it repeats for every framework transition, every
 │  │   pass/fail)│  │   pass/fail)│  │   pass/fail)│   │
 │  └────────────┘  └────────────┘  └────────────┘    │
 │                                                      │
-│  ┌──────────────────────────────────┐               │
+│  ┌───────────────────────────────┐               │
 │  │       Summary Statistics          │               │
 │  │  (pass rate, avg score, per-grader│               │
 │  │   breakdown, duration)            │               │
-│  └──────────────────────────────────┘               │
-└─────────────────────────────────────────────────────┘
+│  └───────────────────────────────┘               │
+└───────────────────────────────────────────────────┘
 ```
 
 ### Document Relationships
@@ -655,7 +655,7 @@ See `spec/conformance/fixtures/multi_attempt_resultset_valid.json` (a valid mult
 
 Grew out of [issue #36](https://github.com/adhabnr-ux/evalport/issues/36) ("No representation for grouped/sweep ResultSets with rollup semantics"), itself raised from a cross-project conversation in [AshwinUgale/muteval#44](https://github.com/AshwinUgale/muteval/issues/44). The gap: nothing in the schema relates one `ResultSet` to a set of sibling `ResultSet`s — `Repetition & Attempt Tracking` above fixed repeated trials *within* one `run_id`, but did nothing for grouping *across* several `run_id`s (a mutation-testing sweep's one-`ResultSet`-per-mutant, a hyperparameter grid search's one-`ResultSet`-per-trial, a multi-model comparison's one-`ResultSet`-per-model).
 
-**`ResultSet.group`** (optional object, required sub-field `group_id`) is the proposed join key, modeled directly on precedent from three real systems that already solve part of this problem — W&B Sweeps (`Run.sweep_id`), MLflow nested runs (`mlflow.get_parent_run`), and Stryker's `mutation-testing-report-schema` (per-mutant `status`, no rollup field) — all of which independently converged on the same shape: **the join key lives on the member and points at the group; the group-level rollup is computed by the consumer, not stored as a schema-mandated document.** This spec deliberately follows that precedent rather than also standardizing a separate rollup/manifest document — see Discussion #45 for the full reasoning, including why the informal alternative (relying on `suite_id` conventions) was rejected the same way an equivalent informal option was rejected for `isolation`.
+**`ResultSet.group`** (optional object, required sub-field `group_id`) is the proposed join key, modeled directly on precedent from four real systems that already solve part of this problem — W&B Sweeps (`Run.sweep_id`), MLflow nested runs (`mlflow.get_parent_run`), Stryker's `mutation-testing-report-schema` (per-mutant `status`, no rollup field), and Optuna's `Study`/`FrozenTrial` (see below) — all of which independently converged on the same shape: **the join key lives on the member and points at the group; the group-level rollup is computed by the consumer, not stored as a schema-mandated document.** This spec deliberately follows that precedent rather than also standardizing a separate rollup/manifest document — see Discussion #45 for the full reasoning, including why the informal alternative (relying on `suite_id` conventions) was rejected the same way an equivalent informal option was rejected for `isolation`.
 
 - `group.group_id` (string, required when `group` is present) — identifier shared by every `ResultSet` in the group. An open, producer-chosen string (UUID, slug, timestamp-based, ...), the same design as `suite_id`/`run_id`.
 - `group.role` (optional string) — this member's role or outcome within the group, e.g. `"mutant"`, `"seed"`, `"baseline"`, `"candidate"`. An **open string, not a closed enum**, for the same reason `isolation` isn't one (see above).
@@ -686,9 +686,39 @@ Grew out of [issue #36](https://github.com/adhabnr-ux/evalport/issues/36) ("No r
 
 **On a standard `role` vocabulary for mutation testing specifically:** muteval's real per-mutant outcome (`MutantOutcome` in `runner.py`) is not a single flat status string the way Stryker's `Killed`/`Survived`/`NoCoverage`/... enum is — it's several orthogonal signals (`killed: bool`, `errored: bool`, `output_changed: Optional[bool]` distinguishing a real coverage gap from an inert/equivalent mutant, and a separate `severity: "high"|"medium"|"low"` ranking). Collapsing all of that into one closed `role` enum would either lose information or invent a combinatorial vocabulary nobody asked for. The module docstring's own framing — a mutant is *"killed"* (suite failed, caught the injected regression) or *"survives"* (suite still passed) or, on a harness error, *"errored"* — is the one dimension that maps cleanly to a single `role` value, so `"killed"` / `"survived"` / `"errored"` are documented here as a **conventional, non-enforced** starting vocabulary for mutation-testing producers; severity and inert-vs-real status stay better expressed via `group.label` or domain metadata, not folded into `role`. This is offered as a considered default pending confirmation from an actual muteval-side integration, not asserted as final.
 
+**A second, unrelated domain confirms the same design independently — this isn't over-fit to mutation testing.** The gap this section fixes was explicitly framed (in issue #36, per AshwinUgale) as generalizing beyond mutation testing to "a seed-sweep or a multi-model comparison." To check that claim rather than just assert it, I read `optuna/optuna`'s actual current `optuna/trial/_frozen.py` and `optuna/study/_frozen.py` — Optuna is a real, widely-used hyperparameter optimization library with no connection to mutation testing or muteval, which is exactly the kind of independent check a general-purpose field needs. Two things line up precisely with the `group` design above, in a completely different domain:
+
+- `FrozenTrial.number` is documented, verbatim, as *"Unique and consecutive number of Trial for each Study. Note that this field uses zero-based numbering."* That is `group.sequence`'s exact semantics — a 0-indexed, producer-known position of one group member within its group — arrived at independently by a project with no relationship to this spec or to muteval. It's the same shape `select_mutants()` gave `sequence` for mutation testing, now confirmed for hyperparameter search too, where the search space size is likewise known upfront for a grid/random search (though not necessarily for an adaptive sampler that stops early — see below).
+- `FrozenStudy.study_name` is the join key every `FrozenTrial` in that study shares — the member-points-at-group shape `group.group_id` uses, independently arrived at a fourth time (alongside W&B, MLflow, and Stryker above).
+
+This also sharpens rather than weakens the "producer must know the total upfront" caveat already stated above: a fixed grid search knows its full trial count before starting (so `sequence` is meaningful for every trial from the first), while an adaptive sampler (Optuna's TPE, CMA-ES, or a pruner like Hyperband that stops trials early) may not know a final count upfront — for those, a `ResultSet` should simply omit `sequence`, exactly as already documented above. Nothing about this second domain forces a different rule; it just confirms the rule holds outside mutation testing too.
+
+**Worked example: a hyperparameter grid search, using this second domain's real field semantics.** One `ResultSet` from trial 3 of a 12-trial learning-rate/batch-size grid search, `group.sequence` populated the same way `FrozenTrial.number` would be for a grid search (whose full trial count is known upfront):
+
+```json
+{
+  "version": "1.1.0",
+  "suite_id": "rag-retrieval-suite",
+  "run_id": "trial-003-run",
+  "started_at": "2026-09-05T14:00:00Z",
+  "group": {
+    "group_id": "lr-batchsize-grid-2026-09-05",
+    "role": "candidate",
+    "label": "lr=1e-4, batch_size=32",
+    "sequence": 3
+  },
+  "results": [
+    { "test_case_id": "case_1", "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "semantic_similarity", "score": 0.88, "passed": true } ] },
+    { "test_case_id": "case_2", "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "semantic_similarity", "score": 0.91, "passed": true } ] }
+  ]
+}
+```
+
+Here `role: "candidate"` (rather than mutation testing's `"mutant"`) names what this member *is* within its group — the RFC's `role` field was proposed as an open string specifically so a grid search doesn't have to borrow mutation-testing vocabulary or invent a spec change to name its own members. A model-comparison sweep would use the same shape with `role: "baseline"` / `role: "challenger"`, or whatever vocabulary that domain's own producers converge on — this spec doesn't pick one for them, the same restraint already applied to `role`'s mutation-testing vocabulary above.
+
 **What this deliberately does not do:** it does not standardize how a rollup (mutation score, best-trial selection, win-rate) is computed — that differs too much by domain to bake into the core spec, matching how stability/flip-rate computation over repeated `attempt`s was deliberately deferred out of Discussion #22 as well. A `profile:mutation-score-v1`-style convention (see Profile Extensions, below) is the natural home for that once there's a second and third real consumer to generalize from.
 
-See `spec/conformance/fixtures/group_membership_valid.json` (a valid grouped `ResultSet`, composing `group` with `attempt`/`isolation` from the previous section) and `spec/conformance/fixtures/group_missing_group_id_rejected.json` (`group` present without `group_id`, correctly rejected) on the reference-implementation branch referenced from Discussion #45.
+See `spec/conformance/fixtures/group_membership_valid.json` (a valid grouped `ResultSet`, composing `group` with `attempt`/`isolation` from the previous section), `spec/conformance/fixtures/group_missing_group_id_rejected.json` (`group` present without `group_id`, correctly rejected), and `spec/conformance/fixtures/group_hyperparameter_sweep_valid.json` (the grid-search example above, demonstrating the same field validates cleanly for a non-mutation-testing domain) on the reference-implementation branch referenced from Discussion #45.
 
 ### Extensions Registry
 
