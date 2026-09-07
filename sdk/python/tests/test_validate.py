@@ -363,6 +363,42 @@ def test_group_hyperparameter_sweep_second_domain_is_valid():
     result = validate_result_set(rs)
     assert result.valid, result.errors
 
+def test_group_multi_model_comparison_third_domain_is_valid():
+    # Discussion #45's own generalization claim named TWO use cases beyond
+    # mutation testing in issue #36: "a seed-sweep or a multi-model
+    # comparison." Hyperparameter sweeps were grounded above via Optuna;
+    # this fixture grounds the second, previously-ungrounded one. Verified
+    # against promptfoo/promptfoo's actual current source (src/types/index.ts):
+    # EvaluateResult.provider: {id, label} identifies which model produced a
+    # row, and CompletedPrompt.provider + its .metrics (score, testPassCount,
+    # ...) is exactly the consumer-computed per-provider rollup this RFC's
+    # group design already assumes -- confirming the join-key-on-member /
+    # rollup-computed-by-consumer shape a fifth time (after W&B, MLflow,
+    # Stryker, Optuna), independently. providers are configured as an
+    # ordered array (providers: z.array(ApiProviderSchema)) and evaluated in
+    # that order, so sequence is well-defined here too -- not just for
+    # adaptive producers that must omit it. Provider ids and premise are
+    # taken directly from promptfoo's own real example built for exactly
+    # this purpose: examples/compare-claude-vs-gpt-image/promptfooconfig.yaml.
+    # Mirrors spec/conformance/fixtures/group_multi_model_comparison_valid.json.
+    rs = {
+        "version": "1.1.0", "suite_id": "image-description-suite", "run_id": "openai-gpt-4.1-run",
+        "started_at": "2026-09-07T10:00:00Z",
+        "group": {
+            "group_id": "claude-vs-gpt-vs-gemini-image-2026-09-07",
+            "role": "openai:gpt-4.1",
+            "label": "GPT-4.1 (image description accuracy)",
+            "sequence": 1,
+        },
+        "results": [
+            {"test_case_id": "great_wave_off_kanagawa", "passed": True, "grader_results": [
+                {"grader_id": "gr1", "type": "llm_judge", "score": 0.92, "passed": True}
+            ]},
+        ],
+    }
+    result = validate_result_set(rs)
+    assert result.valid, result.errors
+
 def test_group_role_survived_with_real_gap_metadata_is_valid():
     # AshwinUgale's Discussion #45 refinement: muteval's "survived" isn't one
     # thing -- a survivor is either a real coverage gap or an inert/equivalent
