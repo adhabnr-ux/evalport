@@ -810,3 +810,467 @@ Profiles are declared in the suite metadata: `"metadata": { "openeval.profile": 
 | `SCHEMA_INVALID` | Document fails JSON Schema validation | Runner rejects the document with field-level error details. |
 | `VERSION_UNSUPPORTED` | Major version exceeds runner's supported version | Runner rejects the document. |
 | `DUPLICATE_ID` | Test case or grader ID is not unique | Runner rejects the suite. |
+| `DANGLING_REFERENCE` | Grader ID referenced in test case not found in suite | Runner rejects the suite. |
+
+### Execution-Level Errors
+
+| Error Code | Condition | Action |
+|------------|-----------|--------|
+| `TIMEOUT` | Test case exceeded `timeout_ms` | Result recorded with `error.type: "timeout"`, `passed: false`. |
+| `PROVIDER_ERROR` | LLM provider returned an error | Result recorded with `error.type: "provider_error"`, `passed: false`. |
+| `GRADER_ERROR` | Grader implementation threw an exception | GraderResult recorded with `score: null`, `passed: false`, `metadata.error`. |
+| `UNSUPPORTED_GRADER` | Runner doesn't support the grader type | GraderResult recorded with `score: null`, `passed: false`, `metadata.skip_reason: "unsupported_grader_type"`. |
+
+### Error Reporting
+
+Errors MUST be structured, not string messages. The `error` object in results contains:
+```json
+{
+  "error": {
+    "type": "provider_error",
+    "message": "Rate limit exceeded",
+    "code": 429,
+    "retryable": true
+  }
+}
+```
+
+---
+
+## Security Considerations
+
+### Prompt Injection in Graders
+
+`llm_judge` graders use an LLM to evaluate outputs, which creates a prompt injection risk: a malicious test case input could cause the judge LLM to produce incorrect scores. Mitigations:
+- Judge prompts SHOULD use structured output (JSON schema) to constrain the judge's response.
+- Judge prompts SHOULD include the output in a delimited section, not concatenated with instructions.
+- Runners SHOULD cap judge LLM output length.
+
+These remain SHOULDs rather than MUSTs — see [Discussion #11](https://github.com/adhabnr-ux/evalport/discussions/11) for why promoting them to MUST isn't straightforward (it would require either standardizing prompt assembly itself or promoting one reference implementation's behavior ahead of independent confirmation). A runner MAY self-report which of these it actually applied via the `metadata.openeval.judge_hardening` key on the `GraderResult` — see Extension Mechanism → Judge Hardening Self-Report — making the claim inspectable downstream even though the spec doesn't mandate the mitigations themselves.
+
+### Code Grader Execution
+
+`code` graders execute arbitrary code. Runners MUST:
+- Execute code graders in an isolated sandbox (container, WASM, or subprocess with restricted permissions).
+- Enforce `timeout_ms` (default: 5000ms).
+- NOT execute code graders by default in CI environments unless explicitly enabled via `--allow-code-graders` flag or equivalent.
+
+### API Key Handling
+
+- API keys MUST NEVER be stored in EvalPort documents. Use `api_key_env` to reference an environment variable.
+- Runners MUST NOT log or expose API keys when serializing suite configuration.
+
+### Supply Chain Risks
+
+- Eval suites shared between organizations may contain malicious test cases (e.g., inputs designed to trigger harmful outputs).
+- Runners SHOULD validate that test case inputs don't contain known exploit patterns when importing third-party suites.
+- The `metadata.source` field SHOULD indicate the origin of test cases.
+- For suites redistributed outside a direct clone of their publisher's repo, `metadata.source` alone is an unverified claim — see Extension Mechanism → Suite/ResultSet Signing for a concrete, optional mechanism (Sigstore keyless signatures, verified by `spec/tools/verify_signature.py`) to actually detect post-publication tampering rather than only asserting provenance.
+
+---
+
+## Privacy Considerations
+
+### PII in Test Cases
+
+Eval test cases may contain personally identifiable information (PII). EvalPort does not redact or encrypt PII — it is the deployer's responsibility to:
+- Classify eval suites containing PII as confidential.
+- Store and transmit eval suites over encrypted channels.
+- Avoid sharing eval suites containing real user data without consent.
+
+### PII in Results
+
+Result sets contain `actual_output` which may include PII from the LLM's response. The same precautions apply.
+
+### Right to Be Forgotten
+
+To support GDPR/right-to-be-forgotten requests:
+- Test cases and results include a `metadata.source` field to trace data origin.
+- Runners SHOULD support deletion of individual test cases and their corresponding results from a result set.
+
+### Metadata Minimization
+
+The `metadata` field is free-form. Producers SHOULD minimize the inclusion of identifying information in metadata. Reserved key `openeval.pii_flags` can list fields containing PII for downstream tooling:
+```json
+"metadata": {
+  "openeval.pii_flags": ["input", "expected_output"]
+}
+```
+
+---
+
+## Backward Compatibility
+
+### Migration from Framework Formats
+
+EvalPort is designed to be a superset of common framework formats. Conversion guides are provided for:
+
+- **DeepEval** → EvalPort: `LLMTestCase` maps to `TestCase`; metrics map to graders.
+- **Promptfoo** → EvalPort: test case `vars` map to `input`/`context`; `assert` maps to inline graders.
+- **OpenAI Evals** → EvalPort: `test` maps to `TestCase`; `grader` maps to `Grader`.
+- **Inspect AI** → EvalPort: `Sample` maps to `TestCase`; solvers map to graders.
+- **LangSmith** → EvalPort: dataset examples map to `TestCase`; evaluators map to graders.
+- **Braintrust** → EvalPort: test cases and scores map directly; scorer functions map to graders.
+
+### Forward Compatibility
+
+- New optional fields may be added in minor versions. Runners MUST ignore unknown fields rather than failing.
+- New grader types may be added in minor versions. Runners MUST handle unknown grader types gracefully (skip, don't fail).
+
+### Deprecation Policy
+
+- Fields marked as deprecated in a minor version MUST be supported for at least one major version cycle.
+- Deprecation is announced via the `openeval.deprecated` metadata key in the schema and in release notes.
+
+---
+
+## Examples
+
+### Example 1: Simple Q&A Eval Suite
+
+```json
+{
+  "$schema": "https://evalport.org/schema/suite.json",
+  "version": "1.0.0",
+  "id": "suite_qa_basic",
+  "name": "Basic Q&A Evaluation",
+  "graders": [
+    {
+      "id": "gr_exact",
+      "type": "exact_match",
+      "params": { "ignore_case": true }
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "tc_1",
+      "input": "What is 2+2?",
+      "expected_output": "4",
+      "graders": ["gr_exact"]
+    },
+    {
+      "id": "tc_2",
+      "input": "What is the boiling point of water in Celsius?",
+      "expected_output": "100",
+      "graders": ["gr_exact"]
+    }
+  ],
+  "config": {
+    "provider": { "model": "gpt-4o", "temperature": 0.0 }
+  }
+}
+```
+
+### Example 2: RAG Evaluation Suite
+
+```json
+{
+  "$schema": "https://evalport.org/schema/suite.json",
+  "version": "1.0.0",
+  "id": "suite_rag_001",
+  "name": "RAG Pipeline Evaluation",
+  "description": "Evaluates RAG pipeline with faithfulness and relevancy checks",
+  "metadata": { "openeval.profile": "rag" },
+  "graders": [
+    {
+      "id": "gr_faithfulness",
+      "type": "llm_judge",
+      "description": "Checks if output is faithful to retrieved context",
+      "params": {
+        "model": "gpt-4o",
+        "prompt": "Given the context: {context}\nAnd the output: {output}\nIs the output fully supported by the context? Respond with JSON: {\"score\": 0.0-1.0, \"reason\": \"...\"}",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "score": { "type": "number" },
+            "reason": { "type": "string" }
+          },
+          "required": ["score", "reason"]
+        }
+      }
+    },
+    {
+      "id": "gr_answer_relevancy",
+      "type": "semantic_similarity",
+      "params": { "model": "text-embedding-3-small", "threshold": 0.75 }
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "tc_001",
+      "input": "What is Kubernetes?",
+      "expected_output": "Kubernetes is an open-source container orchestration platform.",
+      "context": ["Kubernetes is an open-source container orchestration system for automating deployment and scaling."],
+      "retrieval_context": ["Kubernetes is an open-source container orchestration system..."],
+      "graders": ["gr_faithfulness", "gr_answer_relevancy"],
+      "metadata": { "category": "tech", "difficulty": "medium" }
+    }
+  ],
+  "config": {
+    "provider": { "model": "gpt-4o", "temperature": 0.0 },
+    "defaults": { "timeout_ms": 30000 }
+  }
+}
+```
+
+### Example 3: Agent Evaluation Suite
+
+```json
+{
+  "$schema": "https://evalport.org/schema/suite.json",
+  "version": "1.0.0",
+  "id": "suite_agent_001",
+  "name": "Agent Tool Selection Evaluation",
+  "metadata": { "openeval.profile": "agent" },
+  "graders": [
+    {
+      "id": "gr_tools_correct",
+      "type": "exact_match",
+      "description": "Checks if the agent called the expected tools",
+      "params": { "ignore_case": true }
+    },
+    {
+      "id": "gr_json_response",
+      "type": "json_schema",
+      "params": {
+        "schema": {
+          "type": "object",
+          "properties": {
+            "action": { "type": "string" },
+            "parameters": { "type": "object" }
+          },
+          "required": ["action"]
+        }
+      }
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "tc_001",
+      "input": "Search for recent papers on quantum computing",
+      "expected_tools": ["web_search"],
+      "expected_output": "{\"action\": \"web_search\", \"parameters\": {\"query\": \"recent papers quantum computing\"}}",
+      "graders": ["gr_tools_correct", "gr_json_response"],
+      "metadata": { "scenario": "tool_selection" }
+    }
+  ]
+}
+```
+
+### Example 4: Result Set
+
+```json
+{
+  "$schema": "https://evalport.org/schema/resultset.json",
+  "version": "1.0.0",
+  "suite_id": "suite_qa_basic",
+  "suite_version": "1.0.0",
+  "run_id": "run_20260115_100000",
+  "started_at": "2026-01-15T10:00:00Z",
+  "completed_at": "2026-01-15T10:00:05Z",
+  "runner": { "name": "evalport-cli", "version": "1.0.0" },
+  "provider": { "model": "gpt-4o", "temperature": 0.0 },
+  "results": [
+    {
+      "test_case_id": "tc_1",
+      "actual_output": "4",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": 1.0,
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "duration_ms": 450
+    },
+    {
+      "test_case_id": "tc_2",
+      "actual_output": "The boiling point of water is 100°C at sea level.",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": 0.0,
+          "passed": false,
+          "reason": "Expected '100', got 'The boiling point of water is 100°C at sea level.'"
+        }
+      ],
+      "passed": false,
+      "duration_ms": 520
+    }
+  ],
+  "summary": {
+    "total": 2,
+    "passed": 1,
+    "failed": 1,
+    "skipped": 0,
+    "pass_rate": 0.5,
+    "avg_score": 0.5,
+    "duration_ms": 970,
+    "by_grader": {
+      "gr_exact": { "passed": 1, "failed": 1, "avg_score": 0.5 }
+    }
+  }
+}
+```
+
+### Example 5: JSONL Streaming Format
+
+For large suites, test cases can be streamed as JSONL. Each line is a complete `TestCase` document:
+
+```jsonl
+{"id":"tc_001","input":"What is 2+2?","expected_output":"4","graders":["gr_exact"]}
+{"id":"tc_002","input":"What is the capital of Japan?","expected_output":"Tokyo","graders":["gr_exact"]}
+{"id":"tc_003","input":"Who wrote Hamlet?","expected_output":"William Shakespeare","graders":["gr_exact"]}
+```
+
+The accompanying suite metadata file (`suite.json`) references the JSONL file:
+```json
+{
+  "version": "1.0.0",
+  "id": "suite_large_qa",
+  "test_cases_file": "test_cases.jsonl",
+  "graders": [
+    { "id": "gr_exact", "type": "exact_match" }
+  ]
+}
+```
+
+---
+
+## Reference Implementation
+
+The EvalPort reference implementation includes:
+
+1. **JSON Schemas** — `schema/testcase.json`, `schema/grader.json`, `schema/suite.json`, `schema/resultset.json`
+2. **TypeScript SDK** — `evalport-sdk` npm package for reading, writing, and validating EvalPort documents
+3. **Python SDK** — `openeval` PyPI package with the same capabilities
+4. **CLI** — `openeval` command-line tool for validation, conversion, and suite initialization
+5. **Example API** — A REST API for serving and running eval suites
+6. **Example integrations** — Migrated eval suites from DeepEval, Promptfoo, and Inspect AI formats
+7. **Conformance test suite** — `spec/conformance/` (resolves [Discussion #9](https://github.com/adhabnr-ux/evalport/discussions/9)): portable JSON fixtures, each a `(document, expected valid/invalid)` pair independently checked against both the JSON Schema files and the Python SDK's hand-rolled validator, so a conformance implementation in any language — not just the two reference SDKs — can test against the same fixtures without depending on this repo's code.
+8. **Signature verifier** — `spec/tools/verify_signature.py` (resolves [Discussion #8](https://github.com/adhabnr-ux/evalport/discussions/8)): a standalone CLI/library, depending only on the `sigstore` PyPI package, that verifies a suite/ResultSet's detached Sigstore signature bundle — see Extension Mechanism → Suite/ResultSet Signing.
+
+See the `README.md` for installation and usage instructions.
+
+---
+
+## Migration Guide
+
+### From DeepEval
+
+| DeepEval | EvalPort |
+|----------|----------|
+| `LLMTestCase(input, actual_output, expected_output, context)` | `TestCase` with `input`, `expected_output`, `context` |
+| `assert_test(test_case, metrics)` | `TestCase.graders` references suite-level `Grader` definitions |
+| `FaithfulnessMetric(threshold=0.7)` | `Grader` with `type: "llm_judge"`, `params.threshold: 0.7` |
+| `AnswerRelevancyMetric` | `Grader` with `type: "semantic_similarity"` |
+| `ConversationalTestCase` | `TestCase` with `input` as array of turns |
+
+### From Promptfoo
+
+| Promptfoo | EvalPort |
+|-----------|----------|
+| `vars` object | `input` + `context` |
+| `assert` array | Inline graders or suite-level grader references |
+| `{ type: "equals", value: "..." }` | `{ type: "exact_match", params: {} }` with `expected_output` |
+| `{ type: "contains-json" }` | `{ type: "json_schema" }` |
+| `{ type: "ic", value: "..." }` | `{ type: "llm_judge", params: { prompt: "..." } }` |
+
+### From OpenAI Evals
+
+| OpenAI Evals | EvalPort |
+|--------------|----------|
+| `test` object in `test_data.jsonl` | `TestCase` |
+| `grader` field | `Grader` in suite |
+| `modelgraded` spec | `Grader` with `type: "llm_judge"` |
+| `sampling` config | Suite `config.provider` |
+
+### From Inspect AI
+
+| Inspect AI | EvalPort |
+|------------|----------|
+| `Sample(input, target)` | `TestCase` with `input`, `expected_output` |
+| Solver functions | `Grader` with `type: "code"` or `type: "custom"` |
+| `score()` return | `GraderResult` with `score`, `passed` |
+
+---
+
+## FAQ
+
+**Q: Why not just use JSONL with agreed-upon field names?**
+
+A: Field names alone don't capture grader semantics. A `semantic_similarity` grader needs a threshold, an embedding model, and a comparison method. A `llm_judge` needs a prompt template, a judge model, and an output schema. Without standardizing these, "agreeing on field names" still produces incompatible eval suites.
+
+**Q: Why not extend OpenAI Evals' format?**
+
+A: OpenAI Evals' format is tightly coupled to OpenAI's runner and grader implementation. It doesn't support arbitrary providers, custom graders, or agent evaluation. EvalPort is provider-agnostic and extensible.
+
+**Q: How does EvalPort relate to OpenTelemetry GenAI?**
+
+A: They are complementary. OpenTelemetry GenAI standardizes execution traces (spans for LLM calls, tool calls). EvalPort standardizes evaluation data (test cases, graders, results). A result set can reference an OTel trace ID for execution details.
+
+**Q: How does EvalPort relate to MCP (Model Context Protocol)?**
+
+A: MCP standardizes how AI applications discover and invoke tools. EvalPort standardizes how to evaluate AI systems. An agent eval suite can reference MCP tool names in `expected_tools` to verify an agent calls the right tools.
+
+**Q: Why not wait for a standards body (ISO, IEEE, W3C) to define this?**
+
+A: Standards bodies move slowly (2-5 years). The LLM eval ecosystem is evolving monthly. EvalPort follows the IETF "rough consensus and running code" model — ship a useful spec with reference implementations, iterate based on adoption, and submit to a standards body once the format is proven.
+
+**Q: What about non-English evaluations?**
+
+A: EvalPort is language-agnostic. Test inputs, expected outputs, and grader prompts can be in any language. The `metadata.language` field (optional) can indicate the primary language of a suite.
+
+**Q: Can EvalPort handle multi-turn conversational evaluation?**
+
+A: Yes. The `input` field accepts an array of strings representing conversational turns. For structured conversation (with roles), use `metadata.conversation` with `{ "role": "user", "content": "..." }` objects.
+
+**Q: How are costs tracked?**
+
+A: The result `metadata` field can include `openeval.cost` with token counts and estimated cost. This is optional and runner-dependent, as pricing varies by provider.
+
+**Q: What if my grader type isn't in the standard set?**
+
+A: Use `type: "custom"` with a `handler` string that identifies your grader. Runners that don't recognize the handler will skip it gracefully. You can register custom grader types in the extensions registry.
+
+**Q: Is EvalPort tied to any specific LLM provider?**
+
+A: No. EvalPort is provider-agnostic. The `provider` field specifies which model to use, and `api_base` supports self-hosted models. Graders that use LLMs (like `llm_judge` and `semantic_similarity`) specify their own model independently of the system under test.
+
+---
+
+## Appendix A: Grader Type Reference
+
+### exact_match
+```json
+{ "type": "exact_match", "params": { "ignore_case": false, "trim_whitespace": true } }
+```
+Compares `actual_output` to `expected_output` as strings. Score is 1.0 on match, 0.0 otherwise.
+
+### contains
+```json
+{ "type": "contains", "params": { "substring": "Paris", "ignore_case": false } }
+```
+Checks if `actual_output` contains `substring`. Score is 1.0 if found, 0.0 otherwise.
+
+### regex
+```json
+{ "type": "regex", "params": { "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "flags": "" } }
+```
+Tests `actual_output` against the regex pattern. Score is 1.0 on match, 0.0 otherwise.
+
+### semantic_similarity
+```json
+{ "type": "semantic_similarity", "params": { "model": "text-embedding-3-small", "threshold": 0.85 } }
+```
+Computes cosine similarity between embeddings of `actual_output` and `expected_output`. Score is the similarity value. Passed if score >= threshold.
+
+### llm_judge
+```json
+{ "type": "llm_judge", "params": {
+    "model": "gpt-4o",
+    "prompt": "Evaluate if {output} answers {input} correctly. Expected: {expected}. Return JSON.",
+    "temperature": 0.0,
