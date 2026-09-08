@@ -114,3 +114,119 @@ This is not a one-time cost — it repeats for every framework transition, every
                         ▼
 
 ┌─────────────────────────────────────────────────────┐
+│                    Result Set                        │
+│                                                      │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐    │
+│  │  Result #1  │  │  Result #2  │  │  Result #3  │   │
+│  │  (score,    │  │  (score,    │  │  (score,    │   │
+│  │   pass/fail)│  │   pass/fail)│  │   pass/fail)│   │
+│  └────────────┘  └────────────┘  └────────────┘    │
+│                                                      │
+│  ┌──────────────────────────────────┐               │
+│  │       Summary Statistics          │               │
+│  │  (pass rate, avg score, per-grader│               │
+│  │   breakdown, duration)            │               │
+│  └──────────────────────────────────┘               │
+└─────────────────────────────────────────────────────┘
+```
+
+### Document Relationships
+
+- An **Eval Suite** contains 1..N **Test Cases** and 0..N **Grader** definitions.
+- Each **Test Case** references 1..N graders by ID.
+- A **Result Set** contains 1..N **Results**, one per test case in the source suite.
+- Each **Result** contains 1..N **Grader Results**, one per grader applied to that test case.
+
+### File Formats
+
+- **JSON** is the canonical format. All schemas are defined against JSON Schema 2020-12.
+- **YAML** is supported as an alternative serialization. YAML files MUST be convertible to semantically identical JSON.
+- **JSONL** (JSON Lines) is supported for streaming test cases. Each line is a complete `TestCase` document.
+
+---
+
+## Data Model
+
+### 1. TestCase
+
+A test case is the atomic unit of evaluation. It represents a single input to an LLM system and the criteria for evaluating the output.
+
+```json
+{
+  "$schema": "https://evalport.org/schema/testcase.json",
+  "id": "tc_001",
+  "input": "What is the capital of France?",
+  "expected_output": "Paris",
+  "context": [
+    "France is a country in Western Europe. Its capital is Paris."
+  ],
+  "graders": ["gr_exact_match", "gr_semantic_sim"],
+  "metadata": {
+    "category": "geography",
+    "difficulty": "easy",
+    "source": "manual"
+  },
+  "tags": ["rag", "factual"]
+}
+```
+
+#### Required Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string (unique within suite) | Unique identifier for the test case. |
+| `input` | string \| array | The input prompt(s) sent to the LLM. Array form represents conversational turns. |
+| `graders` | array of string | IDs of graders to apply. Must reference graders defined in the enclosing suite, or be inline grader objects. |
+
+#### Optional Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `expected_output` | string | The reference/golden output. Required for graders that compare against a ground truth. |
+| `context` | array of string | Supplementary context (retrieved docs, conversation history, tool results). |
+| `retrieval_context` | array of string | Documents retrieved by a RAG system, separated from general context for RAG-specific graders. |
+| `tools_called` | array of string | Names of tools expected to be called (for agent evaluation). |
+| `expected_tools` | array of string | Names of tools that SHOULD be called (for agent evaluation). |
+| `metadata` | object | Free-form metadata (category, difficulty, source, etc.). Keys `openeval.*` are reserved. |
+| `tags` | array of string | Categorization tags for filtering and grouping. |
+| `provider` | object | Per-test-case provider override (see Suite Configuration). |
+| `params` | object | Per-test-case generation parameters (temperature, max_tokens, etc.). |
+| `timeout_ms` | integer | Maximum execution time for this test case in milliseconds. |
+| `weight` | number | Relative weight for score aggregation (default: 1.0). |
+
+---
+
+### 2. Grader
+
+A grader defines how a test case's actual output is scored. Graders are defined once in the eval suite and referenced by ID from test cases.
+
+```json
+{
+  "$schema": "https://evalport.org/schema/grader.json",
+  "id": "gr_semantic_sim",
+  "type": "semantic_similarity",
+  "params": {
+    "model": "text-embedding-3-small",
+    "threshold": 0.85
+  },
+  "weight": 1.0
+}
+```
+
+#### Required Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string (unique within suite) | Unique identifier for the grader. |
+| `type` | string | The grader type (see Grader Type System). |
+
+#### Optional Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `params` | object | Type-specific parameters (threshold, model, schema, etc.). |
+| `weight` | number | Relative weight when aggregating scores (default: 1.0). |
+| `description` | string | Human-readable description of what this grader checks. |
+
+#### Grader Type System
+
