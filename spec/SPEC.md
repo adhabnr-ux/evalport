@@ -578,3 +578,119 @@ Results can already be written incrementally by any runner, but prior to this se
 A `ResultSet` with no `openeval.partial` key, or `openeval.partial: false`, is assumed complete (covers every test case in its suite) — this is fully backward compatible with every `ResultSet` produced before this section existed.
 
 **Merging two partial `ResultSet`s** for the same `run_id` needs a tiebreaker when both cover the same `test_case_id` with different results (e.g. a retried test case). `Result.completed_at` (optional, `date-time`, distinct from the `ResultSet`-level `completed_at` which marks when the *whole run* finished) is the field that makes this decidable:
+
+1. For any `test_case_id` present in both partials, the `Result` with the later `completed_at` wins.
+2. If either `Result` is missing `completed_at` (an older or non-conforming producer), a merge tool MUST NOT guess an ordering — it SHOULD reject the merge and require the caller to specify precedence explicitly. Silently picking a default order for untimestamped partials produces a confidently-wrong merged `ResultSet` with no way to detect it after the fact, the same failure shape Rule 6 already guards against at the individual-`GraderResult` level.
+3. The merged `ResultSet` SHOULD drop `openeval.partial` (or set it `false`) only once it genuinely covers every `test_case_id` in the suite — a merge of two partials that still leaves gaps is itself still partial.
+
+This section defines the convention; it does not mandate a specific CLI merge command or its exact interface — that's a reasonable follow-up for whichever runner or the `evalport-cli` package wants to implement it, not something this spec revision blocks on. See `spec/conformance/fixtures/partial_resultset_resumable_run.json` for a worked example.
+
+### Judge Hardening Self-Report (`metadata.openeval.judge_hardening`)
+
+Resolves [Discussion #11](https://github.com/adhabnr-ux/evalport/discussions/11) ("Should `llm_judge` injection mitigations be a MUST, not a SHOULD?"), deferred from `spec/CRITIQUE.md` item #3 ("partially fixed"). Structured output, delimiting untrusted content, and output-length caps remain SHOULDs (not MUSTs) for `llm_judge` graders — see Security Considerations → Prompt Injection in Graders — because a spec-level MUST would need to either standardize prompt assembly itself (out of scope: every framework's judge prompt is different) or promote one reference implementation's behavior to the required one before any alternate implementation has been confirmed to match it.
+
+Instead, a runner executing an `llm_judge` grader MAY self-report which mitigations it actually applied on the corresponding `GraderResult.metadata`:
+
+```json
+{ "metadata": { "openeval.judge_hardening": "structured_output+delimited+length_capped" } }
+```
+
+The value is a free-text, `+`-joined set of mitigation names — not a schema-enforced enum, since the mitigations worth naming will grow over time and standardizing the name set itself is a separate, smaller question from whether self-reporting is useful at all. This needs no schema change (`GraderResult.metadata` already permits arbitrary keys) and mirrors a pattern that already independently emerged across several shipped adapters for the analogous problem of an opaque judge internals: `giskard-openeval-adapter` and `llamaindex-openeval-adapter` both document, rather than fabricate, a judge's actual prompt/model when the source framework doesn't expose one directly. `openeval.judge_hardening` is the same "state honestly what you know, don't assert what you don't" shape, applied specifically to injection-hardening claims. A runner that claims a mitigation without applying it is simply lying in its own metadata — self-report is not a substitute for a runner actually being hardened, only a way to make that fact inspectable after the run. `spec/conformance/fixtures/judge_hardening_self_report.json` confirms the *convention itself* validates cleanly (a `GraderResult` carrying this key is spec-valid); it does not and cannot verify that a runner's claimed mitigation actually held under a real injection attempt, since that's runtime grading behavior, not document structure — see `spec/conformance/README.md`'s "What this doesn't cover (yet)" for that gap.
+
+### Suite/ResultSet Signing (`spec/tools/verify_signature.py`)
+
+Resolves [Discussion #8](https://github.com/adhabnr-ux/evalport/discussions/8) ("Suite/result signing for integrity verification"), deferred from `spec/CRITIQUE.md` item #9 ("out of scope for v1, ... a v1.1 or v2.0 feature"). The problem: nothing about the EvalPort document format itself lets a consumer detect that a publicly-hosted suite (the running example throughout that discussion, and throughout this section, is `benchmarks/`) was silently modified after publication — `metadata.source` is an unverified string, and Git history provides an audit trail only for someone who trusts the specific clone they're looking at.
+
+**This is a signing *convention*, not a schema change.** No document field carries a signature, and no validator — `validate_suite()`, `validate_result_set()`, the JSON Schemas, the conformance suite — checks for one. Signing is optional, stays optional indefinitely (the same treatment as `metadata.openeval.cost`), and is scoped specifically to the "was this tampered with in transit or at rest" threat model, which mostly matters for suites redistributed outside a direct clone of their publisher's repo. A `ResultSet` you generate and consume entirely within your own CI has no need for this.
+
+**The mechanism, following the reasoning laid out in Discussion #8's own comment thread:**
+
+- **Detached, not embedded.** A signed artifact is the published file (e.g. `benchmarks/gsm8k/gsm8k.json`) plus a separate [Sigstore bundle](https://docs.sigstore.dev/about/bundle/) file alongside it, named `<filename>.sigstore.json` (e.g. `benchmarks/gsm8k/gsm8k.json.sigstore.json`). Embedding a signature inside the document it covers creates a chicken-and-egg problem — the field holding the signature would have to be excluded from what gets hashed, which is exactly the kind of subtlety a detached bundle avoids by construction.
+- **Raw published bytes, not a canonical form.** The bundle signs the artifact's exact bytes as published — no JSON canonicalization step (e.g. JCS/RFC 8785). This means a byte-identical re-serialization with different whitespace needs a fresh signature, but it also means no canonicalizer implementation is required in any EvalPort-consuming language, and there is no room for two implementations' canonicalizers to quietly disagree about what was "really" signed — a subtly-wrong canonicalizer is a uniquely bad place for a bug, since it could either reject a validly-signed suite or, worse, be tricked into accepting a tampered one.
+- **Sigstore keyless signing, not a project-managed key.** Signing uses [Sigstore](https://www.sigstore.dev/)'s keyless flow: this repo's GitHub Actions release workflow (`.github/workflows/ci.yml`'s `sign-benchmarks` job) exchanges its OIDC token for a short-lived Fulcio-issued certificate — no long-lived private key exists anywhere for anyone to generate, protect, leak, or rotate. This is the same OIDC trust root this repo already uses for PyPI/npm Trusted Publishing (`publish-pypi` / `publish-npm`, also in `ci.yml`) — extending that same trust to benchmark-suite signing is a small conceptual step, not new infrastructure, and needs no key-management or revocation story. It's also the same approach npm provenance attestations and most modern SBOM/SLSA tooling converged on, for the same reason: a long-lived signing key is a standing liability a keyless flow eliminates entirely.
+- **Identity, not just validity, is what's checked.** A valid signature alone only proves *someone* with *some* Sigstore-recognized identity signed the artifact — anyone can obtain a Fulcio certificate for their own identity and sign anything. The reference verifier requires the caller to state an expected identity (an exact GitHub Actions workflow reference, or a regex matching any release of this repo's `ci.yml`) and OIDC issuer; it refuses to treat "the signature checks out" as sufficient on its own.
+
+**Reference verifier:** [`spec/tools/verify_signature.py`](https://github.com/adhabnr-ux/evalport/blob/main/spec/tools/verify_signature.py) — a standalone CLI/library (depends only on the `sigstore` PyPI package) that checks signature validity, Fulcio certificate chain validity against Sigstore's public root of trust, [Rekor](https://docs.sigstore.dev/logging/overview/) transparency-log inclusion, and the caller-specified identity policy, in one call:
+
+```bash
+python3 spec/tools/verify_signature.py verify benchmarks/gsm8k/gsm8k.json \
+  --cert-identity-regex '^https://github\.com/adhabnr-ux/evalport/\.github/workflows/ci\.yml@refs/tags/.*$' \
+  --cert-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+See `spec/tools/README.md` for full usage, including why an identity check is mandatory (`--unsafe-skip-identity-check` exists only for debugging a bundle in isolation and is never the recommended path) and where a real release's signature bundles are published (attached to the GitHub Release as an archive, not committed to `main` — a benchmark file changes between releases, and its signature should reflect exactly the release it shipped in, not drift against an evolving `main`).
+
+**Honest scope note on what's been verified so far.** `spec/tools/verify_signature.py`'s own test suite (`spec/tools/tests/test_verify_signature.py`) is real, not a mock — it verifies the script against genuine, independently-published Sigstore bundles vendored from another project's own test fixtures (see `spec/tools/tests/fixtures/NOTICE.md`), including a real GitHub Actions OIDC-signed artifact, checked against Sigstore's production infrastructure over the network. What this revision has *not* done is exercise `ci.yml`'s `sign-benchmarks` job against a real EvalPort release: minting a fresh Sigstore signature requires an interactive OIDC login (a browser-based identity-provider flow) that no sandboxed or headless development environment can perform non-interactively, so that job can only be genuinely exercised by this repo's own release CI, the first time a real release runs it. The verifier being independently proven correct against real Sigstore infrastructure is what makes it trustworthy to run in that job in the first place — but "the verifier works" and "this specific CI job is correctly wired" are two different claims, and only the first one is backed by a test run as of this revision.
+
+### Repetition & Attempt Tracking (`Result.attempt`, `ResultSet.isolation`)
+
+Resolves [Discussion #22](https://github.com/adhabnr-ux/evalport/discussions/22) ("RFC: repetition/attempt tracking in ResultSet"), raised externally via [issue #20](https://github.com/adhabnr-ux/evalport/issues/20) by AgentVerity's maintainer, deferred from `spec/CRITIQUE.md` item #15. Prior to this section, `ResultSet.results[]` documented "one result per test case" as a convention only — neither `resultset.json` nor `validate_result_set()` enforced it, so a producer emitting several `Result`s for the same `test_case_id` (LangSmith's `num_repetitions`, Promptfoo's per-test repeats, Inspect AI's `epochs` all do this upstream) was silently unaddressed: no field said *why* there were several, nothing joined them, and `summary` computation had no defined behavior when it happened.
+
+**`Result.attempt`** (optional integer, `minimum: 1`) is the join key. It is a 1-indexed repetition number for a `test_case_id` within a `run_id`; ascending values are observation order (attempt 2 was observed after attempt 1), so consumers get a documented ordering guarantee instead of inferring one from `completed_at` or array position. Absent, or `1` with no sibling attempts, means a single-attempt result — every `ResultSet` produced before this section needs no change. `(test_case_id, run_id, attempt)` MUST be unique across `results[]` whenever `attempt` is present (Validation Rules → Uniqueness); a runner encountering a duplicate MUST reject the `ResultSet`, the same treatment `DUPLICATE_ID` already gets for a suite's test case/grader IDs.
+
+**`ResultSet.isolation`** (optional string) records whether the repeats represented in this `ResultSet` ran in fresh sessions/model instances or a shared session/context — a fact that changes what a stability or flip-rate computation over those repeats can support statistically (independent trials vs. correlated ones). It is an **open string, not a closed enum**: `"fresh"` and `"shared"` are documented as conventional values, not an exhaustive list, so a new isolation strategy some other framework invents later never needs a spec change just to be nameable — the same reasoning [Discussion #22](https://github.com/adhabnr-ux/evalport/discussions/22) applied to keeping grader `type` open (see Custom Grader Types).
+
+**Design decision: `isolation` lives on `ResultSet`, once, not on each `Result`.** This was the one genuinely open question after the rest of the design converged. Discussion #22 had converged on an open string, plus a refinement that — if `isolation` stayed per-`Result` — would require "one isolation value per repetition group" (every `Result` sharing `(test_case_id, run_id)` must agree). In the parallel issue #20 thread, weighing per-`Result` against `ResultSet`-level directly, AgentVerity's maintainer settled the placement question: *"AgentVerity's own evidence model declares isolation once per collection set, not per decision, because a window that mixes fresh and shared trials changes what the flip-rate interval supports at all. A producer who genuinely mixes isolation modes should emit two ResultSets rather than annotate per result, which keeps the summary statistics well-defined too. If a real per-result case appears later, an optional override can be added without breaking anything."* This spec adopts that placement as the implementation: a single `ResultSet`-level field matches AgentVerity's evidence model exactly, and it's simpler for a real reason beyond fewer bytes — a per-`Result` field needs its own consistency rule (do all `Result`s sharing `(test_case_id, run_id)` agree on `isolation`?) that a `ResultSet`-level value makes trivially true by construction, since there is only one value to check. Consistent with "if a real per-result case appears later" above, no per-`Result` override is added speculatively here; that stays a future, additive extension for if and when a genuine need for it shows up.
+
+```json
+{
+  "version": "1.0.0",
+  "suite_id": "suite_stability_eval",
+  "run_id": "run_20260830_repeated",
+  "started_at": "2026-08-30T09:00:00Z",
+  "isolation": "fresh",
+  "results": [
+    { "test_case_id": "tc_001", "attempt": 1, "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": true } ] },
+    { "test_case_id": "tc_001", "attempt": 2, "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": true } ] },
+    { "test_case_id": "tc_001", "attempt": 3, "passed": false, "grader_results": [ { "grader_id": "gr1", "type": "exact_match", "score": 0.0, "passed": false } ] }
+  ]
+}
+```
+
+See `spec/conformance/fixtures/multi_attempt_resultset_valid.json` (a valid multi-attempt `ResultSet`) and `spec/conformance/fixtures/duplicate_attempt_collision_rejected.json` (a same-`(test_case_id, run_id, attempt)` collision correctly rejected) — contributed against these exact field names per AgentVerity's offer in Discussion #22.
+
+### Grouped/Sibling ResultSets (`ResultSet.group`) — PROPOSED, not yet finalized
+
+> **Status:** this section documents [Discussion #45](https://github.com/adhabnr-ux/evalport/discussions/45), open for comment. The schema addition, SDK validators, and conformance fixtures described here exist on a reference-implementation branch/PR referenced from that discussion — **not on `main`** — so they can be reviewed and tested without being mistaken for a landed spec change. This subsection will be rewritten in the past tense (matching Repetition & Attempt Tracking above) if and when the RFC concludes and actually merges, the same path [Discussion #22](https://github.com/adhabnr-ux/evalport/discussions/22) took to become the section above.
+
+Grew out of [issue #36](https://github.com/adhabnr-ux/evalport/issues/36) ("No representation for grouped/sweep ResultSets with rollup semantics"), itself raised from a cross-project conversation in [AshwinUgale/muteval#44](https://github.com/AshwinUgale/muteval/issues/44). The gap: nothing in the schema relates one `ResultSet` to a set of sibling `ResultSet`s — `Repetition & Attempt Tracking` above fixed repeated trials *within* one `run_id`, but did nothing for grouping *across* several `run_id`s (a mutation-testing sweep's one-`ResultSet`-per-mutant, a hyperparameter grid search's one-`ResultSet`-per-trial, a multi-model comparison's one-`ResultSet`-per-model).
+
+**`ResultSet.group`** (optional object, required sub-field `group_id`) is the proposed join key, modeled directly on precedent from six real systems that already solve part of this problem — W&B Sweeps (`Run.sweep_id`), MLflow nested runs (`mlflow.get_parent_run`), Stryker's `mutation-testing-report-schema` (per-mutant `status`, no rollup field), Optuna's `Study`/`FrozenTrial` (see below), promptfoo's `EvaluateResult.provider`/`CompletedPrompt.metrics` (see below), and Google Cloud's Vertex AI Vizier `Study`/`Trial` resource hierarchy, confirmed directly in the open-source `google/vizier` implementation behind it (see below) — all of which independently converged on the same shape: **the join key lives on the member and points at the group; the group-level rollup is computed by the consumer, not stored as a schema-mandated document.** A seventh system checked for the same reason, AWS SageMaker's hyperparameter tuning API, does **not** converge on this shape — it's discussed on its own terms below rather than left out for disagreeing. This spec deliberately follows the six-system precedent rather than also standardizing a separate rollup/manifest document — see Discussion #45 for the full reasoning, including why the informal alternative (relying on `suite_id` conventions) was rejected the same way an equivalent informal option was rejected for `isolation`.
+
+- `group.group_id` (string, required when `group` is present) — identifier shared by every `ResultSet` in the group. An open, producer-chosen string (UUID, slug, timestamp-based, ...), the same design as `suite_id`/`run_id`.
+- `group.role` (optional string) — this member's role or outcome within the group, e.g. `"mutant"`, `"seed"`, `"baseline"`, `"candidate"`. An **open string, not a closed enum**, for the same reason `isolation` isn't one (see above).
+- `group.label` (optional string) — a human-readable name for this member, for display only, not a join key.
+- `group.sequence` (optional integer, `minimum: 0`) — this member's 0-indexed position within the group, for producers that know the group's total size at emission time.
+
+```json
+{
+  "version": "1.1.0",
+  "suite_id": "billing-suite",
+  "run_id": "mutant-017-run",
+  "started_at": "2026-09-01T10:00:00Z",
+  "isolation": "fresh",
+  "group": {
+    "group_id": "mutation-sweep-2026-09-01",
+    "role": "mutant",
+    "label": "mutant_017 (relational-operator-swap in billing.py:42)",
+    "sequence": 17
+  },
+  "results": [
+    { "test_case_id": "case_1", "attempt": 1, "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": true } ] },
+    { "test_case_id": "case_2", "attempt": 1, "passed": false, "grader_results": [ { "grader_id": "gr1", "type": "exact_match", "score": 0.0, "passed": false } ] }
+  ]
+}
+```
+
+**Whether `sequence` is meaningful depends on the producer knowing the group's total size upfront — verified, not assumed, for the motivating case.** Reading `AshwinUgale/muteval`'s actual current `src/muteval/runner.py`: `run_mutation_testing()` calls `select_mutants()`, which fully materializes the mutant list via `generate_mutants()` — synchronously, before any per-mutant evaluation begins (whether run serially or via `ThreadPoolExecutor.map`, which preserves input order). So for mutation testing specifically, the total mutant count and each mutant's position genuinely are known before its `ResultSet` would be emitted; `sequence` is not dead weight there. A producer whose grouping strategy discovers members incrementally (e.g. a search that doesn't know its own trial count upfront) can simply omit `sequence` — it's optional for exactly that reason.
+
+**On a standard `role` vocabulary for mutation testing specifically:** muteval's real per-mutant outcome (`MutantOutcome` in `runner.py`) is not a single flat status string the way Stryker's `Killed`/`Survived`/`NoCoverage`/... enum is — it's several orthogonal signals (`killed: bool`, `errored: bool`, `output_changed: Optional[bool]` distinguishing a real coverage gap from an inert/equivalent mutant, and a separate `severity: "high"|"medium"|"low"` ranking). Collapsing all of that into one closed `role` enum would either lose information or invent a combinatorial vocabulary nobody asked for. The module docstring's own framing — a mutant is *"killed"* (suite failed, caught the injected regression) or *"survives"* (suite still passed) or, on a harness error, *"errored"* — is the one dimension that maps cleanly to a single `role` value, so `"killed"` / `"survived"` / `"errored"` are documented here as a **conventional, non-enforced** starting vocabulary for mutation-testing producers; severity and inert-vs-real status stay better expressed via `group.label` or domain metadata, not folded into `role`. This was offered as a considered default pending confirmation from an actual muteval-side integration — confirmed, with a refinement, below.
+
+**Confirmed by muteval's maintainer, with a refinement that sharpens the metadata split above.** [Replying directly on Discussion #45](https://github.com/adhabnr-ux/evalport/discussions/45#discussioncomment-18308435), AshwinUgale confirmed both the `sequence` and `role` reasoning above, then went further: muteval's "survived" state isn't one thing internally — a survivor is either a real coverage gap or an inert/equivalent mutant the tool excludes from its *effective* mutation score, so a consumer reconstructing that rollup from `role` alone would get muteval's raw score, "not the effective one" (AshwinUgale, Discussion #45). His conclusion tracks the split already proposed above rather than requiring a schema change: "'survived' needs to distinguish real-gap vs inert" (AshwinUgale, Discussion #45) if `role` is meant to support rollup reconstruction — precisely the job already assigned to domain `metadata`, not `role`, in the paragraph above.
+
+Concretely, that means carrying the real-gap-vs-inert bit as free-form `metadata` on each `ResultSet`, reusing muteval's own field for it (`output_changed`, from `MutantOutcome` in `runner.py`) rather than inventing new spec vocabulary for something this schema already lets a producer express without any schema change:
+
+```json
+[
+  {
+    "version": "1.1.0",
