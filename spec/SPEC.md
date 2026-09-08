@@ -230,3 +230,351 @@ A grader defines how a test case's actual output is scored. Graders are defined 
 
 #### Grader Type System
 
+| Type | Description | Required Params | Optional Params |
+|------|-------------|----------------|-----------------|
+| `exact_match` | String equality (case-sensitive or insensitive) | — | `ignore_case` (bool, default false), `trim_whitespace` (bool, default true) |
+| `contains` | Checks if actual output contains a substring | `substring` (string) | `ignore_case` (bool) |
+| `regex` | Matches actual output against a regex pattern | `pattern` (string, RE2 syntax) | `flags` (string) |
+| `semantic_similarity` | Cosine similarity of embeddings | `threshold` (number, 0-1) | `model` (string), `provider` (string) |
+| `llm_judge` | An LLM evaluates the output against a rubric | `model` (string), `prompt` (string) | `provider` (string), `temperature` (number), `schema` (object) |
+| `json_schema` | Validates actual output against a JSON Schema | `schema` (object) | `strict` (bool) |
+| `json_path` | Extracts a value via JSONPath and compares it | `path` (string), `expected` (string) | `operator` (string: eq, ne, gt, lt, gte, lte, contains) |
+| `code` | Executes a custom grading function | `language` (string: "python", "javascript"), `source` (string) | `timeout_ms` (integer) |
+| `human` | Defers to human review | — | `instructions` (string) |
+| `model graded` | Alias for `llm_judge` (OpenAI Evals compatibility) | Same as `llm_judge` | Same as `llm_judge` |
+| `custom` | Framework-specific grader not in the standard set | `handler` (string) | any |
+
+**Custom grader handling:** When a runner encounters a `custom` grader type or any unrecognized type, it MUST:
+1. Check if it has a handler registered for the `handler` string or type name.
+2. If no handler is available, mark the grader result as `skipped` with reason `unsupported_grader_type`.
+3. Never fail the entire suite due to an unsupported grader.
+
+**Type openness (normative):** `type` is not a closed enum. Any non-empty string is a valid grader type. The 11 types listed above are "well-known" — validators and runners give them standardized `params` validation and, where applicable, built-in execution support. Any other string (e.g. `"trulens_feedback"`, `"ragas_faithfulness"`) is a valid, framework-specific type name and is validated exactly like `custom`: `params.handler` is REQUIRED. This lets a document declare a framework-native grader type without inventing a fake `custom` wrapper, while still guaranteeing every non-standard grader carries enough information (`handler`) for a runner that doesn't recognize the type to skip it gracefully rather than guess at its semantics. This rule is enforced identically by `spec/schemas/grader.json` (via a catch-all `if type not in [...11 well-known values], then require params.handler` conditional) and by both reference SDKs (`sdk/python/openeval/validate.py`, `sdk/typescript/src/validate.ts`).
+
+---
+
+### 3. EvalSuite
+
+An eval suite is a named collection of test cases and shared grader definitions.
+
+```json
+{
+  "$schema": "https://evalport.org/schema/suite.json",
+  "version": "1.0.0",
+  "id": "suite_rag_eval_001",
+  "name": "RAG Evaluation Suite — Knowledge Base v2",
+  "description": "Evaluates RAG pipeline against 50 factual questions",
+  "graders": [
+    {
+      "id": "gr_exact_match",
+      "type": "exact_match",
+      "params": { "ignore_case": true }
+    },
+    {
+      "id": "gr_semantic_sim",
+      "type": "semantic_similarity",
+      "params": { "model": "text-embedding-3-small", "threshold": 0.85 }
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "tc_001",
+      "input": "What is the capital of France?",
+      "expected_output": "Paris",
+      "context": ["France is a country in Western Europe. Its capital is Paris."],
+      "graders": ["gr_exact_match", "gr_semantic_sim"]
+    }
+  ],
+  "config": {
+    "provider": {
+      "model": "gpt-4o",
+      "temperature": 0.0
+    },
+    "defaults": {
+      "timeout_ms": 30000,
+      "weight": 1.0
+    }
+  },
+  "metadata": {
+    "author": "jane@example.com",
+    "created": "2026-01-15T10:00:00Z",
+    "version": "1.0.0"
+  }
+}
+```
+
+#### Required Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `version` | string | EvalPort specification version (semver). |
+| `id` | string | Unique identifier for the suite. |
+| `test_cases` | array of TestCase | One or more test cases. |
+
+#### Optional Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Human-readable suite name. |
+| `description` | string | Longer description of the suite's purpose. |
+| `graders` | array of Grader | Shared grader definitions referenced by test cases. |
+| `config` | object | Suite-level configuration (provider, defaults). |
+| `metadata` | object | Free-form metadata. Keys `openeval.*` are reserved. |
+| `tags` | array of string | Suite-level tags. |
+
+#### Suite Configuration (`config`)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `provider` | object | Default provider and model settings. |
+| `provider.model` | string | Model identifier (e.g., `gpt-4o`, `claude-sonnet-4-20250514`). |
+| `provider.api_base` | string | Base URL for API calls (for self-hosted models). |
+| `provider.api_key_env` | string | Name of environment variable containing the API key. Never the key itself. |
+| `provider.temperature` | number | Sampling temperature. |
+| `provider.max_tokens` | integer | Max output tokens. |
+| `provider.extra` | object | Provider-specific parameters. |
+| `defaults` | object | Default values for optional test case fields. |
+| `defaults.timeout_ms` | integer | Default timeout. |
+| `defaults.weight` | number | Default test case weight. |
+| `parallel` | integer | Number of test cases to run in parallel (runner may ignore). |
+| `retry` | object | Retry configuration. |
+| `retry.max_attempts` | integer | Max retry attempts on provider errors. |
+| `retry.backoff_ms` | integer | Initial backoff in milliseconds. |
+
+---
+
+### 4. ResultSet
+
+A result set is the output of running an eval suite. It contains one result per test case, plus summary statistics.
+
+```json
+{
+  "$schema": "https://evalport.org/schema/resultset.json",
+  "version": "1.0.0",
+  "suite_id": "suite_rag_eval_001",
+  "suite_version": "1.0.0",
+  "run_id": "run_20260115_103000",
+  "started_at": "2026-01-15T10:30:00Z",
+  "completed_at": "2026-01-15T10:31:45Z",
+  "provider": {
+    "model": "gpt-4o",
+    "temperature": 0.0
+  },
+  "results": [
+    {
+      "test_case_id": "tc_001",
+      "actual_output": "The capital of France is Paris.",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact_match",
+          "type": "exact_match",
+          "score": 0.0,
+          "passed": false,
+          "reason": "Expected 'Paris', got 'The capital of France is Paris.'"
+        },
+        {
+          "grader_id": "gr_semantic_sim",
+          "type": "semantic_similarity",
+          "score": 0.92,
+          "passed": true,
+          "metadata": {
+            "similarity": 0.92,
+            "threshold": 0.85
+          }
+        }
+      ],
+      "passed": false,
+      "duration_ms": 1200,
+      "metadata": {
+        "trace_id": "trace_abc123"
+      }
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "pass_rate": 0.0,
+    "avg_score": 0.46,
+    "duration_ms": 1200,
+    "by_grader": {
+      "gr_exact_match": { "passed": 0, "failed": 1, "avg_score": 0.0 },
+      "gr_semantic_sim": { "passed": 1, "failed": 0, "avg_score": 0.92 }
+    }
+  }
+}
+```
+
+#### Required Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `version` | string | EvalPort specification version. |
+| `suite_id` | string | ID of the eval suite that was run. |
+| `run_id` | string | Unique identifier for this run. |
+| `started_at` | string (ISO 8601) | Run start timestamp. |
+| `results` | array of Result | One result per test case. |
+
+#### Optional Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `suite_version` | string | Version of the eval suite that was run. |
+| `completed_at` | string (ISO 8601) | Run completion timestamp. |
+| `provider` | object | Provider configuration used for the run. |
+| `runner` | object | Information about the runner (name, version). |
+| `runner.name` | string | Runner name (e.g., "deepeval", "promptfoo"). |
+| `runner.version` | string | Runner version. |
+| `isolation` | string | Trial isolation mode for repeated attempts in this `ResultSet`'s `results` — an open string (`"fresh"`/`"shared"` conventional, not exhaustive). Declared once per `ResultSet`, not per `Result` — a producer that genuinely mixes isolation modes SHOULD emit separate `ResultSet`s instead. See Extension Mechanism → Repetition & Attempt Tracking. |
+| `group` | object | **PROPOSED, [Discussion #45](https://github.com/adhabnr-ux/evalport/discussions/45), not yet finalized.** Membership in a named group of sibling `ResultSet`s (a sweep, a mutation-testing run, a multi-model comparison). `group.group_id` (string) is required when `group` is present; `group.role`/`group.label` (strings) and `group.sequence` (integer ≥ 0) are optional. See Extension Mechanism → Grouped/Sibling ResultSets. |
+| `summary` | object | Aggregated statistics. |
+| `metadata` | object | Free-form metadata. |
+
+#### Result Object
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `test_case_id` | string (required) | ID of the test case this result corresponds to. |
+| `actual_output` | string | The output produced by the LLM. |
+| `grader_results` | array (required) | Results from each grader. |
+| `passed` | boolean (required) | Overall pass/fail (all graders passed). |
+| `duration_ms` | integer | Execution time. |
+| `attempt` | integer (>= 1) | 1-indexed repetition number for this `test_case_id` within this `run_id`; ascending = observation order. Absent means single-attempt. Forms the `(test_case_id, run_id, attempt)` join key for repeated trials — see Extension Mechanism → Repetition & Attempt Tracking. |
+| `completed_at` | string (ISO 8601) | Timestamp this individual result was produced. Distinct from the `ResultSet`-level `completed_at` (whole-run finish time). Used as the merge tiebreaker for resumed/partial runs — see Extension Mechanism → Resumable Runs & Partial ResultSets. |
+| `error` | object | Error details if the test case errored. |
+| `error.message` | string | Error message. |
+| `error.type` | string | Error type (`timeout`, `provider_error`, `runner_error`). |
+| `metadata` | object | Free-form metadata (trace ID, cost, tokens). |
+
+#### GraderResult Object
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `grader_id` | string (required) | ID of the grader. |
+| `type` | string (required) | Grader type. |
+| `score` | number (required) | Numeric score, typically 0.0-1.0. |
+| `passed` | boolean (required) | Whether the grader's threshold was met. |
+| `reason` | string | Human-readable explanation. |
+| `metadata` | object | Grader-specific details (similarity value, judge response, etc.). |
+
+---
+
+## Validation Rules
+
+### 1. Schema Validation
+
+All documents MUST validate against their respective JSON Schemas. Runners MUST reject documents that fail schema validation with a clear error message identifying the failing field.
+
+### 2. Referential Integrity
+
+- Every grader ID referenced in a `TestCase.graders` array MUST exist in the suite's `graders` array, OR be an inline grader object.
+- Every `test_case_id` in a `ResultSet` MUST correspond to a test case in the source suite.
+
+### 3. Uniqueness
+
+- Test case IDs MUST be unique within a suite.
+- Grader IDs MUST be unique within a suite.
+- Run IDs SHOULD be globally unique (recommend UUID or timestamp + random suffix).
+- `(test_case_id, run_id, attempt)` MUST be unique across a `ResultSet`'s `results[]` whenever `Result.attempt` is present — see Extension Mechanism → Repetition & Attempt Tracking. This check is a no-op for any `ResultSet` that doesn't use `attempt`.
+
+### 4. Type-Specific Grader Validation
+
+- `exact_match`: No required params. If `ignore_case` is true, comparison is case-insensitive.
+- `contains`: `substring` param is required and MUST be a non-empty string.
+- `regex`: `pattern` param is required and MUST be a valid RE2 regex.
+- `semantic_similarity`: `threshold` param is required and MUST be between 0.0 and 1.0.
+- `llm_judge`: `model` and `prompt` params are required. `prompt` MUST contain the token `{output}` or `{input}` or `{expected}` for variable substitution.
+- `json_schema`: `schema` param is required and MUST be a valid JSON Schema object.
+- `json_path`: `path` and `expected` params are required. `path` MUST be a valid JSONPath expression.
+- `code`: `language` and `source` params are required. `language` MUST be one of `python`, `javascript`.
+
+### 5. Score Range
+
+- `GraderResult.score` MUST be either `null`, or a number in the closed range [0.0, 1.0]. There is no `score_range` extension — every grader normalizes its native score to [0.0, 1.0] (or `null`; see Rule 6) before it is a valid EvalPort document. This is a hard requirement, not a convention: `spec/schemas/resultset.json` declares `score` as `{"type": ["number", "null"], "minimum": 0, "maximum": 1}`, and both reference SDKs reject an out-of-range or non-numeric (including boolean) score.
+- A grader whose native scoring scale is not already [0.0, 1.0] (e.g. a 1-5 Likert scale, a raw cosine-similarity value that can be negative, a framework-specific 0-100 score) MUST clamp/normalize it to [0.0, 1.0] for the `score` field. To preserve the original value for debugging or re-analysis, use the reserved `metadata.openeval.raw_score` key on the `GraderResult` (see Appendix B) rather than putting an out-of-range value in `score` itself.
+- Pass/fail is determined by comparing the score to the grader's threshold (default threshold: 1.0 for exact match, specified via params for other types).
+
+### 6. Result Consistency
+
+- Every grader referenced by a test case MUST have a corresponding `GraderResult` in the result set, unless the grader was `skipped`.
+- Skipped or not-yet-executed graders (e.g. `human` review pending, an `unsupported_grader_type`, a runner error before scoring) MUST be represented with `score: null` and `passed: false`. `score: null` means "not verified" — the grader did not produce a score, which is distinct from `passed: false` on a numeric score, which means "verified failing" (the grader ran and the output did not meet the threshold). Consumers MUST NOT treat a `null`-score result as equivalent to a scored failure when computing pass rates, aggregate statistics, or the suite-level `passed` field (see `metadata.openeval.aggregation` in Extension Mechanism) — a `null` score should either be excluded from the aggregate denominator or surfaced separately as "pending/unscored," per the aggregation strategy declared for the run.
+- `GraderResult.type` is REQUIRED and MUST match the `type` of the grader it corresponds to (or, for an inline/ad-hoc grader, the type used to produce the result) — this is what lets a validator or downstream tool apply type-specific interpretation to `score`/`passed` without re-resolving the grader definition from the suite.
+
+---
+
+## Versioning
+
+### Specification Version
+
+EvalPort follows [Semantic Versioning](https://semver.org/):
+
+- **MAJOR**: Breaking changes to the data model (removed fields, changed semantics).
+- **MINOR**: Backward-compatible additions (new optional fields, new grader types).
+- **PATCH**: Backward-compatible fixes (clarifications, schema corrections).
+
+The `version` field in each document specifies the EvalPort spec version the document conforms to.
+
+### Compatibility Policy
+
+- Runners MUST accept documents with a higher minor version than their own implementation, ignoring unknown optional fields.
+- Runners MUST reject documents with a higher major version, producing an error: `Unsupported EvalPort major version: {version}. Supported: {supported}.`
+- Runners SHOULD warn on unknown grader types but continue execution.
+
+### Schema Evolution
+
+JSON Schemas are versioned and published at:
+- `https://evalport.org/schema/testcase.json` (latest)
+- `https://evalport.org/schema/v1.0.0/testcase.json` (pinned)
+
+---
+
+## Extension Mechanism
+
+### Custom Fields
+
+Any document may include a `metadata` object with arbitrary keys. Keys with the `openeval.*` prefix are reserved for future specification use. Custom keys SHOULD use a reverse-DNS prefix (e.g., `com.example.myfield`).
+
+### Custom Grader Types
+
+Graders with `type: "custom"` or any type not in the standard set are permitted. The `handler` field in `params` identifies the custom grader implementation. Runners that don't recognize the handler MUST mark the result as `skipped`.
+
+### Aggregation Extension (`metadata.openeval.aggregation`)
+
+By default (Rule 6), a `Result.passed` is the strict logical AND of every non-skipped `GraderResult.passed` for that test case: if any grader failed, the test case failed. This default is intentionally simple and matches most frameworks' native semantics, but it does not fit every use case — some frameworks want a *weighted* combination of scores (e.g. a rubric where some criteria matter more than others), a *majority* vote across graders, or an *any-pass* semantic (at least one grader must pass, useful for "does at least one of these N acceptable answers match"). Rather than leave this as an unspecified gap (as earlier drafts of this document did — see `spec/CRITIQUE.md` item #1), the `metadata.openeval.aggregation` key formally specifies it.
+
+`openeval.aggregation` MAY be set in a suite's top-level `metadata` (declaring the suite's default aggregation policy for every test case in it) and/or in a `Result`'s own `metadata` (overriding the policy for that one result). Its value is an object:
+
+```json
+{
+  "openeval.aggregation": {
+    "strategy": "weighted",
+    "threshold": 0.7
+  }
+}
+```
+
+| `strategy` | Meaning | `threshold` |
+|---|---|---|
+| `all` (default) | `passed` is true iff every non-null-scored `GraderResult.passed` is true. Equivalent to omitting `openeval.aggregation` entirely. | Not used. |
+| `any` | `passed` is true iff at least one non-null-scored `GraderResult.passed` is true. | Not used. |
+| `majority` | `passed` is true iff more than half of the non-null-scored `GraderResult`s have `passed: true`. | Optional; overrides the 0.5 cutoff, e.g. `0.6` requires a 60% majority. |
+| `weighted` | `passed` is true iff the weighted average of `GraderResult.score` (using each grader's `weight`, default 1.0, from its definition in the suite) is `>= threshold`. `GraderResult`s with `score: null` are excluded from both the numerator and the denominator, not treated as 0. | REQUIRED. A number in [0.0, 1.0]. |
+
+In every strategy, a `GraderResult` with `score: null` (per Rule 6, "not verified" — skipped, pending, or errored) is excluded from the aggregation entirely rather than counted as a failure. A test case whose graders are *all* null-scored has no basis for a pass/fail verdict; runners MUST report such a case's `passed` as `false` and SHOULD surface it distinctly (e.g. via `metadata.openeval.aggregation_status: "unscored"`) so it is not silently conflated with a verified failure in downstream reporting.
+
+`openeval.aggregation` changes only how `Result.passed` (and, by extension, any suite-level summary pass rate a runner computes) is derived from the individual `GraderResult`s — it never changes what an individual `GraderResult.passed`/`score` means, and it is never required: a document with no `openeval.aggregation` key uses the `all` default and is fully valid.
+
+### Resumable Runs & Partial ResultSets (`metadata.openeval.partial`, `Result.completed_at`)
+
+Results can already be written incrementally by any runner, but prior to this section the spec defined no way to mark a `ResultSet` as covering only part of its suite (e.g. a run interrupted by a crash, a rate limit, or a manual stop) or to merge two partial `ResultSet`s from the same interrupted run back together. Resolves [Discussion #10](https://github.com/adhabnr-ux/evalport/discussions/10), deferred from `spec/CRITIQUE.md` item #4 ("should be added in v1.1").
+
+**Marking a `ResultSet` partial** needs no schema change — `ResultSet.metadata` already permits arbitrary keys:
+
+```json
+{ "metadata": { "openeval.partial": true } }
+```
+
+A `ResultSet` with no `openeval.partial` key, or `openeval.partial: false`, is assumed complete (covers every test case in its suite) — this is fully backward compatible with every `ResultSet` produced before this section existed.
+
+**Merging two partial `ResultSet`s** for the same `run_id` needs a tiebreaker when both cover the same `test_case_id` with different results (e.g. a retried test case). `Result.completed_at` (optional, `date-time`, distinct from the `ResultSet`-level `completed_at` which marks when the *whole run* finished) is the field that makes this decidable:
