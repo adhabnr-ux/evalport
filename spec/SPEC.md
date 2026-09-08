@@ -694,3 +694,119 @@ Concretely, that means carrying the real-gap-vs-inert bit as free-form `metadata
 [
   {
     "version": "1.1.0",
+    "suite_id": "billing-suite",
+    "run_id": "mutant-021-run",
+    "started_at": "2026-09-06T09:00:00Z",
+    "group": { "group_id": "mutation-sweep-2026-09-06", "role": "survived", "sequence": 21 },
+    "metadata": { "output_changed": true },
+    "results": [ { "test_case_id": "case_1", "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": true } ] } ]
+  },
+  {
+    "version": "1.1.0",
+    "suite_id": "billing-suite",
+    "run_id": "mutant-022-run",
+    "started_at": "2026-09-06T09:00:05Z",
+    "group": { "group_id": "mutation-sweep-2026-09-06", "role": "survived", "sequence": 22 },
+    "metadata": { "output_changed": false },
+    "results": [ { "test_case_id": "case_1", "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": true } ] } ]
+  }
+]
+```
+
+Both `ResultSet`s carry `role: "survived"` — the coarse verdict is identical, as it should be, since both mutants really did survive the suite unkilled. What distinguishes them is `metadata.output_changed`: mutant 21's output genuinely diverged from baseline behavior in a way the suite failed to catch (a real coverage gap), while mutant 22's output was observationally unchanged from baseline (an inert/equivalent mutant muteval itself would drop from its effective score). A consumer computing muteval's *raw* mutation score counts every `role: "survived"` member as a survivor; one reconstructing the *effective* score additionally excludes members where `metadata.output_changed` is `false`. Both numbers are derivable from the same `group` object plus one free-form `metadata` key, with zero schema changes and no growth in `role`'s vocabulary — confirming the gap flagged in the maintainer's comment was already expressible through the design as proposed, not a hole this RFC needs a new field to close. See `spec/conformance/fixtures/group_role_metadata_real_gap_valid.json` and `spec/conformance/fixtures/group_role_metadata_inert_survivor_valid.json` for both cases validating cleanly.
+
+**A second, unrelated domain confirms the same design independently — this isn't over-fit to mutation testing.** The gap this section fixes was explicitly framed (in issue #36, per AshwinUgale) as generalizing beyond mutation testing to "a seed-sweep or a multi-model comparison." To check that claim rather than just assert it, I read `optuna/optuna`'s actual current `optuna/trial/_frozen.py` and `optuna/study/_frozen.py` — Optuna is a real, widely-used hyperparameter optimization library with no connection to mutation testing or muteval, which is exactly the kind of independent check a general-purpose field needs. Two things line up precisely with the `group` design above, in a completely different domain:
+
+- `FrozenTrial.number` is documented, verbatim, as *"Unique and consecutive number of Trial for each Study. Note that this field uses zero-based numbering."* That is `group.sequence`'s exact semantics — a 0-indexed, producer-known position of one group member within its group — arrived at independently by a project with no relationship to this spec or to muteval. It's the same shape `select_mutants()` gave `sequence` for mutation testing, now confirmed for hyperparameter search too, where the search space size is likewise known upfront for a grid/random search (though not necessarily for an adaptive sampler that stops early — see below).
+- `FrozenStudy.study_name` is the join key every `FrozenTrial` in that study shares — the member-points-at-group shape `group.group_id` uses, independently arrived at a fourth time (alongside W&B, MLflow, and Stryker above).
+
+This also sharpens rather than weakens the "producer must know the total upfront" caveat already stated above: a fixed grid search knows its full trial count before starting (so `sequence` is meaningful for every trial from the first), while an adaptive sampler (Optuna's TPE, CMA-ES, or a pruner like Hyperband that stops trials early) may not know a final count upfront — for those, a `ResultSet` should simply omit `sequence`, exactly as already documented above. Nothing about this second domain forces a different rule; it just confirms the rule holds outside mutation testing too.
+
+**Worked example: a hyperparameter grid search, using this second domain's real field semantics.** One `ResultSet` from trial 3 of a 12-trial learning-rate/batch-size grid search, `group.sequence` populated the same way `FrozenTrial.number` would be for a grid search (whose full trial count is known upfront):
+
+```json
+{
+  "version": "1.1.0",
+  "suite_id": "rag-retrieval-suite",
+  "run_id": "trial-003-run",
+  "started_at": "2026-09-05T14:00:00Z",
+  "group": {
+    "group_id": "lr-batchsize-grid-2026-09-05",
+    "role": "candidate",
+    "label": "lr=1e-4, batch_size=32",
+    "sequence": 3
+  },
+  "results": [
+    { "test_case_id": "case_1", "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "semantic_similarity", "score": 0.88, "passed": true } ] },
+    { "test_case_id": "case_2", "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "semantic_similarity", "score": 0.91, "passed": true } ] }
+  ]
+}
+```
+
+Here `role: "candidate"` (rather than mutation testing's `"mutant"`) names what this member *is* within its group — the RFC's `role` field was proposed as an open string specifically so a grid search doesn't have to borrow mutation-testing vocabulary or invent a spec change to name its own members. A model-comparison sweep would use the same shape with `role: "baseline"` / `role: "challenger"`, or whatever vocabulary that domain's own producers converge on — this spec doesn't pick one for them, the same restraint already applied to `role`'s mutation-testing vocabulary above.
+
+**A third, independent domain grounds the second half of the RFC's own generalization claim.** Issue #36 named two use cases beyond mutation testing: "a seed-sweep or a multi-model comparison." The hyperparameter sweep above grounded the first; the second — multi-model comparison — had, until now, only been asserted in the paragraph immediately above, not checked against a real system. Reading `promptfoo/promptfoo`'s actual current `src/types/index.ts` closes that gap: `EvaluateResult.provider: Pick<ProviderOptions, 'id' | 'label'>` identifies which model produced a given row when the same test cases run across multiple configured providers, and `CompletedPrompt.provider: string` paired with `CompletedPrompt.metrics: PromptMetricsSchema` (`score`, `testPassCount`, `testFailCount`, `assertPassCount`, ...) is exactly the consumer-computed, per-provider rollup this RFC's `group` design already assumes rather than mandates — independently confirming the same join-key-on-member/rollup-computed-by-consumer shape a fifth time, after W&B, MLflow, Stryker, and Optuna. `providers` is configured as an ordered array (`providers: z.array(ApiProviderSchema)`) and evaluated in that order, so — like Optuna's grid search, and unlike an adaptive sampler that must omit it — `sequence` is well-defined here too: a producer knows each provider's position in its own configured list upfront.
+
+**Worked example: a multi-model comparison, using promptfoo's own real example.** The provider ids and premise below (grading how accurately each of three models describes an image) are taken directly from promptfoo's own current `examples/compare-claude-vs-gpt-image/promptfooconfig.yaml`, a real example built for exactly this use case — not a hypothetical. One `ResultSet` for the middle provider in that file's list of three (`sequence: 1`, 0-indexed, matching `providers`' configured order):
+
+```json
+{
+  "version": "1.1.0",
+  "suite_id": "image-description-suite",
+  "run_id": "openai-gpt-4.1-run",
+  "started_at": "2026-09-07T10:00:00Z",
+  "group": {
+    "group_id": "claude-vs-gpt-vs-gemini-image-2026-09-07",
+    "role": "openai:gpt-4.1",
+    "label": "GPT-4.1 (image description accuracy)",
+    "sequence": 1
+  },
+  "results": [
+    { "test_case_id": "great_wave_off_kanagawa", "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "llm_judge", "score": 0.92, "passed": true } ] }
+  ]
+}
+```
+
+`role` here is the model's own real provider id string (`"openai:gpt-4.1"`) rather than mutation testing's `"mutant"` or the grid search fixture's `"candidate"` — a third distinct vocabulary from a third distinct domain, each chosen by its own producers with zero spec changes, exactly as `role` being an open string was designed to allow. With all three `ResultSet`s in this group emitted (Claude, GPT-4.1, Gemini), a consumer builds promptfoo's own comparison table — one column per `group.role`, one row per `test_case_id` — purely from `group` plus the shared `test_case_id`s already in `results`, the same consumer-computed rollup pattern as muteval's raw/effective score and Optuna's best-trial selection above.
+
+**A sixth confirming check, plus one honest counter-example — this RFC went looking for disagreement, not just more agreement.** Five independent systems converging on the same shape is strong evidence, but five wins in a row is also exactly the point where a design should go looking for something that might contradict it rather than stop at a comfortable streak. The two largest cloud ML platforms — Google Cloud's Vertex AI Vizier and AWS SageMaker's hyperparameter tuning API — were checked next, specifically because both are managed, hyperscaler-run services rather than open-source libraries, the one gap in the precedent set so far.
+
+**Vertex AI Vizier confirms the pattern a sixth time — and this one isn't limited to reading API documentation.** Vizier's `Trial` resources are addressed as `projects/{project}/locations/{location}/studies/{study}/trials/{trial}` — the join to the parent `Study` is structural, encoded directly in the resource's own identity, the same member-points-at-group relationship as `mlflow.get_parent_run` or `FrozenStudy.study_name` above, just expressed as a REST resource hierarchy instead of a field. And Vizier's "which trial is best" answer is not a stored field on `Study` at all — it's `trials.listOptimalTrials`, a dedicated RPC that computes the answer on demand, mirroring `Sweep.best_run()`'s on-demand computation almost exactly.
+
+Unlike the AWS citation below, this one doesn't stop at reading a managed service's REST documentation — Google publishes the actual implementation behind it as `google/vizier`, described in its own README as "based on the internal Google Vizier Service" (the same backend Vertex AI Vizier exposes as a managed product), maintained in the open by Google's own research team. Its committed source shows the identical shape at the code level, not just the API-docs level: `vizier/_src/service/resources.py` defines `StudyResource` and `TrialResource` as the literal Python classes behind that resource hierarchy — `TrialResource.name` renders exactly as `owners/{owner_id}/studies/{study_id}/trials/{trial_id}`, and `StudyResource.trial_resource(trial_id)` is the constructor a member uses to point at its parent. And `vizier/_src/service/vizier_service.proto` defines `ListOptimalTrials` as a real RPC (`rpc ListOptimalTrials(ListOptimalTrialsRequest) returns (ListOptimalTrialsResponse)`) alongside `GetStudy`/`GetTrial`/`ListTrials` — there is no `best_trial` field anywhere on the `Study` message for a consumer to read instead. Confirmed directly against that repository's current source, not inferred from the product docs alone.
+
+**AWS SageMaker's hyperparameter tuning API does not confirm it, and that's worth stating plainly rather than omitting.** `DescribeHyperParameterTuningJob` stores a precomputed `BestTrainingJob` field, and `HyperParameterTuningJobSummary` stores precomputed `TrainingJobStatusCounters` / `ObjectiveStatusCounters` — real, stored rollup data at the group level, not consumer-computed. That's a genuine counter-example to the pattern in the other six systems checked, and leaving it out for disagreeing would make the grounding section persuasive rather than honest.
+
+It doesn't change this RFC's design, for a reason that's actually informative rather than a rationalization: a SageMaker tuning job has exactly one pre-declared `HyperParameterTuningJobObjective` before any training job runs, so "best" has one unambiguous, service-known meaning from the moment the job is created — precomputing and storing it costs nothing in ambiguity. `ResultSet.group` has no such luxury: a mutation-testing sweep's rollup is a mutation score with a real-gap/inert distinction (see `metadata.output_changed` above), a grid search's rollup is "best trial by whatever metric the schema itself doesn't know," and a multi-model comparison's rollup is a per-test-case table, not a single winner. There is no one `HyperParameterTuningJobObjective`-shaped concept that covers all three domains this field already serves — which is exactly why "the rollup is a `profile:`-layer concern, not a core-schema field" (immediately below) is the right call for a cross-domain spec, even though it's clearly the *right* call for SageMaker to do the opposite in a single-objective, single-domain, provider-managed service. Six converging systems said "don't standardize a rollup"; SageMaker saying "we did, and here's why it made sense for us" sharpens that argument instead of undermining it — the case where the majority pattern gets pierced is precisely the case this RFC isn't trying to cover.
+
+**What this deliberately does not do:** it does not standardize how a rollup (mutation score, best-trial selection, win-rate) is computed — that differs too much by domain to bake into the core spec, matching how stability/flip-rate computation over repeated `attempt`s was deliberately deferred out of Discussion #22 as well. A `profile:mutation-score-v1`-style convention (see Profile Extensions, below) is the natural home for that once there's a second and third real consumer to generalize from.
+
+See `spec/conformance/fixtures/group_membership_valid.json` (a valid grouped `ResultSet`, composing `group` with `attempt`/`isolation` from the previous section), `spec/conformance/fixtures/group_missing_group_id_rejected.json` (`group` present without `group_id`, correctly rejected), `spec/conformance/fixtures/group_hyperparameter_sweep_valid.json` (the grid-search example above, demonstrating the same field validates cleanly for a non-mutation-testing domain), `spec/conformance/fixtures/group_role_metadata_real_gap_valid.json` / `spec/conformance/fixtures/group_role_metadata_inert_survivor_valid.json` (the maintainer-confirmed `role`+`metadata.output_changed` split above, both branches), and `spec/conformance/fixtures/group_multi_model_comparison_valid.json` (the promptfoo-grounded multi-model comparison example above, closing out issue #36's own two named use cases) on the reference-implementation branch referenced from Discussion #45.
+
+### Extensions Registry
+
+EvalPort maintains an extensions registry at `https://evalport.org/extensions` where the community can register:
+- Custom grader types with handler identifiers
+- Provider-specific configuration extensions
+- Metadata field conventions
+
+### Profile Extensions
+
+A **profile** is a named set of conventions for a specific use case. For example:
+- `profile:rag` — conventions for RAG evaluation (retrieval_context field usage, standard RAG graders)
+- `profile:agent` — conventions for agent evaluation (tools_called, expected_tools fields)
+- `profile:safety` — conventions for safety/toxicity evaluation
+
+Profiles are declared in the suite metadata: `"metadata": { "openeval.profile": "rag" }`. Profiles do not change the schema — they document conventions for field usage.
+
+---
+
+## Error Handling
+
+### Document-Level Errors
+
+| Error Code | Condition | Action |
+|------------|-----------|--------|
+| `SCHEMA_INVALID` | Document fails JSON Schema validation | Runner rejects the document with field-level error details. |
+| `VERSION_UNSUPPORTED` | Major version exceeds runner's supported version | Runner rejects the document. |
+| `DUPLICATE_ID` | Test case or grader ID is not unique | Runner rejects the suite. |
