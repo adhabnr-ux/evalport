@@ -1,0 +1,27 @@
+{
+  "description": "group.parent_group_id's normative requirement: a group MUST NOT be its own parent. This fixture sets parent_group_id equal to the group's own group_id, which would otherwise form a cycle of length one -- a group nested under itself. A conforming validator MUST REJECT this document. Note for implementers: this specific rule is a cross-field constraint that plain JSON Schema (without a $data reference, which this project's schema does not otherwise use) cannot express structurally, so EvalPort's own raw JSON Schema at spec/schemas/resultset.json accepts this document -- it is the hand-rolled SDK validators (sdk/python/openeval/validate.py, sdk/typescript/src/validate.ts) that enforce it, exactly as they already do for other cross-field rules like the (test_case_id, run_id, attempt) DUPLICATE_ATTEMPT uniqueness check. A conformance implementation MUST perform this same cross-field check itself, not assume JSON-Schema-only validation is sufficient for the full ResultSet spec.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": ["$.group.parent_group_id"]
+  },
+  "document": {
+    "version": "1.1.0",
+    "suite_id": "billing-suite",
+    "run_id": "sweep-42-run",
+    "started_at": "2026-09-08T10:00:00Z",
+    "group": {
+      "group_id": "sweep-42",
+      "parent_group_id": "sweep-42"
+    },
+    "results": [
+      {
+        "test_case_id": "case_1",
+        "passed": true,
+        "grader_results": [
+          { "grader_id": "gr_refund_policy", "type": "exact_match", "score": 1.0, "passed": true }
+        ]
+      }
+    ]
+  }
+}
