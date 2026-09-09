@@ -151,6 +151,19 @@ export interface Summary {
 // optional ResultSet sub-objects (Result.error, ResultSet.runner, above).
 export interface ResultSetGroup {
   group_id: string;
+  // Optional id of a PARENT group this group is itself nested under, letting
+  // groups chain (grandparent -> parent -> this group) the same way a single
+  // MLflow run's parent_run_id can point to a run that itself has a
+  // parent_run_id, producing an arbitrarily deep tree from one pointer per
+  // node -- verified against mlflow/tracking/fluent.py's active_run_stack and
+  // real 3-level GrandParent/Parent/Child usage in mlflow/mlflow#16685. Not
+  // every grouping system has this: W&B's Run.sweep_id and its separate
+  // wandb.init(group=...) primitive are both flat, single-level, with no
+  // parent construct anywhere in wandb/wandb's source. Omit for a flat group
+  // (the only shape this field supported before this addition -- every
+  // existing group-bearing ResultSet needs no change). MUST NOT equal this
+  // object's own group_id.
+  parent_group_id?: string;
   // Open string ("mutant" | "seed" | "baseline" | "candidate" | ...), not a
   // closed enum -- same precedent as ResultSet.isolation: a new grouping
   // strategy should never need a spec change just to be nameable.

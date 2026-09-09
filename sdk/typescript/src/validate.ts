@@ -208,6 +208,14 @@ export function validateResultSet(r: unknown): ValidationResult {
       errors.push(err("$.group", "must be object", "TYPE_ERROR"));
     } else {
       if (!isNonEmptyString(group.group_id)) errors.push(err("$.group.group_id", "required", "REQUIRED"));
+      if (group.parent_group_id !== undefined && group.parent_group_id !== null) {
+        const pgid = group.parent_group_id;
+        if (!isNonEmptyString(pgid)) {
+          errors.push(err("$.group.parent_group_id", "must be a non-empty string", "REQUIRED"));
+        } else if (isNonEmptyString(group.group_id) && pgid === group.group_id) {
+          errors.push(err("$.group.parent_group_id", "a group cannot be its own parent", "SELF_PARENT"));
+        }
+      }
       if (group.role !== undefined && group.role !== null && typeof group.role !== "string") {
         errors.push(err("$.group.role", "must be string", "TYPE_ERROR"));
       }
