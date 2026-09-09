@@ -439,6 +439,65 @@ def test_group_wrong_type_rejected_by_both_paths():
     assert not validate_result_set(doc).valid
 
 
+# ---------------------------------------------------------------------------
+# group.parent_group_id (nested/hierarchical groups -- sweep-of-sweeps).
+# Same drift class as the rest of this file: additionalProperties: false on
+# the group object means the raw JSON Schema would reject parent_group_id
+# entirely until the schema itself was updated alongside the hand-rolled
+# validator. Mirrors sdk/typescript/tests/schema-consistency.test.ts's
+# parent_group_id section rule-for-rule.
+# ---------------------------------------------------------------------------
+
+def test_group_parent_group_id_valid_nested_sweep_agrees_in_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {
+        "group_id": "child-sweep-lr-1e-4",
+        "parent_group_id": "parent-sweep-lr-batchsize-grid-2026-09-08",
+        "role": "candidate",
+        "sequence": 3,
+    }
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+
+
+def test_group_parent_group_id_absent_still_valid_in_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {"group_id": "mutation-sweep-2026-09-01"}
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+    assert "parent_group_id" not in doc["group"]
+
+
+def test_group_parent_group_id_empty_string_rejected_by_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {"group_id": "g1", "parent_group_id": ""}
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+def test_group_parent_group_id_wrong_type_rejected_by_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {"group_id": "g1", "parent_group_id": 42}
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+def test_group_parent_group_id_equal_to_group_id_json_schema_allows_hand_rolled_rejects():
+    # The self-parent rule (a group cannot be its own parent) is a
+    # cross-field constraint JSON Schema's properties/required vocabulary
+    # cannot express without a $data reference (not part of this project's
+    # supported draft usage elsewhere in the schema) -- so, same as
+    # uniqueness rules like DUPLICATE_ATTEMPT elsewhere in this suite, this
+    # is intentionally enforced only by the hand-rolled validator. Documented
+    # here (rather than silently skipped) so a future schema change that
+    # *does* add a $data-based check is a deliberate decision, not a
+    # rediscovery.
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {"group_id": "sweep-42", "parent_group_id": "sweep-42"}
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
 def test_boolean_score_rejected_by_both_python_bool_is_int_subclass():
     # Python's bool is a subclass of int, so a naive `isinstance(x, (int, float))`
     # range check would silently accept True/False as scores 1/0. Guard against

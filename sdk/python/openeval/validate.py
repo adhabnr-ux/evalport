@@ -135,6 +135,10 @@ def validate_result_set(r):
         else:
             gid=group.get("group_id")
             if not isinstance(gid,str) or not gid: errors.append(_err("$.group.group_id","required","REQUIRED"))
+            if "parent_group_id" in group and group["parent_group_id"] is not None:
+                pgid=group["parent_group_id"]
+                if not isinstance(pgid,str) or not pgid: errors.append(_err("$.group.parent_group_id","must be a non-empty string","REQUIRED"))
+                elif isinstance(gid,str) and pgid==gid: errors.append(_err("$.group.parent_group_id","a group cannot be its own parent","SELF_PARENT"))
             role=group.get("role")
             if role is not None and not isinstance(role,str): errors.append(_err("$.group.role","must be string","TYPE_ERROR"))
             label=group.get("label")

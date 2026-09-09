@@ -506,3 +506,91 @@ def test_group_role_metadata_lets_consumer_reconstruct_raw_and_effective_score()
     assert raw_score == 1 / 3
     assert effective_score == 1 / 2
     assert effective_score > raw_score  # excluding the inert survivor raises the score, as it should
+
+# --- parent_group_id: nested/hierarchical groups (sweep-of-sweeps) ---
+#
+# Grew out of an explicit "is a flat group the right model?" audit against real
+# systems: MLflow's nested runs (parent_run_id chains, arbitrarily deep via
+# active_run_stack) form an arbitrarily deep tree in real usage -- confirmed
+# against mlflow/mlflow#16685's actual GrandParent/Parent/150-Child test case,
+# not just the API surface. W&B's Run.sweep_id and its separate
+# wandb.init(group=...) primitive are both flat, single-level, with no parent
+# construct anywhere in wandb/wandb's source -- so EvalPort's flat-only design
+# matched W&B but not MLflow. parent_group_id closes that gap the same way
+# group_id itself is modeled: a pointer on the member, not an embedded tree.
+
+def _rs_with_group(group, run_id="mutant-017-run"):
+    return {
+        "version": "1.0.0", "suite_id": "s", "run_id": run_id, "started_at": "2026-01-01T00:00:00Z",
+        "group": group,
+        "results": _minimal_result_list(),
+    }
+
+def test_group_parent_group_id_absent_is_valid_and_unchanged():
+    # Backward compatibility: every group-bearing ResultSet before this
+    # addition had no parent_group_id and must remain valid unchanged.
+    rs = _rs_with_group({"group_id": "mutation-sweep-2026-09-01"})
+    result = validate_result_set(rs)
+    assert result.valid, result.errors
+    assert "parent_group_id" not in rs["group"]
+
+def test_group_parent_group_id_valid_nested_sweep():
+    # Mirrors the MLflow-grounded worked example: a child sweep nested under a
+    # parent sweep, the same shape as MLflow's GrandParent/Parent/Child chain.
+    rs = _rs_with_group({
+        "group_id": "child-sweep-lr-1e-4",
+        "parent_group_id": "parent-sweep-lr-batchsize-grid-2026-09-08",
+        "role": "candidate",
+        "sequence": 3,
+    })
+    result = validate_result_set(rs)
+    assert result.valid, result.errors
+
+def test_group_parent_group_id_empty_string_rejected():
+    rs = _rs_with_group({"group_id": "g1", "parent_group_id": ""})
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.parent_group_id" and e["code"] == "REQUIRED" for e in result.errors)
+
+def test_group_parent_group_id_non_string_rejected():
+    rs = _rs_with_group({"group_id": "g1", "parent_group_id": 42})
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.parent_group_id" and e["code"] == "REQUIRED" for e in result.errors)
+
+def test_group_parent_group_id_equal_to_group_id_rejected():
+    # A group cannot be its own parent -- the one structural self-consistency
+    # check a single document CAN make (a real cross-document cycle, e.g. A's
+    # parent is B and B's parent is A, needs multi-document reasoning this
+    # validator deliberately doesn't attempt -- see the schema description).
+    rs = _rs_with_group({"group_id": "sweep-42", "parent_group_id": "sweep-42"})
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.parent_group_id" and e["code"] == "SELF_PARENT" for e in result.errors)
+
+def test_group_three_level_nesting_matches_mlflow_grandparent_parent_child_shape():
+    # Proves the pointer-chain mechanism actually supports 3+ levels, the same
+    # depth mlflow/mlflow#16685's real GrandParent/Parent/Child test exercises
+    # -- each ResultSet only ever names its OWN immediate parent, never an
+    # embedded ancestor list, exactly like MLflow's parent_run_id.
+    grandparent = _rs_with_group({"group_id": "campaign-2026-09-08"}, run_id="grandparent-run")
+    parent = _rs_with_group(
+        {"group_id": "sweep-lr-grid", "parent_group_id": "campaign-2026-09-08"}, run_id="parent-run"
+    )
+    child = _rs_with_group(
+        {"group_id": "trial-003", "parent_group_id": "sweep-lr-grid", "sequence": 3}, run_id="child-run"
+    )
+
+    for rs in (grandparent, parent, child):
+        result = validate_result_set(rs)
+        assert result.valid, result.errors
+
+    # A consumer walks the chain purely from parent_group_id pointers, the
+    # same way MLflow's get_parent_run() walks parent_run_id one hop at a time.
+    by_group_id = {rs["group"]["group_id"]: rs for rs in (grandparent, parent, child)}
+    chain = [child["group"]["group_id"]]
+    cur = child
+    while cur["group"].get("parent_group_id") in by_group_id:
+        cur = by_group_id[cur["group"]["parent_group_id"]]
+        chain.append(cur["group"]["group_id"])
+    assert chain == ["trial-003", "sweep-lr-grid", "campaign-2026-09-08"]

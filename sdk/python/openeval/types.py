@@ -98,7 +98,14 @@ class ResultSet:
     # mirroring W&B Sweep.sweep_id and MLflow's parent-run link -- EvalPort does
     # not standardize a separate group-level rollup document; that stays
     # consumer-computed (see Stryker's mutation-testing-report-schema, which
-    # made the same call). Optional `role`/`label`/`sequence` -- see
+    # made the same call). Optional `role`/`label`/`sequence`, and optional
+    # `parent_group_id` for nesting one group under a parent group (a
+    # sweep-of-sweeps) -- mirrors how a single MLflow run's parent_run_id can
+    # itself point to a run with its own parent_run_id, forming an arbitrarily
+    # deep tree from one pointer per node (verified against mlflow's real
+    # active_run_stack and issue #16685's 3-level GrandParent/Parent/Child
+    # usage); W&B's sweep_id and group primitives are both flat by contrast, so
+    # this field is optional and every existing flat group is unaffected. See
     # spec/SPEC.md Extension Mechanism -> Grouped/Sibling ResultSets.
     # PROPOSED in Discussion #45, not yet finalized -- see that discussion for
     # the RFC this field is a reference implementation of.
