@@ -374,7 +374,7 @@ def test_boolean_score_rejected_by_both_python_bool_is_int_subclass():
     # Python's bool is a subclass of int, so a naive `isinstance(x, (int, float))`
     # range check would silently accept True/False as scores 1/0. Guard against
     # regressing that fix on the hand-rolled side; the JSON Schema's own `type`
-    # keyword already excludes booleans from `["number", "null"]` structurally.
+    # keyword already excludes booleans from ["number", "null"] structurally.
     doc = {
         "version": "1.0.0",
         "suite_id": "s1",
@@ -392,3 +392,70 @@ def test_boolean_score_rejected_by_both_python_bool_is_int_subclass():
     }
     assert not _js_accepts(RESULTSET_VALIDATOR, doc)
     assert not validate_result_set(doc).valid
+
+
+# ---------------------------------------------------------------------------
+# Hard Constraints: Result.constraint_violations
+# ---------------------------------------------------------------------------
+
+def test_constraint_violation_invalidating_with_passed_false_agrees_in_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["results"][0]["passed"] = False
+    doc["results"][0]["constraint_violations"] = [
+        {"id": "rbac_scope", "type": "authorization", "invalidates_result": True}
+    ]
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+
+
+def test_constraint_violation_absent_still_valid_in_both_paths_backward_compatibility():
+    doc = _minimal_result_set("1.0.0")
+    assert "constraint_violations" not in doc["results"][0]
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+
+
+def test_constraint_violation_missing_id_rejected_by_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["results"][0]["passed"] = False
+    doc["results"][0]["constraint_violations"] = [
+        {"type": "authorization", "invalidates_result": True}
+    ]
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+def test_constraint_violation_missing_invalidates_result_rejected_by_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["results"][0]["constraint_violations"] = [{"id": "rbac_scope"}]
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+def test_constraint_violation_wrong_type_rejected_by_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["results"][0]["constraint_violations"] = [
+        {"id": "rbac_scope", "invalidates_result": "yes"}
+    ]
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+def test_constraint_violation_invalidates_result_true_with_passed_true_json_schema_allows_hand_rolled_rejects():
+    # The core cross-field rule (CONSTRAINT_INVALIDATES_PASS) is structurally
+    # the same class as SELF_PARENT (group.parent_group_id, Discussion #45)
+    # and DUPLICATE_ATTEMPT (Discussion #22): "if an array item has field X,
+    # a SIBLING top-level field must equal Y" isn't expressible with plain
+    # properties/required/additionalProperties -- it would need a $data
+    # reference this project's schemas deliberately don't use. So the raw
+    # JSON Schema accepts this document (each field is individually
+    # well-typed), while the hand-rolled validator correctly rejects it.
+    doc = _minimal_result_set("1.0.0")
+    doc["results"][0]["passed"] = True
+    doc["results"][0]["constraint_violations"] = [
+        {"id": "rbac_scope", "type": "authorization", "invalidates_result": True}
+    ]
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)  # JSON Schema alone: structurally fine
+    result = validate_result_set(doc)
+    assert not result.valid  # hand-rolled validator: correctly rejects
+    assert any(e["code"] == "CONSTRAINT_INVALIDATES_PASS" for e in result.errors)
