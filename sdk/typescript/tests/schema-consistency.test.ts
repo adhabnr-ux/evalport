@@ -408,4 +408,60 @@ describe("resultset: group (Discussion #45, proposed) agrees", () => {
     expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(false);
     expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
   });
+
+  // -------------------------------------------------------------------------
+  // group.parent_group_id (nested/hierarchical groups -- sweep-of-sweeps).
+  // Same drift class as the rest of this file: additionalProperties: false on
+  // the group object means the raw JSON Schema would reject parent_group_id
+  // entirely until the schema itself was updated alongside the hand-rolled
+  // validator. Mirrors sdk/python/tests/test_schema_consistency.py's
+  // parent_group_id section rule-for-rule.
+  // -------------------------------------------------------------------------
+
+  test("parent_group_id valid nested sweep agrees in both paths", () => {
+    const doc = minimalResultSetDoc({
+      group: {
+        group_id: "child-sweep-lr-1e-4",
+        parent_group_id: "parent-sweep-lr-batchsize-grid-2026-09-08",
+        role: "candidate",
+        sequence: 3,
+      },
+    });
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+  });
+
+  test("parent_group_id absent still valid in both paths (backward compatibility)", () => {
+    const doc = minimalResultSetDoc({ group: { group_id: "mutation-sweep-2026-09-01" } });
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+    expect("parent_group_id" in (doc.group as Record<string, unknown>)).toBe(false);
+  });
+
+  test("parent_group_id empty string rejected by both paths", () => {
+    const doc = minimalResultSetDoc({ group: { group_id: "g1", parent_group_id: "" } });
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(false);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
+  });
+
+  test("parent_group_id wrong type rejected by both paths", () => {
+    const doc = minimalResultSetDoc({ group: { group_id: "g1", parent_group_id: 42 } });
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(false);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
+  });
+
+  test("parent_group_id equal to group_id: JSON Schema allows it structurally, hand-rolled validator rejects it", () => {
+    // The self-parent rule (a group cannot be its own parent) is a
+    // cross-field constraint JSON Schema's `properties`/`required` vocabulary
+    // cannot express without a $data reference (not part of this project's
+    // supported draft usage elsewhere in the schema) -- so, same as
+    // uniqueness rules like DUPLICATE_ATTEMPT elsewhere in this suite, this
+    // is intentionally enforced only by the hand-rolled validator. Documented
+    // here (rather than silently skipped) so a future schema change that
+    // *does* add a $data-based check is a deliberate decision, not a
+    // rediscovery.
+    const doc = minimalResultSetDoc({ group: { group_id: "sweep-42", parent_group_id: "sweep-42" } });
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
+  });
 });

@@ -574,6 +574,94 @@ test("group role + metadata lets a consumer reconstruct raw and effective mutati
   expect(effectiveScore).toBeGreaterThan(rawScore); // excluding the inert survivor raises the score, as it should
 });
 
+// --- group.parent_group_id: nested/hierarchical groups (sweep-of-sweeps) ---
+//
+// Mirrors sdk/python/tests/test_validate.py's parent_group_id section
+// rule-for-rule. Grew out of an explicit "is a flat group the right model?"
+// audit against real systems: MLflow's nested runs (mlflow/tracking/fluent.py's
+// active_run_stack, each run carrying one parent_run_id that can itself point
+// to a run with its own parent_run_id) form an arbitrarily deep tree in real
+// usage -- confirmed against mlflow/mlflow#16685's actual GrandParent/Parent/
+// 150-Child test case, not just the API surface. W&B's Run.sweep_id and its
+// separate wandb.init(group=...) primitive are both flat, single-level, with
+// no parent construct anywhere in wandb/wandb's source -- so EvalPort's
+// flat-only design matched W&B but not MLflow. parent_group_id closes that
+// gap the same way group_id itself is modeled: a pointer on the member, not
+// an embedded tree.
+
+function rsWithGroup(group: Record<string, unknown>, runId = "mutant-017-run") {
+  return {
+    version: "1.0.0", suite_id: "s", run_id: runId, started_at: "2026-01-01T00:00:00Z",
+    group,
+    results: minimalResultList(),
+  };
+}
+
+test("group parent_group_id absent is valid and unchanged", () => {
+  const doc = rsWithGroup({ group_id: "mutation-sweep-2026-09-01" });
+  const r = validateResultSet(doc);
+  expect(r.valid).toBe(true);
+  expect("parent_group_id" in doc.group).toBe(false);
+});
+
+test("group parent_group_id valid nested sweep", () => {
+  const doc = rsWithGroup({
+    group_id: "child-sweep-lr-1e-4",
+    parent_group_id: "parent-sweep-lr-batchsize-grid-2026-09-08",
+    role: "candidate",
+    sequence: 3,
+  });
+  expect(validateResultSet(doc).valid).toBe(true);
+});
+
+test("group parent_group_id empty string rejected", () => {
+  const doc = rsWithGroup({ group_id: "g1", parent_group_id: "" });
+  const r = validateResultSet(doc);
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.group.parent_group_id" && e.code === "REQUIRED")).toBe(true);
+});
+
+test("group parent_group_id non-string rejected", () => {
+  const doc = rsWithGroup({ group_id: "g1", parent_group_id: 42 as unknown as string });
+  const r = validateResultSet(doc);
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.group.parent_group_id" && e.code === "REQUIRED")).toBe(true);
+});
+
+test("group parent_group_id equal to group_id rejected", () => {
+  const doc = rsWithGroup({ group_id: "sweep-42", parent_group_id: "sweep-42" });
+  const r = validateResultSet(doc);
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.group.parent_group_id" && e.code === "SELF_PARENT")).toBe(true);
+});
+
+test("group three-level nesting matches MLflow GrandParent/Parent/Child shape", () => {
+  const grandparent = rsWithGroup({ group_id: "campaign-2026-09-08" }, "grandparent-run");
+  const parent = rsWithGroup(
+    { group_id: "sweep-lr-grid", parent_group_id: "campaign-2026-09-08" }, "parent-run"
+  );
+  const child = rsWithGroup(
+    { group_id: "trial-003", parent_group_id: "sweep-lr-grid", sequence: 3 }, "child-run"
+  );
+  for (const doc of [grandparent, parent, child]) {
+    const r = validateResultSet(doc);
+    expect(r.valid).toBe(true);
+  }
+  const byGroupId: Record<string, typeof child> = {};
+  for (const doc of [grandparent, parent, child]) {
+    byGroupId[(doc.group as { group_id: string }).group_id] = doc;
+  }
+  const chain: string[] = [(child.group as { group_id: string }).group_id];
+  let cur = child;
+  while (true) {
+    const pgid = (cur.group as { parent_group_id?: string }).parent_group_id;
+    if (!pgid || !(pgid in byGroupId)) break;
+    cur = byGroupId[pgid];
+    chain.push((cur.group as { group_id: string }).group_id);
+  }
+  expect(chain).toEqual(["trial-003", "sweep-lr-grid", "campaign-2026-09-08"]);
+});
+
 // --- PR #35 post-merge Copilot review: attempt-uniqueness key must not throw
 // on a non-string test_case_id/run_id (github.com/adhabnr-ux/evalport/pull/35) ---
 
