@@ -1,0 +1,26 @@
+{
+  "description": "The core cross-field rule (CONSTRAINT_INVALIDATES_PASS): a result CANNOT have both passed=true and a constraint_violations entry with invalidates_result=true -- that combination is the exact failure mode this field exists to prevent (a consumer trusting `passed` alone would count a disqualified result as a success). This is a hand-rolled-only check, the same class of cross-field rule as SELF_PARENT (Discussion #45) and DUPLICATE_ATTEMPT (Discussion #22): the raw JSON Schema's properties/required vocabulary can't express \"if any array item has invalidates_result=true then a sibling top-level field must equal false\" without a $data reference, so this fixture's `expect.valid: false` only holds against the hand-rolled validators (validate_result_set / validateResultSet), not the schema alone -- see sdk/python/tests/test_schema_consistency.py's mirrored test for the explicit documentation of that gap.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": ["$.results[0].passed"]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "hpc-ops-suite",
+    "run_id": "run_conformance_023",
+    "started_at": "2026-09-09T00:15:00Z",
+    "results": [
+      {
+        "test_case_id": "tc_rbac_004",
+        "passed": true,
+        "grader_results": [
+          { "grader_id": "grounding", "type": "custom", "score": 1.0, "passed": true }
+        ],
+        "constraint_violations": [
+          { "id": "rbac_scope", "type": "authorization", "invalidates_result": true }
+        ]
+      }
+    ]
+  }
+}

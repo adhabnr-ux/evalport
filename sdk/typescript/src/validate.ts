@@ -247,6 +247,33 @@ export function validateResultSet(r: unknown): ValidationResult {
           if (typeof gr.passed !== "boolean") errors.push(err(`$.results[${i}].grader_results[${j}].passed`, "required", "REQUIRED"));
         });
       }
+
+      // Hard Constraints (following #45's SELF_PARENT/DUPLICATE_ATTEMPT
+      // precedent): a constraint_violations entry with
+      // invalidates_result=true is a cross-field rule the raw JSON Schema
+      // can't express without $data -- hand-rolled-only. See spec/SPEC.md
+      // Extension Mechanism -> Hard Constraints.
+      const cvs = x.constraint_violations;
+      if (cvs !== undefined && cvs !== null) {
+        if (!Array.isArray(cvs)) {
+          errors.push(err(`$.results[${i}].constraint_violations`, "must be an array", "TYPE_ERROR"));
+        } else {
+          let anyInvalidating = false;
+          cvs.forEach((cv, k) => {
+            if (!isPlainObject(cv)) { errors.push(err(`$.results[${i}].constraint_violations[${k}]`, "object", "TYPE_ERROR")); return; }
+            if (!isNonEmptyString(cv.id)) errors.push(err(`$.results[${i}].constraint_violations[${k}].id`, "id required", "REQUIRED"));
+            const inv = cv.invalidates_result;
+            if (typeof inv !== "boolean") {
+              errors.push(err(`$.results[${i}].constraint_violations[${k}].invalidates_result`, "required boolean", "REQUIRED"));
+            } else if (inv) {
+              anyInvalidating = true;
+            }
+          });
+          if (anyInvalidating && x.passed !== false) {
+            errors.push(err(`$.results[${i}].passed`, "must be false: a constraint_violations entry has invalidates_result=true", "CONSTRAINT_INVALIDATES_PASS"));
+          }
+        }
+      }
     });
   }
 

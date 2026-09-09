@@ -73,6 +73,15 @@ class Result:
     # Repetition & Attempt Tracking.
     attempt: Optional[int] = None
     error: Optional[Dict[str, Any]] = None
+    # Hard constraints this result violated -- categorically different from
+    # grader_results (partial, averaged quality scores) and error (no usable
+    # result produced at all). Each entry: {id, type?, detail?,
+    # invalidates_result}. invalidates_result=True means `passed` MUST be
+    # False (see validate.py's CONSTRAINT_INVALIDATES_PASS check) while the
+    # result still counts toward denominators, unlike `error`. Absent means
+    # no constraint violations were evaluated or none occurred -- see
+    # spec/SPEC.md Extension Mechanism -> Hard Constraints.
+    constraint_violations: Optional[List[Dict[str, Any]]] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 @dataclass
