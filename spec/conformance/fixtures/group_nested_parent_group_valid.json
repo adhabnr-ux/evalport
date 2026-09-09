@@ -1,0 +1,34 @@
+{
+  "description": "Demonstrates group.parent_group_id, the optional nesting extension to the grouped/sibling ResultSets proposal from Discussion #45 (proposed, not yet finalized). Grew out of an explicit audit of EvalPort's flat-group design against real precedent: MLflow's nested runs (mlflow/tracking/fluent.py's active_run_stack) let one run's parent_run_id itself point to a run with its own parent_run_id, forming an arbitrarily deep tree -- confirmed against mlflow/mlflow#16685's real GrandParent/Parent/150-Child test case, not just the API surface. W&B's Run.sweep_id and its separate wandb.init(group=...) primitive are both flat, single-level, with no parent construct anywhere in wandb/wandb's source, so EvalPort's original flat-only design matched W&B but not MLflow. This fixture models a hyperparameter sweep-of-sweeps: a parent group covering the whole learning-rate x batch-size grid, and this ResultSet's own group nested one level under it via parent_group_id. A conforming validator MUST ACCEPT this document -- parent_group_id is optional and, when present, only needs to be a non-empty string that differs from this group's own group_id (see group_self_parent_rejected.json for the negative case).",
+  "type": "resultset",
+  "expect": { "valid": true },
+  "document": {
+    "version": "1.1.0",
+    "suite_id": "rag-retrieval-suite",
+    "run_id": "trial-003-run",
+    "started_at": "2026-09-08T14:00:00Z",
+    "group": {
+      "group_id": "lr-1e-4-batchsize-32-trials",
+      "parent_group_id": "lr-batchsize-grid-2026-09-08",
+      "role": "candidate",
+      "label": "lr=1e-4, batch_size=32",
+      "sequence": 3
+    },
+    "results": [
+      {
+        "test_case_id": "case_1",
+        "passed": true,
+        "grader_results": [
+          { "grader_id": "gr1", "type": "semantic_similarity", "score": 0.88, "passed": true }
+        ]
+      },
+      {
+        "test_case_id": "case_2",
+        "passed": true,
+        "grader_results": [
+          { "grader_id": "gr1", "type": "semantic_similarity", "score": 0.91, "passed": true }
+        ]
+      }
+    ]
+  }
+}

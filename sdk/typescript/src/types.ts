@@ -135,6 +135,49 @@ export interface Summary {
   by_grader?: Record<string, SummaryByGrader>;
 }
 
+// Membership in a named group of sibling ResultSets (a sweep, a
+// mutation-testing run, a multi-model comparison, ...). The join key
+// (`group_id`, required when `group` is present) lives on the member,
+// mirroring W&B Sweep.sweep_id and MLflow's parent-run link -- EvalPort does
+// not standardize a separate group-level rollup document; that stays
+// consumer-computed (see Stryker's mutation-testing-report-schema, which made
+// the same call). `role`/`label`/`sequence` are optional -- see
+// spec/SPEC.md Extension Mechanism -> Grouped/Sibling ResultSets.
+// PROPOSED in Discussion #45, not yet finalized -- see that discussion for
+// the RFC this field is a reference implementation of.
+//
+// Modeled as its own interface (rather than sdk/python's looser
+// Optional[Dict[str, Any]]) to match this SDK's existing convention for other
+// optional ResultSet sub-objects (Result.error, ResultSet.runner, above).
+export interface ResultSetGroup {
+  group_id: string;
+  // Optional id of a PARENT group this group is itself nested under, letting
+  // groups chain (grandparent -> parent -> this group) the same way a single
+  // MLflow run's parent_run_id can point to a run that itself has a
+  // parent_run_id, producing an arbitrarily deep tree from one pointer per
+  // node -- verified against mlflow/tracking/fluent.py's active_run_stack and
+  // real 3-level GrandParent/Parent/Child usage in mlflow/mlflow#16685. Not
+  // every grouping system has this: W&B's Run.sweep_id and its separate
+  // wandb.init(group=...) primitive are both flat, single-level, with no
+  // parent construct anywhere in wandb/wandb's source. Omit for a flat group
+  // (the only shape this field supported before this addition -- every
+  // existing group-bearing ResultSet needs no change). MUST NOT equal this
+  // object's own group_id.
+  parent_group_id?: string;
+  // Open string ("mutant" | "seed" | "baseline" | "candidate" | ...), not a
+  // closed enum -- same precedent as ResultSet.isolation: a new grouping
+  // strategy should never need a spec change just to be nameable.
+  role?: string;
+  // Human-readable, e.g. "mutant_017 (relational-operator-swap in
+  // billing.py:42)" or "seed=1337". For display; not a join key.
+  label?: string;
+  // 0-indexed position within the group, for producers that know the group's
+  // total size at emission time. Absent means unknown/not applicable --
+  // consumers MUST NOT assume contiguous or complete sequences from a partial
+  // set of group members.
+  sequence?: number;
+}
+
 export interface ResultSet {
   $schema?: string;
   version: string;
@@ -151,6 +194,9 @@ export interface ResultSet {
   // collection of evidence and should make one isolation claim; a producer
   // that genuinely mixes isolation modes should emit two ResultSets instead.
   isolation?: string;
+  // See ResultSetGroup above. Absent means this ResultSet is not part of a
+  // declared group -- existing ResultSets need no change.
+  group?: ResultSetGroup;
   results: Result[];
   summary?: Summary;
   metadata?: Record<string, unknown>;

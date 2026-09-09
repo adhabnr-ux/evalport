@@ -87,15 +87,15 @@ This is not a one-time cost — it repeats for every framework transition, every
 ### Document Model
 
 ```
-┌─────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────┐
 │                    Eval Suite                         │
 │                                                      │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐          │
+│  ┌────────┐  ┌────────┐  ┌────────┐          │
 │  │ Test Case │  │ Test Case │  │ Test Case │  ...    │
 │  │  #1       │  │  #2       │  │  #3       │          │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘          │
+│  └────┬────┘  └────┬────┘  └────┬────┘          │
 │       │              │              │                 │
-│       └──────────────┼──────────────┘                 │
+│       └──────────────┼────────────────┘                 │
 │                      ▼                                │
 │              ┌──────────────┐                        │
 │              │   Graders    │  (shared definitions)   │
@@ -103,31 +103,31 @@ This is not a one-time cost — it repeats for every framework transition, every
 │              │   by ID)     │                         │
 │              └──────────────┘                        │
 │                                                      │
-│  ┌──────────────────────────────────┐               │
+│  ┌─────────────────────────────────┐               │
 │  │       Suite Configuration         │               │
 │  │  (provider, model, defaults)      │               │
-│  └──────────────────────────────────┘               │
-└─────────────────────────────────────────────────────┘
+│  └─────────────────────────────────┘               │
+└─────────────────────────────────────────────────────────┘
 
                         │ run
 
                         ▼
 
-┌─────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────┐
 │                    Result Set                        │
 │                                                      │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐    │
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐    │
 │  │  Result #1  │  │  Result #2  │  │  Result #3  │   │
 │  │  (score,    │  │  (score,    │  │  (score,    │   │
 │  │   pass/fail)│  │   pass/fail)│  │   pass/fail)│   │
-│  └────────────┘  └────────────┘  └────────────┘    │
+│  └───────────┘  └───────────┘  └───────────┘    │
 │                                                      │
-│  ┌──────────────────────────────────┐               │
+│  ┌─────────────────────────────────┐               │
 │  │       Summary Statistics          │               │
 │  │  (pass rate, avg score, per-grader│               │
 │  │   breakdown, duration)            │               │
-│  └──────────────────────────────────┘               │
-└─────────────────────────────────────────────────────┘
+│  └─────────────────────────────────┘               │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ### Document Relationships
@@ -427,6 +427,7 @@ A result set is the output of running an eval suite. It contains one result per 
 | `runner.name` | string | Runner name (e.g., "deepeval", "promptfoo"). |
 | `runner.version` | string | Runner version. |
 | `isolation` | string | Trial isolation mode for repeated attempts in this `ResultSet`'s `results` — an open string (`"fresh"`/`"shared"` conventional, not exhaustive). Declared once per `ResultSet`, not per `Result` — a producer that genuinely mixes isolation modes SHOULD emit separate `ResultSet`s instead. See Extension Mechanism → Repetition & Attempt Tracking. |
+| `group` | object | **PROPOSED, [Discussion #45](https://github.com/adhabnr-ux/evalport/discussions/45), not yet finalized.** Membership in a named group of sibling `ResultSet`s (a sweep, a mutation-testing run, a multi-model comparison). `group.group_id` (string) is required when `group` is present; `group.parent_group_id` (string), `group.role`/`group.label` (strings), and `group.sequence` (integer ≥ 0) are optional. See Extension Mechanism → Grouped/Sibling ResultSets. |
 | `summary` | object | Aggregated statistics. |
 | `metadata` | object | Free-form metadata. |
 
@@ -647,6 +648,187 @@ Resolves [Discussion #22](https://github.com/adhabnr-ux/evalport/discussions/22)
 ```
 
 See `spec/conformance/fixtures/multi_attempt_resultset_valid.json` (a valid multi-attempt `ResultSet`) and `spec/conformance/fixtures/duplicate_attempt_collision_rejected.json` (a same-`(test_case_id, run_id, attempt)` collision correctly rejected) — contributed against these exact field names per AgentVerity's offer in Discussion #22.
+
+### Grouped/Sibling ResultSets (`ResultSet.group`) — PROPOSED, not yet finalized
+
+> **Status:** this section documents [Discussion #45](https://github.com/adhabnr-ux/evalport/discussions/45), open for comment. The schema addition, SDK validators, and conformance fixtures described here exist on a reference-implementation branch/PR referenced from that discussion — **not on `main`** — so they can be reviewed and tested without being mistaken for a landed spec change. This subsection will be rewritten in the past tense (matching Repetition & Attempt Tracking above) if and when the RFC concludes and actually merges, the same path [Discussion #22](https://github.com/adhabnr-ux/evalport/discussions/22) took to become the section above.
+
+Grew out of [issue #36](https://github.com/adhabnr-ux/evalport/issues/36) ("No representation for grouped/sweep ResultSets with rollup semantics"), itself raised from a cross-project conversation in [AshwinUgale/muteval#44](https://github.com/AshwinUgale/muteval/issues/44). The gap: nothing in the schema relates one `ResultSet` to a set of sibling `ResultSet`s — `Repetition & Attempt Tracking` above fixed repeated trials *within* one `run_id`, but did nothing for grouping *across* several `run_id`s (a mutation-testing sweep's one-`ResultSet`-per-mutant, a hyperparameter grid search's one-`ResultSet`-per-trial, a multi-model comparison's one-`ResultSet`-per-model).
+
+**`ResultSet.group`** (optional object, required sub-field `group_id`) is the proposed join key, modeled directly on precedent from six real systems that already solve part of this problem — W&B Sweeps (`Run.sweep_id`), MLflow nested runs (`mlflow.get_parent_run`), Stryker's `mutation-testing-report-schema` (per-mutant `status`, no rollup field), Optuna's `Study`/`FrozenTrial` (see below), promptfoo's `EvaluateResult.provider`/`CompletedPrompt.metrics` (see below), and Google Cloud's Vertex AI Vizier `Study`/`Trial` resource hierarchy, confirmed directly in the open-source `google/vizier` implementation behind it (see below) — all of which independently converged on the same shape: **the join key lives on the member and points at the group; the group-level rollup is computed by the consumer, not stored as a schema-mandated document.** A seventh system checked for the same reason, AWS SageMaker's hyperparameter tuning API, does **not** converge on this shape — it's discussed on its own terms below rather than left out for disagreeing. This spec deliberately follows the six-system precedent rather than also standardizing a separate rollup/manifest document — see Discussion #45 for the full reasoning, including why the informal alternative (relying on `suite_id` conventions) was rejected the same way an equivalent informal option was rejected for `isolation`.
+
+- `group.group_id` (string, required when `group` is present) — identifier shared by every `ResultSet` in the group. An open, producer-chosen string (UUID, slug, timestamp-based, ...), the same design as `suite_id`/`run_id`.
+- `group.parent_group_id` (optional string) — identifier of a PARENT group this group is itself nested under, letting groups form a chain (grandparent group → parent group → this group). See "Nesting groups: `group.parent_group_id`" below for the full grounding and worked example.
+- `group.role` (optional string) — this member's role or outcome within the group, e.g. `"mutant"`, `"seed"`, `"baseline"`, `"candidate"`. An **open string, not a closed enum**, for the same reason `isolation` isn't one (see above).
+- `group.label` (optional string) — a human-readable name for this member, for display only, not a join key.
+- `group.sequence` (optional integer, `minimum: 0`) — this member's 0-indexed position within the group, for producers that know the group's total size at emission time.
+
+```json
+{
+  "version": "1.1.0",
+  "suite_id": "billing-suite",
+  "run_id": "mutant-017-run",
+  "started_at": "2026-09-01T10:00:00Z",
+  "isolation": "fresh",
+  "group": {
+    "group_id": "mutation-sweep-2026-09-01",
+    "role": "mutant",
+    "label": "mutant_017 (relational-operator-swap in billing.py:42)",
+    "sequence": 17
+  },
+  "results": [
+    { "test_case_id": "case_1", "attempt": 1, "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": true } ] },
+    { "test_case_id": "case_2", "attempt": 1, "passed": false, "grader_results": [ { "grader_id": "gr1", "type": "exact_match", "score": 0.0, "passed": false } ] }
+  ]
+}
+```
+
+**Whether `sequence` is meaningful depends on the producer knowing the group's total size upfront — verified, not assumed, for the motivating case.** Reading `AshwinUgale/muteval`'s actual current `src/muteval/runner.py`: `run_mutation_testing()` calls `select_mutants()`, which fully materializes the mutant list via `generate_mutants()` — synchronously, before any per-mutant evaluation begins (whether run serially or via `ThreadPoolExecutor.map`, which preserves input order). So for mutation testing specifically, the total mutant count and each mutant's position genuinely are known before its `ResultSet` would be emitted; `sequence` is not dead weight there. A producer whose grouping strategy discovers members incrementally (e.g. a search that doesn't know its own trial count upfront) can simply omit `sequence` — it's optional for exactly that reason.
+
+**On a standard `role` vocabulary for mutation testing specifically:** muteval's real per-mutant outcome (`MutantOutcome` in `runner.py`) is not a single flat status string the way Stryker's `Killed`/`Survived`/`NoCoverage`/... enum is — it's several orthogonal signals (`killed: bool`, `errored: bool`, `output_changed: Optional[bool]` distinguishing a real coverage gap from an inert/equivalent mutant, and a separate `severity: "high"|"medium"|"low"` ranking). Collapsing all of that into one closed `role` enum would either lose information or invent a combinatorial vocabulary nobody asked for. The module docstring's own framing — a mutant is *"killed"* (suite failed, caught the injected regression) or *"survives"* (suite still passed) or, on a harness error, *"errored"* — is the one dimension that maps cleanly to a single `role` value, so `"killed"` / `"survived"` / `"errored"` are documented here as a **conventional, non-enforced** starting vocabulary for mutation-testing producers; severity and inert-vs-real status stay better expressed via `group.label` or domain metadata, not folded into `role`. This was offered as a considered default pending confirmation from an actual muteval-side integration — confirmed, with a refinement, below.
+
+**Confirmed by muteval's maintainer, with a refinement that sharpens the metadata split above.** [Replying directly on Discussion #45](https://github.com/adhabnr-ux/evalport/discussions/45#discussioncomment-18308435), AshwinUgale confirmed both the `sequence` and `role` reasoning above, then went further: muteval's "survived" state isn't one thing internally — a survivor is either a real coverage gap or an inert/equivalent mutant the tool excludes from its *effective* mutation score, so a consumer reconstructing that rollup from `role` alone would get muteval's raw score, "not the effective one" (AshwinUgale, Discussion #45). His conclusion tracks the split already proposed above rather than requiring a schema change: "'survived' needs to distinguish real-gap vs inert" (AshwinUgale, Discussion #45) if `role` is meant to support rollup reconstruction — precisely the job already assigned to domain `metadata`, not `role`, in the paragraph above.
+
+Concretely, that means carrying the real-gap-vs-inert bit as free-form `metadata` on each `ResultSet`, reusing muteval's own field for it (`output_changed`, from `MutantOutcome` in `runner.py`) rather than inventing new spec vocabulary for something this schema already lets a producer express without any schema change:
+
+```json
+[
+  {
+    "version": "1.1.0",
+    "suite_id": "billing-suite",
+    "run_id": "mutant-021-run",
+    "started_at": "2026-09-06T09:00:00Z",
+    "group": { "group_id": "mutation-sweep-2026-09-06", "role": "survived", "sequence": 21 },
+    "metadata": { "output_changed": true },
+    "results": [ { "test_case_id": "case_1", "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": true } ] } ]
+  },
+  {
+    "version": "1.1.0",
+    "suite_id": "billing-suite",
+    "run_id": "mutant-022-run",
+    "started_at": "2026-09-06T09:00:05Z",
+    "group": { "group_id": "mutation-sweep-2026-09-06", "role": "survived", "sequence": 22 },
+    "metadata": { "output_changed": false },
+    "results": [ { "test_case_id": "case_1", "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": true } ] } ]
+  }
+]
+```
+
+Both `ResultSet`s carry `role: "survived"` — the coarse verdict is identical, as it should be, since both mutants really did survive the suite unkilled. What distinguishes them is `metadata.output_changed`: mutant 21's output genuinely diverged from baseline behavior in a way the suite failed to catch (a real coverage gap), while mutant 22's output was observationally unchanged from baseline (an inert/equivalent mutant muteval itself would drop from its effective score). A consumer computing muteval's *raw* mutation score counts every `role: "survived"` member as a survivor; one reconstructing the *effective* score additionally excludes members where `metadata.output_changed` is `false`. Both numbers are derivable from the same `group` object plus one free-form `metadata` key, with zero schema changes and no growth in `role`'s vocabulary — confirming the gap flagged in the maintainer's comment was already expressible through the design as proposed, not a hole this RFC needs a new field to close. See `spec/conformance/fixtures/group_role_metadata_real_gap_valid.json` and `spec/conformance/fixtures/group_role_metadata_inert_survivor_valid.json` for both cases validating cleanly.
+
+**A second, unrelated domain confirms the same design independently — this isn't over-fit to mutation testing.** The gap this section fixes was explicitly framed (in issue #36, per AshwinUgale) as generalizing beyond mutation testing to "a seed-sweep or a multi-model comparison." To check that claim rather than just assert it, I read `optuna/optuna`'s actual current `optuna/trial/_frozen.py` and `optuna/study/_frozen.py` — Optuna is a real, widely-used hyperparameter optimization library with no connection to mutation testing or muteval, which is exactly the kind of independent check a general-purpose field needs. Two things line up precisely with the `group` design above, in a completely different domain:
+
+- `FrozenTrial.number` is documented, verbatim, as *"Unique and consecutive number of Trial for each Study. Note that this field uses zero-based numbering."* That is `group.sequence`'s exact semantics — a 0-indexed, producer-known position of one group member within its group — arrived at independently by a project with no relationship to this spec or to muteval. It's the same shape `select_mutants()` gave `sequence` for mutation testing, now confirmed for hyperparameter search too, where the search space size is likewise known upfront for a grid/random search (though not necessarily for an adaptive sampler that stops early — see below).
+- `FrozenStudy.study_name` is the join key every `FrozenTrial` in that study shares — the member-points-at-group shape `group.group_id` uses, independently arrived at a fourth time (alongside W&B, MLflow, and Stryker above).
+
+This also sharpens rather than weakens the "producer must know the total upfront" caveat already stated above: a fixed grid search knows its full trial count before starting (so `sequence` is meaningful for every trial from the first), while an adaptive sampler (Optuna's TPE, CMA-ES, or a pruner like Hyperband that stops trials early) may not know a final count upfront — for those, a `ResultSet` should simply omit `sequence`, exactly as already documented above. Nothing about this second domain forces a different rule; it just confirms the rule holds outside mutation testing too.
+
+**Worked example: a hyperparameter grid search, using this second domain's real field semantics.** One `ResultSet` from trial 3 of a 12-trial learning-rate/batch-size grid search, `group.sequence` populated the same way `FrozenTrial.number` would be for a grid search (whose full trial count is known upfront):
+
+```json
+{
+  "version": "1.1.0",
+  "suite_id": "rag-retrieval-suite",
+  "run_id": "trial-003-run",
+  "started_at": "2026-09-05T14:00:00Z",
+  "group": {
+    "group_id": "lr-batchsize-grid-2026-09-05",
+    "role": "candidate",
+    "label": "lr=1e-4, batch_size=32",
+    "sequence": 3
+  },
+  "results": [
+    { "test_case_id": "case_1", "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "semantic_similarity", "score": 0.88, "passed": true } ] },
+    { "test_case_id": "case_2", "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "semantic_similarity", "score": 0.91, "passed": true } ] }
+  ]
+}
+```
+
+Here `role: "candidate"` (rather than mutation testing's `"mutant"`) names what this member *is* within its group — the RFC's `role` field was proposed as an open string specifically so a grid search doesn't have to borrow mutation-testing vocabulary or invent a spec change to name its own members. A model-comparison sweep would use the same shape with `role: "baseline"` / `role: "challenger"`, or whatever vocabulary that domain's own producers converge on — this spec doesn't pick one for them, the same restraint already applied to `role`'s mutation-testing vocabulary above.
+
+**A third, independent domain grounds the second half of the RFC's own generalization claim.** Issue #36 named two use cases beyond mutation testing: "a seed-sweep or a multi-model comparison." The hyperparameter sweep above grounded the first; the second — multi-model comparison — had, until now, only been asserted in the paragraph immediately above, not checked against a real system. Reading `promptfoo/promptfoo`'s actual current `src/types/index.ts` closes that gap: `EvaluateResult.provider: Pick<ProviderOptions, 'id' | 'label'>` identifies which model produced a given row when the same test cases run across multiple configured providers, and `CompletedPrompt.provider: string` paired with `CompletedPrompt.metrics: PromptMetricsSchema` (`score`, `testPassCount`, `testFailCount`, `assertPassCount`, ...) is exactly the consumer-computed, per-provider rollup this RFC's `group` design already assumes rather than mandates — independently confirming the same join-key-on-member/rollup-computed-by-consumer shape a fifth time, after W&B, MLflow, Stryker, and Optuna. `providers` is configured as an ordered array (`providers: z.array(ApiProviderSchema)`) and evaluated in that order, so — like Optuna's grid search, and unlike an adaptive sampler that must omit it — `sequence` is well-defined here too: a producer knows each provider's position in its own configured list upfront.
+
+**Worked example: a multi-model comparison, using promptfoo's own real example.** The provider ids and premise below (grading how accurately each of three models describes an image) are taken directly from promptfoo's own current `examples/compare-claude-vs-gpt-image/promptfooconfig.yaml`, a real example built for exactly this use case — not a hypothetical. One `ResultSet` for the middle provider in that file's list of three (`sequence: 1`, 0-indexed, matching `providers`' configured order):
+
+```json
+{
+  "version": "1.1.0",
+  "suite_id": "image-description-suite",
+  "run_id": "openai-gpt-4.1-run",
+  "started_at": "2026-09-07T10:00:00Z",
+  "group": {
+    "group_id": "claude-vs-gpt-vs-gemini-image-2026-09-07",
+    "role": "openai:gpt-4.1",
+    "label": "GPT-4.1 (image description accuracy)",
+    "sequence": 1
+  },
+  "results": [
+    { "test_case_id": "great_wave_off_kanagawa", "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "llm_judge", "score": 0.92, "passed": true } ] }
+  ]
+}
+```
+
+`role` here is the model's own real provider id string (`"openai:gpt-4.1"`) rather than mutation testing's `"mutant"` or the grid search fixture's `"candidate"` — a third distinct vocabulary from a third distinct domain, each chosen by its own producers with zero spec changes, exactly as `role` being an open string was designed to allow. With all three `ResultSet`s in this group emitted (Claude, GPT-4.1, Gemini), a consumer builds promptfoo's own comparison table — one column per `group.role`, one row per `test_case_id` — purely from `group` plus the shared `test_case_id`s already in `results`, the same consumer-computed rollup pattern as muteval's raw/effective score and Optuna's best-trial selection above.
+
+**A sixth confirming check, plus one honest counter-example — this RFC went looking for disagreement, not just more agreement.** Five independent systems converging on the same shape is strong evidence, but five wins in a row is also exactly the point where a design should go looking for something that might contradict it rather than stop at a comfortable streak. The two largest cloud ML platforms — Google Cloud's Vertex AI Vizier and AWS SageMaker's hyperparameter tuning API — were checked next, specifically because both are managed, hyperscaler-run services rather than open-source libraries, the one gap in the precedent set so far.
+
+**Vertex AI Vizier confirms the pattern a sixth time — and this one isn't limited to reading API documentation.** Vizier's `Trial` resources are addressed as `projects/{project}/locations/{location}/studies/{study}/trials/{trial}` — the join to the parent `Study` is structural, encoded directly in the resource's own identity, the same member-points-at-group relationship as `mlflow.get_parent_run` or `FrozenStudy.study_name` above, just expressed as a REST resource hierarchy instead of a field. And Vizier's "which trial is best" answer is not a stored field on `Study` at all — it's `trials.listOptimalTrials`, a dedicated RPC that computes the answer on demand, mirroring `Sweep.best_run()`'s on-demand computation almost exactly.
+
+Unlike the AWS citation below, this one doesn't stop at reading a managed service's REST documentation — Google publishes the actual implementation behind it as `google/vizier`, described in its own README as "based on the internal Google Vizier Service" (the same backend Vertex AI Vizier exposes as a managed product), maintained in the open by Google's own research team. Its committed source shows the identical shape at the code level, not just the API-docs level: `vizier/_src/service/resources.py` defines `StudyResource` and `TrialResource` as the literal Python classes behind that resource hierarchy — `TrialResource.name` renders exactly as `owners/{owner_id}/studies/{study_id}/trials/{trial_id}`, and `StudyResource.trial_resource(trial_id)` is the constructor a member uses to point at its parent. And `vizier/_src/service/vizier_service.proto` defines `ListOptimalTrials` as a real RPC (`rpc ListOptimalTrials(ListOptimalTrialsRequest) returns (ListOptimalTrialsResponse)`) alongside `GetStudy`/`GetTrial`/`ListTrials` — there is no `best_trial` field anywhere on the `Study` message for a consumer to read instead. Confirmed directly against that repository's current source, not inferred from the product docs alone.
+
+**AWS SageMaker's hyperparameter tuning API does not confirm it, and that's worth stating plainly rather than omitting.** `DescribeHyperParameterTuningJob` stores a precomputed `BestTrainingJob` field, and `HyperParameterTuningJobSummary` stores precomputed `TrainingJobStatusCounters` / `ObjectiveStatusCounters` — real, stored rollup data at the group level, not consumer-computed. That's a genuine counter-example to the pattern in the other six systems checked, and leaving it out for disagreeing would make the grounding section persuasive rather than honest.
+
+It doesn't change this RFC's design, for a reason that's actually informative rather than a rationalization: a SageMaker tuning job has exactly one pre-declared `HyperParameterTuningJobObjective` before any training job runs, so "best" has one unambiguous, service-known meaning from the moment the job is created — precomputing and storing it costs nothing in ambiguity. `ResultSet.group` has no such luxury: a mutation-testing sweep's rollup is a mutation score with a real-gap/inert distinction (see `metadata.output_changed` above), a grid search's rollup is "best trial by whatever metric the schema itself doesn't know," and a multi-model comparison's rollup is a per-test-case table, not a single winner. There is no one `HyperParameterTuningJobObjective`-shaped concept that covers all three domains this field already serves — which is exactly why "the rollup is a `profile:`-layer concern, not a core-schema field" (immediately below) is the right call for a cross-domain spec, even though it's clearly the *right* call for SageMaker to do the opposite in a single-objective, single-domain, provider-managed service. Six converging systems said "don't standardize a rollup"; SageMaker saying "we did, and here's why it made sense for us" sharpens that argument instead of undermining it — the case where the majority pattern gets pierced is precisely the case this RFC isn't trying to cover.
+
+**What this deliberately does not do:** it does not standardize how a rollup (mutation score, best-trial selection, win-rate) is computed — that differs too much by domain to bake into the core spec, matching how stability/flip-rate computation over repeated `attempt`s was deliberately deferred out of Discussion #22 as well. A `profile:mutation-score-v1`-style convention (see Profile Extensions, below) is the natural home for that once there's a second and third real consumer to generalize from.
+
+**Nesting groups: `group.parent_group_id`.** Six-and-a-counter-example of real precedent (above) all agree that a group is flat: one `group_id` per `ResultSet`, one level of membership. But "is a flat group always the right model?" is itself a question worth checking against real systems rather than assuming — and one of the six, MLflow, actually disagrees with the other five on exactly this point. Reading `mlflow/tracking/fluent.py`'s real `start_run()` implementation: every run carries at most one `parent_run_id` (stored as the `mlflow.parentRunId` tag, `MLFLOW_PARENT_RUN_ID` constant), but that parent can itself have its own `parent_run_id` — nesting comes from a thread-local `active_run_stack`, where a new nested run's parent is whatever run is currently on top of the stack, which may itself be a nested child of something else. That produces an **arbitrarily deep tree from a single pointer per node**, not a two-level cap — confirmed against real usage, not just the API surface: `mlflow/mlflow#16685`'s own test case builds a literal GrandParent → Parent → 150 Children hierarchy, and `mlflow/mlflow#1896` nests hyperparameter-search trials the same way. `mlflow.get_parent_run(run_id)` walks the chain one hop at a time, exactly the way a consumer would walk `group.parent_group_id`.
+
+W&B does not share this shape, and it's worth being precise about why the two sources of "grouping" in `wandb/wandb` are both flat: `Run.sweep_id` (`wandb/sdk/wandb_run.py`) is a single optional string with no parent-sweep field anywhere in the source, and the separate `wandb.init(group=...)` primitive (a different, non-sweep grouping mechanism for grouping runs into one unit in the UI) is likewise a flat, single string tag with no subgroup or parent construct. So of the six systems grounding `group` above, five (W&B twice over — sweeps and its unrelated `group=` primitive — plus Stryker, Optuna, and promptfoo) are flat, and one (MLflow) genuinely nests. That's a real, evidenced gap in EvalPort's original flat-only design, not manufactured busywork: a mutation-testing campaign spanning multiple source files (one parent group per file, child groups per mutant within it) or a hyperparameter sweep-of-sweeps (an outer search over learning-rate schedules, each schedule itself swept over batch sizes) has no way to express that nesting with `group_id` alone.
+
+`group.parent_group_id` (optional string) closes that gap the same way `group_id` itself is modeled — as a pointer on the member, not an embedded tree, so it costs nothing for every existing flat `group` (omitting it is unchanged behavior) and composes with `role`/`label`/`sequence` exactly as `group_id` already does. Two rules, both enforced by the hand-rolled SDK validators (the self-parent rule specifically is a cross-field constraint the raw JSON Schema's `properties`/`required` vocabulary can't express without a `$data` reference, the same class of rule as the `(test_case_id, run_id, attempt)` `DUPLICATE_ATTEMPT` uniqueness check above):
+
+- `group.parent_group_id`, when present, MUST be a non-empty string (`REQUIRED` error code if empty or a non-string type).
+- `group.parent_group_id` MUST NOT equal that same object's own `group_id` — a group cannot be its own parent (`SELF_PARENT` error code).
+
+EvalPort does not itself resolve or validate the chain across documents, for the same reason `group_id` itself isn't resolved across documents today: it's a join key a consumer follows across the full set of `ResultSet`s it has, not something a single document's own schema validity can fully confirm. A dangling `parent_group_id` (naming a parent group_id that never appears in any `ResultSet` the consumer has) or a cycle spanning more than one document is a producer bug, the same category of error an unresolvable `group_id` reference already was before this addition — outside what one document's validation can see, exactly as stated for `group_id` above.
+
+**Worked example: a three-level campaign → sweep → trial chain, matching MLflow's real GrandParent/Parent/Child shape.** A hierarchical hyperparameter search: an outer campaign group covering the whole search, a middle sweep group for one learning-rate/batch-size grid within that campaign, and a leaf trial group for one specific run of that grid — three `ResultSet`s, each one hop up the chain from the last:
+
+```json
+[
+  {
+    "version": "1.1.0",
+    "suite_id": "rag-retrieval-suite",
+    "run_id": "grandparent-run",
+    "started_at": "2026-09-08T00:00:00Z",
+    "group": { "group_id": "campaign-2026-09-08" }
+  },
+  {
+    "version": "1.1.0",
+    "suite_id": "rag-retrieval-suite",
+    "run_id": "parent-run",
+    "started_at": "2026-09-08T00:05:00Z",
+    "group": { "group_id": "sweep-lr-grid", "parent_group_id": "campaign-2026-09-08" }
+  },
+  {
+    "version": "1.1.0",
+    "suite_id": "rag-retrieval-suite",
+    "run_id": "child-run",
+    "started_at": "2026-09-08T00:10:00Z",
+    "group": { "group_id": "trial-003", "parent_group_id": "sweep-lr-grid", "sequence": 3 },
+    "results": [
+      { "test_case_id": "case_1", "passed": true, "grader_results": [ { "grader_id": "gr1", "type": "semantic_similarity", "score": 0.9, "passed": true } ] }
+    ]
+  }
+]
+```
+
+A consumer walks `trial-003 → sweep-lr-grid → campaign-2026-09-08` one `parent_group_id` hop at a time — the same traversal `mlflow.get_parent_run()` performs over `active_run_stack`-derived `parent_run_id` chains — to reconstruct the full ancestry of any leaf `ResultSet`, to arbitrary depth, from nothing but this one optional field. `sdk/python/tests/test_validate.py::test_group_three_level_nesting_matches_mlflow_grandparent_parent_child_shape` and its TypeScript mirror in `sdk/typescript/tests/validate.test.ts` both perform exactly this walk and assert the resulting chain matches.
+
+See `spec/conformance/fixtures/group_nested_parent_group_valid.json` (the sweep-of-sweeps case above, one level of nesting) and `spec/conformance/fixtures/group_self_parent_rejected.json` (`parent_group_id` equal to the object's own `group_id`, correctly rejected) on the reference-implementation branch referenced from Discussion #45.
+
+See `spec/conformance/fixtures/group_membership_valid.json` (a valid grouped `ResultSet`, composing `group` with `attempt`/`isolation` from the previous section), `spec/conformance/fixtures/group_missing_group_id_rejected.json` (`group` present without `group_id`, correctly rejected), `spec/conformance/fixtures/group_hyperparameter_sweep_valid.json` (the grid-search example above, demonstrating the same field validates cleanly for a non-mutation-testing domain), `spec/conformance/fixtures/group_role_metadata_real_gap_valid.json` / `spec/conformance/fixtures/group_role_metadata_inert_survivor_valid.json` (the maintainer-confirmed `role`+`metadata.output_changed` split above, both branches), and `spec/conformance/fixtures/group_multi_model_comparison_valid.json` (the promptfoo-grounded multi-model comparison example above, closing out issue #36's own two named use cases) on the reference-implementation branch referenced from Discussion #45.
 
 ### Extensions Registry
 

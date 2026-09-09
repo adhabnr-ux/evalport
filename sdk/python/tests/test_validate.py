@@ -200,3 +200,397 @@ def test_duplicate_attempt_still_caught_when_test_case_id_and_run_id_are_valid()
     result = validate_result_set(rs)
     assert not result.valid
     assert any(e["code"] == "DUPLICATE_ATTEMPT" for e in result.errors)
+
+# --- Discussion #45 (proposed): grouped/sibling ResultSets ---
+
+def _minimal_result_list():
+    return [{"test_case_id": "tc1", "passed": True, "grader_results": [_grader_result()]}]
+
+def test_group_absent_still_validates_unchanged():
+    # Backward compatibility: a ResultSet with no group field (every ResultSet
+    # produced before this proposal) must remain fully valid, unchanged.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "results": _minimal_result_list(),
+    }
+    result = validate_result_set(rs)
+    assert result.valid
+    assert "group" not in rs
+
+def test_group_with_only_group_id_is_valid():
+    # group_id is the only required sub-field -- role/label/sequence are all optional.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "mutant-017-run", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"group_id": "mutation-sweep-2026-09-01"},
+        "results": _minimal_result_list(),
+    }
+    assert validate_result_set(rs).valid
+
+def test_group_with_all_fields_populated_is_valid():
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "mutant-017-run", "started_at": "2026-01-01T00:00:00Z",
+        "group": {
+            "group_id": "mutation-sweep-2026-09-01",
+            "role": "mutant",
+            "label": "mutant_017 (relational-operator-swap in billing.py:42)",
+            "sequence": 17,
+        },
+        "results": _minimal_result_list(),
+    }
+    assert validate_result_set(rs).valid
+
+def test_group_missing_group_id_rejected():
+    # group_id is REQUIRED whenever group is present -- an empty/absent group_id
+    # is exactly the "which sweep is this?" ambiguity the field exists to remove.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"role": "mutant"},
+        "results": _minimal_result_list(),
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.group_id" and e["code"] == "REQUIRED" for e in result.errors)
+
+def test_group_empty_string_group_id_rejected():
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"group_id": ""},
+        "results": _minimal_result_list(),
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.group_id" and e["code"] == "REQUIRED" for e in result.errors)
+
+def test_group_must_be_an_object():
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": "mutation-sweep-2026-09-01",  # a bare string is not a valid group
+        "results": _minimal_result_list(),
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group" and e["code"] == "TYPE_ERROR" for e in result.errors)
+
+def test_group_role_is_an_open_string_not_an_enum():
+    # Mirrors isolation's precedent (Discussion #22): role stays a free string so
+    # a new grouping strategy never needs a spec change just to be nameable --
+    # not just the mutation-testing-flavored values used in the RFC's examples.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"group_id": "grid-search-42", "role": "candidate_config_7"},
+        "results": _minimal_result_list(),
+    }
+    assert validate_result_set(rs).valid
+
+def test_group_non_string_role_rejected():
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"group_id": "g1", "role": 42},
+        "results": _minimal_result_list(),
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.role" and e["code"] == "TYPE_ERROR" for e in result.errors)
+
+def test_group_non_string_label_rejected():
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"group_id": "g1", "label": ["not", "a", "string"]},
+        "results": _minimal_result_list(),
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.label" and e["code"] == "TYPE_ERROR" for e in result.errors)
+
+def test_group_sequence_must_be_non_negative_integer():
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"group_id": "g1", "sequence": -1},
+        "results": _minimal_result_list(),
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.sequence" and e["code"] == "OUT_OF_RANGE" for e in result.errors)
+
+def test_group_sequence_zero_is_valid():
+    # sequence is 0-indexed -- the first member of a group is sequence 0, not 1.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"group_id": "g1", "sequence": 0},
+        "results": _minimal_result_list(),
+    }
+    assert validate_result_set(rs).valid
+
+def test_group_sequence_bool_rejected():
+    # bool is a subclass of int in Python -- same class of gotcha as the
+    # boolean-score check above; True/False must not sneak through as 1/0.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "group": {"group_id": "g1", "sequence": True},
+        "results": _minimal_result_list(),
+    }
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.sequence" and e["code"] == "OUT_OF_RANGE" for e in result.errors)
+
+def test_group_hyperparameter_sweep_second_domain_is_valid():
+    # Discussion #45's own generalization claim (mutation testing, seed sweeps,
+    # model comparisons) is only as credible as its weakest-checked domain --
+    # this fixture mirrors spec/conformance/fixtures/group_hyperparameter_sweep_valid.json,
+    # a hyperparameter grid search unrelated to mutation testing, with a
+    # different role value ("candidate" rather than "mutant") and a sequence
+    # populated the way optuna/optuna's real FrozenTrial.number is documented
+    # to work ("unique and consecutive... zero-based") for a grid search whose
+    # trial count is known upfront. Proves role isn't silently mutation-testing-shaped.
+    rs = {
+        "version": "1.1.0", "suite_id": "rag-retrieval-suite", "run_id": "trial-003-run",
+        "started_at": "2026-09-05T14:00:00Z",
+        "group": {
+            "group_id": "lr-batchsize-grid-2026-09-05",
+            "role": "candidate",
+            "label": "lr=1e-4, batch_size=32",
+            "sequence": 3,
+        },
+        "results": [
+            {"test_case_id": "case_1", "passed": True, "grader_results": [
+                {"grader_id": "gr1", "type": "semantic_similarity", "score": 0.88, "passed": True}
+            ]},
+            {"test_case_id": "case_2", "passed": True, "grader_results": [
+                {"grader_id": "gr1", "type": "semantic_similarity", "score": 0.91, "passed": True}
+            ]},
+        ],
+    }
+    result = validate_result_set(rs)
+    assert result.valid, result.errors
+
+def test_group_multi_model_comparison_third_domain_is_valid():
+    # Discussion #45's own generalization claim named TWO use cases beyond
+    # mutation testing in issue #36: "a seed-sweep or a multi-model
+    # comparison." Hyperparameter sweeps were grounded above via Optuna;
+    # this fixture grounds the second, previously-ungrounded one. Verified
+    # against promptfoo/promptfoo's actual current source (src/types/index.ts):
+    # EvaluateResult.provider: {id, label} identifies which model produced a
+    # row, and CompletedPrompt.provider + its .metrics (score, testPassCount,
+    # ...) is exactly the consumer-computed per-provider rollup this RFC's
+    # group design already assumes -- confirming the join-key-on-member /
+    # rollup-computed-by-consumer shape a fifth time (after W&B, MLflow,
+    # Stryker, Optuna), independently. providers are configured as an
+    # ordered array (providers: z.array(ApiProviderSchema)) and evaluated in
+    # that order, so sequence is well-defined here too -- not just for
+    # adaptive producers that must omit it. Provider ids and premise are
+    # taken directly from promptfoo's own real example built for exactly
+    # this purpose: examples/compare-claude-vs-gpt-image/promptfooconfig.yaml.
+    # Mirrors spec/conformance/fixtures/group_multi_model_comparison_valid.json.
+    rs = {
+        "version": "1.1.0", "suite_id": "image-description-suite", "run_id": "openai-gpt-4.1-run",
+        "started_at": "2026-09-07T10:00:00Z",
+        "group": {
+            "group_id": "claude-vs-gpt-vs-gemini-image-2026-09-07",
+            "role": "openai:gpt-4.1",
+            "label": "GPT-4.1 (image description accuracy)",
+            "sequence": 1,
+        },
+        "results": [
+            {"test_case_id": "great_wave_off_kanagawa", "passed": True, "grader_results": [
+                {"grader_id": "gr1", "type": "llm_judge", "score": 0.92, "passed": True}
+            ]},
+        ],
+    }
+    result = validate_result_set(rs)
+    assert result.valid, result.errors
+
+def test_group_role_survived_with_real_gap_metadata_is_valid():
+    # AshwinUgale's Discussion #45 refinement: muteval's "survived" isn't one
+    # thing -- a survivor is either a real coverage gap or an inert/equivalent
+    # mutant muteval excludes from its effective mutation score. role stays
+    # the coarse, conventional "survived" verdict (schema doesn't distinguish
+    # further); the real-gap-vs-inert bit rides in free-form metadata instead,
+    # reusing muteval's own MutantOutcome.output_changed field name rather than
+    # inventing new spec vocabulary. This is the real-coverage-gap branch --
+    # mirrors spec/conformance/fixtures/group_role_metadata_real_gap_valid.json.
+    rs = {
+        "version": "1.1.0", "suite_id": "billing-suite", "run_id": "mutant-021-run",
+        "started_at": "2026-09-06T09:00:00Z",
+        "group": {"group_id": "mutation-sweep-2026-09-06", "role": "survived", "sequence": 21},
+        "metadata": {"output_changed": True},
+        "results": [
+            {"test_case_id": "case_1", "passed": True, "grader_results": [
+                {"grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": True}
+            ]},
+        ],
+    }
+    result = validate_result_set(rs)
+    assert result.valid, result.errors
+
+def test_group_role_survived_with_inert_metadata_is_valid():
+    # Paired case: same coarse role: "survived" verdict, but
+    # metadata.output_changed: False marks this member as one an
+    # effective-mutation-score rollup should exclude -- muteval's own
+    # distinction, not folded into role. Mirrors
+    # spec/conformance/fixtures/group_role_metadata_inert_survivor_valid.json.
+    rs = {
+        "version": "1.1.0", "suite_id": "billing-suite", "run_id": "mutant-022-run",
+        "started_at": "2026-09-06T09:00:05Z",
+        "group": {"group_id": "mutation-sweep-2026-09-06", "role": "survived", "sequence": 22},
+        "metadata": {"output_changed": False},
+        "results": [
+            {"test_case_id": "case_1", "passed": True, "grader_results": [
+                {"grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": True}
+            ]},
+        ],
+    }
+    result = validate_result_set(rs)
+    assert result.valid, result.errors
+
+def test_group_role_metadata_lets_consumer_reconstruct_raw_and_effective_score():
+    # End-to-end proof of the RFC refinement's actual point: given a full
+    # 3-mutant group (one killed, one survived-real-gap, one
+    # survived-inert-equivalent), a consumer can derive BOTH muteval's raw
+    # mutation score (killed / total) and its effective score
+    # (killed / (total - inert-excluded)) purely from group.role +
+    # metadata.output_changed -- no schema change, no growth in role's
+    # vocabulary, exactly what AshwinUgale's comment asked whether this
+    # design could support.
+    group_id = "mutation-sweep-2026-09-06-full"
+    members = [
+        {
+            "version": "1.1.0", "suite_id": "billing-suite", "run_id": "mutant-020-run",
+            "started_at": "2026-09-06T08:59:55Z",
+            "group": {"group_id": group_id, "role": "killed", "sequence": 20},
+            "results": [
+                {"test_case_id": "case_1", "passed": False, "grader_results": [
+                    {"grader_id": "gr1", "type": "exact_match", "score": 0.0, "passed": False}
+                ]},
+            ],
+        },
+        {
+            "version": "1.1.0", "suite_id": "billing-suite", "run_id": "mutant-021-run",
+            "started_at": "2026-09-06T09:00:00Z",
+            "group": {"group_id": group_id, "role": "survived", "sequence": 21},
+            "metadata": {"output_changed": True},
+            "results": [
+                {"test_case_id": "case_1", "passed": True, "grader_results": [
+                    {"grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": True}
+                ]},
+            ],
+        },
+        {
+            "version": "1.1.0", "suite_id": "billing-suite", "run_id": "mutant-022-run",
+            "started_at": "2026-09-06T09:00:05Z",
+            "group": {"group_id": group_id, "role": "survived", "sequence": 22},
+            "metadata": {"output_changed": False},
+            "results": [
+                {"test_case_id": "case_1", "passed": True, "grader_results": [
+                    {"grader_id": "gr1", "type": "exact_match", "score": 1.0, "passed": True}
+                ]},
+            ],
+        },
+    ]
+    for rs in members:
+        result = validate_result_set(rs)
+        assert result.valid, result.errors
+
+    # Consumer-side rollup math (deliberately NOT part of the schema/validator
+    # -- the RFC explicitly declines to standardize this, see "What this
+    # deliberately does not do" in SPEC.md). Demonstrated here only to prove
+    # both numbers are actually reconstructible from the documents above.
+    total = len(members)
+    killed = sum(1 for m in members if m["group"]["role"] == "killed")
+    inert_excluded = sum(
+        1 for m in members
+        if m["group"]["role"] == "survived" and m.get("metadata", {}).get("output_changed") is False
+    )
+    raw_score = killed / total
+    effective_score = killed / (total - inert_excluded)
+
+    assert raw_score == 1 / 3
+    assert effective_score == 1 / 2
+    assert effective_score > raw_score  # excluding the inert survivor raises the score, as it should
+
+# --- parent_group_id: nested/hierarchical groups (sweep-of-sweeps) ---
+#
+# Grew out of an explicit "is a flat group the right model?" audit against real
+# systems: MLflow's nested runs (parent_run_id chains, arbitrarily deep via
+# active_run_stack) form an arbitrarily deep tree in real usage -- confirmed
+# against mlflow/mlflow#16685's actual GrandParent/Parent/150-Child test case,
+# not just the API surface. W&B's Run.sweep_id and its separate
+# wandb.init(group=...) primitive are both flat, single-level, with no parent
+# construct anywhere in wandb/wandb's source -- so EvalPort's flat-only design
+# matched W&B but not MLflow. parent_group_id closes that gap the same way
+# group_id itself is modeled: a pointer on the member, not an embedded tree.
+
+def _rs_with_group(group, run_id="mutant-017-run"):
+    return {
+        "version": "1.0.0", "suite_id": "s", "run_id": run_id, "started_at": "2026-01-01T00:00:00Z",
+        "group": group,
+        "results": _minimal_result_list(),
+    }
+
+def test_group_parent_group_id_absent_is_valid_and_unchanged():
+    # Backward compatibility: every group-bearing ResultSet before this
+    # addition had no parent_group_id and must remain valid unchanged.
+    rs = _rs_with_group({"group_id": "mutation-sweep-2026-09-01"})
+    result = validate_result_set(rs)
+    assert result.valid, result.errors
+    assert "parent_group_id" not in rs["group"]
+
+def test_group_parent_group_id_valid_nested_sweep():
+    # Mirrors the MLflow-grounded worked example: a child sweep nested under a
+    # parent sweep, the same shape as MLflow's GrandParent/Parent/Child chain.
+    rs = _rs_with_group({
+        "group_id": "child-sweep-lr-1e-4",
+        "parent_group_id": "parent-sweep-lr-batchsize-grid-2026-09-08",
+        "role": "candidate",
+        "sequence": 3,
+    })
+    result = validate_result_set(rs)
+    assert result.valid, result.errors
+
+def test_group_parent_group_id_empty_string_rejected():
+    rs = _rs_with_group({"group_id": "g1", "parent_group_id": ""})
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.parent_group_id" and e["code"] == "REQUIRED" for e in result.errors)
+
+def test_group_parent_group_id_non_string_rejected():
+    rs = _rs_with_group({"group_id": "g1", "parent_group_id": 42})
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.parent_group_id" and e["code"] == "REQUIRED" for e in result.errors)
+
+def test_group_parent_group_id_equal_to_group_id_rejected():
+    # A group cannot be its own parent -- the one structural self-consistency
+    # check a single document CAN make (a real cross-document cycle, e.g. A's
+    # parent is B and B's parent is A, needs multi-document reasoning this
+    # validator deliberately doesn't attempt -- see the schema description).
+    rs = _rs_with_group({"group_id": "sweep-42", "parent_group_id": "sweep-42"})
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["path"] == "$.group.parent_group_id" and e["code"] == "SELF_PARENT" for e in result.errors)
+
+def test_group_three_level_nesting_matches_mlflow_grandparent_parent_child_shape():
+    # Proves the pointer-chain mechanism actually supports 3+ levels, the same
+    # depth mlflow/mlflow#16685's real GrandParent/Parent/Child test exercises
+    # -- each ResultSet only ever names its OWN immediate parent, never an
+    # embedded ancestor list, exactly like MLflow's parent_run_id.
+    grandparent = _rs_with_group({"group_id": "campaign-2026-09-08"}, run_id="grandparent-run")
+    parent = _rs_with_group(
+        {"group_id": "sweep-lr-grid", "parent_group_id": "campaign-2026-09-08"}, run_id="parent-run"
+    )
+    child = _rs_with_group(
+        {"group_id": "trial-003", "parent_group_id": "sweep-lr-grid", "sequence": 3}, run_id="child-run"
+    )
+
+    for rs in (grandparent, parent, child):
+        result = validate_result_set(rs)
+        assert result.valid, result.errors
+
+    # A consumer walks the chain purely from parent_group_id pointers, the
+    # same way MLflow's get_parent_run() walks parent_run_id one hop at a time.
+    by_group_id = {rs["group"]["group_id"]: rs for rs in (grandparent, parent, child)}
+    chain = [child["group"]["group_id"]]
+    cur = child
+    while cur["group"].get("parent_group_id") in by_group_id:
+        cur = by_group_id[cur["group"]["parent_group_id"]]
+        chain.append(cur["group"]["group_id"])
+    assert chain == ["trial-003", "sweep-lr-grid", "campaign-2026-09-08"]

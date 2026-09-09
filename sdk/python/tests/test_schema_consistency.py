@@ -370,6 +370,134 @@ def test_resultset_isolation_absent_still_validates_in_both_paths():
     assert "attempt" not in doc["results"][0]
 
 
+# ---------------------------------------------------------------------------
+# ResultSet: `group` (Discussion #45, proposed -- grouped/sibling ResultSets).
+# additionalProperties: false on the ResultSet object means the raw JSON Schema
+# would have rejected a `group` key before this schema change landed here,
+# exactly the same class of drift test_result_completed_at_present_validates_
+# in_both_paths documents above for `completed_at` -- both sides (schema +
+# hand-rolled validator) must be updated together, which is what this section
+# checks.
+# ---------------------------------------------------------------------------
+
+def test_group_with_group_id_only_valid_in_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {"group_id": "mutation-sweep-2026-09-01"}
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+
+
+def test_group_with_all_fields_valid_in_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {
+        "group_id": "mutation-sweep-2026-09-01",
+        "role": "mutant",
+        "label": "mutant_017 (relational-operator-swap in billing.py:42)",
+        "sequence": 17,
+    }
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+
+
+def test_group_absent_still_valid_in_both_paths():
+    # Optional field -- backward compatibility for every ResultSet produced
+    # before this proposal.
+    doc = _minimal_result_set("1.0.0")
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+    assert "group" not in doc
+
+
+def test_group_missing_group_id_rejected_by_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {"role": "mutant"}  # group_id is REQUIRED when group is present
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+def test_group_unknown_subfield_rejected_by_json_schema():
+    # additionalProperties: false on the group object itself -- a typo'd
+    # sub-field (e.g. "gruop_id") must be caught structurally by the JSON
+    # Schema even though the hand-rolled validator (like every other optional
+    # object in this file) doesn't police unknown keys.
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {"group_id": "g1", "not_a_real_field": "oops"}
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+
+
+def test_group_sequence_must_be_non_negative_integer_in_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {"group_id": "g1", "sequence": -1}
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+def test_group_wrong_type_rejected_by_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = "mutation-sweep-2026-09-01"  # must be an object, not a string
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+# ---------------------------------------------------------------------------
+# group.parent_group_id (nested/hierarchical groups -- sweep-of-sweeps).
+# Same drift class as the rest of this file: additionalProperties: false on
+# the group object means the raw JSON Schema would reject parent_group_id
+# entirely until the schema itself was updated alongside the hand-rolled
+# validator. Mirrors sdk/typescript/tests/schema-consistency.test.ts's
+# parent_group_id section rule-for-rule.
+# ---------------------------------------------------------------------------
+
+def test_group_parent_group_id_valid_nested_sweep_agrees_in_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {
+        "group_id": "child-sweep-lr-1e-4",
+        "parent_group_id": "parent-sweep-lr-batchsize-grid-2026-09-08",
+        "role": "candidate",
+        "sequence": 3,
+    }
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+
+
+def test_group_parent_group_id_absent_still_valid_in_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {"group_id": "mutation-sweep-2026-09-01"}
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+    assert "parent_group_id" not in doc["group"]
+
+
+def test_group_parent_group_id_empty_string_rejected_by_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {"group_id": "g1", "parent_group_id": ""}
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+def test_group_parent_group_id_wrong_type_rejected_by_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {"group_id": "g1", "parent_group_id": 42}
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+def test_group_parent_group_id_equal_to_group_id_json_schema_allows_hand_rolled_rejects():
+    # The self-parent rule (a group cannot be its own parent) is a
+    # cross-field constraint JSON Schema's properties/required vocabulary
+    # cannot express without a $data reference (not part of this project's
+    # supported draft usage elsewhere in the schema) -- so, same as
+    # uniqueness rules like DUPLICATE_ATTEMPT elsewhere in this suite, this
+    # is intentionally enforced only by the hand-rolled validator. Documented
+    # here (rather than silently skipped) so a future schema change that
+    # *does* add a $data-based check is a deliberate decision, not a
+    # rediscovery.
+    doc = _minimal_result_set("1.0.0")
+    doc["group"] = {"group_id": "sweep-42", "parent_group_id": "sweep-42"}
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
 def test_boolean_score_rejected_by_both_python_bool_is_int_subclass():
     # Python's bool is a subclass of int, so a naive `isinstance(x, (int, float))`
     # range check would silently accept True/False as scores 1/0. Guard against
