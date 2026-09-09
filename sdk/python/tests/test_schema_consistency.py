@@ -374,7 +374,7 @@ def test_boolean_score_rejected_by_both_python_bool_is_int_subclass():
     # Python's bool is a subclass of int, so a naive `isinstance(x, (int, float))`
     # range check would silently accept True/False as scores 1/0. Guard against
     # regressing that fix on the hand-rolled side; the JSON Schema's own `type`
-    # keyword already excludes booleans from ["number", "null"] structurally.
+    # keyword already excludes booleans from `["number", "null"]` structurally.
     doc = {
         "version": "1.0.0",
         "suite_id": "s1",
