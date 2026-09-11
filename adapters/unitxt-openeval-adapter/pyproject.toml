@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unitxt-openeval-adapter"
+version = "0.1.0"
+description = "Convert IBM unitxt datasets and evaluation results to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["unitxt", "ibm", "evalport", "openeval", "llm", "evaluation", "eval"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/unitxt-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+
+[project.optional-dependencies]
+# unitxt-openeval-adapter's tests run a real unitxt task end to end
+# (unitxt.api.create_dataset + unitxt.api.evaluate against tasks.qa.open and
+# a metrics.accuracy override) against a real installed `unitxt` package --
+# not mocks or hand-typed fixtures -- so `unitxt` is a genuine test
+# dependency. Verified 2026-09-11: fresh venv `pip install -e ".[test]"`
+# resolved unitxt==1.26.10 (current PyPI release) and `pytest tests/`
+# passed. Self-referencing per the packaging convention settled in
+# https://github.com/adhabnr-ux/evalport/discussions/13.
+unitxt = ["unitxt>=1.20.0"]
+test = ["pytest", "unitxt-openeval-adapter[unitxt]"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
