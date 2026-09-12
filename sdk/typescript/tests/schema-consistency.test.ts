@@ -381,17 +381,23 @@ describe("resultset: Result.constraint_violations (Hard Constraints) agrees", ()
     expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
   });
 
-  test("invalidates_result=true with passed=true: JSON Schema allows it structurally, hand-rolled validator rejects it", () => {
-    // Same class of gap as group.parent_group_id's SELF_PARENT rule (Discussion
-    // #45) and DUPLICATE_ATTEMPT (Discussion #22): a cross-field constraint
-    // ("if any array item has invalidates_result=true, a sibling top-level
-    // field must equal false") isn't expressible with plain
-    // properties/required/additionalProperties, so this is a hand-rolled-only
-    // rule (CONSTRAINT_INVALIDATES_PASS) by design.
+  test("invalidates_result=true with passed=true: rejected by both paths", () => {
+    // NOT the same class of gap as group.parent_group_id's SELF_PARENT rule
+    // (Discussion #45) or DUPLICATE_ATTEMPT (Discussion #22) -- those two
+    // really can't be expressed in plain JSON Schema (a sibling-field
+    // comparison, and uniqueness over an array projection that `uniqueItems`
+    // can't express). This rule is a conditional against a constant instead:
+    // "if any constraint_violations[] item has invalidates_result: true, then
+    // passed must be false", which `if`/`contains`/`then`/`const` expresses
+    // exactly (Draft 7+). Credit: MSKazemi,
+    // https://github.com/adhabnr-ux/evalport/pull/48#issuecomment-5639403956.
+    // Both paths now agree -- an off-the-shelf JSON Schema validator in any
+    // language rejects a document that reports the opposite of the truth,
+    // not just this project's own hand-rolled validators.
     const doc: any = minimalResultSet("1.0.0");
     doc.results[0].passed = true;
     doc.results[0].constraint_violations = [{ id: "rbac_scope", type: "authorization", invalidates_result: true }];
-    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(false);
     const hand = validateResultSet(doc);
     expect(hand.valid, "hand-rolled").toBe(false);
     expect(hand.errors.some(e => e.code === "CONSTRAINT_INVALIDATES_PASS")).toBe(true);
