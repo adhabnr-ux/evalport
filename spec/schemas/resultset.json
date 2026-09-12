@@ -170,6 +170,23 @@
             "additionalProperties": true
           }
         },
+        "allOf": [
+          {
+            "if": {
+              "required": ["constraint_violations"],
+              "properties": {
+                "constraint_violations": {
+                  "contains": {
+                    "type": "object",
+                    "required": ["invalidates_result"],
+                    "properties": { "invalidates_result": { "const": true } }
+                  }
+                }
+              }
+            },
+            "then": { "properties": { "passed": { "const": false } } }
+          }
+        ],
         "additionalProperties": false
       }
     },
