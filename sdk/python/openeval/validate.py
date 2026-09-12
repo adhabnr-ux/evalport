@@ -168,6 +168,25 @@ def validate_result_set(r):
                     if not isinstance(sc,(int,float,type(None))) or isinstance(sc,bool): errors.append(_err(f"$.results[{i}].grader_results[{j}].score","number|null","TYPE_ERROR"))
                     elif sc is not None and (sc<0 or sc>1): errors.append(_err(f"$.results[{i}].grader_results[{j}].score","must be in [0,1] or null","OUT_OF_RANGE"))
                     if not isinstance(gr.get("passed"),bool): errors.append(_err(f"$.results[{i}].grader_results[{j}].passed","required","REQUIRED"))
+            # Discussion (Hard Constraints, following #45's precedent): a
+            # constraint_violations entry with invalidates_result=True is a
+            # cross-field rule the raw JSON Schema can't express without
+            # $data (same class as DUPLICATE_ATTEMPT/SELF_PARENT above) --
+            # hand-rolled-only. See spec/SPEC.md Extension Mechanism -> Hard
+            # Constraints.
+            cvs=x.get("constraint_violations")
+            if cvs is not None:
+                if not isinstance(cvs,list): errors.append(_err(f"$.results[{i}].constraint_violations","must be an array","TYPE_ERROR"))
+                else:
+                    any_invalidating=False
+                    for k,cv in enumerate(cvs):
+                        if not isinstance(cv,dict): errors.append(_err(f"$.results[{i}].constraint_violations[{k}]","object","TYPE_ERROR"));continue
+                        if not isinstance(cv.get("id"),str) or not cv["id"]: errors.append(_err(f"$.results[{i}].constraint_violations[{k}].id","id required","REQUIRED"))
+                        inv=cv.get("invalidates_result")
+                        if not isinstance(inv,bool): errors.append(_err(f"$.results[{i}].constraint_violations[{k}].invalidates_result","required boolean","REQUIRED"))
+                        elif inv: any_invalidating=True
+                    if any_invalidating and x.get("passed") is not False:
+                        errors.append(_err(f"$.results[{i}].passed","must be false: a constraint_violations entry has invalidates_result=true","CONSTRAINT_INVALIDATES_PASS"))
     return ValidationResult(not errors,errors)
 
 def validate_document(d,t):

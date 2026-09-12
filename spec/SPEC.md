@@ -444,6 +444,7 @@ A result set is the output of running an eval suite. It contains one result per 
 | `error` | object | Error details if the test case errored. |
 | `error.message` | string | Error message. |
 | `error.type` | string | Error type (`timeout`, `provider_error`, `runner_error`). |
+| `constraint_violations` | array | **PROPOSED, not yet finalized.** Hard constraints this result violated -- categorically different from `grader_results` (partial, averaged quality scores) and `error` (no usable result produced at all). Each entry: `id` (string, required), `type`/`detail` (strings, optional), `invalidates_result` (boolean, required) -- `true` forces `passed: false` regardless of `grader_results`. See Extension Mechanism -> Hard Constraints. |
 | `metadata` | object | Free-form metadata (trace ID, cost, tokens). |
 
 #### GraderResult Object
@@ -647,6 +648,54 @@ Resolves [Discussion #22](https://github.com/adhabnr-ux/evalport/discussions/22)
 ```
 
 See `spec/conformance/fixtures/multi_attempt_resultset_valid.json` (a valid multi-attempt `ResultSet`) and `spec/conformance/fixtures/duplicate_attempt_collision_rejected.json` (a same-`(test_case_id, run_id, attempt)` collision correctly rejected) — contributed against these exact field names per AgentVerity's offer in Discussion #22.
+
+### Hard Constraints (`Result.constraint_violations`) — PROPOSED, not yet finalized
+
+> **Status:** this section documents [Discussion #47](https://github.com/adhabnr-ux/evalport/discussions/47), open for comment. The schema addition, SDK validators, and conformance fixtures described here exist on a reference-implementation branch/PR referenced from that discussion -- **not on `main`** -- so they can be reviewed and tested without being mistaken for a landed spec change. This subsection will be rewritten in the past tense (matching Repetition & Attempt Tracking above) if and when the RFC concludes and actually merges.
+
+Raised by AOBench's maintainer ([@MSKazemi](https://github.com/MSKazemi), replying on [MSKazemi/aobench#51](https://github.com/MSKazemi/aobench/discussions/51) while checking whether an `aobench-openeval-adapter` made sense) -- a real gap, not a self-critique item. `Result` today has exactly two ways to be non-passing: `grader_results[]` (scored, meant to be looked at collectively, not to dominate) and `error` (a closed `timeout`/`provider_error`/`runner_error` enum, specifically about execution/harness failures where no usable result was produced at all). Neither models AOBench's real `hard_fail: bool` -- an RBAC/governance violation that zeroes the *entire* task score regardless of how well its other six independently-scored dimensions did, because, in @MSKazemi's framing, "a correct answer obtained by overstepping your authority is not a good outcome that needs a caveat. It is not an outcome at all."
+
+Both existing fields get this wrong in opposite directions, quoting @MSKazemi's own diagnosis directly rather than paraphrasing it:
+
+- **`GraderResult.score = 0`** on a governance dimension "loses the propagation. A consumer averaging grader scores sees six good dimensions and one bad one, computes something around 0.85, and reports the opposite of the truth. This is the dangerous failure mode, because it produces a plausible number."
+- **`Result.error`** "loses the fact that the run *succeeded*. It executed, produced an answer, and was fully scored... a model that hard-fails constantly gets a *better* average by having its worst rows excluded. That inverts the metric."
+
+**`Result.constraint_violations`** (optional array) is the proposed fix -- @MSKazemi's own suggested shape, kept close to verbatim: "a hard constraint is a first-class, typed property of the `Result`, orthogonal to both... with the rule that `invalidates_result=True` means the row's score is zero *and the row is still in the denominator*."
+
+- `constraint_violations[].id` (string, required) -- stable identifier for the violated constraint (e.g. `"rbac_scope"`, `"pii_leak"`, `"license_restriction"`). An open string, not a closed enum, for the same reason `group.role` (Discussion #45) and `isolation` (Discussion #22) aren't ones.
+- `constraint_violations[].type` (optional string) -- open category (e.g. `"authorization"`, `"safety"`, `"licensing"`, `"privacy"`).
+- `constraint_violations[].detail` (optional string) -- human-readable explanation.
+- `constraint_violations[].invalidates_result` (boolean, required) -- `true` means the `Result`'s own `passed` MUST be `false` regardless of `grader_results`, and the result MUST still count toward `summary.total`/by-grader denominators, unlike `error`. `false` means the violation is recorded for visibility only and does not itself change `passed`.
+
+```json
+{
+  "test_case_id": "tc_rbac_001",
+  "actual_output": "The billing overrun on cluster-07 was caused by the retry storm logged at 03:14 UTC.",
+  "passed": false,
+  "grader_results": [
+    { "grader_id": "grounding", "type": "custom", "score": 0.97, "passed": true },
+    { "grader_id": "outcome",   "type": "custom", "score": 1.0,  "passed": true }
+  ],
+  "constraint_violations": [
+    {
+      "id": "rbac_scope",
+      "type": "authorization",
+      "detail": "Answer cites cluster-07 billing logs; the requesting role's scope grants read access to cluster-03 only.",
+      "invalidates_result": true
+    }
+  ]
+}
+```
+
+Every `grader_results` entry above is a genuine pass -- the agent's real quality stays visible for debugging -- while `constraint_violations` correctly overrides the outcome as failed, and this row still counts in `summary.total` the same as any other failed result.
+
+**Two validation rules, both enforced at the JSON Schema level too.** `REQUIRED` (non-empty `id`, boolean `invalidates_result`) is structurally expressible in plain JSON Schema. `CONSTRAINT_INVALIDATES_PASS` -- if any entry has `invalidates_result: true`, the `Result`'s own `passed` MUST be `false` -- looked at first glance like the same class of cross-field rule as `group.parent_group_id`'s `SELF_PARENT` rule (Discussion #45) and `(test_case_id, run_id, attempt)`'s `DUPLICATE_ATTEMPT` rule (Discussion #22), which genuinely can't be expressed without a `$data` reference this project's schemas deliberately avoid (`SELF_PARENT` compares two sibling fields to each other; `DUPLICATE_ATTEMPT` is uniqueness over a projection of an array, which `uniqueItems` can't express). `CONSTRAINT_INVALIDATES_PASS` is a different kind of thing, though: a conditional against a constant, which `if`/`contains`/`then`/`const` expresses exactly (Draft 7+, so it costs nothing at this schema's Draft 2020-12) -- see `schema/resultset.json`'s `results[].items.allOf`. Credit: @MSKazemi, caught during review of the reference-implementation PR. `spec/conformance/fixtures/constraint_violation_invalidates_but_passed_true_rejected.json` and the schema-consistency test suites now document the stronger conformance statement this makes possible: the JSON Schema alone rejects the structurally-fine-but-semantically-wrong document, not just the hand-rolled validator -- so any off-the-shelf JSON Schema validator in any language rejects a document that reports the opposite of the truth, without needing this project's own SDKs at all.
+
+**A second, independent precedent, not just one benchmark's design choice.** Guardrails AI (`guardrails-ai/guardrails`) already ships a live taxonomy for the same underlying distinction, confirmed against its own current documentation: a validator's `on_fail` action is one of `reask`, `fix`, `filter`, `refrain`, `noop`, `exception`, `fix_reask`, `custom`. `fix` is soft and corrective (substitute a corrected value, continue) -- the rough analogue of a scored grader -- while `refrain` (discard the output entirely) and `exception` (halt) are categorical: a validation failure that invalidates the whole generation regardless of what else about it was fine, distinct from `noop` (recorded in logs, no action taken -- closer to today's `GraderResult`). Applied at generation-guardrail time rather than post-hoc eval scoring, but the same distinction @MSKazemi raised for evaluation results: some failures are categorical/dominant, not partial-score signals, and an interchange format that only has "graders" and "errors" has no slot for them.
+
+**What this deliberately does not do:** it does not define a closed vocabulary for constraint `type`s or `id`s -- as domain-specific as `group.role` (Discussion #45), so both stay open strings. It also does not change how `summary` is computed -- already producer-computed and optional, the same restraint already applied to not standardizing a `group` rollup (see above).
+
+See `spec/conformance/fixtures/constraint_violation_invalidates_result_valid.json` (the worked example above, valid), `spec/conformance/fixtures/constraint_violation_informational_valid.json` (`invalidates_result: false`, recorded without overriding `passed`), `spec/conformance/fixtures/constraint_violation_missing_id_rejected.json`, and `spec/conformance/fixtures/constraint_violation_invalidates_but_passed_true_rejected.json` (the `CONSTRAINT_INVALIDATES_PASS` rule) on the reference-implementation branch referenced from Discussion #47.
 
 ### Extensions Registry
 

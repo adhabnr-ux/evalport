@@ -1,0 +1,29 @@
+{
+  "description": "invalidates_result=false records a constraint check for visibility without overriding the result's own grading -- distinct from the invalidates_result=true case in constraint_violation_invalidates_result_valid.json. Here the agent stayed within its authorized scope (no override needed) but the producer still wants a durable, structured record that this particular authorization check ran and passed, rather than only logging it out-of-band where a generic EvalPort consumer could never see it.",
+  "type": "resultset",
+  "expect": { "valid": true },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "hpc-ops-suite",
+    "run_id": "run_conformance_021",
+    "started_at": "2026-09-09T00:05:00Z",
+    "results": [
+      {
+        "test_case_id": "tc_rbac_002",
+        "actual_output": "cluster-03 CPU utilization peaked at 91% at 14:02 UTC.",
+        "passed": true,
+        "grader_results": [
+          { "grader_id": "grounding", "type": "custom", "score": 1.0, "passed": true }
+        ],
+        "constraint_violations": [
+          {
+            "id": "rbac_scope",
+            "type": "authorization",
+            "detail": "Scope check ran and passed: cluster-03 is within the requesting role's authorized range. Recorded for audit visibility, not because anything was violated.",
+            "invalidates_result": false
+          }
+        ]
+      }
+    ]
+  }
+}

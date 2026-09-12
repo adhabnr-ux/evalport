@@ -136,12 +136,57 @@
             },
             "additionalProperties": false
           },
+          "constraint_violations": {
+            "type": "array",
+            "description": "Hard constraints this result violated -- categorically different from grader_results (partial, averaged quality scores) and error (the test case failed to produce a usable result at all). A constraint_violations entry means a usable result WAS produced and IS scored, but a specific rule (authorization scope, safety policy, licensing, PII handling, ...) was broken, and that rule does not average in with the other graders: see Extension Mechanism -> Hard Constraints for the full rationale and worked example. Absent means no constraint violations were evaluated or none occurred -- existing ResultSets need no change.",
+            "items": {
+              "type": "object",
+              "required": ["id", "invalidates_result"],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Stable identifier for the specific constraint that was violated (e.g. \"rbac_scope\", \"pii_leak\", \"license_restriction\"). An open string, not a closed enum -- constraints are domain-specific and this project cannot enumerate them."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "Open string categorizing the violation (e.g. \"authorization\", \"safety\", \"licensing\", \"privacy\"). Optional; for grouping/filtering, not a join key."
+                },
+                "detail": {
+                  "type": "string",
+                  "description": "Human-readable explanation of what was violated and why."
+                },
+                "invalidates_result": {
+                  "type": "boolean",
+                  "description": "Whether this violation overrides the result's own grading. true means the result MUST be treated as failed regardless of what grader_results say -- see Validation Rules -> Result Consistency: a result with any constraint_violations[].invalidates_result=true entry and passed=true is invalid -- and the result MUST still count toward summary.total / by-grader denominators the same as any other failed result, unlike error, which marks a result as never having produced a usable output at all. false means the violation is recorded for visibility (e.g. an informational flag) but does not itself change passed."
+                }
+              },
+              "additionalProperties": false
+            }
+          },
           "metadata": {
             "type": "object",
             "description": "Free-form metadata (trace ID, cost, tokens).",
             "additionalProperties": true
           }
         },
+        "allOf": [
+          {
+            "if": {
+              "required": ["constraint_violations"],
+              "properties": {
+                "constraint_violations": {
+                  "contains": {
+                    "type": "object",
+                    "required": ["invalidates_result"],
+                    "properties": { "invalidates_result": { "const": true } }
+                  }
+                }
+              }
+            },
+            "then": { "properties": { "passed": { "const": false } } }
+          }
+        ],
         "additionalProperties": false
       }
     },

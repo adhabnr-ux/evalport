@@ -1,0 +1,26 @@
+{
+  "description": "constraint_violations[].id is required (a stable identifier for which constraint was violated, the same open-string design as grader_id). An entry with invalidates_result but no id is structurally invalid -- a consumer aggregating violations across many ResultSets has no stable key to group or dedupe on without it.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": ["$.results[0].constraint_violations[0].id"]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "hpc-ops-suite",
+    "run_id": "run_conformance_022",
+    "started_at": "2026-09-09T00:10:00Z",
+    "results": [
+      {
+        "test_case_id": "tc_rbac_003",
+        "passed": false,
+        "grader_results": [
+          { "grader_id": "grounding", "type": "custom", "score": 1.0, "passed": true }
+        ],
+        "constraint_violations": [
+          { "type": "authorization", "invalidates_result": true }
+        ]
+      }
+    ]
+  }
+}

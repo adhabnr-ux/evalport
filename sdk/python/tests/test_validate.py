@@ -200,3 +200,128 @@ def test_duplicate_attempt_still_caught_when_test_case_id_and_run_id_are_valid()
     result = validate_result_set(rs)
     assert not result.valid
     assert any(e["code"] == "DUPLICATE_ATTEMPT" for e in result.errors)
+
+# --- Hard Constraints: Result.constraint_violations (following on from a real
+# maintainer discussion about AOBench's RBAC hard-fail case, raised while
+# building the aobench-openeval-adapter interop sketch) ---
+
+def _rs_with_constraint_violations(cvs, passed=False, run_id="cv-run-1"):
+    return {
+        "version": "1.0.0", "suite_id": "s", "run_id": run_id, "started_at": "2026-01-01T00:00:00Z",
+        "results": [
+            {
+                "test_case_id": "tc1",
+                "passed": passed,
+                "grader_results": [_grader_result()],
+                "constraint_violations": cvs,
+            }
+        ],
+    }
+
+def test_constraint_violations_absent_is_valid_and_unchanged():
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-01T00:00:00Z",
+        "results": [{"test_case_id": "tc1", "passed": True, "grader_results": [_grader_result()]}],
+    }
+    assert validate_result_set(rs).valid
+
+def test_constraint_violation_invalidating_requires_passed_false():
+    rs = _rs_with_constraint_violations(
+        [{"id": "rbac_scope", "type": "authorization", "invalidates_result": True}],
+        passed=False,
+    )
+    assert validate_result_set(rs).valid
+
+def test_constraint_violation_invalidating_but_passed_true_rejected():
+    rs = _rs_with_constraint_violations(
+        [{"id": "rbac_scope", "type": "authorization", "invalidates_result": True}],
+        passed=True,
+    )
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["code"] == "CONSTRAINT_INVALIDATES_PASS" and e["path"] == "$.results[0].passed" for e in result.errors)
+
+def test_constraint_violation_informational_does_not_force_failure():
+    # invalidates_result=False is purely a recorded/informational flag --
+    # passed can legitimately stay True.
+    rs = _rs_with_constraint_violations(
+        [{"id": "rbac_scope", "type": "authorization", "invalidates_result": False}],
+        passed=True,
+    )
+    assert validate_result_set(rs).valid
+
+def test_constraint_violation_missing_id_rejected():
+    rs = _rs_with_constraint_violations([{"type": "authorization", "invalidates_result": True}], passed=False)
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["code"] == "REQUIRED" and e["path"] == "$.results[0].constraint_violations[0].id" for e in result.errors)
+
+def test_constraint_violation_missing_invalidates_result_rejected():
+    rs = _rs_with_constraint_violations([{"id": "rbac_scope"}], passed=True)
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["code"] == "REQUIRED" and e["path"] == "$.results[0].constraint_violations[0].invalidates_result" for e in result.errors)
+
+def test_constraint_violation_non_boolean_invalidates_result_rejected():
+    rs = _rs_with_constraint_violations([{"id": "rbac_scope", "invalidates_result": "true"}], passed=True)
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["code"] == "REQUIRED" and "invalidates_result" in e["path"] for e in result.errors)
+
+def test_constraint_violations_not_a_list_rejected():
+    rs = _rs_with_constraint_violations({"id": "rbac_scope", "invalidates_result": True}, passed=False)
+    result = validate_result_set(rs)
+    assert not result.valid
+    assert any(e["code"] == "TYPE_ERROR" and e["path"] == "$.results[0].constraint_violations" for e in result.errors)
+
+def test_multiple_constraint_violations_only_one_invalidating_still_requires_passed_false():
+    rs = _rs_with_constraint_violations(
+        [
+            {"id": "pii_leak", "type": "privacy", "invalidates_result": False},
+            {"id": "rbac_scope", "type": "authorization", "invalidates_result": True},
+        ],
+        passed=False,
+    )
+    assert validate_result_set(rs).valid
+    bad = _rs_with_constraint_violations(
+        [
+            {"id": "pii_leak", "type": "privacy", "invalidates_result": False},
+            {"id": "rbac_scope", "type": "authorization", "invalidates_result": True},
+        ],
+        passed=True,
+    )
+    result = validate_result_set(bad)
+    assert not result.valid
+    assert any(e["code"] == "CONSTRAINT_INVALIDATES_PASS" for e in result.errors)
+
+def test_constraint_violation_aobench_rbac_worked_example_raw_vs_effective():
+    # Mirrors the real case from the AOBench maintainer discussion: a result
+    # can have every grader_result pass (quality was genuinely good) and
+    # still be correctly reported as failed overall because of a hard
+    # constraint -- proving grader_results and constraint_violations really
+    # are independent axes, not folded into one score.
+    rs = {
+        "version": "1.0.0", "suite_id": "hpc-ops-suite", "run_id": "aobench-run", "started_at": "2026-01-01T00:00:00Z",
+        "results": [
+            {
+                "test_case_id": "tc_rbac",
+                "actual_output": "cluster-07 billing overrun traced to a retry storm.",
+                "passed": False,
+                "grader_results": [
+                    {"grader_id": "grounding", "type": "custom", "score": 0.97, "passed": True},
+                    {"grader_id": "outcome", "type": "custom", "score": 1.0, "passed": True},
+                ],
+                "constraint_violations": [
+                    {"id": "rbac_scope", "type": "authorization", "detail": "out of scope cluster", "invalidates_result": True},
+                ],
+            }
+        ],
+    }
+    result = validate_result_set(rs)
+    assert result.valid
+    # Every individual grader genuinely passed...
+    assert all(gr["passed"] for gr in rs["results"][0]["grader_results"])
+    # ...yet the result as a whole is correctly reported as failed, because
+    # a naive average of the grader scores (a real number close to 1.0)
+    # would silently launder the RBAC violation into an apparent success.
+    assert rs["results"][0]["passed"] is False

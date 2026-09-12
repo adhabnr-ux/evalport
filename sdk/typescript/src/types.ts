@@ -115,7 +115,22 @@ export interface Result {
     code?: string | number;
     retryable?: boolean;
   };
+  // Hard constraints this result violated -- categorically different from
+  // grader_results (partial, averaged quality scores) and error (no usable
+  // result produced at all). invalidates_result=true means `passed` MUST be
+  // false (see validateResultSet's CONSTRAINT_INVALIDATES_PASS check) while
+  // the result still counts toward denominators, unlike `error`. Absent
+  // means no constraint violations were evaluated or none occurred -- see
+  // spec/SPEC.md Extension Mechanism -> Hard Constraints.
+  constraint_violations?: ConstraintViolation[];
   metadata?: Record<string, unknown>;
+}
+
+export interface ConstraintViolation {
+  id: string;
+  type?: string;
+  detail?: string;
+  invalidates_result: boolean;
 }
 
 export interface SummaryByGrader {
