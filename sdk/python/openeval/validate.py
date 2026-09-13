@@ -168,11 +168,17 @@ def validate_result_set(r):
                     if not isinstance(sc,(int,float,type(None))) or isinstance(sc,bool): errors.append(_err(f"$.results[{i}].grader_results[{j}].score","number|null","TYPE_ERROR"))
                     elif sc is not None and (sc<0 or sc>1): errors.append(_err(f"$.results[{i}].grader_results[{j}].score","must be in [0,1] or null","OUT_OF_RANGE"))
                     if not isinstance(gr.get("passed"),bool): errors.append(_err(f"$.results[{i}].grader_results[{j}].passed","required","REQUIRED"))
-            # Discussion (Hard Constraints, following #45's precedent): a
-            # constraint_violations entry with invalidates_result=True is a
-            # cross-field rule the raw JSON Schema can't express without
-            # $data (same class as DUPLICATE_ATTEMPT/SELF_PARENT above) --
-            # hand-rolled-only. See spec/SPEC.md Extension Mechanism -> Hard
+            # Discussion #47 (Hard Constraints): REQUIRED (non-empty id,
+            # boolean invalidates_result) is directly expressible in plain
+            # JSON Schema and is enforced there too -- unlike DUPLICATE_
+            # ATTEMPT/SELF_PARENT above, this was never a $data situation.
+            # CONSTRAINT_INVALIDATES_PASS below was originally hand-rolled-
+            # only in this file, but per @MSKazemi's review (PR #48) it is a
+            # conditional against a constant, not a sibling-field comparison,
+            # so it is ALSO now enforced at the JSON Schema level via
+            # if/contains/then/const on results[].items.allOf -- this check
+            # is a cross-check against that schema rule, not the only line of
+            # defense. See spec/SPEC.md Extension Mechanism -> Hard
             # Constraints.
             cvs=x.get("constraint_violations")
             if cvs is not None:

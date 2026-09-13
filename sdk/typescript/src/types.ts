@@ -118,18 +118,29 @@ export interface Result {
   // Hard constraints this result violated -- categorically different from
   // grader_results (partial, averaged quality scores) and error (no usable
   // result produced at all). invalidates_result=true means `passed` MUST be
-  // false (see validateResultSet's CONSTRAINT_INVALIDATES_PASS check) while
-  // the result still counts toward denominators, unlike `error`. Absent
-  // means no constraint violations were evaluated or none occurred -- see
-  // spec/SPEC.md Extension Mechanism -> Hard Constraints.
+  // false (see validateResultSet's CONSTRAINT_INVALIDATES_PASS check, now
+  // cross-checked against the raw JSON Schema's own if/contains/then/const
+  // rule too -- not hand-rolled-only) while the result still counts toward
+  // denominators, unlike `error`. A producer SHOULD NOT emit an invalidating
+  // violation alongside a populated `error`; where both appear a consumer
+  // MUST treat the row as errored. Absent means no constraint violations
+  // were evaluated or none occurred -- see spec/SPEC.md Extension Mechanism
+  // -> Hard Constraints.
   constraint_violations?: ConstraintViolation[];
   metadata?: Record<string, unknown>;
 }
 
 export interface ConstraintViolation {
   id: string;
+  /** RECOMMENDED: the only field here that carries meaning across suites.
+   * See the extensions registry for a non-normative starter vocabulary. */
   type?: string;
   detail?: string;
+  /** Optional back-reference to a grader_results[].grader_id in this same
+   * Result, for the common case where this violation was produced by a
+   * scored dimension. SHOULD match a grader_id present in this Result's
+   * grader_results when set. */
+  grader_id?: string;
   invalidates_result: boolean;
 }
 
