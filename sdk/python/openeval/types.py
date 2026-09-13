@@ -73,6 +73,21 @@ class Result:
     # Repetition & Attempt Tracking.
     attempt: Optional[int] = None
     error: Optional[Dict[str, Any]] = None
+    # Hard constraints this result violated -- categorically different from
+    # grader_results (partial, averaged quality scores) and error (no usable
+    # result produced at all). Each entry: {id, type? (RECOMMENDED), detail?,
+    # grader_id? (optional back-reference to a grader_results[].grader_id in
+    # this same Result, for the common case where the violation was produced
+    # by a scored dimension), invalidates_result}. invalidates_result=True
+    # means `passed` MUST be False (see validate.py's
+    # CONSTRAINT_INVALIDATES_PASS check, now cross-checked against the raw
+    # JSON Schema's own if/contains/then/const rule too -- not hand-rolled-
+    # only) while the result still counts toward denominators, unlike
+    # `error`. A producer SHOULD NOT emit an invalidating violation alongside
+    # a populated `error`; where both appear a consumer MUST treat the row as
+    # errored. Absent means no constraint violations were evaluated or none
+    # occurred -- see spec/SPEC.md Extension Mechanism -> Hard Constraints.
+    constraint_violations: Optional[List[Dict[str, Any]]] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 @dataclass

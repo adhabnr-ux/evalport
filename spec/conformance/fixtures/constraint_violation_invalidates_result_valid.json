@@ -1,0 +1,30 @@
+{
+  "description": "A hard constraint violation with invalidates_result=true is the RBAC-hard-fail case that motivated this field (raised against a real system, AOBench, in an EvalPort Discussion): an agent produces a fully correct, well-grounded answer but does so by reading data its role forbade. Every grader_result below is a genuine pass -- the agent's quality was real -- but the constraint_violations entry overrides the outcome, so passed MUST be false regardless of what grader_results says. Note this result still has real grader_results and a real actual_output, distinguishing it structurally from `error` (which means no usable result was produced at all): the run succeeded and was fully scored, it was just disqualified by a rule that doesn't average.",
+  "type": "resultset",
+  "expect": { "valid": true },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "hpc-ops-suite",
+    "run_id": "run_conformance_020",
+    "started_at": "2026-09-09T00:00:00Z",
+    "results": [
+      {
+        "test_case_id": "tc_rbac_001",
+        "actual_output": "The billing overrun on cluster-07 was caused by the retry storm logged at 03:14 UTC.",
+        "passed": false,
+        "grader_results": [
+          { "grader_id": "grounding", "type": "custom", "score": 0.97, "passed": true },
+          { "grader_id": "outcome", "type": "custom", "score": 1.0, "passed": true }
+        ],
+        "constraint_violations": [
+          {
+            "id": "rbac_scope",
+            "type": "authorization",
+            "detail": "Answer cites cluster-07 billing logs; the requesting role's scope grants read access to cluster-03 only.",
+            "invalidates_result": true
+          }
+        ]
+      }
+    ]
+  }
+}
