@@ -1,0 +1,32 @@
+{
+  "description": "A constraint_violations entry may optionally back-reference the grader_results entry that detected it via grader_id, for the common case where the violation was produced by a scored dimension rather than being independent of any grader -- raised by @MSKazemi (MSKazemi/aobench#51) using AOBench's own shape as the motivating example: the RBAC hard fail is produced by the governance grader, which is ALSO one of the seven independently-scored dimensions (0.20 weight in default_hpc_v01). Without a back-reference, a consumer cannot tell whether the failing 'governance' grader_results entry and the 'rbac_scope' constraint_violations entry describe one event or two, which double-counts a single breach in any human-facing summary (e.g. rendering both 'failed the governance grader AND violated an authorization constraint' for what is actually one breach). grader_id is optional and purely additive -- this fixture is schema-valid with or without it; it exists to pin the cross-reference shape once producers start using it.",
+  "type": "resultset",
+  "expect": { "valid": true },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "hpc-ops-suite",
+    "run_id": "run_conformance_024",
+    "started_at": "2026-09-13T00:00:00Z",
+    "results": [
+      {
+        "test_case_id": "tc_rbac_005",
+        "actual_output": "The billing overrun on cluster-07 was caused by the retry storm logged at 03:14 UTC.",
+        "passed": false,
+        "grader_results": [
+          { "grader_id": "grounding", "type": "custom", "score": 0.97, "passed": true },
+          { "grader_id": "outcome", "type": "custom", "score": 1.0, "passed": true },
+          { "grader_id": "governance", "type": "custom", "score": 0.0, "passed": false }
+        ],
+        "constraint_violations": [
+          {
+            "id": "rbac_scope",
+            "type": "authorization",
+            "detail": "Answer cites cluster-07 billing logs; the requesting role's scope grants read access to cluster-03 only.",
+            "grader_id": "governance",
+            "invalidates_result": true
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -248,11 +248,17 @@ export function validateResultSet(r: unknown): ValidationResult {
         });
       }
 
-      // Hard Constraints (following #45's SELF_PARENT/DUPLICATE_ATTEMPT
-      // precedent): a constraint_violations entry with
-      // invalidates_result=true is a cross-field rule the raw JSON Schema
-      // can't express without $data -- hand-rolled-only. See spec/SPEC.md
-      // Extension Mechanism -> Hard Constraints.
+      // Discussion #47 (Hard Constraints): REQUIRED (non-empty id, boolean
+      // invalidates_result) is directly expressible in plain JSON Schema and
+      // is enforced there too -- unlike DUPLICATE_ATTEMPT/SELF_PARENT (#45),
+      // this was never a $data situation. CONSTRAINT_INVALIDATES_PASS below
+      // was originally hand-rolled-only in this file, but per @MSKazemi's
+      // review (PR #48) it is a conditional against a constant, not a
+      // sibling-field comparison, so it is ALSO now enforced at the JSON
+      // Schema level via if/contains/then/const on results[].items.allOf --
+      // this check is a cross-check against that schema rule, not the only
+      // line of defense. See spec/SPEC.md Extension Mechanism -> Hard
+      // Constraints.
       const cvs = x.constraint_violations;
       if (cvs !== undefined && cvs !== null) {
         if (!Array.isArray(cvs)) {
