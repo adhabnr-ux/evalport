@@ -294,6 +294,59 @@ def test_multiple_constraint_violations_only_one_invalidating_still_requires_pas
     assert not result.valid
     assert any(e["code"] == "CONSTRAINT_INVALIDATES_PASS" for e in result.errors)
 
+def test_constraint_violation_grader_id_back_reference_accepted():
+    # @MSKazemi's point 4 (MSKazemi/aobench#51#discussioncomment-18405164):
+    # an optional back-reference from constraint_violations[].grader_id to
+    # the grader_results[].grader_id entry that detected it, so a consumer
+    # can tell a failing grader and a constraint violation are one event
+    # rather than two. Purely additive -- present or absent, both valid.
+    rs = _rs_with_constraint_violations(
+        [{"id": "rbac_scope", "type": "authorization", "grader_id": "governance", "invalidates_result": True}],
+        passed=False,
+    )
+    rs["results"][0]["grader_results"] = [
+        {"grader_id": "grounding", "type": "custom", "score": 0.97, "passed": True},
+        {"grader_id": "governance", "type": "custom", "score": 0.0, "passed": False},
+    ]
+    assert validate_result_set(rs).valid
+
+def test_constraint_violation_informational_false_does_not_require_grader_id():
+    # false + no grader_id is still the ordinary informational case -- the
+    # new field must not become an accidental requirement.
+    rs = _rs_with_constraint_violations(
+        [{"id": "rate_limit_notice", "type": "resource_policy", "invalidates_result": False}],
+        passed=True,
+    )
+    assert validate_result_set(rs).valid
+
+def test_constraint_violation_error_precedence_is_schema_valid_not_hard_rejected():
+    # @MSKazemi's point 3: error and an invalidating constraint_violations
+    # entry have contradictory denominator semantics (error => drop from
+    # denominators, invalidates_result=True => keep in denominators), and a
+    # producer CAN emit both (e.g. a scope breach followed by a timeout).
+    # The spec resolves this as a SHOULD NOT for producers plus a consumer
+    # MUST-treat-as-errored rule -- not a hard schema-level rejection, since
+    # a real edge case shouldn't make an otherwise-parseable document
+    # unparseable. This test pins that this combination validates (matching
+    # spec/conformance/fixtures/constraint_violation_error_precedence_documented.json),
+    # not that it is disallowed.
+    rs = {
+        "version": "1.0.0", "suite_id": "s", "run_id": "cv-error-run", "started_at": "2026-01-01T00:00:00Z",
+        "results": [
+            {
+                "test_case_id": "tc_rbac",
+                "passed": False,
+                "grader_results": [],
+                "error": {"type": "timeout", "message": "timed out after scope breach", "retryable": True},
+                "constraint_violations": [
+                    {"id": "rbac_scope", "type": "authorization", "invalidates_result": True},
+                ],
+            }
+        ],
+    }
+    result = validate_result_set(rs)
+    assert result.valid, result.errors
+
 def test_constraint_violation_aobench_rbac_worked_example_raw_vs_effective():
     # Mirrors the real case from the AOBench maintainer discussion: a result
     # can have every grader_result pass (quality was genuinely good) and
