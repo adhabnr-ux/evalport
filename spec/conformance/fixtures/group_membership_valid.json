@@ -1,0 +1,47 @@
+{
+  "description": "Demonstrates the grouped/sibling ResultSets proposal from Discussion #45 (proposed, not yet finalized): a ResultSet from one mutant of a mutation-testing sweep, carrying a group object that joins it to its sibling ResultSets (one per mutant) via a shared group_id. role names this member's kind within the group, label gives it a human-readable name, and sequence records its 0-indexed position when the producer knows the group's total size upfront (verified against AshwinUgale/muteval's real runner.py: select_mutants() materializes the full mutant list via generate_mutants() before any per-mutant evaluation begins, so sequence is not dead weight for that real-world case). group_id is the only required sub-field -- role/label/sequence are all optional. This ResultSet also uses attempt+isolation (Discussion #22) internally for its own runs_per_mutant majority vote, showing the two conventions compose without conflict.",
+  "type": "resultset",
+  "expect": { "valid": true },
+  "document": {
+    "version": "1.1.0",
+    "suite_id": "billing-suite",
+    "run_id": "mutant-017-run",
+    "started_at": "2026-09-01T10:00:00Z",
+    "isolation": "fresh",
+    "group": {
+      "group_id": "mutation-sweep-2026-09-01",
+      "role": "mutant",
+      "label": "mutant_017 (relational-operator-swap in billing.py:42)",
+      "sequence": 17
+    },
+    "results": [
+      {
+        "test_case_id": "case_1",
+        "attempt": 1,
+        "actual_output": "refund approved",
+        "passed": true,
+        "grader_results": [
+          { "grader_id": "gr_refund_policy", "type": "exact_match", "score": 1.0, "passed": true }
+        ]
+      },
+      {
+        "test_case_id": "case_1",
+        "attempt": 2,
+        "actual_output": "refund approved",
+        "passed": true,
+        "grader_results": [
+          { "grader_id": "gr_refund_policy", "type": "exact_match", "score": 1.0, "passed": true }
+        ]
+      },
+      {
+        "test_case_id": "case_2",
+        "attempt": 1,
+        "actual_output": "refund denied -- amount exceeds limit",
+        "passed": false,
+        "grader_results": [
+          { "grader_id": "gr_refund_policy", "type": "exact_match", "score": 0.0, "passed": false }
+        ]
+      }
+    ]
+  }
+}

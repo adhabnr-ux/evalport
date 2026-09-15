@@ -195,6 +195,42 @@ export function validateResultSet(r: unknown): ValidationResult {
     errors.push(err("$.isolation", "must be string", "TYPE_ERROR"));
   }
 
+  // Discussion #45 (proposed): optional group membership joining sibling
+  // ResultSets (a sweep, a mutation-testing run, a multi-model comparison).
+  // Absent by default -- a no-op for every ResultSet produced before this.
+  // Mirrors sdk/python/openeval/validate.py's validate_result_set rule-for-rule:
+  // like every other optional sub-object in this file, unknown keys inside
+  // `group` are NOT policed here (that's the raw JSON Schema's
+  // additionalProperties: false job -- see tests/schema-consistency.test.ts).
+  const group = r.group;
+  if (group !== undefined && group !== null) {
+    if (!isPlainObject(group)) {
+      errors.push(err("$.group", "must be object", "TYPE_ERROR"));
+    } else {
+      if (!isNonEmptyString(group.group_id)) errors.push(err("$.group.group_id", "required", "REQUIRED"));
+      if (group.parent_group_id !== undefined && group.parent_group_id !== null) {
+        const pgid = group.parent_group_id;
+        if (!isNonEmptyString(pgid)) {
+          errors.push(err("$.group.parent_group_id", "must be a non-empty string", "REQUIRED"));
+        } else if (isNonEmptyString(group.group_id) && pgid === group.group_id) {
+          errors.push(err("$.group.parent_group_id", "a group cannot be its own parent", "SELF_PARENT"));
+        }
+      }
+      if (group.role !== undefined && group.role !== null && typeof group.role !== "string") {
+        errors.push(err("$.group.role", "must be string", "TYPE_ERROR"));
+      }
+      if (group.label !== undefined && group.label !== null && typeof group.label !== "string") {
+        errors.push(err("$.group.label", "must be string", "TYPE_ERROR"));
+      }
+      if (group.sequence !== undefined && group.sequence !== null) {
+        const seq = group.sequence;
+        if (typeof seq !== "number" || !Number.isInteger(seq) || seq < 0) {
+          errors.push(err("$.group.sequence", "must be an integer >= 0", "OUT_OF_RANGE"));
+        }
+      }
+    }
+  }
+
   const rs = r.results;
   if (!Array.isArray(rs) || rs.length === 0) {
     errors.push(err("$.results", "required", "REQUIRED"));
