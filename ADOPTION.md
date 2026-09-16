@@ -1,208 +1,57 @@
-# EvalPort — Adoption Strategy
+# EvalPort — Adoption Strategy (Updated September 16, 2026)
 
-## Executive Summary
+## Status: Phase 3 — Four Merged Third-Party Integrations, One Pending on a CLA, 54 Shipped Adapters
 
-EvalPort adoption follows a three-phase strategy: **Build credibility** (reference implementation + early adopters), **Create gravity** (framework integrations + community), and **Standardize** (standards body submission). The goal is to reach the point where an eval framework that doesn't support EvalPort import/export is considered broken.
+Every claim below was re-verified live against GitHub and the package registries on 2026-09-16 while refreshing this document (not carried over from the August 16 snapshot, which had gone stale on several counts by the time this pass started).
 
----
+### Merged Integrations
 
-## Phase 1: Build Credibility (Months 1-3)
+- **Merged: IBM/ares#583** — `experimental-plugins/ares-openeval-adapter`, merged 2026-09-04, reviewed and approved by @nedshivina, all 22 CI checks green. Converts ARES attack goals and `AttackEval` output to/from EvalPort. This is EvalPort's first shipped integration into a named enterprise vendor's own repository (IBM's AI Robustness Evaluation System).
+- **Merged: MervinPraison/PraisonAI#4667** — native `to_evalport()`/`from_evalport()`/`report_to_evalport()` added directly to `praisonaiagents.eval` (the core package, not a separate adapter package), merged 2026-09-02 via the maintainers' own automated triage/merge pipeline. Zero new dependency on the core SDK.
+- **Merged: TIGER-AI-Lab/ClawBench#336** — `scripts/export_openeval.py`, merged 2026-09-08 after the maintainer (@Perry2004) specified where it should live (a script, not a package). ClawBench is a 750+-star open benchmark for browser AI agents.
+- **Merged: UKGovernmentBEIS/inspect_ai#4797** — "Add EvalPort to community extensions list," merged 2026-08-11 (unchanged since last update). EvalPort is listed in Inspect AI's official community extensions under `Tooling`.
 
-### 1.1 Launch
+### Pending on a Human Action, Not on Us
 
-- Publish the spec, JSON Schemas, TypeScript SDK, Python SDK, and CLI to GitHub
-- Publish `@evalport/sdk` to npm and `openeval` to PyPI
-- Write a launch blog post: "Why LLM Evaluation Needs a Standard Format"
-- Post on Hacker News, r/LocalLLaMA, r/MachineLearning, AI Twitter
-- Create a simple landing page at evalport.org
+- **truera/trulens#2757** (TruLens, owned by Snowflake) — a full `to_openeval()`/`from_openeval()` connector, 18/18 tests passing against real `trulens-core`. **Status correction from the last refresh of this document:** re-checked live on 2026-09-16 and the picture is not as clean as previously stated. GitHub currently reports this PR as `mergeable: false` / `mergeable_state: dirty` — it has drifted out of sync with `main` since the last push (2026-09-15) and needs a rebase before it can merge, independent of the CLA. The check list also currently shows `PR Validation Eval` and `PR Validation Eval (PRBranchProtect py311-static)` failing alongside `cla`; a prior comment thread on the PR (2026-09-05) diagnosed a different, then-isolated failure on `py310-static` as a pre-existing upstream bug unrelated to this PR's diff (filed and fixed upstream as truera/trulens#2764, closed 2026-09-10) — but the *current* `py311-static` failure has not yet been individually diagnosed and should not be assumed to be the same issue. The CLA is still the one blocker that specifically requires the repository owner to personally post a signed attestation — not something that can be done on their behalf — but it is no longer accurate to say the CLA is the *only* remaining blocker; a rebase and a fresh look at the failing checks are also needed.
 
-### 1.2 First 20 GitHub Repositories to Target
+### Not Yet Resolved
 
-| # | Repository | Why EvalPort Benefits Them | Maintainer/Champion | Priority |
-|---|-----------|---------------------------|---------------------|----------|
-| 1 | **promptfoo/promptfoo** | Import/export standard format; users can bring eval suites from other tools | Michael D'Amour (@tychedjs) | High |
-| 2 | **confident-ai/deepeval** | Portability for DeepEval datasets; users can export to other runners | Jeffrey Ip (@jeffreyip) | High |
-| 3 | **UKGovernmentBEIS/inspect_ai** | UK AISI's eval framework; standard format enables benchmark sharing | AISI team | High |
-| 4 | **langchain-ai/langsmith-sdk** | LangSmith dataset import/export; cross-tool eval compatibility | LangChain team | High |
-| 5 | **braintrustdata/braintrust-sdk** | Braintrust already has a generic eval format; EvalPort alignment reduces friction | Anand Kannan | Medium |
-| 6 | **explodinggradients/ragas** | RAG eval standardization; users can use RAG-specific graders across tools | Shahul ES | Medium |
-| 7 | **openai/evals** | OpenAI Evals format is widely used; EvalPort provides an upgrade path with provider-agnosticism | OpenAI evals team | Medium |
-| 8 | **mlflow/mlflow** | MLflow eval tracking; EvalPort as a portable eval format for the MLOps ecosystem | MLflow maintainers | Medium |
-| 9 | **Arize-ai/openinference** | Arize's OpenInference traces + EvalPort results = complete observability | Arize team | Medium |
-| 10 | **microsoft/evaluator** | Microsoft's eval framework; enterprise users need portability | Microsoft AI team | Low |
-| 11 | **patronus-ai/financebench** | Financial eval benchmarks need a portable format to be reusable | Patronus AI | Medium |
-| 12 | **HazyResearch/llm-eval-harness** | Stanford eval harness; academic benchmarks need standard format | Hazy Research | Low |
-| 13 | **lighteval** (HuggingFace) | HF's eval framework; EvalPort alignment enables dataset sharing on HF Hub | HuggingFace team | Medium |
-| 14 | **EleutherAI/lm-evaluation-harness** | Most-used open LLM benchmark harness; portable results = comparable benchmarks | EleutherAI | High |
-| 15 | **nlmatics/llm-eval** | Community eval tool; standard format lowers barrier to entry | Community | Low |
-| 16 | **microsoft/autogen** | Agent eval; EvalPort's agent profile supports tool-call verification | AutoGen team | Low |
-| 17 | **langchain-ai/langgraph** | LangGraph agent eval; EvalPort suite format for graph-based agents | LangChain | Low |
-| 18 | **crewaiinc/crewai** | CrewAI agent eval; expected_tools field for multi-agent verification | CrewAI team | Low |
-| 19 | **open-telemetry/semantic-conventions-genai** | Complementary: OTel for traces, EvalPort for eval data; cross-reference | OTel GenAI WG | Medium |
-| 20 | **modelcontextprotocol** | MCP defines tools; EvalPort evaluates agents that use them; reference MCP tools in expected_tools | MCP team | Low |
+- **microsoft/autogen#8009** — an OpenEval adapter opened by an independent community contributor (@DresdenGman, not affiliated with this project), still open and in draft, `review_decision: REVIEW_REQUIRED`, no maintainer activity since 2026-08-22. Nothing actionable from our side; noting it here rather than dropping it from tracking.
 
-### 1.3 Outreach Strategy
+### Shipped Framework Adapters: 54
 
-For each repository:
-1. **File an issue** proposing EvalPort import/export support, linking to the spec and SDK
-2. **Offer a PR** implementing the conversion (using the reference SDK)
-3. **Engage in discussions** about format design, incorporating feedback into the spec
+Real, installable packages under `adapters/<name>-openeval-adapter/` in this repo (pyproject.toml depending on `evalport-sdk`, `to_openeval()`/`from_openeval()`, tests run against the real validator, README) — verified by listing the directory live on 2026-09-16, not carried over from an earlier count. This is up from 20 at the last snapshot (2026-08-16).
 
-**Tone:** Not "adopt my standard" but "I built a converter that lets your users import/export eval datasets — would this be useful?"
+### Published Packages
 
-### 1.4 Conference Venues
+Verified live against the registries on 2026-09-16 (not assumed):
 
-- **AI Engineer Summit** (San Francisco, Oct 2026) — primary venue; eval is a core topic
-- **OSPO for AI** (Linux Foundation events) — standards-track presentation
-- **Ray Summit** — MLflow/eval focus
-- **MLOps World** — eval and observability track
-- **PyData / SciPy** — Python data tooling audience
-- **Local LLM meetups** — grassroots adoption
+| Package | Registry | Live version |
+|---------|----------|---------------|
+| evalport-sdk | PyPI | 1.3.1 |
+| evalport-sdk | npm | 1.3.1 |
+| evalport-cli | npm | 1.0.0 |
 
-### 1.5 Mailing Lists and Forums
+`evalport-sdk` on both registries now matches this repo's current SDK version, resolving the 1.0.0-vs-1.1.0 mismatch the last snapshot of this document flagged. `evalport-cli` on npm is still at 1.0.0 and has not been re-published alongside the SDK's later releases — noting this rather than letting it sit unflagged.
 
-- LFAI & Data mailing list
-- OpenTelemetry GenAI WG mailing list
-- HuggingFace forums (eval dataset sharing)
-- LangChain Discord (#evals channel)
-- r/LocalLLaMA, r/MachineLearning
-- Hacker News (launch post)
+### Collaborators
 
----
+Live as of 2026-09-16: [SparshGarg999](https://github.com/SparshGarg999) holds `write` access (accepted, unchanged since 2026-08-16). The [DresdenGman](https://github.com/DresdenGman) invitation referenced in the last snapshot is no longer showing as pending in a live collaborator check — recorded here as a state change rather than silently dropped; the reason for the change (declined, expired, or something else) hasn't been independently confirmed.
 
-## Phase 2: Create Gravity (Months 4-12)
+### Outreach Volume
 
-### 2.1 Framework Integrations
+A live GitHub search for issues authored by this project mentioning "evalport" or "openeval" (`author:adhabnr-ux is:issue evalport OR openeval in:title,body`) returns **691** results as of this refresh, up from 151 at the last snapshot. This number is an activity count, not a success metric — most of these are individual outreach threads across many repositories, the large majority of which end in a decline, a "not now," or no reply at all, which is the normal shape of unsolicited technical outreach. The four merged integrations and the one CLA-pending integration above are the actual signal; this count is included only because the last version of this document tracked it and dropping a previously-tracked number silently would be worse than keeping it with this caveat attached.
 
-Target: At least 3 major frameworks ship native EvalPort import/export.
+### Social Media (unchanged since August 16; not re-verified this pass)
+- Hacker News: https://news.ycombinator.com/item?id=49105771
+- Dev.to: https://dev.to/adha_ak_d60b39fbb66769fd1/openeval-why-llm-evaluation-needs-a-standard-format-50di
+- LinkedIn: https://www.linkedin.com/feed/update/urn:li:share:7488433286059347969/
+- Reddit: blocked (karma requirements) as of last check
 
-**Integration model:** Each framework adds two functions:
-- `import_openeval_suite(path) -> FrameworkTestSuite`
-- `export_openeval_suite(suite) -> EvalPortSuite`
-
-Plus optionally:
-- `export_openeval_results(results) -> ResultSet`
-
-### 2.2 Benchmark Registry
-
-Create a public registry of EvalPort-format benchmark datasets at evalport.org/benchmarks. Each benchmark:
-- Has a stable ID and version
-- Is published as an EvalPort suite (JSON)
-- Includes reference results from 2+ models
-- Is citable in papers
-
-This creates the "ImageNet for LLM eval" dynamic — a shared benchmark that works across tools.
-
-### 2.3 Blog Strategy
-
-1. **Launch post:** "EvalPort: A Standard Format for LLM Evaluation"
-2. **Technical deep dive:** "How EvalPort's Grader Type System Works"
-3. **Migration guide:** "Converting DeepEval Suites to EvalPort (and Back)"
-4. **Case study:** "Running the Same Eval Suite in 5 Frameworks with EvalPort"
-5. **Comparison:** "EvalPort vs. Every Eval Ever vs. OpenAI Evals: What's Different"
-6. **Community post:** "How to Publish a Benchmark in EvalPort Format"
-
-### 2.4 Documentation and Tutorials
-
-- Getting started guide (5 minutes)
-- Framework-specific integration guides (DeepEval, Promptfoo, Inspect, LangSmith)
-- Grader type reference with examples
-- Video tutorial: "From zero to portable evals in 10 minutes"
-- Interactive playground at evalport.org/playground
-
-### 2.5 GitHub Strategy
-
-- Star the repo, pin it
-- Create GitHub Discussions for spec feedback
-- Use GitHub Projects for roadmap transparency
-- Tag issues with `good-first-issue` for community contributions
-- Create a `CONTRIBUTING.md` with clear guidelines
-
----
-
-## Phase 3: Standardize (Months 13-24)
-
-### 3.1 Linux Foundation AI & Data
-
-Submit EvalPort to LFAI & Data as an incubating project. This provides:
-- Governance structure
-- Neutral IP ownership
-- Industry credibility
-- Ecosystem connections
-
-**Precedent:** MCP was donated to Linux Foundation by Anthropic (Dec 2025). A2A was donated by Google. EvalPort follows the same path.
-
-### 3.2 Working Group
-
-Form an EvalPort Working Group with representatives from:
-- At least 3 eval framework maintainers
-- At least 1 standards body member (OTel GenAI WG, W3C, IETF)
-- At least 1 enterprise user
-- At least 1 academic researcher
-
-### 3.3 Specification Governance
-
-- Move spec to a dedicated repo (`openeval/spec`)
-- Use RFC process for changes (proposal → discussion → acceptance)
-- Semver for all schema changes
-- Regular spec meetings (monthly)
-
-### 3.4 IETF / W3C Track
-
-Once adoption is proven (3+ frameworks, 1000+ datasets), submit as:
-- IETF Internet-Draft (for the data format)
-- W3C Community Group (for broader web ecosystem alignment)
-
----
-
-## Likely Champions
-
-| Person/Org | Why They'd Champion EvalPort |
-|-----------|----------------------------|
-| **Jeffrey Ip (DeepEval)** | DeepEval users frequently ask for export; EvalPort unblocks them |
-| **Michael D'Amour (Promptfoo)** | Promptfoo already supports many formats; EvalPort is a natural addition |
-| **UK AISI (Inspect AI)** | Government eval standards align with EvalPort's reproducibility goals |
-| **LangChain team** | LangSmith datasets are already JSON; EvalPort makes them portable |
-| **EleutherAI** | lm-eval-harness results need a standard format for cross-model comparison |
-| **Arize** | OpenInference + EvalPort = complete observability stack |
-| **HuggingFace** | HF Hub could host EvalPort benchmark datasets natively |
-
----
-
-## Risks and Mitigations
-
-| Risk | Mitigation |
-|------|-----------|
-| Frameworks refuse to adopt (NIH syndrome) | Lead with converters, not governance. Make it easier to add EvalPort than to build their own format. |
-| OpenAI/Anthropic push their own format | Position EvalPort as provider-agnostic. Their formats can map to EvalPort via converters. |
-| Spec is too complex | Keep v1 minimal. Only add grader types that 2+ frameworks implement. |
-| Spec is too simple (doesn't cover edge cases) | Extension mechanism + custom grader type handle edge cases without bloating the core spec. |
-| No one adopts | Target the pain point directly: "you can't share eval datasets" is a complaint every practitioner has. |
-
----
-
-## Success Metrics
-
-| Metric | Phase 1 Target | Phase 2 Target | Phase 3 Target |
-|--------|---------------|---------------|---------------|
-| GitHub stars | 500 | 5,000 | 10,000 |
-| npm weekly downloads | 100 | 1,000 | 5,000 |
-| PyPI weekly downloads | 50 | 500 | 2,000 |
-| Frameworks with native support | 1 | 3 | 7+ |
-| Published benchmark datasets | 5 | 50 | 200+ |
-| Citations in papers | 0 | 5 | 20+ |
-
----
-
-## Timeline
-
-| Month | Milestone |
-|-------|----------|
-| 1 | Spec published, SDKs on npm/PyPI, launch blog post |
-| 2 | First framework integration (Promptfoo or DeepEval) |
-| 3 | 3 framework integrations, first benchmark dataset published |
-| 6 | 5+ framework integrations, benchmark registry live |
-| 9 | Conference presentations, working group formed |
-| 12 | LFAI submission, 5000+ stars |
-| 18 | LFAI incubation, governance transition |
-| 24 | IETF/W3C submission, recognized standard |
+### Next Steps
+1. Rebase truera/trulens#2757 onto current `main` and re-diagnose the `py311-static` failure (don't assume it's the same issue as the now-fixed `py310-static`/#2764 bug). Sign the TruLens CLA (repository owner only — this is a personal legal attestation of authorship, not something a session working on the owner's behalf can post). Both are needed before this can merge.
+2. Once truera/trulens#2757 merges, promote the spec from release-candidate to 1.0.0 final, per `CRITIQUE.md`'s own stated release criterion.
+3. Republish `evalport-cli` on npm so it matches the SDK's 1.3.1 line.
+4. No action pending on microsoft/autogen#8009; watch for maintainer review activity rather than re-pinging a contributor who isn't us.
+5. Re-run the `author:adhabnr-ux is:issue evalport OR openeval` search periodically and continue reading every reply in full before responding, per the standing "never fabricate a maintainer's stance" rule.

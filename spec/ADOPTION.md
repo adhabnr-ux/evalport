@@ -13,7 +13,7 @@ Every claim below was re-verified live against GitHub and the package registries
 
 ### Pending on a Human Action, Not on Us
 
-- **truera/trulens#2757** (TruLens, owned by Snowflake) — a full `to_openeval()`/`from_openeval()` connector, 18/18 tests passing against real `trulens-core`, all CI green except one pre-existing Python 3.10 bug unrelated to this PR (filed separately and independently reproduced as truera/trulens#2764, confirmed on real Python 3.10.20). The only remaining blocker is TruLens's CLA bot, which requires the repository owner to personally post a signed attestation on the PR — not something that can be done on their behalf. Everything on the engineering side is finished and re-verified as of 2026-09-15.
+- **truera/trulens#2757** (TruLens, owned by Snowflake) — a full `to_openeval()`/`from_openeval()` connector, 18/18 tests passing against real `trulens-core`. **Status correction from the last refresh of this document:** re-checked live on 2026-09-16 and the picture is not as clean as previously stated. GitHub currently reports this PR as `mergeable: false` / `mergeable_state: dirty` — it has drifted out of sync with `main` since the last push (2026-09-15) and needs a rebase before it can merge, independent of the CLA. The check list also currently shows `PR Validation Eval` and `PR Validation Eval (PRBranchProtect py311-static)` failing alongside `cla`; a prior comment thread on the PR (2026-09-05) diagnosed a different, then-isolated failure on `py310-static` as a pre-existing upstream bug unrelated to this PR's diff (filed and fixed upstream as truera/trulens#2764, closed 2026-09-10) — but the *current* `py311-static` failure has not yet been individually diagnosed and should not be assumed to be the same issue. The CLA is still the one blocker that specifically requires the repository owner to personally post a signed attestation — not something that can be done on their behalf — but it is no longer accurate to say the CLA is the *only* remaining blocker; a rebase and a fresh look at the failing checks are also needed.
 
 ### Not Yet Resolved
 
@@ -50,7 +50,7 @@ A live GitHub search for issues authored by this project mentioning "evalport" o
 - Reddit: blocked (karma requirements) as of last check
 
 ### Next Steps
-1. Sign the TruLens CLA on truera/trulens#2757 (repository owner only — this is a personal legal attestation of authorship, not something a session working on the owner's behalf can post). Once signed, the PR is otherwise ready to merge.
+1. Rebase truera/trulens#2757 onto current `main` and re-diagnose the `py311-static` failure (don't assume it's the same issue as the now-fixed `py310-static`/#2764 bug). Sign the TruLens CLA (repository owner only — this is a personal legal attestation of authorship, not something a session working on the owner's behalf can post). Both are needed before this can merge.
 2. Once truera/trulens#2757 merges, promote the spec from release-candidate to 1.0.0 final, per `CRITIQUE.md`'s own stated release criterion.
 3. Republish `evalport-cli` on npm so it matches the SDK's 1.3.1 line.
 4. No action pending on microsoft/autogen#8009; watch for maintainer review activity rather than re-pinging a contributor who isn't us.
