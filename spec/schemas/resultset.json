@@ -136,12 +136,61 @@
             },
             "additionalProperties": false
           },
+          "constraint_violations": {
+            "type": "array",
+            "description": "Hard constraints this result violated -- categorically different from grader_results (partial, averaged quality scores) and error (the test case failed to produce a usable result at all). A constraint_violations entry means a usable result WAS produced and IS scored, but a specific rule (authorization scope, safety policy, licensing, PII handling, ...) was broken, and that rule does not average in with the other graders: see Extension Mechanism -> Hard Constraints for the full rationale and worked example. Absent means no constraint violations were evaluated or none occurred -- existing ResultSets need no change. Precedence with error: a producer SHOULD NOT emit an invalidating violation (invalidates_result=true) alongside a populated error, since a result that never produced a usable output cannot also be disqualified for what it produced; where a document does carry both, a consumer MUST treat the row as errored, not scored.",
+            "items": {
+              "type": "object",
+              "required": ["id", "invalidates_result"],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Stable identifier for the specific constraint that was violated (e.g. \"rbac_scope\", \"pii_leak\", \"license_restriction\"). An open string, not a closed enum -- constraints are domain-specific and this project cannot enumerate them."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "Open string categorizing the violation (e.g. \"authorization\", \"safety\", \"licensing\", \"privacy\", \"resource_policy\"). RECOMMENDED, not merely optional: it is the only field in this object that carries meaning across suites -- id is intentionally domain-specific, so without type the cross-suite query an interchange format exists to enable (\"every authorization failure across every benchmark in this collection\") degrades to string-matching identifiers that were never meant to align. Not a join key -- for grouping/filtering only. A non-normative starter vocabulary is maintained in the extensions registry (see Extension Mechanism -> Extensions Registry) rather than enumerated here, so new categories don't require a spec revision."
+                },
+                "detail": {
+                  "type": "string",
+                  "description": "Human-readable explanation of what was violated and why."
+                },
+                "grader_id": {
+                  "type": "string",
+                  "description": "Optional back-reference to the grader_results[].grader_id (in this same Result) that detected this violation, for the common case where the violation was produced by a scored dimension rather than being independent of any grader. SHOULD match a grader_id present in this Result's grader_results when set. Purely additive: without it, a consumer cannot tell whether a constraint_violations entry and a poor grader_results entry describe one event or two, which double-counts a single breach in any human-facing summary."
+                },
+                "invalidates_result": {
+                  "type": "boolean",
+                  "description": "Whether this violation overrides the result's own grading. true means the result MUST be treated as failed regardless of what grader_results say -- see Validation Rules -> Result Consistency: a result with any constraint_violations[].invalidates_result=true entry and passed=true is invalid -- and the result MUST still count toward summary.total / by-grader denominators the same as any other failed result, unlike error, which marks a result as never having produced a usable output at all. false means this violation does not change passed -- full stop. A non-invalidating violation MUST NOT be folded into grader_results or any score derived from them; one consumer subtracting a penalty for it while another does not would produce two different numbers from the same document, which is exactly the failure interchange formats exist to remove."
+                }
+              },
+              "additionalProperties": false
+            }
+          },
           "metadata": {
             "type": "object",
             "description": "Free-form metadata (trace ID, cost, tokens).",
             "additionalProperties": true
           }
         },
+        "allOf": [
+          {
+            "if": {
+              "required": ["constraint_violations"],
+              "properties": {
+                "constraint_violations": {
+                  "contains": {
+                    "type": "object",
+                    "required": ["invalidates_result"],
+                    "properties": { "invalidates_result": { "const": true } }
+                  }
+                }
+              }
+            },
+            "then": { "properties": { "passed": { "const": false } } }
+          }
+        ],
         "additionalProperties": false
       }
     },

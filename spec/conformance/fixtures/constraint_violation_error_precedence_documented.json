@@ -1,0 +1,31 @@
+{
+  "description": "Documents the precedence rule between error and constraint_violations, raised by @MSKazemi (MSKazemi/aobench#51#discussioncomment-18405164, point 3): the two fields' denominator semantics directly contradict each other -- error means the row produced nothing usable and consumers reasonably drop it, while invalidates_result=true means the row MUST still count toward summary.total. A producer can emit both (e.g. an agent that breaches scope and then times out mid-answer). This document is deliberately schema-valid -- the combination is a SHOULD NOT for producers, not a hard schema-level MUST NOT, since a real (if discouraged) producer bug or edge case shouldn't make an otherwise-parseable document unparseable -- but the spec is explicit about the resolution: error wins, because 'no usable result was produced' is upstream of 'the result broke a rule' -- you cannot invalidate the scoring of something that was never scored. A consumer reading this document MUST treat this row as errored, not as a disqualified-but-scored result, regardless of the constraint_violations entry present alongside it.",
+  "type": "resultset",
+  "expect": { "valid": true },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "hpc-ops-suite",
+    "run_id": "run_conformance_025",
+    "started_at": "2026-09-13T00:05:00Z",
+    "results": [
+      {
+        "test_case_id": "tc_rbac_006",
+        "passed": false,
+        "grader_results": [],
+        "error": {
+          "type": "timeout",
+          "message": "Agent did not produce a final answer within the 30s task budget after the scope breach was recorded.",
+          "retryable": true
+        },
+        "constraint_violations": [
+          {
+            "id": "rbac_scope",
+            "type": "authorization",
+            "detail": "Agent invoked a tool outside the requesting role's allowed_tools before the run subsequently timed out mid-answer.",
+            "invalidates_result": true
+          }
+        ]
+      }
+    ]
+  }
+}

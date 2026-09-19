@@ -327,3 +327,118 @@ describe("resultset: per-result completed_at (Discussion #10) agrees", () => {
     expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
   });
 });
+
+describe("resultset: Result.constraint_violations (Hard Constraints) agrees", () => {
+  function minimalResultSet(version: string) {
+    return {
+      version,
+      suite_id: "s1",
+      run_id: "run1",
+      started_at: "2026-08-16T00:00:00Z",
+      results: [
+        {
+          test_case_id: "tc1",
+          grader_results: [{ grader_id: "g1", type: "exact_match", score: 0.9, passed: true }],
+          passed: true,
+        },
+      ],
+    };
+  }
+
+  test("invalidating violation with passed=false agrees in both paths", () => {
+    const doc: any = minimalResultSet("1.0.0");
+    doc.results[0].passed = false;
+    doc.results[0].constraint_violations = [{ id: "rbac_scope", type: "authorization", invalidates_result: true }];
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+  });
+
+  test("absent still valid in both paths (backward compatibility)", () => {
+    const doc = minimalResultSet("1.0.0");
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+  });
+
+  test("missing id rejected by both paths", () => {
+    const doc: any = minimalResultSet("1.0.0");
+    doc.results[0].passed = false;
+    doc.results[0].constraint_violations = [{ type: "authorization", invalidates_result: true }];
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(false);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
+  });
+
+  test("missing invalidates_result rejected by both paths", () => {
+    const doc: any = minimalResultSet("1.0.0");
+    doc.results[0].constraint_violations = [{ id: "rbac_scope" }];
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(false);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
+  });
+
+  test("wrong type for invalidates_result rejected by both paths", () => {
+    const doc: any = minimalResultSet("1.0.0");
+    doc.results[0].constraint_violations = [{ id: "rbac_scope", invalidates_result: "yes" }];
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(false);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
+  });
+
+  test("invalidates_result=true with passed=true: rejected by both paths", () => {
+    // NOT the same class of gap as group.parent_group_id's SELF_PARENT rule
+    // (Discussion #45) or DUPLICATE_ATTEMPT (Discussion #22) -- those two
+    // really can't be expressed in plain JSON Schema (a sibling-field
+    // comparison, and uniqueness over an array projection that `uniqueItems`
+    // can't express). This rule is a conditional against a constant instead:
+    // "if any constraint_violations[] item has invalidates_result: true, then
+    // passed must be false", which `if`/`contains`/`then`/`const` expresses
+    // exactly (Draft 7+). Credit: MSKazemi,
+    // https://github.com/adhabnr-ux/evalport/pull/48#issuecomment-5639403956.
+    // Both paths now agree -- an off-the-shelf JSON Schema validator in any
+    // language rejects a document that reports the opposite of the truth,
+    // not just this project's own hand-rolled validators.
+    const doc: any = minimalResultSet("1.0.0");
+    doc.results[0].passed = true;
+    doc.results[0].constraint_violations = [{ id: "rbac_scope", type: "authorization", invalidates_result: true }];
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(false);
+    const hand = validateResultSet(doc);
+    expect(hand.valid, "hand-rolled").toBe(false);
+    expect(hand.errors.some(e => e.code === "CONSTRAINT_INVALIDATES_PASS")).toBe(true);
+  });
+
+  test("grader_id back-reference agrees in both paths", () => {
+    // @MSKazemi's point 4 (MSKazemi/aobench#51#discussioncomment-18405164):
+    // constraint_violations[].grader_id optionally back-references the
+    // grader_results[].grader_id entry that detected this violation.
+    // Because results[].items.constraint_violations.items sets
+    // additionalProperties: false, an unrecognized key here would be
+    // exactly the kind of schema/hand-rolled divergence this suite exists
+    // to catch -- grader_id had to be added to the schema's properties,
+    // not just documented, or the JSON Schema path would reject a
+    // perfectly valid document the hand-rolled validator accepts.
+    const doc: any = minimalResultSet("1.0.0");
+    doc.results[0].passed = false;
+    doc.results[0].grader_results = [{ grader_id: "governance", type: "custom", score: 0.0, passed: false }];
+    doc.results[0].constraint_violations = [
+      { id: "rbac_scope", type: "authorization", grader_id: "governance", invalidates_result: true },
+    ];
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+  });
+
+  test("error + invalidating violation: schema-valid in both paths, not hard-rejected", () => {
+    // @MSKazemi's point 3: error and an invalidating constraint_violations
+    // entry have contradictory denominator semantics, and a producer CAN
+    // emit both (e.g. a scope breach followed by a timeout). The spec
+    // resolves this as a SHOULD NOT for producers plus a consumer
+    // MUST-treat-as-errored rule -- deliberately NOT a hard schema-level
+    // rejection, unlike CONSTRAINT_INVALIDATES_PASS above. This test pins
+    // that both validation paths agree the combination is schema-valid,
+    // matching
+    // spec/conformance/fixtures/constraint_violation_error_precedence_documented.json.
+    const doc: any = minimalResultSet("1.0.0");
+    doc.results[0].passed = false;
+    doc.results[0].grader_results = [];
+    doc.results[0].error = { type: "timeout", message: "timed out after scope breach", retryable: true };
+    doc.results[0].constraint_violations = [{ id: "rbac_scope", type: "authorization", invalidates_result: true }];
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+  });
+});

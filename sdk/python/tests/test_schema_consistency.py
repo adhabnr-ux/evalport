@@ -392,3 +392,125 @@ def test_boolean_score_rejected_by_both_python_bool_is_int_subclass():
     }
     assert not _js_accepts(RESULTSET_VALIDATOR, doc)
     assert not validate_result_set(doc).valid
+
+
+# ---------------------------------------------------------------------------
+# Hard Constraints: Result.constraint_violations
+# ---------------------------------------------------------------------------
+
+def test_constraint_violation_invalidating_with_passed_false_agrees_in_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["results"][0]["passed"] = False
+    doc["results"][0]["constraint_violations"] = [
+        {"id": "rbac_scope", "type": "authorization", "invalidates_result": True}
+    ]
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+
+
+def test_constraint_violation_absent_still_valid_in_both_paths_backward_compatibility():
+    doc = _minimal_result_set("1.0.0")
+    assert "constraint_violations" not in doc["results"][0]
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+
+
+def test_constraint_violation_missing_id_rejected_by_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["results"][0]["passed"] = False
+    doc["results"][0]["constraint_violations"] = [
+        {"type": "authorization", "invalidates_result": True}
+    ]
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+def test_constraint_violation_missing_invalidates_result_rejected_by_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["results"][0]["constraint_violations"] = [{"id": "rbac_scope"}]
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+def test_constraint_violation_wrong_type_rejected_by_both_paths():
+    doc = _minimal_result_set("1.0.0")
+    doc["results"][0]["constraint_violations"] = [
+        {"id": "rbac_scope", "invalidates_result": "yes"}
+    ]
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+def test_constraint_violation_invalidates_result_true_with_passed_true_rejected_by_both_paths():
+    # CONSTRAINT_INVALIDATES_PASS is NOT the same class as SELF_PARENT
+    # (group.parent_group_id, Discussion #45) or DUPLICATE_ATTEMPT
+    # (Discussion #22), even though the PR that introduced this test
+    # originally grouped it with them. Those two genuinely can't be
+    # expressed in plain JSON Schema: SELF_PARENT compares two sibling
+    # fields to each other, and DUPLICATE_ATTEMPT is uniqueness over a
+    # projection of an array, which `uniqueItems` can't express. This rule
+    # is a conditional against a constant instead -- "if any
+    # constraint_violations[] item has invalidates_result: true, then
+    # passed must be false" -- which `if`/`contains`/`then`/`const` covers
+    # exactly (Draft 7+, so it costs nothing at this schema's Draft
+    # 2020-12). Credit: MSKazemi, https://github.com/adhabnr-ux/evalport/pull/48#issuecomment-5639403956,
+    # caught during review of this same PR.
+    #
+    # Both validation paths now agree -- this is the stronger conformance
+    # statement described there: a document that reports the opposite of
+    # the truth is rejected by any off-the-shelf JSON Schema validator in
+    # any language, not just by this project's own hand-rolled Python/TS
+    # validators.
+    doc = _minimal_result_set("1.0.0")
+    doc["results"][0]["passed"] = True
+    doc["results"][0]["constraint_violations"] = [
+        {"id": "rbac_scope", "type": "authorization", "invalidates_result": True}
+    ]
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)  # JSON Schema: now also rejects
+    assert not validate_result_set(doc).valid  # hand-rolled: CONSTRAINT_INVALIDATES_PASS
+
+
+def test_constraint_violation_grader_id_back_reference_agrees_in_both_paths():
+    # @MSKazemi's point 4 (MSKazemi/aobench#51#discussioncomment-18405164):
+    # constraint_violations[].grader_id optionally back-references the
+    # grader_results[].grader_id entry that detected this violation, for the
+    # common case where the violation is produced by a scored dimension
+    # (e.g. AOBench's governance grader) rather than being independent of
+    # any grader. Because results[].items.constraint_violations.items sets
+    # additionalProperties: false, an unrecognized key here would be exactly
+    # the kind of schema/hand-rolled divergence this suite exists to catch
+    # -- grader_id had to be added to the schema's properties, not just
+    # documented in SPEC.md, or the JSON Schema path would reject a
+    # perfectly valid document the hand-rolled validator accepts.
+    doc = _minimal_result_set("1.0.0")
+    doc["results"][0]["passed"] = False
+    doc["results"][0]["grader_results"] = [
+        {"grader_id": "governance", "type": "custom", "score": 0.0, "passed": False}
+    ]
+    doc["results"][0]["constraint_violations"] = [
+        {"id": "rbac_scope", "type": "authorization", "grader_id": "governance", "invalidates_result": True}
+    ]
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+
+
+def test_constraint_violation_error_precedence_agrees_in_both_paths_as_schema_valid():
+    # @MSKazemi's point 3: error and an invalidating constraint_violations
+    # entry have contradictory denominator semantics, and a producer CAN
+    # emit both (e.g. a scope breach followed by a timeout). The spec
+    # resolves the conflict as a SHOULD NOT for producers plus a consumer
+    # MUST-treat-as-errored rule -- deliberately NOT a hard schema-level
+    # rejection, unlike CONSTRAINT_INVALIDATES_PASS above. This test pins
+    # that both validation paths agree the combination is schema-valid (so
+    # neither path silently starts rejecting a real, if discouraged,
+    # producer edge case), matching
+    # spec/conformance/fixtures/constraint_violation_error_precedence_documented.json.
+    doc = _minimal_result_set("1.0.0")
+    doc["results"][0]["passed"] = False
+    doc["results"][0]["grader_results"] = []
+    doc["results"][0]["error"] = {"type": "timeout", "message": "timed out after scope breach", "retryable": True}
+    doc["results"][0]["constraint_violations"] = [
+        {"id": "rbac_scope", "type": "authorization", "invalidates_result": True}
+    ]
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid

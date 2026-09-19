@@ -327,3 +327,105 @@ test("validateDocument dispatches by type", () => {
   expect(validateDocument({id:"tc1",input:"hi",graders:["g1"]}, "testcase").valid).toBe(true);
   expect(() => validateDocument({}, "bogus" as unknown as "suite").valid).toThrow();
 });
+
+// --- Hard Constraints: Result.constraint_violations (following on from a real
+// maintainer discussion about AOBench's RBAC hard-fail case, raised while
+// building the aobench-openeval-adapter interop sketch) ---
+
+function rsWithConstraintViolations(cvs: unknown, passed = false, runId = "cv-run-1") {
+  return {
+    version: "1.0.0", suite_id: "s", run_id: runId, started_at: "2026-01-01T00:00:00Z",
+    results: [
+      { test_case_id: "tc1", passed, grader_results: [graderResult()], constraint_violations: cvs },
+    ],
+  };
+}
+
+test("constraint_violations absent is valid and unchanged", () => {
+  const r = validateResultSet({
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z",
+    results: [{ test_case_id: "tc1", passed: true, grader_results: [graderResult()] }],
+  });
+  expect(r.valid).toBe(true);
+});
+
+test("constraint_violation invalidating requires passed=false", () => {
+  const r = validateResultSet(rsWithConstraintViolations(
+    [{ id: "rbac_scope", type: "authorization", invalidates_result: true }],
+    false,
+  ));
+  expect(r.valid, JSON.stringify(r.errors)).toBe(true);
+});
+
+test("constraint_violation invalidating but passed=true rejected", () => {
+  const r = validateResultSet(rsWithConstraintViolations(
+    [{ id: "rbac_scope", type: "authorization", invalidates_result: true }],
+    true,
+  ));
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.code === "CONSTRAINT_INVALIDATES_PASS" && e.path === "$.results[0].passed")).toBe(true);
+});
+
+test("constraint_violation informational (invalidates_result=false) does not force failure", () => {
+  const r = validateResultSet(rsWithConstraintViolations(
+    [{ id: "rbac_scope", type: "authorization", invalidates_result: false }],
+    true,
+  ));
+  expect(r.valid, JSON.stringify(r.errors)).toBe(true);
+});
+
+test("constraint_violation missing id rejected", () => {
+  const r = validateResultSet(rsWithConstraintViolations(
+    [{ type: "authorization", invalidates_result: true }],
+    false,
+  ));
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.code === "REQUIRED" && e.path === "$.results[0].constraint_violations[0].id")).toBe(true);
+});
+
+test("constraint_violation missing invalidates_result rejected", () => {
+  const r = validateResultSet(rsWithConstraintViolations([{ id: "rbac_scope" }], true));
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.code === "REQUIRED" && e.path.includes("invalidates_result"))).toBe(true);
+});
+
+test("constraint_violation non-boolean invalidates_result rejected", () => {
+  const r = validateResultSet(rsWithConstraintViolations([{ id: "rbac_scope", invalidates_result: "true" }], true));
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.code === "REQUIRED" && e.path.includes("invalidates_result"))).toBe(true);
+});
+
+test("constraint_violations not an array rejected", () => {
+  const r = validateResultSet(rsWithConstraintViolations({ id: "rbac_scope", invalidates_result: true }, false));
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.code === "TYPE_ERROR" && e.path === "$.results[0].constraint_violations")).toBe(true);
+});
+
+test("AOBench RBAC worked example: every grader passes yet the result is correctly failed overall", () => {
+  // Mirrors the real case from the AOBench maintainer discussion: a naive
+  // average of grader scores would launder a hard authorization violation
+  // into an apparent success. constraint_violations + CONSTRAINT_INVALIDATES_PASS
+  // is what keeps grader_results (quality) and constraint_violations (hard
+  // rules) as independent axes instead of folding one into the other.
+  const doc = {
+    version: "1.0.0", suite_id: "hpc-ops-suite", run_id: "aobench-run", started_at: "2026-01-01T00:00:00Z",
+    results: [
+      {
+        test_case_id: "tc_rbac",
+        actual_output: "cluster-07 billing overrun traced to a retry storm.",
+        passed: false,
+        grader_results: [
+          { grader_id: "grounding", type: "custom", score: 0.97, passed: true },
+          { grader_id: "outcome", type: "custom", score: 1.0, passed: true },
+        ],
+        constraint_violations: [
+          { id: "rbac_scope", type: "authorization", detail: "out of scope cluster", invalidates_result: true },
+        ],
+      },
+    ],
+  };
+  const r = validateResultSet(doc);
+  expect(r.valid, JSON.stringify(r.errors)).toBe(true);
+  expect(doc.results[0].grader_results.every(gr => gr.passed)).toBe(true);
+  expect(doc.results[0].passed).toBe(false);
+});
