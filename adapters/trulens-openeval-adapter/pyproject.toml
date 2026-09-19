@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trulens-openeval-adapter"
+version = "0.1.0"
+description = "Convert TruLens records/feedback results and ground-truth sets to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["trulens", "evalport", "openeval", "llm", "evaluation", "observability", "feedback", "eval"]
+classifiers = [
+"License :: OSI Approved :: Apache Software License",
+"Programming Language :: Python :: 3",
+"Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/trulens-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+
+[project.optional-dependencies]
+# Deliberately duck-typed against TruLens's public Pydantic schemas
+# (trulens.core.schema.record.Record, trulens.core.schema.feedback.FeedbackResult)
+# rather than importing trulens itself -- the same design AutoGen's adapter uses
+# for the same reason (see adapters/autogen-openeval-adapter/pyproject.toml): a
+# format adapter shouldn't force TruLens's own dependency tree (pandas,
+# sqlalchemy, one of several LLM provider packages, ...) onto a caller who
+# already has real Record/FeedbackResult objects in hand from their own
+# TruLens session. No named `trulens` extra for that reason.
+test = ["pytest"]
+# Only pulled in for the one test that validates field-name accuracy against
+# TruLens's *real* current classes (see tests/test_adapter.py); the adapter
+# module itself never imports trulens.
+test-full = ["pytest", "trulens-core>=2.0.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
