@@ -1,0 +1,26 @@
+{
+  "description": "Demonstrates the grouped/sibling ResultSets proposal from Discussion #45 (proposed, not yet finalized) in a third, independent domain: a multi-model comparison, the second motivating use case issue #36 named alongside mutation testing ('a seed-sweep or a multi-model comparison') that had not yet been grounded in a real system. Verified against promptfoo/promptfoo's actual current source (src/types/index.ts): EvaluateResult.provider: {id, label} identifies which model produced a given row, and CompletedPrompt.provider + its .metrics (PromptMetricsSchema: score, testPassCount, testFailCount, ...) is exactly the consumer-computed per-provider rollup this RFC's group design already assumes -- confirming the join-key-on-member/rollup-computed-by-consumer shape a fifth time, independently of W&B, MLflow, Stryker, and Optuna. providers are configured as an ordered array (providers: z.array(ApiProviderSchema) in promptfoo's schema) and evaluated in that order, so group.sequence is well-defined here too, the same way it was for Optuna's grid search -- not just for adaptive/incremental producers that must omit it. The provider ids below (anthropic:claude-sonnet-4-6, openai:gpt-4.1, google:gemini-3.1-flash-image-preview) and the suite's premise (grading how accurately each model describes an image) are taken directly from promptfoo's own real, current example built for exactly this purpose: examples/compare-claude-vs-gpt-image/promptfooconfig.yaml. group.role here is the real provider id string rather than mutation testing's 'mutant' or the grid search fixture's 'candidate' -- role is open specifically so each domain can name its own members without a spec change.",
+  "type": "resultset",
+  "expect": { "valid": true },
+  "document": {
+    "version": "1.1.0",
+    "suite_id": "image-description-suite",
+    "run_id": "openai-gpt-4.1-run",
+    "started_at": "2026-09-07T10:00:00Z",
+    "group": {
+      "group_id": "claude-vs-gpt-vs-gemini-image-2026-09-07",
+      "role": "openai:gpt-4.1",
+      "label": "GPT-4.1 (image description accuracy)",
+      "sequence": 1
+    },
+    "results": [
+      {
+        "test_case_id": "great_wave_off_kanagawa",
+        "passed": true,
+        "grader_results": [
+          { "grader_id": "gr1", "type": "llm_judge", "score": 0.92, "passed": true }
+        ]
+      }
+    ]
+  }
+}
