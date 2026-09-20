@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyserini-openeval-adapter"
+version = "0.1.0"
+description = "Convert pyserini trec_eval() IR evaluation results to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["pyserini", "trec_eval", "information-retrieval", "evalport", "openeval", "llm", "evaluation", "eval"]
+classifiers = [
+"License :: OSI Approved :: Apache Software License",
+"Programming Language :: Python :: 3",
+"Topic :: Software Development :: Testing",
+"Topic :: Text Processing :: Indexing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/pyserini-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Upstream = "https://github.com/castorini/pyserini"
+Proposal = "https://github.com/castorini/pyserini/issues/2651"
+
+[project.optional-dependencies]
+# Deliberately no "pyserini" extra: this adapter has zero import dependency
+# on pyserini itself, by design -- see the module docstring in
+# src/pyserini_openeval_adapter/__init__.py for why (trec_eval() shells out
+# to a bundled Java binary via the JVM/jnius, so requiring pyserini here
+# would force a JDK + full pyserini install onto every consumer of this
+# adapter just to read a plain dict pyserini's own trec_eval() already
+# produced). Confirmed acceptable with pyserini's maintainer -- see
+# https://github.com/castorini/pyserini/issues/2651#issuecomment-5742029495
+# ("you can implement the adaptor on the evalport end... doesn't require
+# anything from us").
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
