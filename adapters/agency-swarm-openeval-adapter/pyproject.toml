@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agency-swarm-openeval-adapter"
+version = "0.1.0"
+description = "Convert agency-swarm Agency.get_response() results to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.10"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["agency-swarm", "openai-agents", "evalport", "openeval", "llm", "evaluation", "eval", "multi-agent"]
+classifiers = [
+"License :: OSI Approved :: Apache Software License",
+"Programming Language :: Python :: 3",
+"Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/agency-swarm-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Upstream = "https://github.com/VRSEN/agency-swarm"
+Proposal = "https://github.com/VRSEN/agency-swarm/issues/772"
+
+[project.optional-dependencies]
+# No runtime dependency on agency-swarm or the OpenAI Agents SDK (`agents`) --
+# this adapter reads RunResult-shaped objects defensively via getattr(), per
+# the module docstring. The real `agents` package is a TEST-ONLY dependency,
+# used to construct genuine RunResult/Agent/Usage/guardrail-result instances
+# for fidelity, rather than hand-rolled stand-ins.
+test = ["pytest", "openai-agents>=0.1.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
