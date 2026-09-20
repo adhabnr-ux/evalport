@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "promptsource-openeval-adapter"
+version = "0.1.0"
+description = "Convert promptsource (P3) applied prompt templates to the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["promptsource", "p3", "prompt-templates", "evalport", "openeval", "llm", "evaluation", "eval"]
+classifiers = [
+"License :: OSI Approved :: Apache Software License",
+"Programming Language :: Python :: 3",
+"Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/promptsource-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Upstream = "https://github.com/bigscience-workshop/promptsource"
+Proposal = "https://github.com/bigscience-workshop/promptsource/issues/860"
+
+[project.optional-dependencies]
+# Deliberately no "promptsource" extra: promptsource's own PyPI release is
+# pinned to Python 3.7-3.9 and hasn't been re-released for newer
+# interpreters, so it cannot be installed alongside a modern evalport-sdk
+# toolchain in one environment. This adapter duck-types against
+# promptsource's real Template/DatasetTemplates interface instead of
+# importing the package -- see the module docstring in
+# src/promptsource_openeval_adapter/__init__.py. Confirmed acceptable with
+# promptsource's maintainer -- see
+# https://github.com/bigscience-workshop/promptsource/issues/860#issuecomment-5719818515
+# ("no changes to PromptSource are necessary if the adapter is in the
+# EvalPort repo").
+test = ["pytest", "jinja2"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
