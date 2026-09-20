@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nasde-openeval-adapter"
+version = "0.1.0"
+description = "Convert nasde-toolkit `results-export` output to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["nasde", "nasde-toolkit", "harbor", "evalport", "openeval", "llm", "evaluation", "agents", "eval"]
+classifiers = [
+"License :: OSI Approved :: Apache Software License",
+"Programming Language :: Python :: 3",
+"Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/nasde-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Upstream = "https://github.com/NoesisVision/nasde-toolkit"
+Proposal = "https://github.com/NoesisVision/nasde-toolkit/issues/79"
+
+[project.optional-dependencies]
+# Deliberately no "nasde" extra: this adapter only ever reads plain JSON files
+# that `nasde results-export` already wrote to disk (metrics.json,
+# assessment_summary.json, assessment_eval_*.json) -- it never imports
+# nasde_toolkit itself, matching the maintainer's own boundary in issue #79
+# ("An adapter reading those files needs nothing from nasde internals").
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
