@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cannonade-openeval-adapter"
+version = "0.1.0"
+description = "Convert Cannonade TestSuite/TestRun JSON files to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["cannonade", "evalport", "openeval", "llm", "evaluation", "eval", "test-suite"]
+classifiers = [
+"License :: OSI Approved :: Apache Software License",
+"Programming Language :: Python :: 3",
+"Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/cannonade-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Upstream = "https://github.com/cannonade-ai/cannonade"
+Proposal = "https://github.com/cannonade-ai/cannonade/issues/69"
+
+[project.optional-dependencies]
+# Deliberately no "cannonade" extra: this adapter only ever reads the plain
+# JSON files Cannonade already writes to ~/.cannonade/suites/ and
+# ~/.cannonade/runs/ -- it never imports the Cannonade Electron app itself.
+# Per maintainer @BekirUzun in issue #69, that on-disk layout is an internal
+# implementation detail, not a published contract, so every field access in
+# this adapter uses .get() with safe defaults rather than assuming shape.
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
