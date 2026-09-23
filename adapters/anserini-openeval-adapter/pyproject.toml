@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "anserini-openeval-adapter"
+version = "0.1.0"
+description = "Convert Anserini TREC run/qrels output to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["anserini", "trec", "information-retrieval", "evalport", "openeval", "llm", "evaluation", "eval"]
+classifiers = [
+"License :: OSI Approved :: Apache Software License",
+"Programming Language :: Python :: 3",
+"Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/anserini-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Origin = "https://github.com/castorini/anserini/discussions/3448"
+
+[project.optional-dependencies]
+# No named `anserini` extra, matching autogen-openeval-adapter and
+# pyserini-openeval-adapter: this package has zero import dependency on
+# Anserini itself (it only parses the run/qrels text files
+# RunOutputWriter already writes), so there is nothing to pull in as an
+# extra.
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
