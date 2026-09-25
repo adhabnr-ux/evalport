@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mmmu-openeval-adapter"
+version = "0.1.0"
+description = "Convert MMMU dataset samples and graded evaluation runs to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["mmmu", "evalport", "openeval", "llm", "evaluation", "multimodal", "benchmark", "eval"]
+classifiers = [
+"License :: OSI Approved :: Apache Software License",
+"Programming Language :: Python :: 3",
+"Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/mmmu-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Upstream = "https://github.com/MMMU-Benchmark/MMMU"
+
+[project.optional-dependencies]
+# No `mmmu` extra: this adapter works against plain dicts shaped like MMMU's
+# own sample/eval-result objects (see module docstring) rather than importing
+# the MMMU repo itself, which is a research codebase (mmmu/main_eval_only.py
+# and friends) rather than an installable package on PyPI.
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
