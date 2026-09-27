@@ -1,14 +1,31 @@
+import importlib.util
 import json
 import tempfile
 
 import pytest
-from azure.ai.evaluation import (
-    BleuScoreEvaluator,
-    F1ScoreEvaluator,
-    RougeScoreEvaluator,
-    RougeType,
-    evaluate,
-)
+
+
+def _installed(module):
+    try:
+        return importlib.util.find_spec(module) is not None
+    except ModuleNotFoundError:  # a parent package (e.g. `azure`) is missing
+        return False
+
+
+# Framework-dependent tests below are skipped (not failed) when azure.ai.evaluation
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_AZURE = _installed("azure.ai.evaluation")
+requires_azure = pytest.mark.skipif(not HAS_AZURE, reason="azure.ai.evaluation not installed")
+if HAS_AZURE:
+    from azure.ai.evaluation import (
+        BleuScoreEvaluator,
+        F1ScoreEvaluator,
+        RougeScoreEvaluator,
+        RougeType,
+        evaluate,
+    )
 from openeval.validate import validate_result_set, validate_suite
 
 from azure_ai_evaluation_openeval_adapter import (
@@ -56,6 +73,7 @@ def _run_real_evaluate(evaluators, rows=None):
 # ---------------------------------------------------------------------------
 
 
+@requires_azure
 def test_to_openeval_produces_valid_suite_with_f1():
     suite = to_openeval(ROWS, evaluators={"f1": F1ScoreEvaluator()}, suite_id="test-suite")
     validate_suite(suite)  # raises on invalid -- real validator, not a mock
@@ -68,6 +86,7 @@ def test_to_openeval_produces_valid_suite_with_f1():
     assert "no model/network required" in suite["graders"][0]["description"]
 
 
+@requires_azure
 def test_to_openeval_maps_query_and_ground_truth():
     suite = to_openeval(ROWS, evaluators={"f1": F1ScoreEvaluator()})
     tc0 = suite["test_cases"][0]
@@ -78,6 +97,7 @@ def test_to_openeval_maps_query_and_ground_truth():
     assert tc0["metadata"]["azure_ai_evaluation"]["row"] == ROWS[0]
 
 
+@requires_azure
 def test_to_openeval_multiple_evaluators_all_referenced():
     suite = to_openeval(
         ROWS,
@@ -89,6 +109,7 @@ def test_to_openeval_multiple_evaluators_all_referenced():
     assert grader_ids == {"f1", "bleu"}
 
 
+@requires_azure
 def test_to_openeval_rouge_captures_rouge_type():
     suite = to_openeval(ROWS, evaluators={"rouge": RougeScoreEvaluator(rouge_type=RougeType.ROUGE_L)})
     validate_suite(suite)
@@ -122,6 +143,7 @@ def test_to_openeval_custom_class_evaluator_maps_by_class_name():
     assert suite["graders"][0]["params"]["handler"] == "BlocklistEvaluator"
 
 
+@requires_azure
 def test_to_openeval_accepts_jsonl_path(tmp_path):
     jsonl_path = tmp_path / "data.jsonl"
     with open(jsonl_path, "w") as f:
@@ -133,6 +155,7 @@ def test_to_openeval_accepts_jsonl_path(tmp_path):
     assert len(suite["test_cases"]) == 2
 
 
+@requires_azure
 def test_to_openeval_evaluator_config_preserved_in_metadata():
     evaluator_config = {"f1": {"column_mapping": {"response": "${data.response}"}}}
     suite = to_openeval(ROWS, evaluators={"f1": F1ScoreEvaluator()}, evaluator_config=evaluator_config)
@@ -140,6 +163,7 @@ def test_to_openeval_evaluator_config_preserved_in_metadata():
     assert suite["metadata"]["azure_ai_evaluation"]["evaluator_config"] == evaluator_config
 
 
+@requires_azure
 def test_to_openeval_context_column_becomes_context_list():
     rows = [{"query": "q", "response": "r", "ground_truth": "g", "context": "some doc"}]
     suite = to_openeval(rows, evaluators={"f1": F1ScoreEvaluator()})
@@ -152,12 +176,14 @@ def test_to_openeval_context_column_becomes_context_list():
 # ---------------------------------------------------------------------------
 
 
+@requires_azure
 def test_from_openeval_round_trip_restores_original_row_exactly():
     suite = to_openeval(ROWS, evaluators={"f1": F1ScoreEvaluator()})
     restored = from_openeval(suite)
     assert restored == ROWS
 
 
+@requires_azure
 def test_from_openeval_can_feed_real_evaluate_call():
     suite = to_openeval(ROWS, evaluators={"f1": F1ScoreEvaluator()})
     restored = from_openeval(suite)
@@ -199,6 +225,7 @@ def test_from_openeval_multiturn_input_list_joined():
 # ---------------------------------------------------------------------------
 
 
+@requires_azure
 def test_evaluation_result_to_openeval_valid_result_set_single_evaluator():
     result = _run_real_evaluate({"f1": F1ScoreEvaluator()})
     result_set = evaluation_result_to_openeval(result, suite_id="test-suite", run_id="run-1")
@@ -209,6 +236,7 @@ def test_evaluation_result_to_openeval_valid_result_set_single_evaluator():
     assert len(result_set["results"]) == 2
 
 
+@requires_azure
 def test_evaluation_result_to_openeval_correct_scores_and_pass():
     result = _run_real_evaluate({"f1": F1ScoreEvaluator()})
     result_set = evaluation_result_to_openeval(result)
@@ -221,6 +249,7 @@ def test_evaluation_result_to_openeval_correct_scores_and_pass():
     assert row0["passed"] is True
 
 
+@requires_azure
 def test_evaluation_result_to_openeval_detects_failure():
     rows = [{"query": "q", "response": "completely unrelated text", "ground_truth": "The capital of Japan is Tokyo."}]
     result = evaluate(data=_rows_to_jsonl(rows), evaluators={"f1": F1ScoreEvaluator()})
@@ -233,6 +262,7 @@ def test_evaluation_result_to_openeval_detects_failure():
     assert result_set["results"][0]["passed"] is False
 
 
+@requires_azure
 def test_evaluation_result_to_openeval_multiple_evaluators_per_row():
     # F1ScoreEvaluator + a plain custom evaluator, not BleuScoreEvaluator --
     # BLEU/GLEU/METEOR/ROUGE need NLTK's punkt_tab/wordnet corpora, which
@@ -251,6 +281,7 @@ def test_evaluation_result_to_openeval_multiple_evaluators_per_row():
     assert grader_ids == {"f1", "nonempty"}
 
 
+@requires_azure
 def test_evaluation_result_to_openeval_summary_matches_real_counts():
     rows = [
         {"query": "q1", "response": "The capital of Japan is Tokyo.", "ground_truth": "The capital of Japan is Tokyo."},
@@ -265,12 +296,14 @@ def test_evaluation_result_to_openeval_summary_matches_real_counts():
     assert result_set["summary"]["failed"] == 2 - result_set["summary"]["passed"]
 
 
+@requires_azure
 def test_evaluation_result_to_openeval_preserves_raw_metrics_in_metadata():
     result = _run_real_evaluate({"f1": F1ScoreEvaluator()})
     result_set = evaluation_result_to_openeval(result)
     assert result_set["metadata"]["azure_ai_evaluation"]["metrics"] == result["metrics"]
 
 
+@requires_azure
 def test_evaluation_result_to_openeval_actual_output_from_response_column():
     result = _run_real_evaluate({"f1": F1ScoreEvaluator()})
     result_set = evaluation_result_to_openeval(result)
@@ -282,6 +315,7 @@ def test_evaluation_result_to_openeval_actual_output_from_response_column():
 # ---------------------------------------------------------------------------
 
 
+@requires_azure
 def test_full_round_trip_suite_to_rows_to_real_evaluate_to_resultset():
     suite = to_openeval(ROWS, evaluators={"f1": F1ScoreEvaluator()}, suite_id="round-trip-suite")
     validate_suite(suite)
