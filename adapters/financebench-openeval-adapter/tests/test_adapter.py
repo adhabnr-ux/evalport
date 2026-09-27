@@ -23,6 +23,7 @@ from financebench_openeval_adapter import (
     to_openeval,
 )
 from openeval.validate import validate_result_set, validate_suite
+from openeval.types import OPENEVAL_VERSION
 
 FIXTURES = os.path.join(os.path.dirname(__file__), "fixtures")
 OPEN_SOURCE_PATH = os.path.join(FIXTURES, "financebench_open_source_sample.jsonl")
@@ -234,6 +235,7 @@ def test_to_openeval_unmatched_doc_name_does_not_pull_in_wrong_metadata(question
 def test_to_openeval_output_passes_real_validate_suite(question_rows, doc_info_rows):
     suite = to_openeval(question_rows, document_info_rows=doc_info_rows)
     result = validate_suite(suite)
+    assert suite["version"] == OPENEVAL_VERSION
     assert result.valid, result.errors
 
 
@@ -373,6 +375,7 @@ def test_result_to_openeval_unrecognized_label_flagged_not_silently_dropped():
 def test_result_to_openeval_output_passes_real_validate_result_set(result_rows):
     rs = result_to_openeval(result_rows)
     result = validate_result_set(rs)
+    assert rs["version"] == OPENEVAL_VERSION
     assert result.valid, result.errors
 
 

@@ -64,8 +64,16 @@ from typing import Any, Dict, List, Optional, Sequence
 
 __all__ = ["to_openeval", "result_to_openeval", "from_openeval"]
 
-_SUITE_VERSION = "1.0.0"
-_RESULTSET_VERSION = "1.0.0"
+try:
+    from openeval.types import OPENEVAL_VERSION
+except ImportError:  # pragma: no cover - evalport-sdk always required at runtime,
+    # but keep a sane fallback for static analysis / partial installs.
+    OPENEVAL_VERSION = "1.0.0"
+
+# The EvalPort spec version stamped on emitted Suites/ResultSets -- the
+# installed evalport-sdk's own constant, never a hard-coded literal.
+_SUITE_VERSION = OPENEVAL_VERSION
+_RESULTSET_VERSION = OPENEVAL_VERSION
 
 # The four required_args() sets actually verified against athina==1.7.39's installed
 # source. Used only to decide which DataPoint keys are "known" input fields versus
