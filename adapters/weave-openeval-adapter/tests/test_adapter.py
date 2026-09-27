@@ -4,7 +4,17 @@ the real EvalPort validators (openeval.validate) -- no mocks.
 
 from __future__ import annotations
 
-import weave
+import importlib.util
+import pytest
+
+# Framework-dependent tests below are skipped (not failed) when weave
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_WEAVE = importlib.util.find_spec("weave") is not None
+requires_weave = pytest.mark.skipif(not HAS_WEAVE, reason="weave not installed")
+if HAS_WEAVE:
+    import weave
 from openeval.validate import validate_result_set, validate_suite
 
 from weave_openeval_adapter import evaluation_to_openeval, from_openeval, to_openeval
@@ -37,6 +47,7 @@ def _dataset():
 
 
 class TestToOpenEval:
+    @requires_weave
     def test_converts_real_weave_dataset(self):
         suite = to_openeval(_dataset(), suite_id="grammar_suite")
         result = validate_suite(suite)
@@ -51,12 +62,14 @@ class TestToOpenEval:
         assert validate_suite(suite).valid
         assert len(suite["test_cases"]) == 2
 
+    @requires_weave
     def test_detects_input_and_expected_output_by_common_names(self):
         suite = to_openeval(_dataset())
         tc = suite["test_cases"][0]
         assert tc["input"] == "What is the capital of France?"
         assert tc["expected_output"] == "Paris"
 
+    @requires_weave
     def test_preserves_full_raw_row_under_metadata(self):
         suite = to_openeval(_dataset())
         tc = suite["test_cases"][0]
@@ -64,6 +77,7 @@ class TestToOpenEval:
         assert tc["metadata"]["weave"]["row"]["expected"] == "Paris"
         assert tc["metadata"]["weave"]["row"]["id"] == "0"
 
+    @requires_weave
     def test_uses_row_id_as_test_case_id_when_present(self):
         suite = to_openeval(_dataset())
         ids = [tc["id"] for tc in suite["test_cases"]]
@@ -97,12 +111,14 @@ class TestToOpenEval:
         assert tc["input"].startswith("{")
         assert "bar" in tc["input"] and "qux" in tc["input"]
 
+    @requires_weave
     def test_default_grader_is_llm_judge_with_required_params(self):
         suite = to_openeval(_dataset())
         assert suite["graders"][0]["type"] == "llm_judge"
         assert "model" in suite["graders"][0]["params"]
         assert "prompt" in suite["graders"][0]["params"]
 
+    @requires_weave
     def test_exact_match_grader_type_option(self):
         suite = to_openeval(_dataset(), grader_type="exact_match")
         assert suite["graders"][0]["type"] == "exact_match"
@@ -113,6 +129,7 @@ class TestToOpenEval:
 
 
 class TestFromOpenEval:
+    @requires_weave
     def test_round_trip_through_weave_dataset_preserves_original_row(self):
         suite = to_openeval(_dataset(), suite_id="grammar_suite")
         rows = from_openeval(suite)
@@ -124,6 +141,7 @@ class TestFromOpenEval:
         assert rows[0]["expected"] == "Paris"
         assert rows[0]["id"] == "0"
 
+    @requires_weave
     def test_builds_fresh_rows_when_no_weave_metadata_present(self):
         suite = {
             "version": "1.0.0",
@@ -250,6 +268,7 @@ class TestEvaluationToOpenEval:
         except ValueError:
             pass
 
+    @requires_weave
     def test_full_pipeline_dataset_to_result_set_round_trip(self):
         dataset = _dataset()
         suite = to_openeval(dataset, suite_id="grammar_suite", grader_type="exact_match")

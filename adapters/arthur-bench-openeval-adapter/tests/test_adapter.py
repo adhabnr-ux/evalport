@@ -1,4 +1,16 @@
+import importlib.util
+
 import pytest
+
+# The adapter itself imports arthur_bench at module import time, so nothing in
+# this module can run without arthur-bench. Skip the whole module when it is
+# absent (CI's min-mode adapter-tests job installs evalport-sdk only). Checked
+# with find_spec rather than pytest.importorskip so that, with arthur-bench
+# installed, a broken install or upstream API drift still fails loudly instead
+# of being swallowed as a skip.
+if importlib.util.find_spec("arthur_bench") is None:
+    pytest.skip("arthur_bench not installed", allow_module_level=True)
+
 from arthur_bench.client.local.client import LocalBenchClient
 from arthur_bench.run.testsuite import TestSuite as ArthurTestSuite
 from arthur_bench.scoring.exact_match import ExactMatch

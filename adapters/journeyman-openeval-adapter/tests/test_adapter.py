@@ -20,18 +20,27 @@ Two tiers, both against real code -- no mocks, no reinvented stand-ins:
    `record.py` / `docs/run-guide.md` and journeyman's own observed
    `report.py` handling of it, not a guess.
 """
+
+import importlib.util
 import json
 import subprocess
 import sys
 
 import pytest
 
-from journeyman.driver import run_grid
-from journeyman.judge import judge_cell
-from journeyman.record import RunDir
-from journeyman.report import render
-from journeyman.scene import REGISTRY
-from journeyman.selftest import FakeEndpoint  # imports echo-well as a side effect
+# Framework-dependent tests below are skipped (not failed) when journeyman
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_JOURNEYMAN = importlib.util.find_spec("journeyman") is not None
+requires_journeyman = pytest.mark.skipif(not HAS_JOURNEYMAN, reason="journeyman not installed")
+if HAS_JOURNEYMAN:
+    from journeyman.driver import run_grid
+    from journeyman.judge import judge_cell
+    from journeyman.record import RunDir
+    from journeyman.report import render
+    from journeyman.scene import REGISTRY
+    from journeyman.selftest import FakeEndpoint  # imports echo-well as a side effect
 
 from openeval.validate import validate_suite, validate_result_set
 
@@ -64,18 +73,21 @@ def real_run(tmp_path_factory):
     return {"run_dir": rd.path, "report": report, "cells": cells}
 
 
+@requires_journeyman
 def test_real_report_schema_version_matches_adapter(real_run):
     # If journeyman ever bumps SCHEMA_VERSION, this is the canary that
     # should fail before any silent-guess bug does.
     assert real_run["report"]["schema_version"] == SUPPORTED_SCHEMA_VERSION
 
 
+@requires_journeyman
 def test_suite_from_real_cells_validates(real_run):
     suite = cells_to_testcases(real_run["cells"], suite_id="jman_demo")
     result = validate_suite(suite)
     assert result.valid, result.errors
 
 
+@requires_journeyman
 def test_result_set_from_real_cells_validates(real_run):
     result_set = cells_to_result_set(
         real_run["cells"], real_run["report"], suite_id="jman_demo", run_id="run1",
@@ -85,6 +97,7 @@ def test_result_set_from_real_cells_validates(real_run):
     assert result.valid, result.errors
 
 
+@requires_journeyman
 def test_suite_test_case_ids_match_result_set_ids(real_run):
     suite = cells_to_testcases(real_run["cells"], suite_id="jman_demo")
     result_set = cells_to_result_set(
@@ -95,6 +108,7 @@ def test_suite_test_case_ids_match_result_set_ids(real_run):
     assert suite_ids == result_ids == {"echo-well_s4242", "echo-well_s777"}
 
 
+@requires_journeyman
 def test_judged_axis_never_uses_llm_judge_type(real_run):
     suite = cells_to_testcases(real_run["cells"], suite_id="jman_demo")
     for g in suite["graders"]:
@@ -106,6 +120,7 @@ def test_judged_axis_never_uses_llm_judge_type(real_run):
     assert probe["params"]["deterministic"] is True
 
 
+@requires_journeyman
 def test_counted_axis_grader_result_marked_deterministic(real_run):
     result_set = cells_to_result_set(
         real_run["cells"], real_run["report"], suite_id="jman_demo", run_id="run1",
@@ -119,6 +134,7 @@ def test_counted_axis_grader_result_marked_deterministic(real_run):
         assert judged[0]["metadata"]["kind"] == "judged"
 
 
+@requires_journeyman
 def test_seal_judge_self_judged_travel_with_the_result_set(real_run):
     """The condition obarlik set on codechu/journeyman#1: a listing must
     carry the conditions a score was true under, or it does not travel."""
@@ -132,12 +148,14 @@ def test_seal_judge_self_judged_travel_with_the_result_set(real_run):
     assert meta["comparability"] == "NOT_COMPARABLE"
 
 
+@requires_journeyman
 def test_missing_report_fields_refused(real_run):
     incomplete = {k: v for k, v in real_run["report"].items() if k != "self_judged"}
     with pytest.raises(ValueError, match="self_judged"):
         cells_to_result_set(real_run["cells"], incomplete, suite_id="s", run_id="r1")
 
 
+@requires_journeyman
 def test_unknown_schema_version_refused_by_default(real_run):
     bumped = dict(real_run["report"], schema_version=99)
     with pytest.raises(ValueError, match="schema_version"):
@@ -149,6 +167,7 @@ def test_unknown_schema_version_refused_by_default(real_run):
     assert result_set["metadata"]["journeyman"]["schema_version"] == 99
 
 
+@requires_journeyman
 def test_judge_field_passed_through_opaque_not_parsed(real_run):
     result_set = cells_to_result_set(
         real_run["cells"], real_run["report"], suite_id="jman_demo", run_id="run1",
@@ -157,6 +176,7 @@ def test_judge_field_passed_through_opaque_not_parsed(real_run):
     assert result_set["metadata"]["journeyman"]["judge"] == real_run["report"]["judge"] == "SELF (default)"
 
 
+@requires_journeyman
 def test_strictest_round_trip_matches_journeymans_own_rerender(real_run):
     """The maintainer's own suggested test (codechu/journeyman#1): re-render
     via the REAL `journeyman report <run_dir>` CLI and confirm this

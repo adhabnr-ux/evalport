@@ -1,18 +1,30 @@
+from __future__ import annotations
+
+import importlib.util
 import json
 
 import pytest
-from agents import Agent, RunResult
-from agents.guardrail import (
-    GuardrailFunctionOutput,
-    InputGuardrail,
-    InputGuardrailResult,
-    OutputGuardrail,
-    OutputGuardrailResult,
-)
-from agents.run_context import RunContextWrapper
-from agents.usage import Usage
+
+# Framework-dependent tests below are skipped (not failed) when agents / pydantic
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_AGENTS = all(importlib.util.find_spec(m) is not None for m in ("agents", "pydantic"))
+requires_agents = pytest.mark.skipif(not HAS_AGENTS, reason="agents / pydantic not installed")
+if HAS_AGENTS:
+    from agents import Agent, RunResult
+    from agents.guardrail import (
+        GuardrailFunctionOutput,
+        InputGuardrail,
+        InputGuardrailResult,
+        OutputGuardrail,
+        OutputGuardrailResult,
+    )
+    from agents.run_context import RunContextWrapper
+    from agents.usage import Usage
 from openeval.validate import validate_result_set, validate_suite
-from pydantic import BaseModel
+if HAS_AGENTS:
+    from pydantic import BaseModel
 
 from agency_swarm_openeval_adapter import (
     build_result_set,
@@ -80,9 +92,10 @@ def _clean_input_guardrail_result(name: str = "profanity_check") -> InputGuardra
     return InputGuardrailResult(guardrail=guardrail, output=GuardrailFunctionOutput(output_info=None, tripwire_triggered=False))
 
 
-class StructuredOutput(BaseModel):
-    answer: str
-    confidence: float
+if HAS_AGENTS:
+    class StructuredOutput(BaseModel):
+        answer: str
+        confidence: float
 
 
 class TestBuildTestSuite:
@@ -173,11 +186,13 @@ class TestSuiteToTestCases:
 
 
 class TestDefaultExactMatchGrader:
+    @requires_agents
     def test_returns_none_without_expected_output(self):
         agent = _make_agent("CEO")
         result = _make_run_result(final_output="anything", last_agent=agent)
         assert default_exact_match_grader({"id": "tc1"}, result) is None
 
+    @requires_agents
     def test_matches_string_output(self):
         agent = _make_agent("CEO")
         result = _make_run_result(final_output="4", last_agent=agent)
@@ -185,6 +200,7 @@ class TestDefaultExactMatchGrader:
         assert gr["passed"] is True
         assert gr["score"] == 1.0
 
+    @requires_agents
     def test_detects_mismatch(self):
         agent = _make_agent("CEO")
         result = _make_run_result(final_output="5", last_agent=agent)
@@ -193,6 +209,7 @@ class TestDefaultExactMatchGrader:
         assert gr["score"] == 0.0
         assert gr["reason"] is not None
 
+    @requires_agents
     def test_structured_pydantic_output_is_coerced_for_comparison(self):
         agent = _make_agent("CEO")
         structured = StructuredOutput(answer="Paris", confidence=0.9)
@@ -203,6 +220,7 @@ class TestDefaultExactMatchGrader:
 
 
 class TestResultToOpenEval:
+    @requires_agents
     def test_result_with_expected_output_validates_and_passes(self):
         agent = _make_agent("CEO")
         result = _make_run_result(final_output="4", last_agent=agent)
@@ -211,6 +229,7 @@ class TestResultToOpenEval:
         assert r["actual_output"] == "4"
         assert r["metadata"]["agency_swarm"]["last_agent"] == "CEO"
 
+    @requires_agents
     def test_result_without_expected_output_defaults_passed_true_and_empty_graders(self):
         agent = _make_agent("Developer")
         result = _make_run_result(final_output="anything at all", last_agent=agent)
@@ -218,6 +237,7 @@ class TestResultToOpenEval:
         assert r["grader_results"] == []
         assert r["passed"] is True  # documented: "call completed", not a correctness signal
 
+    @requires_agents
     def test_tripped_output_guardrail_forces_passed_false_even_with_matching_grader(self):
         agent = _make_agent("CEO")
         tripped = _tripped_output_guardrail_result(agent)
@@ -234,6 +254,7 @@ class TestResultToOpenEval:
         assert r["metadata"]["agency_swarm"]["guardrails"]["output"][0]["tripwire_triggered"] is True
         assert r["metadata"]["agency_swarm"]["guardrails"]["output"][0]["name"] == "pii_check"
 
+    @requires_agents
     def test_clean_guardrails_do_not_affect_passed(self):
         agent = _make_agent("CEO")
         clean = _clean_input_guardrail_result()
@@ -242,6 +263,7 @@ class TestResultToOpenEval:
         assert r["passed"] is True
         assert r["metadata"]["agency_swarm"]["guardrails"]["input"][0]["tripwire_triggered"] is False
 
+    @requires_agents
     def test_usage_and_counts_preserved(self):
         agent = _make_agent("CEO")
         result = _make_run_result(
@@ -271,6 +293,7 @@ class TestResultToOpenEval:
         with pytest.raises(ValueError, match="requires either"):
             result_to_openeval({"id": "tc1"})
 
+    @requires_agents
     def test_custom_grader_is_used_instead_of_default(self):
         agent = _make_agent("Developer")
         result = _make_run_result(final_output="4", last_agent=agent)
@@ -295,6 +318,7 @@ class TestResultToOpenEval:
 
 
 class TestBuildResultSet:
+    @requires_agents
     def test_produces_valid_result_set_from_mixed_success_and_failure(self):
         agent = _make_agent("CEO")
         ok_result = _make_run_result(final_output="4", last_agent=agent)
@@ -313,6 +337,7 @@ class TestBuildResultSet:
         with pytest.raises(ValueError, match="at least one run"):
             build_result_set([], suite_id="s", run_id="r1", started_at="2026-01-01T00:00:00Z")
 
+    @requires_agents
     def test_optional_fields_included_when_provided(self):
         agent = _make_agent("CEO")
         result = _make_run_result(final_output="4", last_agent=agent)

@@ -7,7 +7,19 @@ document against the real `openeval.validate` module -- not a mock of it.
 
 from __future__ import annotations
 
+import importlib.util
+
 import pytest
+
+# Every test here builds real ragrank objects (and from_openeval() imports
+# ragrank lazily), so nothing in this module can run without ragrank. Skip the
+# whole module when it is absent (CI's min-mode adapter-tests job installs
+# evalport-sdk only). Checked with find_spec rather than pytest.importorskip
+# so that, with ragrank installed, a broken install or upstream API drift
+# still fails loudly instead of being swallowed as a skip.
+if importlib.util.find_spec("ragrank") is None:
+    pytest.skip("ragrank not installed", allow_module_level=True)
+
 from openeval.validate import validate_result_set, validate_suite
 
 from ragrank.dataset import Dataset

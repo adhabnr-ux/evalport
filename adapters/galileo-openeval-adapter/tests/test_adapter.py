@@ -10,10 +10,19 @@ tests exercise the fully-offline surface: local `Dataset(content=...)`
 construction, local `Trace`/`Span` construction, and real
 `LocalMetric.scorer_fn` calls.
 """
+
+import importlib.util
 import pytest
 
-from galileo import Dataset, Trace, LlmSpan, Message, MessageRole, LocalMetric
-from galileo.metric import GalileoMetric
+# Framework-dependent tests below are skipped (not failed) when galileo
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_GALILEO = importlib.util.find_spec("galileo") is not None
+requires_galileo = pytest.mark.skipif(not HAS_GALILEO, reason="galileo not installed")
+if HAS_GALILEO:
+    from galileo import Dataset, Trace, LlmSpan, Message, MessageRole, LocalMetric
+    from galileo.metric import GalileoMetric
 
 from openeval.validate import validate_suite, validate_result_set
 
@@ -80,6 +89,7 @@ class TestToOpeneval:
         assert tc["expected_output"] == "Paris"
         assert tc["graders"] == ["gr_galileo_metrics"]
 
+    @requires_galileo
     def test_real_dataset_content_accepted(self):
         # Exactly what galileo.Dataset(content=...) itself accepts, per its
         # real constructor -- confirms this adapter reads the same shape.
@@ -186,6 +196,7 @@ class TestFromOpeneval:
         restored = from_openeval(suite)
         assert restored == original
 
+    @requires_galileo
     def test_round_trip_works_with_real_dataset_constructor(self):
         original = _basic_content()
         suite = to_openeval(original, suite_id="s1")
@@ -233,6 +244,7 @@ class TestFromOpeneval:
 # ---------------------------------------------------------------------------
 
 class TestSpansToOpeneval:
+    @requires_galileo
     def test_basic_numeric_score(self):
         span = LlmSpan(input="What is the capital of France?", output="Paris is the capital of France.")
         metric = _local_metric("response_length", _length_scorer)
@@ -243,12 +255,14 @@ class TestSpansToOpeneval:
         assert gr["type"] == "custom"
         assert 0.0 <= gr["score"] <= 1.0
 
+    @requires_galileo
     def test_actual_output_extracted_from_plain_string(self):
         span = LlmSpan(input="hi", output="hello there")
         metric = _local_metric("len", _length_scorer)
         rs = spans_to_openeval([span], metrics=[metric], suite_id="s1", run_id="run-1")
         assert rs["results"][0]["actual_output"] == "hello there"
 
+    @requires_galileo
     def test_actual_output_extracted_from_message_dict(self):
         span = LlmSpan(
             input=[{"role": "user", "content": "hi"}],
@@ -258,6 +272,7 @@ class TestSpansToOpeneval:
         rs = spans_to_openeval([span], metrics=[metric], suite_id="s1", run_id="run-1")
         assert rs["results"][0]["actual_output"] == "hello there"
 
+    @requires_galileo
     def test_actual_output_extracted_from_real_message_object(self):
         # LlmSpan.output coerces a plain str to Message(...) automatically
         # (see _length_scorer's comment above), but a caller can also pass a
@@ -271,6 +286,7 @@ class TestSpansToOpeneval:
         rs = spans_to_openeval([span], metrics=[metric], suite_id="s1", run_id="run-1")
         assert rs["results"][0]["actual_output"] == "hello there"
 
+    @requires_galileo
     def test_extract_text_handles_message_list_directly(self):
         # Neither LlmSpan.output nor Trace.output actually accepts a plain
         # list of chat messages (confirmed empirically: LlmSpan rejects it
@@ -287,6 +303,7 @@ class TestSpansToOpeneval:
         ])
         assert flattened == "assistant: Sure, I can help.\nassistant: The capital is Paris."
 
+    @requires_galileo
     def test_trace_object_also_works(self):
         trace = Trace(input="hi", output="hello there")
         metric = _local_metric("len", _length_scorer)
@@ -294,6 +311,7 @@ class TestSpansToOpeneval:
         assert validate_result_set(rs).valid
         assert rs["results"][0]["actual_output"] == "hello there"
 
+    @requires_galileo
     def test_tuple_return_preserves_scorer_metadata(self):
         span = LlmSpan(input="capital of France?", output="Paris is the capital of France.")
         metric = _local_metric("keyword_coverage", _explainable_scorer)
@@ -302,6 +320,7 @@ class TestSpansToOpeneval:
         assert gr["score"] == 1.0
         assert gr["metadata"]["scorer_metadata"]["matched"] == ["paris", "france"]
 
+    @requires_galileo
     def test_non_numeric_string_score_becomes_null_with_raw_value(self):
         span = LlmSpan(input="capital of France?", output="Paris is the capital of France.")
         metric = _local_metric("label", _label_scorer)
@@ -312,6 +331,7 @@ class TestSpansToOpeneval:
         assert gr["passed"] is True  # truthy non-empty string
         assert validate_result_set(rs).valid
 
+    @requires_galileo
     def test_multiple_metrics_per_span(self):
         span = LlmSpan(input="capital of France?", output="Paris is the capital of France.")
         m1 = _local_metric("length", _length_scorer)
@@ -320,18 +340,21 @@ class TestSpansToOpeneval:
         grader_ids = {g["grader_id"] for g in rs["results"][0]["grader_results"]}
         assert grader_ids == {"length", "keywords"}
 
+    @requires_galileo
     def test_score_clamped_above_one(self):
         span = LlmSpan(input="x", output="y")
         metric = _local_metric("over", lambda s: 5.0)
         rs = spans_to_openeval([span], metrics=[metric], suite_id="s1", run_id="run-1")
         assert rs["results"][0]["grader_results"][0]["score"] == 1.0
 
+    @requires_galileo
     def test_score_clamped_below_zero(self):
         span = LlmSpan(input="x", output="y")
         metric = _local_metric("under", lambda s: -5.0)
         rs = spans_to_openeval([span], metrics=[metric], suite_id="s1", run_id="run-1")
         assert rs["results"][0]["grader_results"][0]["score"] == 0.0
 
+    @requires_galileo
     def test_pass_threshold_respected(self):
         span = LlmSpan(input="x", output="y")
         metric = _local_metric("half", lambda s: 0.5)
@@ -340,11 +363,13 @@ class TestSpansToOpeneval:
         assert rs_low["results"][0]["grader_results"][0]["passed"] is True
         assert rs_high["results"][0]["grader_results"][0]["passed"] is False
 
+    @requires_galileo
     def test_empty_metrics_raises(self):
         span = LlmSpan(input="x", output="y")
         with pytest.raises(ValueError, match="LocalMetric"):
             spans_to_openeval([span], metrics=[], suite_id="s1", run_id="run-1")
 
+    @requires_galileo
     def test_non_local_metric_raises(self):
         span = LlmSpan(input="x", output="y")
         built_in = GalileoMetric.metrics.correctness if hasattr(GalileoMetric, "metrics") else None
@@ -355,23 +380,27 @@ class TestSpansToOpeneval:
         with pytest.raises(ValueError, match="scorer_fn"):
             spans_to_openeval([span], metrics=[correctness], suite_id="s1", run_id="run-1")
 
+    @requires_galileo
     def test_empty_spans_raises(self):
         metric = _local_metric("len", _length_scorer)
         with pytest.raises(ValueError, match="spans"):
             spans_to_openeval([], metrics=[metric], suite_id="s1", run_id="run-1")
 
+    @requires_galileo
     def test_ids_correlation(self):
         spans = [LlmSpan(input="a", output="1"), LlmSpan(input="b", output="2")]
         metric = _local_metric("len", _length_scorer)
         rs = spans_to_openeval(spans, metrics=[metric], suite_id="s1", run_id="run-1", ids=["x1", "x2"])
         assert [r["test_case_id"] for r in rs["results"]] == ["x1", "x2"]
 
+    @requires_galileo
     def test_default_ids_positional(self):
         spans = [LlmSpan(input="a", output="1"), LlmSpan(input="b", output="2")]
         metric = _local_metric("len", _length_scorer)
         rs = spans_to_openeval(spans, metrics=[metric], suite_id="s1", run_id="run-1")
         assert [r["test_case_id"] for r in rs["results"]] == ["tc_0", "tc_1"]
 
+    @requires_galileo
     def test_user_and_dataset_metadata_preserved(self):
         span = LlmSpan(input="a", output="1")
         span.user_metadata = {"env": "staging"}
@@ -382,6 +411,7 @@ class TestSpansToOpeneval:
         assert meta["user_metadata"] == {"env": "staging"}
         assert meta["dataset_metadata"] == {"row_index": "3"}
 
+    @requires_galileo
     def test_summary_counts_and_avg_score(self):
         spans = [LlmSpan(input="a", output="x" * 20), LlmSpan(input="b", output="")]
         metric = _local_metric("len", _length_scorer)
@@ -393,6 +423,7 @@ class TestSpansToOpeneval:
         assert summary["pass_rate"] == 0.5
         assert summary["avg_score"] == pytest.approx((1.0 + 0.0) / 2)
 
+    @requires_galileo
     def test_explicit_started_at_and_completed_at(self):
         span = LlmSpan(input="a", output="1")
         metric = _local_metric("len", _length_scorer)
@@ -403,6 +434,7 @@ class TestSpansToOpeneval:
         assert rs["started_at"] == "2026-08-22T00:00:00Z"
         assert rs["completed_at"] == "2026-08-22T00:01:00Z"
 
+    @requires_galileo
     def test_default_started_at_is_generated(self):
         span = LlmSpan(input="a", output="1")
         metric = _local_metric("len", _length_scorer)
@@ -410,6 +442,7 @@ class TestSpansToOpeneval:
         assert rs["started_at"]  # non-empty, real ISO timestamp
         assert rs["completed_at"] == rs["started_at"]
 
+    @requires_galileo
     def test_runner_name_and_version(self):
         span = LlmSpan(input="a", output="1")
         metric = _local_metric("len", _length_scorer)
@@ -424,6 +457,7 @@ class TestSpansToOpeneval:
 # End-to-end
 # ---------------------------------------------------------------------------
 
+@requires_galileo
 def test_end_to_end_suite_to_results_round_trip():
     """Suite -> Dataset -> simulated app run (real Span objects) ->
     real LocalMetric scoring -> ResultSet, validated against the real spec

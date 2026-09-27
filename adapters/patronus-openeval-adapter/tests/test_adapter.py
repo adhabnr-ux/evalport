@@ -17,7 +17,19 @@ LlamaIndex adapter uses with MockLLM/MockEmbedding and the Giskard adapter
 uses with its own local checks.
 """
 
+import importlib.util
+
 import pytest
+
+# The adapter itself imports patronus at module import time, so nothing in
+# this module can run without patronus. Skip the whole module when it is
+# absent (CI's min-mode adapter-tests job installs evalport-sdk only). Checked
+# with find_spec rather than pytest.importorskip so that, with patronus
+# installed, a broken install or upstream API drift still fails loudly instead
+# of being swallowed as a skip.
+if importlib.util.find_spec("patronus") is None:
+    pytest.skip("patronus not installed", allow_module_level=True)
+
 from openeval.validate import validate_result_set, validate_suite
 from patronus.evals import Evaluator, EvaluationResult, RemoteEvaluator
 

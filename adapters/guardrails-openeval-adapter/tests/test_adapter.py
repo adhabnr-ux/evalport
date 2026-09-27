@@ -11,7 +11,19 @@ for why that's a deliberate choice, not a limitation of the adapter).
 """
 from typing import Any, Dict, Optional
 
+import importlib.util
+
 import pytest
+
+# The adapter itself imports guardrails at module import time, so nothing in
+# this module can run without guardrails-ai. Skip the whole module when it is
+# absent (CI's min-mode adapter-tests job installs evalport-sdk only). Checked
+# with find_spec rather than pytest.importorskip so that, with guardrails-ai
+# installed, a broken install or upstream API drift still fails loudly instead
+# of being swallowed as a skip.
+if importlib.util.find_spec("guardrails") is None:
+    pytest.skip("guardrails not installed", allow_module_level=True)
+
 from guardrails import Guard, OnFailAction
 from guardrails.validator_base import FailResult, PassResult, Validator, register_validator
 

@@ -1,16 +1,24 @@
+import importlib.util
 import json
 import uuid
 
 import pytest
 
-from agenta.sdk.models.testsets import TestsetRevision, TestsetRevisionData, Testcase
-from agenta.sdk.models.workflows import (
-    WorkflowInvokeRequest,
-    WorkflowRequestData,
-    WorkflowBatchResponse,
-    WorkflowServiceResponseData,
-    WorkflowServiceStatus,
-)
+# Framework-dependent tests below are skipped (not failed) when agenta
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_AGENTA = importlib.util.find_spec("agenta") is not None
+requires_agenta = pytest.mark.skipif(not HAS_AGENTA, reason="agenta not installed")
+if HAS_AGENTA:
+    from agenta.sdk.models.testsets import TestsetRevision, TestsetRevisionData, Testcase
+    from agenta.sdk.models.workflows import (
+        WorkflowInvokeRequest,
+        WorkflowRequestData,
+        WorkflowBatchResponse,
+        WorkflowServiceResponseData,
+        WorkflowServiceStatus,
+    )
 
 from openeval.validate import validate_suite, validate_result_set
 
@@ -46,6 +54,7 @@ def make_testset_revision():
 # ---------------------------------------------------------------------------
 
 
+@requires_agenta
 def test_testset_to_suite_basic():
     suite = agenta_testset_to_suite(make_testset_revision())
 
@@ -66,17 +75,20 @@ def test_testset_to_suite_basic():
     assert suite["graders"][0]["type"] == "llm_judge"
 
 
+@requires_agenta
 def test_testset_to_suite_validates_against_evalport_spec():
     suite = agenta_testset_to_suite(make_testset_revision())
     result = validate_suite(suite)
     assert result.valid, result.errors
 
 
+@requires_agenta
 def test_testset_to_suite_exact_match_grader_option():
     suite = agenta_testset_to_suite(make_testset_revision(), grader_type="exact_match")
     assert suite["graders"][0]["type"] == "exact_match"
 
 
+@requires_agenta
 def test_testset_to_suite_from_bare_revision_data():
     # A caller may pass just the TestsetRevisionData (no enclosing TestsetRevision) --
     # e.g. after fetching `testset_revision.data` directly.
@@ -86,6 +98,7 @@ def test_testset_to_suite_from_bare_revision_data():
     assert suite["test_cases"][0]["expected_output"] == "hello"
 
 
+@requires_agenta
 def test_testset_to_suite_custom_column_names():
     tc = _tc(TC1_ID, question="2+2?", answer="4")
     data = TestsetRevisionData(testcases=[tc])
@@ -95,6 +108,7 @@ def test_testset_to_suite_custom_column_names():
     assert tc_out["expected_output"] == "4"
 
 
+@requires_agenta
 def test_testset_to_suite_input_fallback_when_no_recognized_column():
     tc = _tc(TC1_ID, foo="bar", baz=1)
     data = TestsetRevisionData(testcases=[tc])
@@ -104,6 +118,7 @@ def test_testset_to_suite_input_fallback_when_no_recognized_column():
     assert json.loads(tc_out["input"]) == {"foo": "bar", "baz": 1}
 
 
+@requires_agenta
 def test_testset_to_suite_empty():
     revision = TestsetRevision(id=uuid.uuid4(), slug="empty", data=TestsetRevisionData(testcases=[]))
     suite = agenta_testset_to_suite(revision)
@@ -112,6 +127,7 @@ def test_testset_to_suite_empty():
     assert suite["version"]
 
 
+@requires_agenta
 def test_testset_to_suite_missing_data():
     # A TestsetRevision with no hydrated `.data` at all (e.g. only testcase_ids
     # were fetched) shouldn't crash -- it should just produce no test cases.
@@ -120,6 +136,7 @@ def test_testset_to_suite_missing_data():
     assert suite["test_cases"] == []
 
 
+@requires_agenta
 def test_to_openeval_dispatches_to_testset():
     suite = to_openeval(make_testset_revision())
     assert suite["id"].startswith("agenta_testset_")
@@ -142,6 +159,7 @@ def make_invocation(tc_id, score, passed, actual_output="4", grader_id="gr_outpu
     return {"test_case_id": tc_id, "request": request, "response": response, "grader_id": grader_id}
 
 
+@requires_agenta
 def test_invocations_to_resultset_basic():
     invocations = [
         make_invocation(TC1_ID, 1.0, True, actual_output="4"),
@@ -168,6 +186,7 @@ def test_invocations_to_resultset_basic():
     assert resultset["summary"]["pass_rate"] == 0.5
 
 
+@requires_agenta
 def test_invocations_to_resultset_validates_against_evalport_spec():
     invocations = [make_invocation(TC1_ID, 1.0, True)]
     resultset = invocations_to_resultset(invocations, suite_id="s1", run_id="run1")
@@ -175,6 +194,7 @@ def test_invocations_to_resultset_validates_against_evalport_spec():
     assert result.valid, result.errors
 
 
+@requires_agenta
 def test_invocations_groups_multiple_graders_per_test_case():
     request = WorkflowInvokeRequest(data=WorkflowRequestData(testcase={"id": TC1_ID}, outputs="4"))
     resp_ok = WorkflowBatchResponse(
@@ -194,6 +214,7 @@ def test_invocations_groups_multiple_graders_per_test_case():
     assert r["passed"] is False  # not all graders passed
 
 
+@requires_agenta
 def test_invocations_to_resultset_error_status_propagates():
     request = WorkflowInvokeRequest(data=WorkflowRequestData(testcase={"id": TC1_ID}))
     response = WorkflowBatchResponse(status=WorkflowServiceStatus(code=500, message="evaluator crashed"))
@@ -204,6 +225,7 @@ def test_invocations_to_resultset_error_status_propagates():
     assert r["error"]["message"] == "evaluator crashed"
 
 
+@requires_agenta
 def test_invocations_to_resultset_bool_and_numeric_outputs():
     resp_bool = WorkflowBatchResponse(
         status=WorkflowServiceStatus(), data=WorkflowServiceResponseData(outputs=True)
@@ -224,6 +246,7 @@ def test_invocations_to_resultset_bool_and_numeric_outputs():
     assert r2["passed"] is True
 
 
+@requires_agenta
 def test_invocations_to_resultset_score_is_clamped_to_unit_range():
     response = WorkflowBatchResponse(
         status=WorkflowServiceStatus(), data=WorkflowServiceResponseData(outputs={"score": 5, "passed": True})
@@ -235,6 +258,7 @@ def test_invocations_to_resultset_score_is_clamped_to_unit_range():
     assert validate_result_set(resultset).valid
 
 
+@requires_agenta
 def test_invocations_to_resultset_streaming_response_rejected():
     from agenta.sdk.models.workflows import WorkflowStreamingResponse
 
@@ -254,6 +278,7 @@ def test_invocations_to_resultset_empty_shape():
     assert resultset["suite_id"] == "s1"
 
 
+@requires_agenta
 def test_to_openeval_dispatches_to_resultset():
     invocations = [make_invocation(TC1_ID, 1.0, True)]
     resultset = to_openeval(invocations, suite_id="s1", run_id="run8")
@@ -265,6 +290,7 @@ def test_to_openeval_dispatches_to_resultset():
 # ---------------------------------------------------------------------------
 
 
+@requires_agenta
 def test_from_openeval_round_trip():
     suite = agenta_testset_to_suite(make_testset_revision())
     rebuilt = from_openeval(suite)

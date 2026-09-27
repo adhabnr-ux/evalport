@@ -1,9 +1,19 @@
+import importlib.util
 import pytest
-from humanloop.types import DatapointResponse, ChatMessage
+
+# Framework-dependent tests below are skipped (not failed) when humanloop
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_HUMANLOOP = importlib.util.find_spec("humanloop") is not None
+requires_humanloop = pytest.mark.skipif(not HAS_HUMANLOOP, reason="humanloop not installed")
+if HAS_HUMANLOOP:
+    from humanloop.types import DatapointResponse, ChatMessage
 from openeval.validate import validate_suite, validate_result_set
 from humanloop_openeval_adapter import to_openeval, from_openeval, result_to_openeval
 
 
+@requires_humanloop
 def test_datapoints_suite_conversion():
     # Chat message turn list
     messages = [
@@ -61,6 +71,7 @@ def test_datapoints_suite_conversion():
     assert rebuilt_dp.inputs == {"question": "What is 2+2?"}
 
 
+@requires_humanloop
 def test_test_case_empty_input_error():
     # Empty inputs/messages raising ValueError
     dp = DatapointResponse(id="dp_empty", inputs={}, messages=None, target=None)

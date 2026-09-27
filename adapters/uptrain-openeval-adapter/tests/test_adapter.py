@@ -10,14 +10,26 @@ adapter module docstring) rather than calling it.
 
 from __future__ import annotations
 
-import pandas as pd
+import importlib.util
+import pytest
+
+# Framework-dependent tests below are skipped (not failed) when uptrain / pandas
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_UPTRAIN = all(importlib.util.find_spec(m) is not None for m in ("uptrain", "pandas"))
+requires_uptrain = pytest.mark.skipif(not HAS_UPTRAIN, reason="uptrain / pandas not installed")
+if HAS_UPTRAIN:
+    import pandas as pd
 from openeval.validate import validate_result_set, validate_suite
-from uptrain import Evals
-from uptrain.framework.remote import DataSchema
+if HAS_UPTRAIN:
+    from uptrain import Evals
+    from uptrain.framework.remote import DataSchema
 
 from uptrain_openeval_adapter import from_openeval, results_to_openeval, to_openeval
 
 
+@requires_uptrain
 def test_uptrain_default_schema_field_names_match_adapter_constants():
     # Guards against the adapter silently drifting from UpTrain's real
     # DataSchema defaults if a future uptrain release renames a field.
@@ -28,6 +40,7 @@ def test_uptrain_default_schema_field_names_match_adapter_constants():
     assert schema["ground_truth"] == "ground_truth"
 
 
+@requires_uptrain
 def test_uptrain_context_relevance_check_value_matches_adapter_expectation():
     assert Evals.CONTEXT_RELEVANCE.value == "context_relevance"
 
@@ -59,6 +72,7 @@ class TestToOpenEval:
         suite = to_openeval(_dataset(), suite_id="geo_science_eval")
         assert validate_suite(suite).valid
 
+    @requires_uptrain
     def test_accepts_pandas_dataframe(self):
         df = pd.DataFrame(_dataset())
         suite = to_openeval(df, suite_id="geo_science_eval")

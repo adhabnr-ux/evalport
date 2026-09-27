@@ -13,10 +13,19 @@ Tests marked ★ are the highest-value regression tests -- the ones a
 reviewer would check first.
 """
 
+import importlib.util
+
 import pytest
 
-from literalai import DatasetItem
-from literalai.observability.step import ScoreDict
+# Framework-dependent tests below are skipped (not failed) when literalai
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_LITERALAI = importlib.util.find_spec("literalai") is not None
+requires_literalai = pytest.mark.skipif(not HAS_LITERALAI, reason="literalai not installed")
+if HAS_LITERALAI:
+    from literalai import DatasetItem
+    from literalai.observability.step import ScoreDict
 from openeval.validate import validate_suite, validate_result_set
 
 from literalai_openeval_adapter import (
@@ -190,6 +199,7 @@ class TestGraderTypeMapping:
 # ============================================================
 
 class TestToOpenEval:
+    @requires_literalai
     def test_full_dataset_conversion_validates_against_real_schema(self):
         """★ The check the maintainer asked for: not just our own shape,
         but genuine EvalPort schema conformance via validate_suite()."""
@@ -214,6 +224,7 @@ class TestToOpenEval:
         assert suite["test_cases"][0]["expected_output"] == "4"
         assert suite["test_cases"][0]["metadata"]["difficulty"] == "easy"
 
+    @requires_literalai
     def test_multiple_items_all_validate(self):
         dataset = FakeDataset(
             id="ds_2",
@@ -228,6 +239,7 @@ class TestToOpenEval:
         assert validation.valid, validation.errors
         assert len(suite["test_cases"]) == 2
 
+    @requires_literalai
     def test_exact_match_grader_option_also_validates(self):
         dataset = FakeDataset(id="ds_3", name="exact", items=[make_dataset_item("a", {"question": "2+2"})])
         suite = to_openeval(dataset, grader_type="exact_match")
@@ -245,6 +257,7 @@ class TestToOpenEval:
 
 
 class TestFromOpenEval:
+    @requires_literalai
     def test_round_trip_recovers_original_dict_shape(self):
         """★ to_openeval() -> from_openeval() must recover the *original*
         dict shape, not just the flattened string, so the result is
@@ -281,6 +294,7 @@ class TestFromOpenEval:
 
 
 class TestResultsToOpenEval:
+    @requires_literalai
     def test_full_results_conversion_validates_against_real_schema(self):
         """★ The results-side check the maintainer asked for: real
         validate_result_set(), combining score clamping and grader
@@ -310,6 +324,7 @@ class TestResultsToOpenEval:
         assert gr["type"] == "llm_judge"
         assert gr["metadata"]["openeval"]["raw_score"] == 8.5
 
+    @requires_literalai
     def test_multiple_scores_each_clamped_and_mapped_independently(self):
         scores = [
             ScoreDict(id="s1", name="human_review", type="HUMAN", value=0.9, label=None, stepId=None,
@@ -327,6 +342,7 @@ class TestResultsToOpenEval:
         assert [g["score"] for g in grs] == [0.9, 1.0, 0.0]
         assert [g["type"] for g in grs] == ["human", "code", "llm_judge"]
 
+    @requires_literalai
     def test_accepts_experiment_object_with_items_attribute(self):
         """`results_to_openeval` also accepts the DatasetExperiment-shaped
         container directly (an object with an `.items` list), not just a
@@ -355,6 +371,7 @@ class TestResultsToOpenEval:
         assert result_set["results"][0]["passed"] is False
         assert result_set["results"][0]["grader_results"] == []
 
+    @requires_literalai
     def test_invalid_grader_type_raises_before_producing_invalid_output(self):
         score = ScoreDict(id="s1", name="c", type="ROBOT", value=0.5, label=None, stepId=None,
                            datasetExperimentItemId=None, comment=None, tags=None)

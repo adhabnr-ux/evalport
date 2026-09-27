@@ -9,6 +9,9 @@ uses `persist=False`.
 """
 from __future__ import annotations
 
+import importlib.util
+
+import pytest
 from openeval.validate import validate_result_set
 
 from traccia_openeval_adapter import (
@@ -20,6 +23,13 @@ from traccia_openeval_adapter import (
 
 
 def _run_real_evaluate(**overrides):
+    # Skips (rather than errors) every test that needs a real traccia run when
+    # traccia isn't installed -- e.g. CI's min-mode adapter-tests job, which
+    # installs evalport-sdk only. The pure-function tests below still run.
+    # find_spec, not pytest.importorskip: with traccia installed, a broken
+    # install or API drift must still fail loudly rather than skip.
+    if importlib.util.find_spec("traccia") is None:
+        pytest.skip("traccia not installed")
     from traccia.eval import evaluate
 
     def task(row):

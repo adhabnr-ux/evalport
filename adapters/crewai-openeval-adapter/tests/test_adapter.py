@@ -1,4 +1,5 @@
 from openeval.validate import validate_suite
+from openeval.types import OPENEVAL_VERSION
 
 from crewai_openeval_adapter import to_openeval, from_openeval
 
@@ -116,4 +117,4 @@ def test_empty_results_still_valid_shape():
     result = FakeCrewOutput(id="run6", tasks_output=[])
     suite = to_openeval(result)
     assert suite["test_cases"] == []
-    assert suite["version"] == "1.0.0"
+    assert suite["version"] == OPENEVAL_VERSION

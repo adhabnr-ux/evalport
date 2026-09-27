@@ -1,8 +1,22 @@
 """Tests for dspy-openeval-adapter, run against the real `dspy` package and
 the real `openeval.validate` validators -- no mocks."""
-import dspy
+import importlib.util
+
 import pytest
+
+# The adapter itself imports dspy at module import time, so nothing in this
+# module can run without dspy. Skip the whole module when it is absent (CI's
+# min-mode adapter-tests job installs evalport-sdk only). Checked with
+# find_spec rather than pytest.importorskip so that, with dspy installed, a
+# broken install or upstream API drift still fails loudly instead of being
+# swallowed as a skip.
+if importlib.util.find_spec("dspy") is None:
+    pytest.skip("dspy not installed", allow_module_level=True)
+
+import dspy  # noqa: E402
+
 from openeval.validate import validate_result_set, validate_suite
+from openeval.types import OPENEVAL_VERSION
 
 from dspy_openeval_adapter import (
     evaluation_result_to_openeval,
@@ -62,7 +76,7 @@ def test_to_openeval_basic_shape():
     suite = to_openeval(_devset(), input_keys=["question"], expected_key="answer")
 
     assert suite["id"] == "dspy_suite"
-    assert suite["version"] == "1.0.0"
+    assert suite["version"] == OPENEVAL_VERSION
     assert len(suite["test_cases"]) == 2
 
     tc0 = suite["test_cases"][0]

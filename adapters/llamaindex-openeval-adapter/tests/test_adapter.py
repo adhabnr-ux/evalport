@@ -15,8 +15,20 @@ offline, not a mock of anything this adapter itself does.
 from __future__ import annotations
 
 import asyncio
+import importlib.util
 
 import pytest
+
+# Every test here drives real llama_index.core evaluators (and from_openeval()
+# imports llama_index lazily), so nothing in this module can run without
+# llama-index-core. Skip the whole module when it is absent (CI's min-mode
+# adapter-tests job installs evalport-sdk only). Checked with find_spec rather
+# than pytest.importorskip so that, with llama-index-core installed, a broken
+# install or upstream API drift still fails loudly instead of being swallowed
+# as a skip.
+if importlib.util.find_spec("llama_index") is None:
+    pytest.skip("llama_index not installed", allow_module_level=True)
+
 from llama_index.core import Settings
 from llama_index.core.embeddings import MockEmbedding
 from llama_index.core.evaluation import (
