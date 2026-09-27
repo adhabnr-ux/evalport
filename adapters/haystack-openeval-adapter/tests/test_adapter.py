@@ -7,7 +7,19 @@ validators (``openeval.validate.validate_suite`` /
 """
 from __future__ import annotations
 
+import importlib.util
+
 import pytest
+
+# The adapter itself imports haystack at module import time, so nothing in
+# this module can run without haystack-ai. Skip the whole module when it is
+# absent (CI's min-mode adapter-tests job installs evalport-sdk only). Checked
+# with find_spec rather than pytest.importorskip so that, with haystack-ai
+# installed, a broken install or upstream API drift still fails loudly instead
+# of being swallowed as a skip.
+if importlib.util.find_spec("haystack") is None:
+    pytest.skip("haystack not installed", allow_module_level=True)
+
 from haystack.components.evaluators import AnswerExactMatchEvaluator, DocumentMRREvaluator
 from haystack.dataclasses import Document
 from haystack.evaluation import EvaluationRunResult
