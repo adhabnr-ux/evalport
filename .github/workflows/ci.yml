@@ -106,6 +106,115 @@ jobs:
         working-directory: sdk/python
         run: python -m pytest tests/ -v
 
+  adapter-tests:
+    # Runs every adapters/*/ package's own test suite, so an adapter can't
+    # silently rot against the SDK/validator on this same commit. "Min mode":
+    # only pytest + this commit's sdk/python are installed -- never the
+    # upstream framework an adapter targets (65+ frameworks, several of them
+    # heavy or conflicting, can't share one environment). Each adapter is
+    # installed with --no-deps for the same reason: a few (dspy, evidently,
+    # guardrails, haystack, agenta, argilla) hard-depend on their framework.
+    # Framework-dependent tests are therefore expected to skip themselves
+    # (a find_spec-based skipif marker, or a module-level pytest.skip), while
+    # every framework-free test runs and must pass -- see .github/CONTRIBUTING.md.
+    # Adapter directories are discovered by glob, so a new adapter is covered
+    # automatically; the only exclusions are the explicit SKIP list below.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pytest + evalport-sdk (this commit's sdk/python)
+        run: pip install pytest -e sdk/python
+      - name: Run every adapter's test suite (evalport-sdk only)
+        # Deliberately not `set -e`: every adapter runs even after one fails,
+        # and the step exits non-zero at the end listing all of them.
+        run: |
+          set +e -uo pipefail  # GitHub runs bash with -e by default; undo it
+          # Adapters whose tests cannot run in this job at all. Every entry
+          # needs a reason; anything else that fails here is a real failure.
+          SKIP=(
+            # Tests import the real GeoBenchX classes (geobenchx.dataclasses,
+            # geobenchx.constants). GeoBenchX is not on PyPI: it needs a manual
+            # git clone on sys.path (see its tests/conftest.py).
+            geobenchx-openeval-adapter
+            # requires-python >=3.12 (giskard-checks needs it), so it can't be
+            # installed on this job's 3.11 at all. Its only test module also
+            # importorskips giskard_checks, so min mode would run 0 tests.
+            giskard-openeval-adapter
+          )
+          sdk_version=$(python -c "from importlib.metadata import version; print(version('evalport-sdk'))")
+          failed=()
+          rows=()
+          start_all=$SECONDS
+          for dir in adapters/*/; do
+            dir=${dir%/}
+            name=$(basename "$dir")
+            [ -f "$dir/pyproject.toml" ] || continue
+            if printf '%s\n' "${SKIP[@]}" | grep -qxF "$name"; then
+              rows+=("$name|skipped (SKIP list)|-|-")
+              continue
+            fi
+            start=$SECONDS
+            echo "::group::$name"
+            status=""
+            counts="-"
+            # --no-deps skips evalport-sdk too, so check the adapter's own
+            # evalport-sdk requirement accepts this commit's SDK explicitly.
+            if ! python - "$dir/pyproject.toml" "$sdk_version" <<'PYEOF'
+          import sys, tomllib
+          from packaging.requirements import Requirement
+          reqs = [Requirement(r) for r in tomllib.load(open(sys.argv[1], "rb"))["project"].get("dependencies", [])]
+          sdk = [r for r in reqs if r.name == "evalport-sdk"]
+          if not sdk:
+              sys.exit("does not declare an evalport-sdk dependency")
+          if not sdk[0].specifier.contains(sys.argv[2], prereleases=True):
+              sys.exit(f"requires {sdk[0]}, but this commit's SDK is {sys.argv[2]}")
+          PYEOF
+            then
+              status="FAILED (evalport-sdk requirement)"
+            elif ! pip install --quiet --no-deps -e "$dir"; then
+              status="FAILED (pip install)"
+            else
+              (cd "$dir" && timeout 300 python -m pytest -q -p no:cacheprovider --rootdir . tests) 2>&1 | tee /tmp/adapter-pytest.log
+              rc=${PIPESTATUS[0]}
+              # pytest's own final line, e.g. "20 passed, 5 skipped".
+              counts=$(tail -n 1 /tmp/adapter-pytest.log | sed -E 's/ in [0-9.]+s.*$//; s/^[= ]+//')
+              case $rc in
+                0) case $counts in *passed*) status="passed" ;; *) status="all skipped (needs framework)" ;; esac ;;
+                # Exit 5 = nothing collected: the whole module skipped itself
+                # because its framework is absent (e.g. the adapter imports it).
+                5) status="all skipped (needs framework)" ;;
+                124) status="FAILED (timeout after 300s)" ;;
+                *) status="FAILED (pytest exit $rc)" ;;
+              esac
+            fi
+            echo "::endgroup::"
+            case $status in FAILED*) failed+=("$name") ;; esac
+            rows+=("$name|$status|$counts|$((SECONDS - start))")
+          done
+
+          summary=${GITHUB_STEP_SUMMARY:-/dev/null}
+          {
+            echo "### Adapter tests (min mode: evalport-sdk $sdk_version only)"
+            echo
+            echo "| adapter | result | tests | seconds |"
+            echo "|---|---|---|---|"
+            for row in "${rows[@]}"; do echo "| ${row//|/ | } |"; done
+          } >> "$summary"
+          printf '\n%-42s %-31s %-34s %s\n' ADAPTER RESULT TESTS SECONDS
+          for row in "${rows[@]}"; do
+            IFS='|' read -r n s c t <<< "$row"
+            printf '%-42s %-31s %-34s %s\n' "$n" "$s" "$c" "$t"
+          done
+          echo
+          echo "${#rows[@]} adapters, ${#failed[@]} failed, $((SECONDS - start_all))s total"
+          if [ ${#failed[@]} -gt 0 ]; then
+            for name in "${failed[@]}"; do echo "::error::adapter tests failed: $name"; done
+            exit 1
+          fi
+
   conformance-suite:
     # Discussion #9 / spec/conformance/ -- runs every portable fixture in
     # spec/conformance/fixtures/*.json through the real hand-rolled Python
