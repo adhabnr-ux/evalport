@@ -19,6 +19,13 @@ function err(path: string, message: string, code: string): ValidationError {
   return { path, message, code };
 }
 
+// Join a parent path with a child error path that already starts with "$",
+// avoiding malformed paths like "$.test_cases[0].$.input" (issue #69).
+function nest(parent: string, childPath: string): string {
+  if (childPath.startsWith("$")) return parent + childPath.slice(1);
+  return parent + "." + childPath;
+}
+
 function ok(errors: ValidationError[]): ValidationResult {
   return { valid: errors.length === 0, errors };
 }
@@ -55,7 +62,7 @@ export function validateTestCase(tc: unknown): ValidationResult {
         if (g.length === 0) errors.push(err(`$.graders[${i}]`, "empty", "EMPTY_STRING"));
       } else if (isPlainObject(g)) {
         const gv = validateGrader(g);
-        if (!gv.valid) gv.errors.forEach((e) => errors.push(err(`$.graders[${i}].${e.path}`, e.message, e.code)));
+        if (!gv.valid) gv.errors.forEach((e) => errors.push(err(nest(`$.graders[${i}]`, e.path), e.message, e.code)));
       } else {
         errors.push(err(`$.graders[${i}]`, "must be string or object", "TYPE_ERROR"));
       }
@@ -150,7 +157,7 @@ export function validateSuite(s: unknown): ValidationResult {
     const ids = new Set<string>();
     tcs.forEach((tc, i) => {
       const tv = validateTestCase(tc);
-      if (!tv.valid) tv.errors.forEach((e) => errors.push(err(`$.test_cases[${i}].${e.path}`, e.message, e.code)));
+      if (!tv.valid) tv.errors.forEach((e) => errors.push(err(nest(`$.test_cases[${i}]`, e.path), e.message, e.code)));
       const tid = isPlainObject(tc) ? tc.id : undefined;
       if (typeof tid === "string") {
         if (ids.has(tid)) errors.push(err(`$.test_cases[${i}].id`, `dup:${tid}`, "DUPLICATE_ID"));
@@ -162,7 +169,7 @@ export function validateSuite(s: unknown): ValidationResult {
     const gids = new Set<string>();
     grs.forEach((g, i) => {
       const gv = validateGrader(g);
-      if (!gv.valid) gv.errors.forEach((e) => errors.push(err(`$.graders[${i}].${e.path}`, e.message, e.code)));
+      if (!gv.valid) gv.errors.forEach((e) => errors.push(err(nest(`$.graders[${i}]`, e.path), e.message, e.code)));
       const gid = isPlainObject(g) ? g.id : undefined;
       if (typeof gid === "string") {
         if (gids.has(gid)) errors.push(err(`$.graders[${i}].id`, `dup:${gid}`, "DUPLICATE_ID"));
