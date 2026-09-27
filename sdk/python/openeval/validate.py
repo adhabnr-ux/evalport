@@ -126,7 +126,7 @@ def validate_result_set(r):
     if not isinstance(r.get("started_at"),str): errors.append(_err("$.started_at","required","REQUIRED"))
     isolation=r.get("isolation")
     if isolation is not None and not isinstance(isolation,str): errors.append(_err("$.isolation","must be string","TYPE_ERROR"))
-    # Discussion #45 (proposed): optional group membership joining sibling
+    # Discussion #45 / PR #54: optional group membership joining sibling
     # ResultSets (a sweep, a mutation-testing run, a multi-model comparison).
     # Absent by default -- a no-op for every ResultSet produced before this.
     group=r.get("group")

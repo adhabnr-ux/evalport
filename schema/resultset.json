@@ -63,7 +63,7 @@
     },
     "group": {
       "type": "object",
-      "description": "Membership of this ResultSet in a named group of sibling ResultSets -- a sweep, a mutation-testing run, a multi-model comparison, or similar. The join key lives here on the member (mirroring W&B Sweep.sweep_id and MLflow's parent-run link), not on a separate group document: EvalPort has no place to durably store a 'group object' independent of its members, and precedent from W&B/MLflow/Stryker's mutation-testing-report-schema is that the rollup itself is consumer-computed, not schema-mandated. Absent means this ResultSet is not part of a declared group -- existing ResultSets need no change. See Extension Mechanism -> Grouped/Sibling ResultSets and Discussion #45 (proposed, not yet finalized as of this revision).",
+      "description": "Membership of this ResultSet in a named group of sibling ResultSets -- a sweep, a mutation-testing run, a multi-model comparison, or similar. The join key lives here on the member (mirroring W&B Sweep.sweep_id and MLflow's parent-run link), not on a separate group document: EvalPort has no place to durably store a 'group object' independent of its members, and precedent from W&B/MLflow/Stryker's mutation-testing-report-schema is that the rollup itself is consumer-computed, not schema-mandated. Absent means this ResultSet is not part of a declared group -- existing ResultSets need no change. See Extension Mechanism -> Grouped/Sibling ResultSets and Discussion #45 (landed in PR #54, 2026-09-20).",
       "required": ["group_id"],
       "properties": {
         "group_id": {

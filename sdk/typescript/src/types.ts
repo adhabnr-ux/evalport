@@ -143,8 +143,8 @@ export interface Summary {
 // consumer-computed (see Stryker's mutation-testing-report-schema, which made
 // the same call). `role`/`label`/`sequence` are optional -- see
 // spec/SPEC.md Extension Mechanism -> Grouped/Sibling ResultSets.
-// PROPOSED in Discussion #45, not yet finalized -- see that discussion for
-// the RFC this field is a reference implementation of.
+// Landed in PR #54 (2026-09-20) following Discussion #45 -- see that
+// discussion for the RFC history behind this field.
 //
 // Modeled as its own interface (rather than sdk/python's looser
 // Optional[Dict[str, Any]]) to match this SDK's existing convention for other
