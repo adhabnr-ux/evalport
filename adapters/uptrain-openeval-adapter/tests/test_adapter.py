@@ -22,6 +22,7 @@ requires_uptrain = pytest.mark.skipif(not HAS_UPTRAIN, reason="uptrain / pandas 
 if HAS_UPTRAIN:
     import pandas as pd
 from openeval.validate import validate_result_set, validate_suite
+from openeval.types import OPENEVAL_VERSION
 if HAS_UPTRAIN:
     from uptrain import Evals
     from uptrain.framework.remote import DataSchema
@@ -71,6 +72,7 @@ class TestToOpenEval:
     def test_converts_list_of_dicts(self):
         suite = to_openeval(_dataset(), suite_id="geo_science_eval")
         assert validate_suite(suite).valid
+        assert suite["version"] == OPENEVAL_VERSION
 
     @requires_uptrain
     def test_accepts_pandas_dataframe(self):
@@ -197,6 +199,7 @@ class TestResultsToOpenEval:
             started_at="2026-08-14T00:00:00Z",
         )
         assert validate_result_set(rs).valid
+        assert rs["version"] == OPENEVAL_VERSION
         assert len(rs["results"]) == 2
         assert len(rs["results"][0]["grader_results"]) == 2
 
