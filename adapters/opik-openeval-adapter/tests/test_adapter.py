@@ -1,4 +1,7 @@
+import importlib.util
+import pytest
 from openeval.validate import validate_suite, validate_result_set
+from openeval.types import OPENEVAL_VERSION
 
 from opik_openeval_adapter import to_openeval, from_openeval, experiment_to_openeval
 
@@ -8,8 +11,16 @@ from opik_openeval_adapter import to_openeval, from_openeval, experiment_to_open
 #  opik.types.FeedbackScoreDict) rather than hand-rolled fakes, so a shape
 # drift in the real `opik` package would be caught here, not just in a
 # fake that mirrors last year's SDK.
-from opik.api_objects.dataset.dataset_item import DatasetItem
-from opik.api_objects.experiment.experiment_item import ExperimentItemContent
+
+# Framework-dependent tests below are skipped (not failed) when opik
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_OPIK = importlib.util.find_spec("opik") is not None
+requires_opik = pytest.mark.skipif(not HAS_OPIK, reason="opik not installed")
+if HAS_OPIK:
+    from opik.api_objects.dataset.dataset_item import DatasetItem
+    from opik.api_objects.experiment.experiment_item import ExperimentItemContent
 
 
 def _dataset_item(**data):
@@ -20,6 +31,7 @@ def _dataset_item(**data):
 # to_openeval: real DatasetItem objects
 # ---------------------------------------------------------------------------
 
+@requires_opik
 def test_to_openeval_from_real_dataset_items():
     items = [
         _dataset_item(question="What is the capital of France?", expected_answer="Paris", category="geography"),
@@ -40,6 +52,7 @@ def test_to_openeval_from_real_dataset_items():
     assert "expected_answer" not in tc1["metadata"]
 
 
+@requires_opik
 def test_to_openeval_auto_detects_input_and_expected_output_key_variants():
     items = [_dataset_item(user_input="hi", reference="hello")]
     suite = to_openeval(items)
@@ -48,6 +61,7 @@ def test_to_openeval_auto_detects_input_and_expected_output_key_variants():
     assert tc["expected_output"] == "hello"
 
 
+@requires_opik
 def test_to_openeval_explicit_key_override():
     items = [_dataset_item(prompt_text="ignored by heuristic", target="also ignored")]
     suite = to_openeval(items, input_key="prompt_text", expected_output_key="target")
@@ -68,6 +82,7 @@ def test_to_openeval_from_plain_dicts_matches_dataset_get_items_shape():
     assert tc["metadata"]["difficulty"] == "easy"
 
 
+@requires_opik
 def test_to_openeval_no_matching_keys_preserves_full_payload_in_metadata():
     items = [_dataset_item(weird_field_1="a", weird_field_2="b")]
     suite = to_openeval(items)
@@ -79,6 +94,7 @@ def test_to_openeval_no_matching_keys_preserves_full_payload_in_metadata():
     assert tc["metadata"]["weird_field_2"] == "b"
 
 
+@requires_opik
 def test_to_openeval_validates_against_real_evalport_spec():
     items = [_dataset_item(question="q1", expected_answer="a1")]
     suite = to_openeval(items)
@@ -86,12 +102,14 @@ def test_to_openeval_validates_against_real_evalport_spec():
     assert validation.valid, validation.errors
 
 
+@requires_opik
 def test_to_openeval_exact_match_grader_option():
     items = [_dataset_item(question="2+2", expected_answer="4")]
     suite = to_openeval(items, grader_type="exact_match")
     assert suite["graders"][0]["type"] == "exact_match"
 
 
+@requires_opik
 def test_to_openeval_default_grader_is_llm_judge():
     items = [_dataset_item(question="q", expected_answer="a")]
     suite = to_openeval(items)
@@ -102,10 +120,11 @@ def test_to_openeval_default_grader_is_llm_judge():
 def test_to_openeval_empty_dataset_still_valid_shape():
     suite = to_openeval([])
     assert suite["test_cases"] == []
-    assert suite["version"] == "1.0.0"
+    assert suite["version"] == OPENEVAL_VERSION
     assert suite["graders"] == []
 
 
+@requires_opik
 def test_to_openeval_item_with_evaluators_carries_them_in_metadata():
     item = _dataset_item(
         question="q",
@@ -125,6 +144,7 @@ def test_to_openeval_item_with_evaluators_carries_them_in_metadata():
 # from_openeval: round-trip
 # ---------------------------------------------------------------------------
 
+@requires_opik
 def test_from_openeval_round_trip_matches_dataset_insert_shape():
     items = [_dataset_item(question="What is 2+2?", expected_answer="4", category="math")]
     suite = to_openeval(items)
@@ -164,6 +184,7 @@ def _experiment_item(dataset_item_id, task_output, feedback_scores):
     )
 
 
+@requires_opik
 def test_experiment_to_openeval_from_real_experiment_item_content():
     items = [
         _experiment_item(
@@ -199,6 +220,7 @@ def test_experiment_to_openeval_from_real_experiment_item_content():
     assert rs["summary"]["pass_rate"] == 0.5
 
 
+@requires_opik
 def test_experiment_to_openeval_multiple_feedback_scores_all_must_pass():
     items = [
         _experiment_item(
@@ -217,6 +239,7 @@ def test_experiment_to_openeval_multiple_feedback_scores_all_must_pass():
     assert rs["results"][0]["passed"] is False
 
 
+@requires_opik
 def test_experiment_to_openeval_custom_pass_threshold():
     items = [_experiment_item("di_1", {"output": "x"}, [{"name": "score", "value": 0.6}])]
     rs_default = experiment_to_openeval(items, suite_id="s", run_id="r")
@@ -226,6 +249,7 @@ def test_experiment_to_openeval_custom_pass_threshold():
     assert rs_strict["results"][0]["passed"] is False  # 0.6 < 0.9
 
 
+@requires_opik
 def test_experiment_to_openeval_no_feedback_scores_fails_cleanly():
     items = [_experiment_item("di_1", {"output": "x"}, [])]
     rs = experiment_to_openeval(items, suite_id="s", run_id="r")
@@ -246,6 +270,7 @@ def test_experiment_to_openeval_from_plain_dicts():
     assert rs["results"][0]["passed"] is True
 
 
+@requires_opik
 def test_experiment_to_openeval_validates_against_real_evalport_spec():
     items = [_experiment_item("di_1", {"output": "x"}, [{"name": "correctness", "value": 1.0}])]
     rs = experiment_to_openeval(items, suite_id="s", run_id="r")
@@ -253,6 +278,7 @@ def test_experiment_to_openeval_validates_against_real_evalport_spec():
     assert validation.valid, validation.errors
 
 
+@requires_opik
 def test_experiment_to_openeval_explicit_started_at_is_respected():
     items = [_experiment_item("di_1", {"output": "x"}, [{"name": "c", "value": 1.0}])]
     rs = experiment_to_openeval(items, suite_id="s", run_id="r", started_at="2026-01-15T10:30:00Z")
@@ -264,6 +290,7 @@ def test_experiment_to_openeval_explicit_started_at_is_respected():
 # End-to-end: dataset -> suite -> (simulated run) -> results, both validated
 # ---------------------------------------------------------------------------
 
+@requires_opik
 def test_end_to_end_dataset_and_experiment_round_trip_both_validate():
     dataset_items = [
         _dataset_item(question="What is the capital of France?", expected_answer="Paris"),
