@@ -26,6 +26,7 @@ from halumem_openeval_adapter import (
     to_openeval,
 )
 from openeval.validate import validate_result_set, validate_suite
+from openeval.types import OPENEVAL_VERSION
 
 FIXTURES = os.path.join(os.path.dirname(__file__), "fixtures")
 EVAL_RESULTS_PATH = os.path.join(FIXTURES, "synthetic_eval_results.json")
@@ -100,6 +101,7 @@ def test_no_hardcoded_default_model_name_leaks_through(eval_results):
 def test_to_openeval_output_passes_real_validate_suite(eval_results, operation):
     suite = to_openeval(eval_results, operation)
     result = validate_suite(suite)
+    assert suite["version"] == OPENEVAL_VERSION
     assert result.valid, result.errors
 
 
@@ -280,6 +282,7 @@ def test_stable_ids_match_between_suite_and_resultset(eval_results):
 def test_result_to_openeval_output_passes_real_validate_result_set(eval_results, operation):
     rs = result_to_openeval(eval_results, operation, suite_id=f"s_{operation}", run_id="r1")
     result = validate_result_set(rs)
+    assert rs["version"] == OPENEVAL_VERSION
     assert result.valid, result.errors
 
 
