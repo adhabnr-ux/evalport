@@ -56,6 +56,12 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
+try:
+    from openeval.types import OPENEVAL_VERSION
+except ImportError:  # pragma: no cover - evalport-sdk always required at runtime,
+    # but keep a sane fallback for static analysis / partial installs.
+    OPENEVAL_VERSION = "1.0.0"
+
 __all__ = [
     "to_openeval",
     "from_openeval",
@@ -213,7 +219,7 @@ def to_openeval(
         test_cases.append(test_case)
 
     suite: Dict[str, Any] = {
-        "version": "1.0.0",
+        "version": OPENEVAL_VERSION,
         "id": suite_id or f"lm_eval_{task_name}",
         "test_cases": test_cases,
     }
@@ -331,7 +337,7 @@ def result_to_openeval(
     total = len(results)
     passed_count = sum(1 for r in results if r["passed"])
     result_set: Dict[str, Any] = {
-        "version": "1.0.0",
+        "version": OPENEVAL_VERSION,
         "suite_id": suite_id,
         "run_id": run_id,
         "started_at": started_at,
