@@ -1,8 +1,9 @@
 # Community Integrations
 
-This page tracks real-world projects that have built, or are actively building
-in an open upstream PR, their **own** native support for EvalPort's test-case
-format, independently of this repository.
+This page tracks real-world projects that have built, or proposed in an
+upstream PR, their **own** native support for EvalPort's test-case format,
+independently of this repository. Each entry states whether that work merged.
+As of 2026-09-27 no entry here has merged.
 
 This is a different thing from [`adapters/`](../adapters/): those packages are
 `to_openeval()`/`from_openeval()` converters that EvalPort itself authors and
@@ -57,10 +58,13 @@ alongside the existing loaders. It's covered by
 `packages/ragbits-evaluate/tests/unit/test_dataloaders.py`, which checks both
 the field mapping and the `split`/`required_keys` defaults.
 
-As of this writing, PR #989 is open on `deepsense-ai/ragbits` and pending
-review — it has not yet merged. It's linked here as a genuine, independently
-written example of a project mapping its own data loader onto EvalPort's
-test-case field names; this entry will be updated if the PR's status changes.
+**Status (checked live against the GitHub API on 2026-09-27): PR #989 was
+closed without merging on 2026-09-10** (`merged: false`, `merged_at: null`).
+The proposal it followed, issue #986, was filed by the EvalPort maintainer and
+is still open. `EvalPortDataLoader` is therefore **not** part of ragbits. The
+entry stays here as a record of an independently written loader that mapped
+ragbits's own data loader onto EvalPort's test-case field names, not as a
+shipped integration.
 
 ---
 
