@@ -31,10 +31,18 @@ Discussion = "https://github.com/benchflow-ai/benchflow/issues/1072"
 # instead of only in a fake that mirrors last year's row shape. `benchflow`
 # requires Python >=3.12 (this adapter itself only needs 3.10+ -- it has no
 # import-time dependency on the `benchflow` package, only on the documented
-# shape of the JSON rows it writes), so the `test` extra is only
-# installable on 3.12+; CI runs it there. See README "Testing" for what a
-# <3.12 contributor should do instead.
-benchflow = ["benchflow>=0.7.6.dev0"]
+# shape of the JSON rows it writes). The requirement therefore carries a
+# python_version >= '3.12' marker: without it, `pip install ".[test]"` (or
+# `[benchflow]`) on 3.10/3.11 -- which this adapter supports -- fails outright
+# with "no matching distribution", because no benchflow release supports
+# those Pythons. With the marker, 3.10/3.11 installs succeed and the
+# real-benchflow tests skip themselves (HAS_BENCHFLOW in tests/). The floor
+# was previously the pre-release `>=0.7.6.dev0`, which also made pip pick
+# benchflow's nightly .devN builds over its stable releases; stable 0.7.6 is
+# on PyPI now. Verified 2026-09-27 on Python 3.12: 32/32 tests pass against
+# both benchflow==0.7.6 and benchflow==0.7.8 (latest stable). See README
+# "Testing".
+benchflow = ["benchflow>=0.7.6; python_version >= '3.12'"]
 test = ["pytest", "benchflow-openeval-adapter[benchflow]"]
 
 [tool.setuptools.packages.find]

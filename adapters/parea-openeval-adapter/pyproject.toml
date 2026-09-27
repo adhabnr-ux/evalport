@@ -24,7 +24,12 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/parea-openev
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
-parea = ["parea-ai>=0.2.220"]
+# `tqdm` works around an upstream packaging gap, not a need of this adapter
+# (which never imports tqdm): parea-ai==0.2.220 (latest as of 2026-09-27)
+# does `from tqdm import tqdm` in parea/experiment/experiment.py, reached from
+# `import parea`, but does not declare tqdm in its own dependencies -- so in
+# a fresh venv `import parea` raises ModuleNotFoundError: No module named 'tqdm'.
+parea = ["parea-ai>=0.2.220", "tqdm"]
 test = ["pytest", "parea-openeval-adapter[parea]"]
 
 [tool.setuptools.packages.find]

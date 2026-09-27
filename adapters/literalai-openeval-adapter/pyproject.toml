@@ -24,7 +24,16 @@ Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/literalai-op
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
 [project.optional-dependencies]
-test = ["pytest", "literalai>=0.1.300"]
+# Named, pinned extra per .github/CONTRIBUTING.md (test self-references it
+# rather than duplicating the version string). `requests` works around an
+# upstream packaging gap, not a need of this adapter (which never imports
+# requests or literalai at runtime): literalai==0.1.300 imports traceloop-sdk
+# at `import literalai` time, and traceloop-sdk==0.62.3 (latest as of
+# 2026-09-27) does `import requests` in traceloop/sdk/images/image_uploader.py
+# without declaring requests in its own dependencies -- so in a fresh venv
+# `import literalai` raises ModuleNotFoundError: No module named 'requests'.
+literalai = ["literalai>=0.1.300", "requests"]
+test = ["pytest", "literalai-openeval-adapter[literalai]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
