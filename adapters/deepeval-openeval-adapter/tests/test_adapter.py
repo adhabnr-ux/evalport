@@ -4,12 +4,21 @@ Runs against the real, installed `deepeval` package (LLMTestCase, ToolCall,
 RetrievedContextData, TestResult, MetricData, EvaluationResult -- no mocks,
 no reinvented stand-ins) and the real `openeval.validate` validators.
 """
+
+import importlib.util
 import pytest
 
-from deepeval.test_case import LLMTestCase, ToolCall
-from deepeval.test_case.llm_test_case import RetrievedContextData, ToolCallType
-from deepeval.evaluate.types import TestResult, EvaluationResult
-from deepeval.test_run.api import MetricData
+# Framework-dependent tests below are skipped (not failed) when deepeval
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_DEEPEVAL = importlib.util.find_spec("deepeval") is not None
+requires_deepeval = pytest.mark.skipif(not HAS_DEEPEVAL, reason="deepeval not installed")
+if HAS_DEEPEVAL:
+    from deepeval.test_case import LLMTestCase, ToolCall
+    from deepeval.test_case.llm_test_case import RetrievedContextData, ToolCallType
+    from deepeval.evaluate.types import TestResult, EvaluationResult
+    from deepeval.test_run.api import MetricData
 
 from openeval.validate import validate_suite, validate_result_set
 
@@ -100,11 +109,13 @@ def _test_result(name=None, index=0, metrics_data=_UNSET, success=True, **overri
 # ---------------------------------------------------------------------------
 
 class TestToOpeneval:
+    @requires_deepeval
     def test_basic_conversion_validates(self):
         suite = to_openeval([_basic_test_case()], suite_id="s1")
         result = validate_suite(suite)
         assert result.valid, result.errors
 
+    @requires_deepeval
     def test_basic_fields(self):
         suite = to_openeval([_basic_test_case()], suite_id="s1")
         tc = suite["test_cases"][0]
@@ -112,6 +123,7 @@ class TestToOpeneval:
         assert tc["id"] == "tc_0"
         assert tc["graders"] == ["gr_deepeval_metrics"]
 
+    @requires_deepeval
     def test_full_test_case_validates_and_maps_natively(self):
         suite = to_openeval([_full_test_case()], suite_id="s1")
         result = validate_suite(suite)
@@ -130,6 +142,7 @@ class TestToOpeneval:
         assert tc["expected_tools"] == ["search"]
         assert tc["tags"] == ["geography", "factual"]
 
+    @requires_deepeval
     def test_user_metadata_preserved_alongside_deepeval_namespace(self):
         suite = to_openeval([_full_test_case()], suite_id="s1")
         meta = suite["test_cases"][0]["metadata"]
@@ -143,6 +156,7 @@ class TestToOpeneval:
         assert meta["deepeval"]["name"] == "geo_fact_1"
         assert "identifier" in meta["deepeval"]
 
+    @requires_deepeval
     def test_full_tool_call_detail_preserved_in_metadata(self):
         suite = to_openeval([_full_test_case()], suite_id="s1")
         meta = suite["test_cases"][0]["metadata"]["deepeval"]
@@ -152,6 +166,7 @@ class TestToOpeneval:
         assert full["output"] == "Paris"
         assert full["type"] == "FUNCTION"  # ToolCallType enum serialized to plain string
 
+    @requires_deepeval
     def test_explicit_ids_override_name_and_index(self):
         suite = to_openeval(
             [_basic_test_case(), _full_test_case()],
@@ -161,17 +176,20 @@ class TestToOpeneval:
         ids = [tc["id"] for tc in suite["test_cases"]]
         assert ids == ["custom_a", "custom_b"]
 
+    @requires_deepeval
     def test_auto_id_falls_back_to_index_when_no_name(self):
         suite = to_openeval([_basic_test_case(), _basic_test_case()], suite_id="s1")
         ids = [tc["id"] for tc in suite["test_cases"]]
         assert ids == ["tc_0", "tc_1"]
 
+    @requires_deepeval
     def test_missing_input_raises(self):
         # LLMTestCase.input is a required str, but nothing stops a caller
         # from passing a falsy/empty one via **overrides.
         with pytest.raises(ValueError, match="no `input`"):
             to_openeval([_basic_test_case(input="")], suite_id="s1")
 
+    @requires_deepeval
     def test_custom_grader_id_and_handler(self):
         suite = to_openeval(
             [_basic_test_case()], suite_id="s1",
@@ -181,17 +199,20 @@ class TestToOpeneval:
         assert suite["graders"][0]["id"] == "gr_custom"
         assert suite["graders"][0]["params"]["handler"] == "deepeval:my_metrics"
 
+    @requires_deepeval
     def test_multiple_test_cases_share_one_grader_definition(self):
         suite = to_openeval([_basic_test_case(), _full_test_case()], suite_id="s1")
         assert len(suite["graders"]) == 1
         assert all(tc["graders"] == ["gr_deepeval_metrics"] for tc in suite["test_cases"])
 
+    @requires_deepeval
     def test_suite_name_defaults_and_can_be_overridden(self):
         default_suite = to_openeval([_basic_test_case()], suite_id="s1")
         assert "s1" in default_suite["name"]
         named_suite = to_openeval([_basic_test_case()], suite_id="s1", name="My Suite")
         assert named_suite["name"] == "My Suite"
 
+    @requires_deepeval
     def test_no_context_or_tools_omits_those_keys(self):
         suite = to_openeval([_basic_test_case()], suite_id="s1")
         tc = suite["test_cases"][0]
@@ -207,6 +228,7 @@ class TestToOpeneval:
 # ---------------------------------------------------------------------------
 
 class TestFromOpeneval:
+    @requires_deepeval
     def test_round_trip_basic(self):
         suite = to_openeval([_basic_test_case()], suite_id="s1")
         items = from_openeval(suite)
@@ -215,6 +237,7 @@ class TestFromOpeneval:
         tc = LLMTestCase(**items[0])
         assert tc.input == "What is the capital of France?"
 
+    @requires_deepeval
     def test_round_trip_full_reconstructs_a_real_llmtestcase(self):
         suite = to_openeval([_full_test_case()], suite_id="s1")
         items = from_openeval(suite)
@@ -266,6 +289,7 @@ class TestFromOpeneval:
 # ---------------------------------------------------------------------------
 
 class TestResultsToOpeneval:
+    @requires_deepeval
     def test_basic_conversion_validates(self):
         result_set = test_results_to_openeval(
             [_test_result()], suite_id="s1", run_id="run-1", started_at="2026-08-22T00:00:00Z",
@@ -273,6 +297,7 @@ class TestResultsToOpeneval:
         result = validate_result_set(result_set)
         assert result.valid, result.errors
 
+    @requires_deepeval
     def test_grader_result_fields(self):
         result_set = test_results_to_openeval(
             [_test_result()], suite_id="s1", run_id="run-1", started_at="2026-08-22T00:00:00Z",
@@ -283,6 +308,7 @@ class TestResultsToOpeneval:
         assert gr["passed"] is True
         assert gr["reason"] == "The output directly answers the query."
 
+    @requires_deepeval
     def test_score_clamped_above_one(self):
         tr = _test_result(metrics_data=[_metric_data(score=1.5)])
         result_set = test_results_to_openeval(
@@ -291,6 +317,7 @@ class TestResultsToOpeneval:
         assert result_set["results"][0]["grader_results"][0]["score"] == 1.0
         assert validate_result_set(result_set).valid
 
+    @requires_deepeval
     def test_score_clamped_below_zero(self):
         tr = _test_result(metrics_data=[_metric_data(score=-0.3)])
         result_set = test_results_to_openeval(
@@ -298,6 +325,7 @@ class TestResultsToOpeneval:
         )
         assert result_set["results"][0]["grader_results"][0]["score"] == 0.0
 
+    @requires_deepeval
     def test_none_score_preserved_as_null(self):
         tr = _test_result(metrics_data=[_metric_data(score=None, success=False)])
         result_set = test_results_to_openeval(
@@ -306,6 +334,7 @@ class TestResultsToOpeneval:
         assert result_set["results"][0]["grader_results"][0]["score"] is None
         assert validate_result_set(result_set).valid
 
+    @requires_deepeval
     def test_success_none_falls_back_to_score_threshold(self):
         md = _metric_data(score=0.7, success=None)
         tr = _test_result(metrics_data=[md])
@@ -321,6 +350,7 @@ class TestResultsToOpeneval:
         )
         assert result_set_low["results"][0]["grader_results"][0]["passed"] is False
 
+    @requires_deepeval
     def test_metric_metadata_preserved(self):
         md = _metric_data(
             threshold=0.5, strict_mode=True, evaluation_model="gpt-4o",
@@ -338,6 +368,7 @@ class TestResultsToOpeneval:
         assert meta["input_tokens"] == 120
         assert meta["output_tokens"] == 45
 
+    @requires_deepeval
     def test_metric_error_preserved(self):
         md = _metric_data(score=None, success=False, error="LLM judge call timed out")
         tr = _test_result(metrics_data=[md])
@@ -346,6 +377,7 @@ class TestResultsToOpeneval:
         )
         assert result_set["results"][0]["grader_results"][0]["metadata"]["error"] == "LLM judge call timed out"
 
+    @requires_deepeval
     def test_multiple_metrics_per_result(self):
         tr = _test_result(metrics_data=[
             _metric_data(name="Answer Relevancy", score=0.9, success=True),
@@ -360,6 +392,7 @@ class TestResultsToOpeneval:
         # recompute from the individual grader passes
         assert result_set["results"][0]["passed"] is True
 
+    @requires_deepeval
     def test_overall_passed_recomputed_when_test_result_success_is_none(self):
         tr = _test_result(
             success=None,
@@ -373,6 +406,7 @@ class TestResultsToOpeneval:
         )
         assert result_set["results"][0]["passed"] is False
 
+    @requires_deepeval
     def test_empty_metrics_data_becomes_runner_error(self):
         tr = _test_result(metrics_data=[])
         result_set = test_results_to_openeval(
@@ -384,6 +418,7 @@ class TestResultsToOpeneval:
         assert r["error"]["type"] == "runner_error"
         assert validate_result_set(result_set).valid
 
+    @requires_deepeval
     def test_none_metrics_data_becomes_runner_error(self):
         tr = _test_result(metrics_data=None)
         result_set = test_results_to_openeval(
@@ -391,6 +426,7 @@ class TestResultsToOpeneval:
         )
         assert result_set["results"][0]["error"]["type"] == "runner_error"
 
+    @requires_deepeval
     def test_accepts_evaluation_result_wrapper(self):
         eval_result = EvaluationResult(
             test_results=[_test_result()], confident_link=None, test_run_id="tr-1",
@@ -401,6 +437,7 @@ class TestResultsToOpeneval:
         assert len(result_set["results"]) == 1
         assert validate_result_set(result_set).valid
 
+    @requires_deepeval
     def test_explicit_ids_correlate_with_to_openeval(self):
         test_cases = [_basic_test_case(), _full_test_case()]
         ids = ["row_a", "row_b"]
@@ -413,6 +450,7 @@ class TestResultsToOpeneval:
         result_ids = {r["test_case_id"] for r in result_set["results"]}
         assert suite_ids == result_ids == {"row_a", "row_b"}
 
+    @requires_deepeval
     def test_auto_id_correlation_via_name_matches_to_openeval_default(self):
         # to_openeval() defaults an unnamed test case's id to tc_{i}; without
         # explicit ids, test_results_to_openeval() falls back to the same
@@ -427,6 +465,7 @@ class TestResultsToOpeneval:
         result_ids = [r["test_case_id"] for r in result_set["results"]]
         assert suite_ids == result_ids == ["tc_0", "tc_1"]
 
+    @requires_deepeval
     def test_actual_output_string_preserved(self):
         tr = _test_result(actual_output="Paris.")
         result_set = test_results_to_openeval(
@@ -434,6 +473,7 @@ class TestResultsToOpeneval:
         )
         assert result_set["results"][0]["actual_output"] == "Paris."
 
+    @requires_deepeval
     def test_multimodal_actual_output_list_is_joined(self):
         # TestResult.actual_output: Union[Optional[str], List[Union[str, MLLMImage]]]
         # -- a real, documented shape for multimodal DeepEval test cases.
@@ -443,6 +483,7 @@ class TestResultsToOpeneval:
         )
         assert result_set["results"][0]["actual_output"] == "The capital is Paris."
 
+    @requires_deepeval
     def test_summary_counts_and_avg_score(self):
         # TestResult.success is the overall record verdict, tracked
         # independently of each individual MetricData.success -- set both
@@ -461,17 +502,20 @@ class TestResultsToOpeneval:
         assert summary["pass_rate"] == 0.5
         assert summary["avg_score"] == 0.5
 
+    @requires_deepeval
     def test_started_at_defaults_when_omitted(self):
         result_set = test_results_to_openeval([_test_result()], suite_id="s1", run_id="run-1")
         assert result_set["started_at"]
         assert validate_result_set(result_set).valid
 
+    @requires_deepeval
     def test_completed_at_defaults_to_started_at(self):
         result_set = test_results_to_openeval(
             [_test_result()], suite_id="s1", run_id="run-1", started_at="2026-08-22T00:00:00Z",
         )
         assert result_set["completed_at"] == "2026-08-22T00:00:00Z"
 
+    @requires_deepeval
     def test_runner_info(self):
         result_set = test_results_to_openeval(
             [_test_result()], suite_id="s1", run_id="run-1", started_at="2026-08-22T00:00:00Z",
@@ -479,6 +523,7 @@ class TestResultsToOpeneval:
         )
         assert result_set["runner"] == {"name": "deepeval", "version": "4.1.10"}
 
+    @requires_deepeval
     def test_tr_metadata_preserved(self):
         tr = _test_result(metadata={"trace_id": "abc123"})
         result_set = test_results_to_openeval(
@@ -494,6 +539,7 @@ class TestResultsToOpeneval:
 # End-to-end: suite -> (simulated) run -> result set, fully validated
 # ---------------------------------------------------------------------------
 
+@requires_deepeval
 def test_end_to_end_suite_to_results_round_trip():
     test_cases = [_basic_test_case(), _full_test_case()]
     ids = ["case_1", "case_2"]
