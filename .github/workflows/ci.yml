@@ -285,6 +285,32 @@ jobs:
             exit 1
           fi
 
+  interop-examples:
+    # examples/interop/ -- three runnable demos that move real eval data
+    # between real frameworks (DeepEval, DSPy, Haystack) through their
+    # adapters, offline, and exit non-zero on any validation failure or
+    # undocumented field loss. Unlike adapter-tests' "min mode" above, this
+    # job installs the actual framework packages at the exact versions pinned
+    # in examples/interop/requirements.txt -- the point is to exercise the
+    # real LLMTestCase / dspy.Example / EvaluationRunResult classes, not
+    # stand-ins. No model or network calls: each demo blocks sockets itself.
+    # -p no:deepeval: deepeval ships a pytest plugin that isn't needed here.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install evalport-sdk, the three adapters, and the pinned frameworks
+        run: |
+          pip install -e sdk/python \
+            -e adapters/deepeval-openeval-adapter \
+            -e adapters/dspy-openeval-adapter \
+            -e adapters/haystack-openeval-adapter \
+            -r examples/interop/requirements.txt
+      - name: Run the interop demos
+        run: python -m pytest -p no:deepeval -p no:cacheprovider examples/interop/test_interop.py -v
+
   conformance-suite:
     # Discussion #9 / spec/conformance/ -- runs every portable fixture in
     # spec/conformance/fixtures/*.json through the real hand-rolled Python

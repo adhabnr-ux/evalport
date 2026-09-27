@@ -1,0 +1,11 @@
+# Exact framework versions the interop demos were run and tested against
+# (Python 3.11, 2026-09-27). The demos also need this repo's SDK and three
+# adapters installed from source -- see README.md / the interop-examples CI job:
+#   pip install -e sdk/python \
+#     -e adapters/deepeval-openeval-adapter \
+#     -e adapters/dspy-openeval-adapter \
+#     -e adapters/haystack-openeval-adapter
+deepeval==4.2.6
+dspy==3.4.0
+haystack-ai==3.2.0
+pytest==9.1.1

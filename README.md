@@ -12,6 +12,16 @@
 
 EvalPort is an open specification for portable LLM evaluation test cases, graders, suites, and results. It enables evaluation datasets to be shared across frameworks (DeepEval, Promptfoo, Ragas, Inspect AI, LangSmith, Braintrust, OpenAI Evals, MLflow) without loss of semantic fidelity.
 
+## See it work
+
+[`examples/interop/`](examples/interop/) has three offline, CI-tested scripts that run the real DeepEval, DSPy and Haystack packages:
+
+- [Dataset round trip](examples/interop/1_dataset_portability.py): benchmark suites to `LLMTestCase` / `dspy.Example` and back, with a field-level diff.
+- [Results round trip](examples/interop/2_results_portability.py): DeepEval `evaluate()` to ResultSet to Haystack and back; all per-case scores agree.
+- [Three frameworks, one table](examples/interop/3_cross_framework_comparison.py): the same outputs scored by three frameworks and joined with `ResultSet.group`.
+
+Each script prints what survives and what doesn't; the [README](examples/interop/README.md) lists every lossy field.
+
 ## Quick Start
 
 ```bash
