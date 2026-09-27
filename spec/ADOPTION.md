@@ -1,31 +1,39 @@
-# EvalPort — Adoption Strategy (Updated September 16, 2026)
+# EvalPort — Adoption Strategy (Updated September 27, 2026)
 
-## Status: Phase 3 — Four Merged Third-Party Integrations, One Pending on a CLA, 54 Shipped Adapters
+## Status: Phase 3 — One Docs Listing, Three Merged Upstream PRs (Two by the EvalPort Maintainer, One Bot-Generated from an EvalPort Issue), One Pending, 65 Adapters in This Repo
 
-Every claim below was re-verified live against GitHub and the package registries on 2026-09-16 while refreshing this document (not carried over from the August 16 snapshot, which had gone stale on several counts by the time this pass started).
+Every upstream status below was re-checked live against the GitHub API on 2026-09-27: PR `state`/`merged`/`merged_at`, issue state, and whether the merged files are present on the upstream default branch. The 2026-09-16 snapshot this replaces had drifted. It said Inspect AI filed EvalPort under `Tooling` (it is now under "Frameworks"), credited the IBM/ares approval to a reviewer who reviewed only the predecessor PR, and did not say who authored each merged change.
 
-### Merged Integrations
+**Read this first:** every merged upstream change below started with the EvalPort maintainer (@adhabnr-ux), either as the PR author or as the person who filed the originating issue. They are real, merged, and present on each project's `main`, but none is an independent adoption by the upstream project.
 
-- **Merged: IBM/ares#583** — `experimental-plugins/ares-openeval-adapter`, merged 2026-09-04, reviewed and approved by @nedshivina, all 22 CI checks green. Converts ARES attack goals and `AttackEval` output to/from EvalPort. This is EvalPort's first shipped integration into a named enterprise vendor's own repository (IBM's AI Robustness Evaluation System).
-- **Merged: MervinPraison/PraisonAI#4667** — native `to_evalport()`/`from_evalport()`/`report_to_evalport()` added directly to `praisonaiagents.eval` (the core package, not a separate adapter package), merged 2026-09-02 via the maintainers' own automated triage/merge pipeline. Zero new dependency on the core SDK.
-- **Merged: TIGER-AI-Lab/ClawBench#336** — `scripts/export_openeval.py`, merged 2026-09-08 after the maintainer (@Perry2004) specified where it should live (a script, not a package). ClawBench is a 750+-star open benchmark for browser AI agents.
-- **Merged: UKGovernmentBEIS/inspect_ai#4797** — "Add EvalPort to community extensions list," merged 2026-08-11 (unchanged since last update). EvalPort is listed in Inspect AI's official community extensions under `Tooling`.
+### Listed in Inspect AI's Community Extensions (docs listing, not a code integration)
 
-### Pending on a Human Action, Not on Us
+- **UKGovernmentBEIS/inspect_ai#4797** — "Add EvalPort to community extensions list," authored by @adhabnr-ux, merged 2026-08-11T16:30:26Z. It adds a six-line entry to `docs/extensions/extensions.yml`. On `main` today the entry is under `categories: ["Frameworks"]`; the PR proposed `Tooling`. The originating proposal (inspect_ai#4681, closed) asked for native `to_openeval()`/`from_openeval()` in Inspect AI; what landed is the docs listing only.
 
-- **truera/trulens#2757** (TruLens, owned by Snowflake) — a full `to_openeval()`/`from_openeval()` connector, 18/18 tests passing against real `trulens-core`. **Status correction from the last refresh of this document:** re-checked live on 2026-09-16 and the picture is not as clean as previously stated. GitHub currently reports this PR as `mergeable: false` / `mergeable_state: dirty` — it has drifted out of sync with `main` since the last push (2026-09-15) and needs a rebase before it can merge, independent of the CLA. The check list also currently shows `PR Validation Eval` and `PR Validation Eval (PRBranchProtect py311-static)` failing alongside `cla`; a prior comment thread on the PR (2026-09-05) diagnosed a different, then-isolated failure on `py310-static` as a pre-existing upstream bug unrelated to this PR's diff (filed and fixed upstream as truera/trulens#2764, closed 2026-09-10) — but the *current* `py311-static` failure has not yet been individually diagnosed and should not be assumed to be the same issue. The CLA is still the one blocker that specifically requires the repository owner to personally post a signed attestation — not something that can be done on their behalf — but it is no longer accurate to say the CLA is the *only* remaining blocker; a rebase and a fresh look at the failing checks are also needed.
+### Merged Upstream
 
-### Not Yet Resolved
+- **IBM/ares#583** — `experimental-plugins/ares-openeval-adapter`, **authored by @adhabnr-ux**, merged 2026-09-04T12:33:39Z, `review_decision: APPROVED`, 22/22 checks green. GitHub search matches #583 for `reviewed-by:stefano81`, not for `reviewed-by:nedshivina`; @nedshivina reviewed the predecessor #579 (closed unmerged) and is still listed as a requested reviewer on #583. The plugin converts ARES attack goals and `AttackEval` output to/from EvalPort. It is an optional community plugin under ARES's `experimental-plugins/` directory, not an IBM-authored integration. Present on `main`: `experimental-plugins/ares-openeval-adapter/pyproject.toml`.
+- **TIGER-AI-Lab/ClawBench#336** — `scripts/export_openeval.py`, **authored by @adhabnr-ux**, merged 2026-09-08T05:07:19Z. It resolves ClawBench#322 (filed by @adhabnr-ux, closed as completed). According to the PR description, it is a standalone script rather than a package because the maintainer asked for that. It is optional and adds no dependency to ClawBench. Present on `main`: `scripts/export_openeval.py`.
+- **MervinPraison/PraisonAI#4667** — `to_evalport()`/`from_evalport()`/`report_to_evalport()` in `praisonaiagents.eval` (`src/praisonai-agents/praisonaiagents/eval/evalport.py`, present on `main`). **Opened by `praisonai-triage-agent[bot]`**, the project's automated triage/merge pipeline, in response to PraisonAI#4275, an issue filed by @adhabnr-ux. Merged 2026-09-02T11:38:09Z with no human review recorded (`review_decision: null`). **Caveat:** the merged module uses its own field names (`evalport_version`, `kind`, `cases`, `case_id`, `suite_name`), not the spec's (`version`, `id`, `test_cases`, `test_case_id`, `suite_id`, `run_id`, `started_at`). A suite and a ResultSet built exactly as that module builds them both fail `evalport-sdk`'s `validate_suite()`/`validate_result_set()` (checked in this pass). So this is a merged module named after EvalPort, but it does not yet emit spec-conformant EvalPort.
 
-- **microsoft/autogen#8009** — an OpenEval adapter opened by an independent community contributor (@DresdenGman, not affiliated with this project), still open and in draft, `review_decision: REVIEW_REQUIRED`, no maintainer activity since 2026-08-22. Nothing actionable from our side; noting it here rather than dropping it from tracking.
+### Open, Not Merged
 
-### Shipped Framework Adapters: 54
+- **truera/trulens#2757** (TruLens, owned by Snowflake) — a `to_openeval()`/`from_openeval()` connector, **authored by @adhabnr-ux**. The PR description reports 17/17 of its tests passing against real `trulens-core`. Live state on 2026-09-27: `state: open`, `merged: false`, `mergeable: false` / `mergeable_state: dirty` (needs a rebase onto `main`), `review_decision: REVIEW_REQUIRED`, and 3 failing checks: `PR Validation Eval`, `PR Validation Eval (PRBranchProtect py311-static)`, and `cla`. The maintainer approval was given on its predecessor **truera/trulens#2697**, which was closed without merging on 2026-09-02 when its branch was recreated. #2757 has not been approved yet. The CLA has to be signed by the repository owner personally; the rebase and the two failing CI checks also have to be fixed. (An earlier `py310-static` failure was traced to a pre-existing upstream bug, filed as truera/trulens#2764 and closed as completed on 2026-09-10. The current `py311-static` failure has not been diagnosed and should not be assumed to be the same issue.)
+- **harbor-framework/terminal-bench-science#1652** — `tools/tbscience-openeval-adapter`, **authored by @adhabnr-ux**, following a scope agreed in discussion #1600. Live state: `state: open`, `merged: false`, `review_decision: REVIEW_REQUIRED`. It has no approving review (search `review:approved` returns nothing); the maintainer has commented. Earlier README wording called it "approved," which was not accurate.
+- **microsoft/autogen#8009** — an OpenEval adapter opened by an independent community contributor (@DresdenGman, not affiliated with this project). Still open and still a draft, `review_decision: REVIEW_REQUIRED`, last updated 2026-08-22. The issue it addresses, autogen#8005, is also still open. Nothing actionable from our side.
 
-Real, installable packages under `adapters/<name>-openeval-adapter/` in this repo (pyproject.toml depending on `evalport-sdk`, `to_openeval()`/`from_openeval()`, tests run against the real validator, README) — verified by listing the directory live on 2026-09-16, not carried over from an earlier count. This is up from 20 at the last snapshot (2026-08-16).
+### Proposed and Closed Without Merging
+
+- **openai/openai-python#3619** — OpenEval import/export helpers written by an independent contributor (@SparshGarg999). **Closed without merging on 2026-08-25** (`merged: false`, `merged_at: null`). The originating proposal, openai-python#3549 (filed by @adhabnr-ux), was closed as "not planned" the same day. CONTRIBUTORS.md used to describe this as built "directly into" openai-python; it never shipped.
+- **deepsense-ai/ragbits#989** — an `EvalPortDataLoader` written by ragbits maintainer @mikemikimike after a proposal in ragbits#986 (filed by @adhabnr-ux, still open). **Closed without merging on 2026-09-10.** `docs/community-integrations.md` used to list it as open and pending review.
+
+### Framework Adapters in This Repo: 65
+
+Installable packages under `adapters/` in this repo (65 directories on `main` as of 2026-09-27; up from 54 on 2026-09-16). Each has a `pyproject.toml` depending on `evalport-sdk`, `to_openeval()`/`from_openeval()`, and its own test suite, which CI's adapter job runs against the real validator. 62 were written by the EvalPort maintainer and 3 by external contributors (see CONTRIBUTORS.md). They are converters maintained by this project, built against each framework's public data shapes. They are not integrations shipped by, or adopted by, those frameworks.
 
 ### Published Packages
 
-Verified live against the registries on 2026-09-16 (not assumed):
+Re-checked live against the registries on 2026-09-27 (unchanged since 2026-09-16):
 
 | Package | Registry | Live version |
 |---------|----------|---------------|
@@ -37,11 +45,11 @@ Verified live against the registries on 2026-09-16 (not assumed):
 
 ### Collaborators
 
-Live as of 2026-09-16: [SparshGarg999](https://github.com/SparshGarg999) holds `write` access (accepted, unchanged since 2026-08-16). The [DresdenGman](https://github.com/DresdenGman) invitation referenced in the last snapshot is no longer showing as pending in a live collaborator check — recorded here as a state change rather than silently dropped; the reason for the change (declined, expired, or something else) hasn't been independently confirmed.
+As of 2026-09-16 (not re-checked in the 2026-09-27 pass): [SparshGarg999](https://github.com/SparshGarg999) holds `write` access (accepted, unchanged since 2026-08-16). The [DresdenGman](https://github.com/DresdenGman) invitation referenced in the last snapshot is no longer showing as pending in a live collaborator check — recorded here as a state change rather than silently dropped; the reason for the change (declined, expired, or something else) hasn't been independently confirmed.
 
 ### Outreach Volume
 
-A live GitHub search for issues authored by this project mentioning "evalport" or "openeval" (`author:adhabnr-ux is:issue evalport OR openeval in:title,body`) returns **691** results as of this refresh, up from 151 at the last snapshot. This number is an activity count, not a success metric — most of these are individual outreach threads across many repositories, the large majority of which end in a decline, a "not now," or no reply at all, which is the normal shape of unsolicited technical outreach. The four merged integrations and the one CLA-pending integration above are the actual signal; this count is included only because the last version of this document tracked it and dropping a previously-tracked number silently would be worse than keeping it with this caveat attached.
+A live GitHub search for issues authored by this project mentioning "evalport" or "openeval" (`author:adhabnr-ux is:issue evalport OR openeval in:title,body`) returned **691** results on 2026-09-16 (not re-run in the 2026-09-27 pass), up from 151 at the snapshot before that. This number is an activity count, not a success metric — most of these are individual outreach threads across many repositories, the large majority of which end in a decline, a "not now," or no reply at all, which is the normal shape of unsolicited technical outreach. The merged changes and the open TruLens PR above are the actual signal, with the authorship caveats stated there; this count is included only because the last version of this document tracked it and dropping a previously-tracked number silently would be worse than keeping it with this caveat attached.
 
 ### Social Media (unchanged since August 16; not re-verified this pass)
 - Hacker News: https://news.ycombinator.com/item?id=49105771
@@ -50,8 +58,9 @@ A live GitHub search for issues authored by this project mentioning "evalport" o
 - Reddit: blocked (karma requirements) as of last check
 
 ### Next Steps
-1. Rebase truera/trulens#2757 onto current `main` and re-diagnose the `py311-static` failure (don't assume it's the same issue as the now-fixed `py310-static`/#2764 bug). Sign the TruLens CLA (repository owner only — this is a personal legal attestation of authorship, not something a session working on the owner's behalf can post). Both are needed before this can merge.
+1. Rebase truera/trulens#2757 onto current `main`, then diagnose the `PR Validation Eval` and `py311-static` failures (don't assume it's the same issue as the now-fixed `py310-static`/#2764 bug). Sign the TruLens CLA (repository owner only — this is a personal legal attestation of authorship, not something a session working on the owner's behalf can post). Both are needed before this can merge.
 2. Once truera/trulens#2757 merges, promote the spec from release-candidate to 1.0.0 final, per `CRITIQUE.md`'s own stated release criterion.
 3. Republish `evalport-cli` on npm so it matches the SDK's 1.3.1 line.
 4. No action pending on microsoft/autogen#8009; watch for maintainer review activity rather than re-pinging a contributor who isn't us.
 5. Re-run the `author:adhabnr-ux is:issue evalport OR openeval` search periodically and continue reading every reply in full before responding, per the standing "never fabricate a maintainer's stance" rule.
+6. Decide whether to offer PraisonAI a follow-up PR that makes `praisonaiagents.eval.evalport` emit spec-valid Suites/ResultSets. It does not today (see the caveat above). Until it does, do not describe that module as producing EvalPort output.

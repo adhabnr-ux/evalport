@@ -2,6 +2,8 @@
 
 *Send these manually from Gmail — original emails were sent July 29*
 
+> **Archived drafts, dated 2026-07-31. The statuses in them are as of that date.** "We now have a draft PR open on Microsoft's AutoGen" refers to microsoft/autogen#8009, which was opened by an independent contributor (@DresdenGman), not by this project. As of 2026-09-27 it is still an open, unmerged draft. The Inspect AI discussion ended in a docs listing (UKGovernmentBEIS/inspect_ai#4797), not a native integration. Current status: [`spec/ADOPTION.md`](../spec/ADOPTION.md).
+
 ---
 
 ## Follow-up 1: Jeffrey Ip (DeepEval)
