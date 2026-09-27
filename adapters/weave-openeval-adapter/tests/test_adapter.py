@@ -16,6 +16,7 @@ requires_weave = pytest.mark.skipif(not HAS_WEAVE, reason="weave not installed")
 if HAS_WEAVE:
     import weave
 from openeval.validate import validate_result_set, validate_suite
+from openeval.types import OPENEVAL_VERSION
 
 from weave_openeval_adapter import evaluation_to_openeval, from_openeval, to_openeval
 
@@ -51,6 +52,7 @@ class TestToOpenEval:
     def test_converts_real_weave_dataset(self):
         suite = to_openeval(_dataset(), suite_id="grammar_suite")
         result = validate_suite(suite)
+        assert suite["version"] == OPENEVAL_VERSION
         assert result.valid, result.errors
 
     def test_accepts_plain_row_iterable_not_just_weave_dataset(self):
@@ -195,6 +197,7 @@ class TestEvaluationToOpenEval:
             started_at="2026-08-14T00:00:00Z",
         )
         assert validate_result_set(rs).valid
+        assert rs["version"] == OPENEVAL_VERSION
         assert rs["results"][0]["passed"] is True
         assert rs["results"][2]["passed"] is False
         assert rs["results"][2]["grader_results"][0]["score"] == 0.0
