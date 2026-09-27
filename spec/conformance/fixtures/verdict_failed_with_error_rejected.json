@@ -1,0 +1,29 @@
+{
+  "description": "PROPOSED (Discussion #49), not yet finalized. verdict: \"failed\" alongside error is rejected (VERDICT_ERROR_CONFLICT). error means the harness produced no usable result, so no outcome can have been judged; \"failed\" asserts that one was. With error present, verdict MUST be absent or \"unverified\". This is the strict starting point on purpose: relaxing it later (for example, if 'provably never reached the provider' should count as failed) is backward compatible, tightening it later would not be. Expressed in spec/schemas/resultset.json with if/then/const, so the raw JSON Schema and both hand-rolled validators all reject this document. A conforming validator MUST REJECT it.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.results[0].verdict"
+    ]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "sk-group-chat-orchestration",
+    "run_id": "run-49-error-conflict",
+    "started_at": "2026-09-27T06:40:00Z",
+    "results": [
+      {
+        "test_case_id": "refund_policy_summary",
+        "passed": false,
+        "verdict": "failed",
+        "grader_results": [],
+        "error": {
+          "type": "provider_error",
+          "message": "HTTP 503 from provider",
+          "retryable": true
+        }
+      }
+    ]
+  }
+}

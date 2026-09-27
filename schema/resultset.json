@@ -148,6 +148,11 @@
             "type": "boolean",
             "description": "Overall pass/fail (all graders passed)."
           },
+          "verdict": {
+            "type": "string",
+            "enum": ["passed", "failed", "unverified"],
+            "description": "PROPOSED (Discussion #49), not yet finalized. Whether this Result's outcome was actually established, one level above Validation Rule 6's per-grader score: null. \"passed\" and \"failed\" mean the outcome was judged (verified passing / verified failing); \"unverified\" means the run reached some terminal state but its outcome could not be judged -- it may or may not have happened (@soul-sol's FAILED vs UNVERIFIED distinction). \"passed\" requires passed: true; \"failed\" and \"unverified\" require passed: false (VERDICT_PASSED_MISMATCH). When error is present, verdict MUST be absent or \"unverified\" (VERDICT_ERROR_CONFLICT). Unlike an error row, an \"unverified\" row MUST NOT be dropped from result-level denominators, and consumers SHOULD report an unverified rate alongside pass rate. Absent means not declared: consumers interpret the Result exactly as before this field existed. See Extension Mechanism -> Verified vs. Unverified Outcomes."
+          },
           "duration_ms": {
             "type": "integer",
             "description": "Execution time in milliseconds.",
@@ -173,7 +178,24 @@
             "additionalProperties": true
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "description": "PROPOSED (Discussion #49): verdict \"passed\" requires passed: true (VERDICT_PASSED_MISMATCH). A conditional against a constant, so expressible here with if/then/const -- no $data needed.",
+            "if": { "required": ["verdict"], "properties": { "verdict": { "const": "passed" } } },
+            "then": { "properties": { "passed": { "const": true } } }
+          },
+          {
+            "description": "PROPOSED (Discussion #49): verdict \"failed\" or \"unverified\" requires passed: false (VERDICT_PASSED_MISMATCH).",
+            "if": { "required": ["verdict"], "properties": { "verdict": { "enum": ["failed", "unverified"] } } },
+            "then": { "properties": { "passed": { "const": false } } }
+          },
+          {
+            "description": "PROPOSED (Discussion #49): when error is present, verdict MUST be absent or \"unverified\" (VERDICT_ERROR_CONFLICT). A harness error means no usable result was produced, so no outcome can have been verified.",
+            "if": { "required": ["error", "verdict"] },
+            "then": { "properties": { "verdict": { "const": "unverified" } } }
+          }
+        ]
       }
     },
     "summary": {

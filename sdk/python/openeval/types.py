@@ -14,6 +14,9 @@ OPENEVAL_VERSION = "1.0.0-rc.5"
 
 GraderType = Literal["exact_match","contains","regex","semantic_similarity","llm_judge","json_schema","json_path","code","human","model graded","custom"]
 
+# PROPOSED in Discussion #49, not yet finalized. See Result.verdict below.
+Verdict = Literal["passed","failed","unverified"]
+
 @dataclass
 class Grader:
     id: str
@@ -74,6 +77,22 @@ class Result:
     attempt: Optional[int] = None
     error: Optional[Dict[str, Any]] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
+    # PROPOSED in Discussion #49 (FAILED vs UNVERIFIED), not yet finalized --
+    # see that discussion for the design this is a reference implementation of.
+    # Whether this Result's outcome was actually established: "passed"/"failed"
+    # mean it was judged, "unverified" means the run reached a terminal state
+    # that could not be judged (it may or may not have happened -- @soul-sol's
+    # framing). This is the Result-level counterpart of Validation Rule 6's
+    # per-grader `score: None` ("not verified"); neither is derivable from the
+    # other. Rules: "passed" requires passed=True, "failed"/"unverified" require
+    # passed=False (VERDICT_PASSED_MISMATCH); with `error` present only
+    # "unverified" is allowed (VERDICT_ERROR_CONFLICT). None means not declared
+    # -- consumers read the Result exactly as before. Note that a serializer
+    # MUST omit the key rather than emit `"verdict": null`, which both
+    # validation paths reject. See spec/SPEC.md Extension Mechanism ->
+    # Verified vs. Unverified Outcomes. Declared last so positional construction
+    # of Result (..., attempt, error, metadata) keeps working unchanged.
+    verdict: Optional[Verdict] = None
 
 @dataclass
 class ResultSet:

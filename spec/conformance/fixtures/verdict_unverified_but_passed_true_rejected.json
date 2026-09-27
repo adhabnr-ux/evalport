@@ -1,0 +1,31 @@
+{
+  "description": "PROPOSED (Discussion #49), not yet finalized. verdict: \"unverified\" with passed: true is rejected (VERDICT_PASSED_MISMATCH): an outcome that could not be judged can never be reported as a pass. \"passed\" requires passed: true; \"failed\" and \"unverified\" require passed: false. Unlike SELF_PARENT or DUPLICATE_ATTEMPT, this cross-field rule is a conditional against a constant, so spec/schemas/resultset.json expresses it directly (allOf with if/then/const): the raw JSON Schema and both hand-rolled validators all reject this document. A conforming validator MUST REJECT it.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.results[0].verdict"
+    ]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "sk-group-chat-orchestration",
+    "run_id": "run-49-mismatch",
+    "started_at": "2026-09-27T06:30:00Z",
+    "results": [
+      {
+        "test_case_id": "refund_policy_summary",
+        "passed": true,
+        "verdict": "unverified",
+        "grader_results": [
+          {
+            "grader_id": "gr_final_answer",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      }
+    ]
+  }
+}

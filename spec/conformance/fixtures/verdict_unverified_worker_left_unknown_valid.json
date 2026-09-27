@@ -1,0 +1,42 @@
+{
+  "description": "PROPOSED (Discussion #49), not yet finalized. @soul-sol's grounding case for FAILED vs UNVERIFIED: a multi-agent orchestration whose final answer grades correctly, but one participant ended in the 'unknown' terminal state -- alive, no output, no question. Per his framing, two orchestrations that both 'answered' where one left a worker in unknown are not equivalent runs, and a result-string grader scores them identically. The grader_results stay truthful (the answer string really did match), passed is false, and verdict: \"unverified\" records that the run's outcome was not established -- it may or may not have happened. The per-participant terminal states live in metadata under a producer-chosen key: this proposal deliberately does not standardize that vocabulary (soul-sol's comment uses finished / needs-input / unknown, while his soul-sol/agent-watch worker_watch.sh prints RUNNING / DONE / FAILED / STALL). A conforming validator MUST ACCEPT this document; both the raw JSON Schema and the hand-rolled validators do.",
+  "type": "resultset",
+  "expect": {
+    "valid": true
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "sk-group-chat-orchestration",
+    "run_id": "run-49-worker-unknown",
+    "started_at": "2026-09-27T06:00:00Z",
+    "results": [
+      {
+        "test_case_id": "refund_policy_summary",
+        "actual_output": "Refunds are issued within 14 days of a return being received.",
+        "passed": false,
+        "verdict": "unverified",
+        "grader_results": [
+          {
+            "grader_id": "gr_final_answer",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ],
+        "metadata": {
+          "terminal_states": {
+            "writer": {
+              "state": "finished",
+              "exit_code": 0,
+              "source": "launcher-recorded exit file"
+            },
+            "reviewer": {
+              "state": "unknown",
+              "detail": "process alive, no output, no question surfaced"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

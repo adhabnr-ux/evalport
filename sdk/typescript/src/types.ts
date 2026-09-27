@@ -22,6 +22,9 @@ export type GraderType =
   | "model graded"
   | "custom";
 
+// PROPOSED in Discussion #49, not yet finalized. See Result.verdict below.
+export type Verdict = "passed" | "failed" | "unverified";
+
 export interface ProviderConfig {
   model?: string;
   api_base?: string;
@@ -109,6 +112,19 @@ export interface Result {
   // repeated trials -- see Discussion #22 / spec/SPEC.md Extension Mechanism ->
   // Repetition & Attempt Tracking.
   attempt?: number;
+  // PROPOSED in Discussion #49 (FAILED vs UNVERIFIED), not yet finalized --
+  // see that discussion for the design this is a reference implementation of.
+  // Whether this Result's outcome was actually established: "passed"/"failed"
+  // mean it was judged, "unverified" means the run reached a terminal state
+  // that could not be judged (it may or may not have happened -- @soul-sol's
+  // framing). This is the Result-level counterpart of Validation Rule 6's
+  // per-grader `score: null` ("not verified"); neither is derivable from the
+  // other. Rules: "passed" requires passed=true, "failed"/"unverified" require
+  // passed=false (VERDICT_PASSED_MISMATCH); with `error` present only
+  // "unverified" is allowed (VERDICT_ERROR_CONFLICT). Absent means not
+  // declared -- consumers read the Result exactly as before. See spec/SPEC.md
+  // Extension Mechanism -> Verified vs. Unverified Outcomes.
+  verdict?: Verdict;
   error?: {
     type: "timeout" | "provider_error" | "runner_error";
     message?: string;

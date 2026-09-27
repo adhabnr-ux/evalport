@@ -465,3 +465,70 @@ describe("resultset: group (Discussion #45, proposed) agrees", () => {
     expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Result.verdict (Discussion #49, PROPOSED -- FAILED vs UNVERIFIED).
+// Unlike SELF_PARENT / DUPLICATE_ATTEMPT, both verdict cross-field rules are
+// conditionals against constants, so the raw JSON Schema expresses them with
+// allOf + if/then/const (the same technique @MSKazemi showed for
+// CONSTRAINT_INVALIDATES_PASS on PR #48). This block checks the two paths
+// agree on the FULL truth table: verdict (absent, the three values, an unknown
+// string, null, a number) x passed (true/false) x error (absent/present).
+// Mirrors sdk/python/tests/test_schema_consistency.py's verdict section.
+// No intentional divergence.
+// ---------------------------------------------------------------------------
+
+describe("resultset: verdict (Discussion #49, proposed) agrees on the full truth table", () => {
+  const ABSENT = Symbol("absent");
+  const verdictValues: unknown[] = [ABSENT, "passed", "failed", "unverified", "unknown", null, 1];
+  const cases: [unknown, boolean, boolean][] = [];
+  for (const v of verdictValues) for (const passed of [true, false]) for (const hasError of [false, true]) cases.push([v, passed, hasError]);
+
+  function expectedValid(verdict: unknown, passed: boolean, hasError: boolean): boolean {
+    if (verdict === ABSENT) return true;
+    if (verdict !== "passed" && verdict !== "failed" && verdict !== "unverified") return false;
+    if ((verdict === "passed") !== passed) return false;
+    if (hasError && verdict !== "unverified") return false;
+    return true;
+  }
+
+  function verdictDoc(verdict: unknown, passed: boolean, hasError: boolean) {
+    const result: Record<string, unknown> = {
+      test_case_id: "tc1",
+      grader_results: [{ grader_id: "g1", type: "exact_match", score: 0.9, passed: true }],
+      passed,
+    };
+    if (verdict !== ABSENT) result.verdict = verdict;
+    if (hasError) result.error = { type: "timeout", message: "no terminal event" };
+    return { version: "1.0.0", suite_id: "s1", run_id: "run1", started_at: "2026-08-16T00:00:00Z", results: [result] };
+  }
+
+  test("truth table has 28 cases, 8 valid", () => {
+    expect(cases.length).toBe(28);
+    expect(cases.filter(([v, p, e]) => expectedValid(v, p, e)).length).toBe(8);
+  });
+
+  for (const [verdict, passed, hasError] of cases) {
+    const label = `verdict=${verdict === ABSENT ? "absent" : JSON.stringify(verdict)},passed=${passed},error=${hasError}`;
+    test(label, () => {
+      const doc = verdictDoc(verdict, passed, hasError);
+      const expected = expectedValid(verdict, passed, hasError);
+      expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(expected);
+      expect(validateResultSet(doc).valid, "hand-rolled").toBe(expected);
+    });
+  }
+
+  test("the rules live in the JSON Schema itself (allOf if/then/const), not hand-rolled only", () => {
+    const item = resultsetSchema.properties.results.items;
+    expect(item.properties.verdict.enum).toEqual(["passed", "failed", "unverified"]);
+    const conds = (item.allOf as any[]).map(c => ({ if: c.if, then: c.then }));
+    expect(conds).toContainEqual({ if: { required: ["error", "verdict"] }, then: { properties: { verdict: { const: "unverified" } } } });
+  });
+
+  test("misspelled key rejected by JSON Schema only (additionalProperties: false)", () => {
+    const doc = verdictDoc(ABSENT, false, false);
+    (doc.results[0] as Record<string, unknown>).verdikt = "unverified";
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(false);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+  });
+});

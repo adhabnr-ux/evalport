@@ -8,6 +8,9 @@ const STANDARD_GRADER_TYPES: ReadonlySet<string> = new Set([
   "json_schema", "json_path", "code", "human", "model graded", "custom",
 ]);
 
+// Result.verdict values -- PROPOSED in Discussion #49, not yet finalized.
+const VERDICTS: ReadonlySet<string> = new Set(["passed", "failed", "unverified"]);
+
 // Full semver 2.0.0 pattern (https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions).
 // Was previously hardcoded to accept only "X.Y.Z" or "X.Y.Z-draft" -- rejected legitimate
 // prerelease versions like "1.0.0-rc.1" or "1.1.0-beta.2", which is what this project's own
@@ -262,6 +265,34 @@ export function validateResultSet(r: unknown): ValidationResult {
             errors.push(err(`$.results[${i}].attempt`, `duplicate (test_case_id, run_id, attempt): ${key}`, "DUPLICATE_ATTEMPT"));
           } else {
             seenAttempts.add(key);
+          }
+        }
+      }
+
+      // Discussion #49 (PROPOSED): optional Result.verdict, the Result-level
+      // "was an outcome actually established" axis (@soul-sol's FAILED vs
+      // UNVERIFIED). Absent is a no-op. Unlike attempt/group, an explicit null
+      // is NOT treated as absent: the JSON Schema's enum rejects null, and both
+      // paths must agree. Both cross-field rules below are conditionals against
+      // constants, so spec/schemas/resultset.json expresses them too (allOf with
+      // if/then/const) -- not hand-rolled-only like SELF_PARENT. `undefined` is
+      // treated as absent because it is not a JSON value (JSON.stringify drops
+      // the key), so it is the TypeScript spelling of "key omitted".
+      if (x.verdict !== undefined) {
+        const verdict = x.verdict;
+        if (typeof verdict !== "string" || !VERDICTS.has(verdict)) {
+          errors.push(err(`$.results[${i}].verdict`, "must be one of passed|failed|unverified", "INVALID_VALUE"));
+        } else {
+          const passed = x.passed;
+          if (typeof passed === "boolean") {
+            if (verdict === "passed" && passed !== true) {
+              errors.push(err(`$.results[${i}].verdict`, 'verdict "passed" requires passed: true', "VERDICT_PASSED_MISMATCH"));
+            } else if (verdict !== "passed" && passed !== false) {
+              errors.push(err(`$.results[${i}].verdict`, `verdict "${verdict}" requires passed: false`, "VERDICT_PASSED_MISMATCH"));
+            }
+          }
+          if (x.error !== undefined && x.error !== null && verdict !== "unverified") {
+            errors.push(err(`$.results[${i}].verdict`, 'verdict must be absent or "unverified" when error is present', "VERDICT_ERROR_CONFLICT"));
           }
         }
       }

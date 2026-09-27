@@ -716,3 +716,158 @@ test("validateDocument dispatches by type", () => {
   expect(validateDocument({id:"tc1",input:"hi",graders:["g1"]}, "testcase").valid).toBe(true);
   expect(() => validateDocument({}, "bogus" as unknown as "suite").valid).toThrow();
 });
+
+// --- Discussion #49 (PROPOSED): Result.verdict -- FAILED vs UNVERIFIED ---
+// @soul-sol: FAILED ("provably didn't happen", safe to re-run) versus
+// UNVERIFIED ("may have happened, couldn't judge"). Optional Result.verdict,
+// orthogonal to `error` and to Rule 6's per-grader `score: null`. Mirrors
+// sdk/python/tests/test_validate.py's verdict section test-for-test.
+
+function rsWithResults(results: unknown[]) {
+  return { version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-01T00:00:00Z", results };
+}
+function gr(score: number | null = 1.0, passed = true, grader_id = "g1") {
+  return { grader_id, type: "exact_match", score, passed };
+}
+function codesAt(r: ReturnType<typeof validateResultSet>, path: string): string[] {
+  return r.errors.filter(e => e.path === path).map(e => e.code);
+}
+
+test("verdict absent is valid and unchanged (backward compatibility)", () => {
+  const rs = rsWithResults([
+    { test_case_id: "tc1", passed: true, grader_results: [gr()] },
+    { test_case_id: "tc2", passed: false, grader_results: [gr(0.0, false)] },
+  ]);
+  const r = validateResultSet(rs);
+  expect(r.valid).toBe(true);
+  expect(rs.results.every(x => !("verdict" in (x as object)))).toBe(true);
+});
+
+test("each verdict value is valid with a consistent passed", () => {
+  for (const [verdict, passed] of [["passed", true], ["failed", false], ["unverified", false]] as const) {
+    const r = validateResultSet(rsWithResults([{ test_case_id: "tc1", passed, verdict, grader_results: [gr(passed ? 1.0 : 0.0, passed)] }]));
+    expect(r.valid, verdict).toBe(true);
+  }
+});
+
+test("verdict passed with passed false rejected (VERDICT_PASSED_MISMATCH)", () => {
+  const r = validateResultSet(rsWithResults([{ test_case_id: "tc1", passed: false, verdict: "passed", grader_results: [gr()] }]));
+  expect(r.valid).toBe(false);
+  expect(codesAt(r, "$.results[0].verdict")).toEqual(["VERDICT_PASSED_MISMATCH"]);
+  expect(r.errors.some(e => e.message === 'verdict "passed" requires passed: true')).toBe(true);
+});
+
+test("verdict failed with passed true rejected (VERDICT_PASSED_MISMATCH)", () => {
+  const r = validateResultSet(rsWithResults([{ test_case_id: "tc1", passed: true, verdict: "failed", grader_results: [gr()] }]));
+  expect(r.valid).toBe(false);
+  expect(codesAt(r, "$.results[0].verdict")).toEqual(["VERDICT_PASSED_MISMATCH"]);
+  expect(r.errors.some(e => e.message === 'verdict "failed" requires passed: false')).toBe(true);
+});
+
+test("verdict unverified with passed true rejected -- couldn't judge is never a pass", () => {
+  const r = validateResultSet(rsWithResults([{ test_case_id: "tc1", passed: true, verdict: "unverified", grader_results: [gr()] }]));
+  expect(r.valid).toBe(false);
+  expect(codesAt(r, "$.results[0].verdict")).toEqual(["VERDICT_PASSED_MISMATCH"]);
+  expect(r.errors.some(e => e.message === 'verdict "unverified" requires passed: false')).toBe(true);
+});
+
+test("unknown verdict string rejected (INVALID_VALUE)", () => {
+  for (const bad of ["unknown", "UNVERIFIED", "", "needs-input"]) {
+    const r = validateResultSet(rsWithResults([{ test_case_id: "tc1", passed: false, verdict: bad, grader_results: [gr(0.0, false)] }]));
+    expect(r.valid, bad).toBe(false);
+    expect(codesAt(r, "$.results[0].verdict"), bad).toEqual(["INVALID_VALUE"]);
+  }
+});
+
+test("non-string verdict rejected (INVALID_VALUE)", () => {
+  for (const bad of [true, false, 0, 1, ["unverified"], { v: "failed" }]) {
+    const r = validateResultSet(rsWithResults([{ test_case_id: "tc1", passed: false, verdict: bad, grader_results: [gr(0.0, false)] }]));
+    expect(r.valid, JSON.stringify(bad)).toBe(false);
+    expect(codesAt(r, "$.results[0].verdict")).toEqual(["INVALID_VALUE"]);
+  }
+});
+
+test("explicit null verdict rejected, unlike attempt (JSON Schema enum rejects null too)", () => {
+  const r = validateResultSet(rsWithResults([{ test_case_id: "tc1", passed: false, verdict: null, grader_results: [gr(0.0, false)] }]));
+  expect(r.valid).toBe(false);
+  expect(codesAt(r, "$.results[0].verdict")).toEqual(["INVALID_VALUE"]);
+});
+
+test("undefined verdict is treated as absent (not a JSON value)", () => {
+  const r = validateResultSet(rsWithResults([{ test_case_id: "tc1", passed: false, verdict: undefined, grader_results: [gr(0.0, false)] }]));
+  expect(r.valid).toBe(true);
+});
+
+test("verdict unverified with error is valid -- the timeout-on-a-worker-that-may-have-acted case", () => {
+  const r = validateResultSet(rsWithResults([{
+    test_case_id: "tc1", passed: false, verdict: "unverified",
+    error: { type: "timeout", message: "no terminal event within 600000 ms" }, grader_results: [],
+  }]));
+  expect(r.valid).toBe(true);
+});
+
+test("verdict failed with error rejected (VERDICT_ERROR_CONFLICT)", () => {
+  const r = validateResultSet(rsWithResults([{ test_case_id: "tc1", passed: false, verdict: "failed", error: { type: "provider_error" }, grader_results: [] }]));
+  expect(r.valid).toBe(false);
+  expect(codesAt(r, "$.results[0].verdict")).toEqual(["VERDICT_ERROR_CONFLICT"]);
+  expect(r.errors.some(e => e.message === 'verdict must be absent or "unverified" when error is present')).toBe(true);
+});
+
+test("verdict passed with error rejected (VERDICT_ERROR_CONFLICT)", () => {
+  const r = validateResultSet(rsWithResults([{ test_case_id: "tc1", passed: true, verdict: "passed", error: { type: "runner_error" }, grader_results: [gr()] }]));
+  expect(r.valid).toBe(false);
+  expect(codesAt(r, "$.results[0].verdict")).toEqual(["VERDICT_ERROR_CONFLICT"]);
+});
+
+test("both verdict rules reported independently", () => {
+  const r = validateResultSet(rsWithResults([{ test_case_id: "tc1", passed: true, verdict: "failed", error: { type: "timeout" }, grader_results: [gr()] }]));
+  expect(codesAt(r, "$.results[0].verdict").sort()).toEqual(["VERDICT_ERROR_CONFLICT", "VERDICT_PASSED_MISMATCH"]);
+});
+
+test("error without verdict still valid", () => {
+  expect(validateResultSet(rsWithResults([{ test_case_id: "tc1", passed: false, error: { type: "timeout" }, grader_results: [] }])).valid).toBe(true);
+});
+
+test("verdict with missing passed reports only REQUIRED on passed", () => {
+  const r = validateResultSet(rsWithResults([{ test_case_id: "tc1", verdict: "failed", grader_results: [] }]));
+  expect(r.valid).toBe(false);
+  expect(codesAt(r, "$.results[0].passed")).toEqual(["REQUIRED"]);
+  expect(codesAt(r, "$.results[0].verdict")).toEqual([]);
+});
+
+test("verdict unverified with all-null scores is valid (Rule 6 lifted to the Result)", () => {
+  expect(validateResultSet(rsWithResults([{ test_case_id: "tc1", passed: false, verdict: "unverified", grader_results: [gr(null, false, "g1"), gr(null, false, "g2")] }])).valid).toBe(true);
+});
+
+test("verdict unverified with passing graders is valid (worker left alive, no output, no question)", () => {
+  expect(validateResultSet(rsWithResults([{
+    test_case_id: "tc1", passed: false, verdict: "unverified", grader_results: [gr(1.0, true)],
+    metadata: { terminal_states: { planner: "finished", writer: "unknown" } },
+  }])).valid).toBe(true);
+});
+
+test("verdict failed with all-null scores is not rejected (spec SHOULD only)", () => {
+  expect(validateResultSet(rsWithResults([{ test_case_id: "tc1", passed: false, verdict: "failed", grader_results: [gr(null, false)] }])).valid).toBe(true);
+});
+
+test("verdict checks are per-Result with per-Result paths", () => {
+  const r = validateResultSet(rsWithResults([
+    { test_case_id: "tc1", passed: true, verdict: "passed", grader_results: [gr()] },
+    { test_case_id: "tc2", passed: true, verdict: "unverified", grader_results: [gr()] },
+    { test_case_id: "tc3", passed: false, grader_results: [gr(0.0, false)] },
+    { test_case_id: "tc4", passed: false, verdict: "maybe", grader_results: [gr(0.0, false)] },
+  ]));
+  expect(r.valid).toBe(false);
+  expect(new Set(r.errors.map(e => e.path))).toEqual(new Set(["$.results[1].verdict", "$.results[3].verdict"]));
+});
+
+test("verdict composes with attempt to give an unverified rate", () => {
+  const rows = ([["passed", true], ["unverified", false], ["failed", false], ["unverified", false]] as const).map(([verdict, passed], n) => ({
+    test_case_id: "tc1", attempt: n + 1, passed, verdict, grader_results: [gr(passed ? 1.0 : 0.0, passed)],
+  }));
+  const rs = rsWithResults(rows);
+  expect(validateResultSet(rs).valid).toBe(true);
+  const unverified = rows.filter(x => x.verdict === "unverified").length;
+  expect([rows.length, rows.filter(x => x.passed).length, unverified]).toEqual([4, 1, 2]);
+  expect(unverified / rows.length).toBe(0.5);
+});

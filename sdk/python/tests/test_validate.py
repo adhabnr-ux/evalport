@@ -594,3 +594,175 @@ def test_group_three_level_nesting_matches_mlflow_grandparent_parent_child_shape
         cur = by_group_id[cur["group"]["parent_group_id"]]
         chain.append(cur["group"]["group_id"])
     assert chain == ["trial-003", "sweep-lr-grid", "campaign-2026-09-08"]
+
+
+# --- Discussion #49 (PROPOSED): Result.verdict -- FAILED vs UNVERIFIED ---
+# @soul-sol: FAILED ("provably didn't happen", safe to re-run) versus
+# UNVERIFIED ("may have happened, couldn't judge"). Optional Result.verdict,
+# orthogonal to `error` and to Rule 6's per-grader `score: null`.
+
+def _rs_with_results(results):
+    return {"version": "1.0.0", "suite_id": "s", "run_id": "r",
+            "started_at": "2026-01-01T00:00:00Z", "results": results}
+
+def _gr(score=1.0, passed=True, grader_id="g1"):
+    return {"grader_id": grader_id, "type": "exact_match", "score": score, "passed": passed}
+
+def _codes(result, path):
+    return [e["code"] for e in result.errors if e["path"] == path]
+
+def test_verdict_absent_is_valid_and_unchanged():
+    # Backward compatibility: every Result produced before this proposal.
+    rs = _rs_with_results([
+        {"test_case_id": "tc1", "passed": True, "grader_results": [_gr()]},
+        {"test_case_id": "tc2", "passed": False, "grader_results": [_gr(0.0, False)]},
+    ])
+    r = validate_result_set(rs)
+    assert r.valid, r.errors
+    assert all("verdict" not in x for x in rs["results"])
+
+def test_verdict_each_value_valid_with_consistent_passed():
+    for verdict, passed in (("passed", True), ("failed", False), ("unverified", False)):
+        rs = _rs_with_results([{"test_case_id": "tc1", "passed": passed, "verdict": verdict,
+                                "grader_results": [_gr(1.0 if passed else 0.0, passed)]}])
+        r = validate_result_set(rs)
+        assert r.valid, (verdict, r.errors)
+
+def test_verdict_passed_with_passed_false_rejected():
+    rs = _rs_with_results([{"test_case_id": "tc1", "passed": False, "verdict": "passed", "grader_results": [_gr()]}])
+    r = validate_result_set(rs)
+    assert not r.valid
+    assert _codes(r, "$.results[0].verdict") == ["VERDICT_PASSED_MISMATCH"]
+    assert any(e["message"] == 'verdict "passed" requires passed: true' for e in r.errors)
+
+def test_verdict_failed_with_passed_true_rejected():
+    rs = _rs_with_results([{"test_case_id": "tc1", "passed": True, "verdict": "failed", "grader_results": [_gr()]}])
+    r = validate_result_set(rs)
+    assert not r.valid
+    assert _codes(r, "$.results[0].verdict") == ["VERDICT_PASSED_MISMATCH"]
+    assert any(e["message"] == 'verdict "failed" requires passed: false' for e in r.errors)
+
+def test_verdict_unverified_with_passed_true_rejected():
+    # "Couldn't judge" can never be reported as a pass.
+    rs = _rs_with_results([{"test_case_id": "tc1", "passed": True, "verdict": "unverified", "grader_results": [_gr()]}])
+    r = validate_result_set(rs)
+    assert not r.valid
+    assert _codes(r, "$.results[0].verdict") == ["VERDICT_PASSED_MISMATCH"]
+    assert any(e["message"] == 'verdict "unverified" requires passed: false' for e in r.errors)
+
+def test_verdict_unknown_value_rejected():
+    for bad in ("unknown", "UNVERIFIED", "", "needs-input"):
+        rs = _rs_with_results([{"test_case_id": "tc1", "passed": False, "verdict": bad, "grader_results": [_gr(0.0, False)]}])
+        r = validate_result_set(rs)
+        assert not r.valid, bad
+        assert _codes(r, "$.results[0].verdict") == ["INVALID_VALUE"], bad
+
+def test_verdict_non_string_rejected():
+    for bad in (True, False, 0, 1, ["unverified"], {"v": "failed"}):
+        rs = _rs_with_results([{"test_case_id": "tc1", "passed": False, "verdict": bad, "grader_results": [_gr(0.0, False)]}])
+        r = validate_result_set(rs)
+        assert not r.valid, bad
+        assert _codes(r, "$.results[0].verdict") == ["INVALID_VALUE"], bad
+
+def test_verdict_explicit_null_rejected_unlike_attempt():
+    # Deliberately stricter than attempt/group (where None is treated as
+    # absent): the JSON Schema's enum rejects null, and both paths must agree.
+    rs = _rs_with_results([{"test_case_id": "tc1", "passed": False, "verdict": None, "grader_results": [_gr(0.0, False)]}])
+    r = validate_result_set(rs)
+    assert not r.valid
+    assert _codes(r, "$.results[0].verdict") == ["INVALID_VALUE"]
+
+def test_verdict_unverified_with_error_is_valid():
+    # The canonical case: the harness timed out on a worker that may already
+    # have acted. error says how it ended; verdict says the outcome is unknown.
+    rs = _rs_with_results([{"test_case_id": "tc1", "passed": False, "verdict": "unverified",
+                            "error": {"type": "timeout", "message": "no terminal event within 600000 ms"},
+                            "grader_results": []}])
+    r = validate_result_set(rs)
+    assert r.valid, r.errors
+
+def test_verdict_failed_with_error_rejected():
+    rs = _rs_with_results([{"test_case_id": "tc1", "passed": False, "verdict": "failed",
+                            "error": {"type": "provider_error"}, "grader_results": []}])
+    r = validate_result_set(rs)
+    assert not r.valid
+    assert _codes(r, "$.results[0].verdict") == ["VERDICT_ERROR_CONFLICT"]
+    assert any(e["message"] == 'verdict must be absent or "unverified" when error is present' for e in r.errors)
+
+def test_verdict_passed_with_error_rejected():
+    rs = _rs_with_results([{"test_case_id": "tc1", "passed": True, "verdict": "passed",
+                            "error": {"type": "runner_error"}, "grader_results": [_gr()]}])
+    r = validate_result_set(rs)
+    assert not r.valid
+    assert _codes(r, "$.results[0].verdict") == ["VERDICT_ERROR_CONFLICT"]
+
+def test_verdict_both_rules_reported_independently():
+    # error + verdict "failed" + passed true breaks both rules; both are reported.
+    rs = _rs_with_results([{"test_case_id": "tc1", "passed": True, "verdict": "failed",
+                            "error": {"type": "timeout"}, "grader_results": [_gr()]}])
+    r = validate_result_set(rs)
+    assert sorted(_codes(r, "$.results[0].verdict")) == ["VERDICT_ERROR_CONFLICT", "VERDICT_PASSED_MISMATCH"]
+
+def test_error_without_verdict_still_valid():
+    rs = _rs_with_results([{"test_case_id": "tc1", "passed": False,
+                            "error": {"type": "timeout"}, "grader_results": []}])
+    assert validate_result_set(rs).valid
+
+def test_verdict_with_missing_passed_reports_only_required():
+    # The cross-field check is skipped when passed itself is malformed; the
+    # REQUIRED error on passed already covers it.
+    rs = _rs_with_results([{"test_case_id": "tc1", "verdict": "failed", "grader_results": []}])
+    r = validate_result_set(rs)
+    assert not r.valid
+    assert _codes(r, "$.results[0].passed") == ["REQUIRED"]
+    assert _codes(r, "$.results[0].verdict") == []
+
+def test_verdict_unverified_with_all_null_scores_is_valid():
+    # Rule 6 per-grader "not verified" lifted to the Result: the RECOMMENDED
+    # (not required) verdict when no grader produced a score.
+    rs = _rs_with_results([{"test_case_id": "tc1", "passed": False, "verdict": "unverified",
+                            "grader_results": [_gr(None, False, "g1"), _gr(None, False, "g2")]}])
+    assert validate_result_set(rs).valid
+
+def test_verdict_unverified_with_passing_graders_is_valid():
+    # soul-sol's case: the final answer grades fine, but a participant was left
+    # alive with no output and no question, so the run's outcome is not
+    # established. Graders stay truthful; the Result is not a pass.
+    rs = _rs_with_results([{"test_case_id": "tc1", "passed": False, "verdict": "unverified",
+                            "grader_results": [_gr(1.0, True)],
+                            "metadata": {"terminal_states": {"planner": "finished", "writer": "unknown"}}}])
+    assert validate_result_set(rs).valid
+
+def test_verdict_failed_with_all_null_scores_is_not_rejected():
+    # Only a SHOULD in the spec text (a failure can be established without a
+    # scored grader, e.g. by a constraint check), so the validator accepts it.
+    rs = _rs_with_results([{"test_case_id": "tc1", "passed": False, "verdict": "failed",
+                            "grader_results": [_gr(None, False)]}])
+    assert validate_result_set(rs).valid
+
+def test_verdict_per_result_independence_and_paths():
+    rs = _rs_with_results([
+        {"test_case_id": "tc1", "passed": True, "verdict": "passed", "grader_results": [_gr()]},
+        {"test_case_id": "tc2", "passed": True, "verdict": "unverified", "grader_results": [_gr()]},
+        {"test_case_id": "tc3", "passed": False, "grader_results": [_gr(0.0, False)]},
+        {"test_case_id": "tc4", "passed": False, "verdict": "maybe", "grader_results": [_gr(0.0, False)]},
+    ])
+    r = validate_result_set(rs)
+    assert not r.valid
+    assert {e["path"] for e in r.errors} == {"$.results[1].verdict", "$.results[3].verdict"}
+
+def test_verdict_composes_with_attempt_to_give_an_unverified_rate():
+    # Repeated trials (Discussion #22) with a per-row verdict give the
+    # cross-runtime metric soul-sol named directly: how often a run leaves you
+    # unable to tell. Unverified rows stay in the denominator.
+    results = []
+    for n, (verdict, passed) in enumerate([("passed", True), ("unverified", False), ("failed", False), ("unverified", False)], start=1):
+        results.append({"test_case_id": "tc1", "attempt": n, "passed": passed, "verdict": verdict,
+                        "grader_results": [_gr(1.0 if passed else 0.0, passed)]})
+    rs = _rs_with_results(results)
+    assert validate_result_set(rs).valid
+    total = len(rs["results"])
+    unverified = sum(1 for x in rs["results"] if x.get("verdict") == "unverified")
+    passed = sum(1 for x in rs["results"] if x["passed"])
+    assert (total, passed, unverified) == (4, 1, 2)
+    assert unverified / total == 0.5
