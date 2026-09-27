@@ -13,9 +13,19 @@ Every suite/result_set produced here is validated against the real openeval.vali
 not a hand-rolled schema check.
 """
 
+import importlib.util
+
 import pytest
-from athina.loaders.loader import DataPoint
-from athina.interfaces.result import EvalResult
+
+# Framework-dependent tests below are skipped (not failed) when athina
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_ATHINA = importlib.util.find_spec("athina") is not None
+requires_athina = pytest.mark.skipif(not HAS_ATHINA, reason="athina not installed")
+if HAS_ATHINA:
+    from athina.loaders.loader import DataPoint
+    from athina.interfaces.result import EvalResult
 
 from openeval.validate import validate_suite, validate_result_set
 
@@ -90,22 +100,26 @@ def _llm_eval_result(*, failure, reason, model="gpt-4-1106-preview", runtime=842
 # ---------------------------------------------------------------------------
 
 
+@requires_athina
 def test_to_openeval_one_test_case_per_data_point():
     suite = to_openeval(_does_response_answer_query_data(), "does_response_answer_query")
     assert len(suite["test_cases"]) == 2
 
 
+@requires_athina
 def test_to_openeval_query_becomes_input():
     suite = to_openeval(_does_response_answer_query_data(), "does_response_answer_query")
     assert suite["test_cases"][0]["input"] == "What is the capital of France?"
     assert suite["test_cases"][1]["input"] == "How do I reset my password?"
 
 
+@requires_athina
 def test_to_openeval_default_suite_id_derived_from_eval_name():
     suite = to_openeval(_does_response_answer_query_data(), "does_response_answer_query")
     assert suite["id"] == "athina-does_response_answer_query"
 
 
+@requires_athina
 def test_to_openeval_explicit_suite_id_and_name():
     suite = to_openeval(
         _does_response_answer_query_data(),
@@ -117,12 +131,14 @@ def test_to_openeval_explicit_suite_id_and_name():
     assert suite["name"] == "My Suite"
 
 
+@requires_athina
 def test_to_openeval_context_becomes_single_item_context_list():
     suite = to_openeval(_faithfulness_data(), "faithfulness")
     tc0 = suite["test_cases"][0]
     assert tc0["context"] == ["3M has increased its dividend for 65 consecutive years."]
 
 
+@requires_athina
 def test_to_openeval_expected_response_becomes_expected_output():
     suite = to_openeval(_faithfulness_data(), "faithfulness")
     assert suite["test_cases"][0]["expected_output"] == "Yes, 3M has a 65-year streak of dividend increases."
@@ -130,6 +146,7 @@ def test_to_openeval_expected_response_becomes_expected_output():
     assert "expected_output" not in suite["test_cases"][1]
 
 
+@requires_athina
 def test_to_openeval_faithfulness_uses_response_as_input_since_no_query_exists():
     # Faithfulness's required_args is ["context", "response"] -- there is no query key.
     suite = to_openeval(_faithfulness_data(), "faithfulness")
@@ -138,6 +155,7 @@ def test_to_openeval_faithfulness_uses_response_as_input_since_no_query_exists()
     assert tc0["metadata"]["athina.input_synthesized_from_response"] is True
 
 
+@requires_athina
 def test_to_openeval_custom_grader_response_only_flags_synthesized_input():
     data = _custom_grader_data()
     suite = to_openeval(data, "custom_grader")
@@ -146,6 +164,7 @@ def test_to_openeval_custom_grader_response_only_flags_synthesized_input():
         assert tc["input"] == entry["response"]
 
 
+@requires_athina
 def test_to_openeval_context_contains_enough_information_query_is_real_input_no_synthesis_flag():
     suite = to_openeval(
         _context_contains_enough_information_data(), "context_contains_enough_information"
@@ -155,6 +174,7 @@ def test_to_openeval_context_contains_enough_information_query_is_real_input_no_
     assert "metadata" not in tc0 or not tc0["metadata"].get("athina.input_synthesized_from_response")
 
 
+@requires_athina
 def test_to_openeval_extra_args_preserved_in_metadata():
     data = [DataPoint(response="42", grading_criteria="Must be numeric")]
     suite = to_openeval(data, "custom_grader")
@@ -163,6 +183,7 @@ def test_to_openeval_extra_args_preserved_in_metadata():
     }
 
 
+@requires_athina
 def test_to_openeval_single_grader_with_custom_type_and_handler():
     suite = to_openeval(_does_response_answer_query_data(), "does_response_answer_query")
     assert len(suite["graders"]) == 1
@@ -172,12 +193,14 @@ def test_to_openeval_single_grader_with_custom_type_and_handler():
     assert grader["params"]["handler"] == "does_response_answer_query"
 
 
+@requires_athina
 def test_to_openeval_all_test_cases_reference_the_single_grader():
     suite = to_openeval(_faithfulness_data(), "faithfulness")
     for tc in suite["test_cases"]:
         assert tc["graders"] == ["gr_faithfulness"]
 
 
+@requires_athina
 def test_to_openeval_explicit_ids():
     suite = to_openeval(
         _does_response_answer_query_data(),
@@ -187,6 +210,7 @@ def test_to_openeval_explicit_ids():
     assert [tc["id"] for tc in suite["test_cases"]] == ["case-a", "case-b"]
 
 
+@requires_athina
 def test_to_openeval_default_ids_are_positional():
     suite = to_openeval(_does_response_answer_query_data(), "does_response_answer_query")
     assert [tc["id"] for tc in suite["test_cases"]] == ["tc_0", "tc_1"]
@@ -197,6 +221,7 @@ def test_to_openeval_rejects_empty_data():
         to_openeval([], "does_response_answer_query")
 
 
+@requires_athina
 def test_to_openeval_rejects_mismatched_ids_length():
     with pytest.raises(ValueError, match="ids has"):
         to_openeval(_does_response_answer_query_data(), "does_response_answer_query", ids=["only_one"])
@@ -207,6 +232,7 @@ def test_to_openeval_rejects_entry_with_neither_query_nor_response():
         to_openeval([{"context": "some context, no response or query"}], "faithfulness")
 
 
+@requires_athina
 def test_to_openeval_produces_spec_valid_suite_for_every_real_evaluator_shape():
     cases = [
         (_does_response_answer_query_data(), "does_response_answer_query"),
@@ -225,6 +251,7 @@ def test_to_openeval_produces_spec_valid_suite_for_every_real_evaluator_shape():
 # ---------------------------------------------------------------------------
 
 
+@requires_athina
 def test_result_to_openeval_one_result_per_data_point():
     data = _does_response_answer_query_data()
     eval_results = [
@@ -238,6 +265,7 @@ def test_result_to_openeval_one_result_per_data_point():
     assert len(rs["results"]) == 2
 
 
+@requires_athina
 def test_result_to_openeval_pass_maps_to_score_1_and_passed_true():
     data = _does_response_answer_query_data()[:1]
     eval_results = [_llm_eval_result(failure=False, reason="Directly answers the query.")]
@@ -251,6 +279,7 @@ def test_result_to_openeval_pass_maps_to_score_1_and_passed_true():
     assert rs["results"][0]["passed"] is True
 
 
+@requires_athina
 def test_result_to_openeval_fail_maps_to_score_0_and_passed_false():
     data = _does_response_answer_query_data()[1:2]
     eval_results = [_llm_eval_result(failure=True, reason="Off-topic response.")]
@@ -263,6 +292,7 @@ def test_result_to_openeval_fail_maps_to_score_0_and_passed_false():
     assert gr["passed"] is False
 
 
+@requires_athina
 def test_result_to_openeval_carries_real_reason_text():
     data = _does_response_answer_query_data()[:1]
     eval_results = [_llm_eval_result(failure=False, reason="The response directly and completely answers the user's question about France's capital.")]
@@ -273,6 +303,7 @@ def test_result_to_openeval_carries_real_reason_text():
     assert "directly and completely answers" in rs["results"][0]["grader_results"][0]["reason"]
 
 
+@requires_athina
 def test_result_to_openeval_actual_output_is_the_real_response():
     data = _does_response_answer_query_data()[:1]
     eval_results = [_llm_eval_result(failure=False, reason="ok")]
@@ -283,6 +314,7 @@ def test_result_to_openeval_actual_output_is_the_real_response():
     assert rs["results"][0]["actual_output"] == "Paris is the capital of France."
 
 
+@requires_athina
 def test_result_to_openeval_none_entry_becomes_explicit_error_not_silent_pass_or_fail():
     data = _does_response_answer_query_data()
     eval_results = [_llm_eval_result(failure=False, reason="ok"), None]
@@ -297,6 +329,7 @@ def test_result_to_openeval_none_entry_becomes_explicit_error_not_silent_pass_or
     assert errored["grader_results"][0]["metadata"]["athina.errored"] is True
 
 
+@requires_athina
 def test_result_to_openeval_summary_counts_are_accurate():
     data = _does_response_answer_query_data() * 2  # 4 entries
     eval_results = [
@@ -318,6 +351,7 @@ def test_result_to_openeval_summary_counts_are_accurate():
     assert summary["avg_score"] == pytest.approx((1.0 + 0.0 + 1.0) / 3)
 
 
+@requires_athina
 def test_result_to_openeval_rejects_mismatched_lengths():
     with pytest.raises(ValueError, match="data has"):
         result_to_openeval(
@@ -331,6 +365,7 @@ def test_result_to_openeval_rejects_empty_data():
         result_to_openeval([], [], "does_response_answer_query", suite_id="s", run_id="r1", started_at="2026-08-22T00:00:00Z")
 
 
+@requires_athina
 def test_result_to_openeval_produces_spec_valid_result_set():
     data = _does_response_answer_query_data()
     eval_results = [
@@ -346,6 +381,7 @@ def test_result_to_openeval_produces_spec_valid_result_set():
     assert result.valid, result.errors
 
 
+@requires_athina
 def test_result_to_openeval_produces_spec_valid_result_set_with_errored_entry():
     data = _does_response_answer_query_data()
     eval_results = [_llm_eval_result(failure=False, reason="ok"), None]
@@ -362,6 +398,7 @@ def test_result_to_openeval_produces_spec_valid_result_set_with_errored_entry():
 # ---------------------------------------------------------------------------
 
 
+@requires_athina
 def test_from_openeval_reconstructs_query_and_expected_response():
     suite = to_openeval(_faithfulness_data(), "faithfulness")
     entries = from_openeval(suite)
@@ -371,6 +408,7 @@ def test_from_openeval_reconstructs_query_and_expected_response():
     assert "query" not in entries[0]
 
 
+@requires_athina
 def test_from_openeval_real_query_is_recovered_when_not_synthesized():
     suite = to_openeval(
         _context_contains_enough_information_data(), "context_contains_enough_information"
@@ -379,6 +417,7 @@ def test_from_openeval_real_query_is_recovered_when_not_synthesized():
     assert entries[0]["query"] == "Does CVS Health pay a quarterly dividend?"
 
 
+@requires_athina
 def test_from_openeval_never_includes_a_response_key():
     suite = to_openeval(_does_response_answer_query_data(), "does_response_answer_query")
     entries = from_openeval(suite)
@@ -403,6 +442,7 @@ def test_from_openeval_context_list_joins_back_to_single_string():
     assert entries[0]["context"] == "first paragraph\n\nsecond paragraph"
 
 
+@requires_athina
 def test_from_openeval_extra_args_round_trip_back_into_kwargs():
     data = [DataPoint(response="42", grading_criteria="Must be numeric")]
     suite = to_openeval(data, "custom_grader")
@@ -410,6 +450,7 @@ def test_from_openeval_extra_args_round_trip_back_into_kwargs():
     assert entries[0]["grading_criteria"] == "Must be numeric"
 
 
+@requires_athina
 def test_from_openeval_attaches_test_case_id_for_result_mapping():
     suite = to_openeval(_does_response_answer_query_data(), "does_response_answer_query", ids=["a", "b"])
     entries = from_openeval(suite)
@@ -432,6 +473,7 @@ def test_from_openeval_rejects_suite_with_no_test_cases():
         from_openeval({"version": "1.0.0", "id": "s", "test_cases": []})
 
 
+@requires_athina
 def test_full_round_trip_to_openeval_then_result_to_openeval_stays_spec_valid():
     data = _faithfulness_data()
     suite = to_openeval(data, "faithfulness", suite_id="rt-suite")
