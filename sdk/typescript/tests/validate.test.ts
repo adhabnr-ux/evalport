@@ -716,3 +716,109 @@ test("validateDocument dispatches by type", () => {
   expect(validateDocument({id:"tc1",input:"hi",graders:["g1"]}, "testcase").valid).toBe(true);
   expect(() => validateDocument({}, "bogus" as unknown as "suite").valid).toThrow();
 });
+
+// --- Issue #58 (proposed): rate-based GraderResult denominators (trials/successes) ---
+// Reference implementation for the RFC promoted from issue #58 (raised by
+// @sattyamjjain via NVIDIA/garak#2110): "An attempt outcome without its benign
+// floor is not readable, because 0/5 and 0/500 both serialise as 0.0."
+// Mirrors sdk/python/tests/test_validate.py's issue-#58 section case-for-case.
+
+function rateGrader(overrides: Record<string, unknown> = {}) {
+  return { grader_id: "gr_attack_success", type: "custom", score: 0.0, passed: false, ...overrides };
+}
+function rsWithGraderResult(gr: Record<string, unknown>, runId = "run-58") {
+  return {
+    version: "1.0.0",
+    suite_id: "robot-vla-redteam",
+    run_id: runId,
+    started_at: "2026-09-22T05:00:00Z",
+    results: [{ test_case_id: "attack_001", passed: false, grader_results: [gr] }],
+  };
+}
+
+test("trials/successes absent still validates unchanged (backward compat)", () => {
+  const rs = rsWithGraderResult(rateGrader());
+  expect(validateResultSet(rs).valid).toBe(true);
+  expect("trials" in rs.results[0].grader_results[0]).toBe(false);
+});
+
+test("trials only is valid", () => {
+  expect(validateResultSet(rsWithGraderResult(rateGrader({ trials: 500 }))).valid).toBe(true);
+});
+
+test("trials + successes consistent with score is valid", () => {
+  expect(validateResultSet(rsWithGraderResult(rateGrader({ score: 0.75, passed: true, trials: 4, successes: 3 }))).valid).toBe(true);
+  expect(validateResultSet(rsWithGraderResult(rateGrader({ score: 1.0, passed: true, trials: 12, successes: 12 }))).valid).toBe(true);
+  // Floating-point tolerance: 1/3 as a truncated decimal literal still passes.
+  expect(validateResultSet(rsWithGraderResult(rateGrader({ score: 0.3333333, trials: 3, successes: 1 }))).valid).toBe(true);
+});
+
+test("0/5 and 0/500 no longer serialize identically", () => {
+  const noisy = rateGrader({ trials: 5, successes: 0 });
+  const supported = rateGrader({ grader_id: "gr_attack_success_large_n", trials: 500, successes: 0 });
+  expect(noisy.score).toBe(supported.score);
+  expect(JSON.stringify(noisy)).not.toBe(JSON.stringify(supported));
+  const rs = rsWithGraderResult(noisy);
+  rs.results[0].grader_results.push(supported);
+  expect(validateResultSet(rs).valid).toBe(true);
+});
+
+test("successes without trials rejected (REQUIRED at ...trials)", () => {
+  const r = validateResultSet(rsWithGraderResult(rateGrader({ successes: 0 })));
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e =>
+    e.path === "$.results[0].grader_results[0].trials" && e.code === "REQUIRED" && e.message === "required when successes is present"
+  )).toBe(true);
+});
+
+test("successes > trials rejected (SUCCESSES_EXCEED_TRIALS), without a second RATE_SCORE_MISMATCH", () => {
+  const r = validateResultSet(rsWithGraderResult(rateGrader({ score: 1.0, trials: 5, successes: 7 })));
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.results[0].grader_results[0].successes" && e.code === "SUCCESSES_EXCEED_TRIALS")).toBe(true);
+  expect(r.errors.some(e => e.code === "RATE_SCORE_MISMATCH")).toBe(false);
+});
+
+test("score inconsistent with successes/trials rejected (RATE_SCORE_MISMATCH at ...score)", () => {
+  const r = validateResultSet(rsWithGraderResult(rateGrader({ score: 0.5, trials: 5, successes: 1 })));
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.results[0].grader_results[0].score" && e.code === "RATE_SCORE_MISMATCH")).toBe(true);
+});
+
+test("trials 0 rejected (OUT_OF_RANGE)", () => {
+  const r = validateResultSet(rsWithGraderResult(rateGrader({ trials: 0 })));
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.results[0].grader_results[0].trials" && e.code === "OUT_OF_RANGE")).toBe(true);
+});
+
+test("negative successes rejected (OUT_OF_RANGE)", () => {
+  const r = validateResultSet(rsWithGraderResult(rateGrader({ trials: 5, successes: -1 })));
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.results[0].grader_results[0].successes" && e.code === "OUT_OF_RANGE")).toBe(true);
+});
+
+test("boolean trials/successes rejected (TYPE_ERROR)", () => {
+  let r = validateResultSet(rsWithGraderResult(rateGrader({ trials: true })));
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.results[0].grader_results[0].trials" && e.code === "TYPE_ERROR")).toBe(true);
+  r = validateResultSet(rsWithGraderResult(rateGrader({ trials: 5, successes: true })));
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.results[0].grader_results[0].successes" && e.code === "TYPE_ERROR")).toBe(true);
+});
+
+test("non-integer trials rejected (TYPE_ERROR)", () => {
+  const r = validateResultSet(rsWithGraderResult(rateGrader({ trials: 2.5 })));
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.results[0].grader_results[0].trials" && e.code === "TYPE_ERROR")).toBe(true);
+});
+
+test("null score with trials/successes accepted (unscored, denominator still known)", () => {
+  // Rule 6: score null means "not verified"; the consistency check only
+  // applies when there is a non-null score to be consistent with.
+  expect(validateResultSet(rsWithGraderResult(rateGrader({ score: null, trials: 5, successes: 3 }))).valid).toBe(true);
+});
+
+test("rate fields apply per GraderResult, not per Result", () => {
+  const rs = rsWithGraderResult(rateGrader({ score: 0.2, trials: 5, successes: 1 }));
+  rs.results[0].grader_results.push({ grader_id: "gr_exact", type: "exact_match", score: 1.0, passed: true });
+  expect(validateResultSet(rs).valid).toBe(true);
+});

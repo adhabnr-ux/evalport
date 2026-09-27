@@ -139,8 +139,19 @@
                 },
                 "passed": { "type": "boolean" },
                 "reason": { "type": "string" },
+                "trials": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "PROPOSED (issue #58, not yet finalized). Number of independent trials the rate-based score was computed over -- the denominator of a pass rate, attack success rate, or any other successes/trials score. Optional; absent means the grader did not report a denominator (a single-shot grader, or a producer that predates this field). Present so that 0/5 and 0/500 no longer serialize identically as score 0.0 (raised by @sattyamjjain via NVIDIA/garak#2110). This is a count of trials, NOT a confidence interval: for correlated/clustered trials (e.g. episodes within one task) a naive interval over pooled trials is too narrow, so consumers MUST NOT treat trials alone as sufficient for a statistically valid interval -- only as sufficient to tell a well-supported rate from a noisy one at a glance. See Extension Mechanism -> Rate-Based Scores."
+                },
+                "successes": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "PROPOSED (issue #58, not yet finalized). Number of successful trials -- the numerator of the rate-based score. Optional; requires trials (see dependentRequired below). MUST be <= trials, and when score is non-null, score MUST equal successes / trials (within floating-point tolerance); both of those are cross-field rules that plain JSON Schema cannot express without $data, so they are enforced by the hand-rolled SDK validators only (SUCCESSES_EXCEED_TRIALS, RATE_SCORE_MISMATCH), the same class of rule as group.parent_group_id's SELF_PARENT. See Extension Mechanism -> Rate-Based Scores."
+                },
                 "metadata": { "type": "object", "additionalProperties": true }
               },
+              "dependentRequired": { "successes": ["trials"] },
               "additionalProperties": false
             }
           },

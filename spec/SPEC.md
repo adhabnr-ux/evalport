@@ -456,6 +456,8 @@ A result set is the output of running an eval suite. It contains one result per 
 | `score` | number (required) | Numeric score, typically 0.0-1.0. |
 | `passed` | boolean (required) | Whether the grader's threshold was met. |
 | `reason` | string | Human-readable explanation. |
+| `trials` | integer (>= 1) | **PROPOSED, [issue #58](https://github.com/adhabnr-ux/evalport/issues/58), not yet finalized.** Number of independent trials a rate-based `score` was computed over (the denominator). See Extension Mechanism → Rate-Based Scores. |
+| `successes` | integer (>= 0) | **PROPOSED, [issue #58](https://github.com/adhabnr-ux/evalport/issues/58), not yet finalized.** Number of successful trials (the numerator). Requires `trials`; MUST be `<= trials`; when `score` is non-null, `score` MUST equal `successes / trials`. See Extension Mechanism → Rate-Based Scores. |
 | `metadata` | object | Grader-specific details (similarity value, judge response, etc.). |
 
 ---
@@ -829,6 +831,61 @@ A consumer walks `trial-003 → sweep-lr-grid → campaign-2026-09-08` one `pare
 See `spec/conformance/fixtures/group_nested_parent_group_valid.json` (the sweep-of-sweeps case above, one level of nesting) and `spec/conformance/fixtures/group_self_parent_rejected.json` (`parent_group_id` equal to the object's own `group_id`, correctly rejected).
 
 See `spec/conformance/fixtures/group_membership_valid.json` (a valid grouped `ResultSet`, composing `group` with `attempt`/`isolation` from the previous section), `spec/conformance/fixtures/group_missing_group_id_rejected.json` (`group` present without `group_id`, correctly rejected), `spec/conformance/fixtures/group_hyperparameter_sweep_valid.json` (the grid-search example above, demonstrating the same field validates cleanly for a non-mutation-testing domain), `spec/conformance/fixtures/group_role_metadata_real_gap_valid.json` / `spec/conformance/fixtures/group_role_metadata_inert_survivor_valid.json` (the maintainer-confirmed `role`+`metadata.output_changed` split above, both branches), and `spec/conformance/fixtures/group_multi_model_comparison_valid.json` (the promptfoo-grounded multi-model comparison example above, closing out issue #36's own two named use cases).
+
+### Rate-Based Scores (`GraderResult.trials` / `successes`) — PROPOSED, not yet finalized
+
+> **Status:** this section documents the design under discussion in [issue #58](https://github.com/adhabnr-ux/evalport/issues/58) ("Should GraderResult/Result carry a required denominator/floor for rate-based scores?"), which is being promoted to a full RFC Discussion with a two-week comment period per this project's Governance section. The schema addition, SDK validators, and conformance fixtures described here exist on a reference-implementation branch/PR referenced from that issue — **not on `main`** — so they can be reviewed and tested without being mistaken for a landed spec change. This subsection will be rewritten in the past tense (matching Repetition & Attempt Tracking above) if and when the RFC concludes and actually merges, the same path [Discussion #22](https://github.com/adhabnr-ux/evalport/discussions/22) → PR #35 and [Discussion #45](https://github.com/adhabnr-ux/evalport/discussions/45) → PR #54 took.
+
+Raised by [@sattyamjjain](https://github.com/sattyamjjain) (maintainer of a red-team harness for robot vision-language-action policies, not affiliated with garak or EvalPort) while a `garak-openeval-adapter` was being scoped in [NVIDIA/garak#2110](https://github.com/NVIDIA/garak/issues/2110). His framing, credited close to verbatim because it is the whole gap in one sentence:
+
+> An attempt outcome without its benign floor is not readable, because 0/5 and 0/500 both serialise as 0.0.
+
+And on why "optional, and hope adapter authors remember" is a weaker answer than it looks:
+
+> If a `ResultSet` entry can serialise a score without its denominator, every adapter author has to remember to carry it, and the ones who forget produce something that looks complete and is not.
+
+**The gap, restated against the current schema.** `GraderResult.score` is a bare `number` in `[0, 1]` or `null` (Validation Rule 5). For a *rate-based* grader — pass rate over N trials, attack success rate over N attempts, any score that is fundamentally `successes / trials` — nothing in the schema carries N. Two `GraderResult`s with wildly different statistical support (0 of 5 vs. 0 of 500) serialize identically, and a consumer comparing scores across `GraderResult`s, across `attempt`s (Repetition & Attempt Tracking, above), or across sibling `ResultSet`s in a `group` (Grouped/Sibling ResultSets, above) cannot tell a well-supported rate from a noisy one. Today the denominator would have to live in ad hoc `metadata` — if a producer remembers to put it there at all, and under whatever key it happens to pick.
+
+**Fields (both optional, both on `GraderResult`, both additive):**
+
+- `trials` (integer, `minimum: 1`) — the number of independent trials the rate-based `score` was computed over: the denominator. Absent means the grader did not report a denominator (a single-shot grader, or a producer that predates this field).
+- `successes` (integer, `minimum: 0`) — the number of successful trials: the numerator. MUST be `<= trials`.
+
+**Rules:**
+
+1. `successes` requires `trials`. A numerator without its denominator is exactly the unreadable-rate failure this field exists to prevent. This rule *is* expressible in plain JSON Schema — `dependentRequired: {"successes": ["trials"]}` (Draft 2020-12, which `spec/schemas/resultset.json` already declares) — so the raw schema and both hand-rolled validators agree on it; the hand-rolled validators report `REQUIRED` at the missing `...trials` path with message `required when successes is present`.
+2. `successes` MUST be `<= trials` (`SUCCESSES_EXCEED_TRIALS` error code, at `...successes`).
+3. When `trials`, `successes`, and a non-`null` `score` are all present, `score` MUST equal `successes / trials` within a floating-point tolerance of `1e-6` (`RATE_SCORE_MISMATCH` error code, at `...score`). A `null` score with `trials`/`successes` present is valid — Rule 6's "not verified" still applies to the score, but the producer may still record how many trials it ran and how many succeeded.
+4. `trials` and `successes` MUST be integers — a boolean is not an integer here, the same cross-language gotcha Rule 5 already guards against for `score` (Python's `bool` is an `int` subclass).
+
+Rules 2 and 3 are cross-field constraints that JSON Schema's `properties`/`minimum` vocabulary cannot express without a `$data` reference, which this project's schemas deliberately avoid — so, exactly like `group.parent_group_id`'s `SELF_PARENT` rule and the `(test_case_id, run_id, attempt)` `DUPLICATE_ATTEMPT` uniqueness check, they are enforced by the hand-rolled SDK validators only. Both SDKs' schema-consistency suites document this explicitly: the raw JSON Schema *accepts* `successes: 7, trials: 5` and `score: 0.5, successes: 1, trials: 5`, and `validate_result_set()`/`validateResultSet()` correctly reject both. A conformance implementation MUST perform those two checks itself rather than assume JSON-Schema-only validation covers the full spec.
+
+**Worked example — the 0/5 vs. 0/500 case itself.** Two `GraderResult`s on one `Result`, both `score: 0.0`. Before this section they were byte-for-byte identical; now the second is visibly the one a consumer can trust:
+
+```json
+{
+  "version": "1.0.0",
+  "suite_id": "robot-vla-redteam",
+  "run_id": "run-58-pilot-vs-full",
+  "started_at": "2026-09-22T05:00:00Z",
+  "results": [
+    {
+      "test_case_id": "attack_001",
+      "passed": false,
+      "grader_results": [
+        { "grader_id": "gr_attack_success_pilot", "type": "custom", "score": 0.0, "passed": false, "trials": 5,   "successes": 0 },
+        { "grader_id": "gr_attack_success_full",  "type": "custom", "score": 0.0, "passed": false, "trials": 500, "successes": 0 }
+      ]
+    }
+  ]
+}
+```
+
+**What this deliberately does not do.** It does not compute, store, or standardize a confidence interval. `trials` is a count, not an interval: as @sattyamjjain flagged in #58, for correlated or *clustered* trials (e.g. many episodes within one task in a robot-eval context, or many prompts sharing one seed) a naive Wilson interval over the pooled trial count is too narrow, so nothing in this section should be read as implying a bare `trials` value is sufficient for a *statistically valid* interval — only that it is sufficient to distinguish "well-supported" from "not" at a glance, which is the specific gap 0/5-vs-0/500 exposes. Interval computation (Wilson, cluster-corrected, or otherwise) is a separate, framework-independent `successes, trials -> interval` utility that is being contributed to `adapters/` on its own review timeline; this schema question and that utility are independent by design. Nor does this section define what counts as a "trial" for a given grader — that is the grader's own business, the same way `isolation`'s meaning of "fresh" is a producer-level claim.
+
+**Why optional rather than required — and the alternative under discussion.** The fields land as optional for the same reason every other addition in this Extension Mechanism has: a `GraderResult` with neither field — every `GraderResult` ever produced before this — must stay valid (MINOR, not MAJOR, per Versioning), and most graders (`exact_match`, `json_schema`, a single `llm_judge` call) are not rate-based at all and have no denominator to report. That is a real answer, but it is not a complete one, because it leaves the "adapter authors who forget produce something that looks complete and is not" objection standing for the graders that *are* rate-based. The alternative under discussion — **not implemented here, and the main open question for the RFC** — is to make `trials` conditionally required: when a `Grader` declares itself rate-based (for instance via an `openeval.rate_based: true` reserved metadata key on the `Grader` definition, or a `params` convention), a `GraderResult` for that grader without `trials` would be rejected. That would give exactly the enforcement @sattyamjjain is asking for, scoped to the graders where a denominator is meaningful, at the cost of a cross-*document* rule (`ResultSet` validation would need the suite's grader definitions, which `validate_result_set()` does not take today) or a new per-`GraderResult` flag that has to be carried alongside. Whether that cost is worth paying, and where the "I am rate-based" declaration should live if so, is what the comment period is for.
+
+See `spec/conformance/fixtures/grader_trials_rate_valid.json` (the 0/5 vs. 0/500 pair above, both accepted), `spec/conformance/fixtures/grader_successes_without_trials_rejected.json` (Rule 1, rejected by both validation paths), `spec/conformance/fixtures/grader_successes_exceed_trials_rejected.json` (Rule 2, `SUCCESSES_EXCEED_TRIALS`, hand-rolled-only), and `spec/conformance/fixtures/grader_rate_score_mismatch_rejected.json` (Rule 3, `RATE_SCORE_MISMATCH`, hand-rolled-only) on the reference-implementation branch referenced from issue #58.
 
 ### Extensions Registry
 

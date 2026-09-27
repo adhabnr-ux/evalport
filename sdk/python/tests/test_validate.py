@@ -594,3 +594,143 @@ def test_group_three_level_nesting_matches_mlflow_grandparent_parent_child_shape
         cur = by_group_id[cur["group"]["parent_group_id"]]
         chain.append(cur["group"]["group_id"])
     assert chain == ["trial-003", "sweep-lr-grid", "campaign-2026-09-08"]
+
+# --- Issue #58 (proposed): rate-based GraderResult denominators (trials/successes) ---
+# Reference implementation for the RFC promoted from issue #58 (raised by
+# @sattyamjjain via NVIDIA/garak#2110): "An attempt outcome without its benign
+# floor is not readable, because 0/5 and 0/500 both serialise as 0.0."
+
+def _rs_with_grader_result(gr, run_id="run-58"):
+    return {
+        "version": "1.0.0",
+        "suite_id": "robot-vla-redteam",
+        "run_id": run_id,
+        "started_at": "2026-09-22T05:00:00Z",
+        "results": [{"test_case_id": "attack_001", "passed": False, "grader_results": [gr]}],
+    }
+
+def _rate_grader(**overrides):
+    gr = {"grader_id": "gr_attack_success", "type": "custom", "score": 0.0, "passed": False}
+    gr.update(overrides)
+    return gr
+
+def test_trials_and_successes_absent_still_validates_unchanged():
+    # Backward compatibility: a GraderResult with neither field -- every
+    # GraderResult ever produced before this -- is untouched.
+    rs = _rs_with_grader_result(_rate_grader())
+    result = validate_result_set(rs)
+    assert result.valid, result.errors
+    assert "trials" not in rs["results"][0]["grader_results"][0]
+    assert "successes" not in rs["results"][0]["grader_results"][0]
+
+def test_trials_only_is_valid():
+    # A producer may carry the denominator without the numerator (the score
+    # already implies successes when trials is known).
+    assert validate_result_set(_rs_with_grader_result(_rate_grader(trials=500))).valid
+
+def test_trials_and_successes_consistent_with_score_valid():
+    assert validate_result_set(_rs_with_grader_result(_rate_grader(score=0.75, passed=True, trials=4, successes=3))).valid
+    assert validate_result_set(_rs_with_grader_result(_rate_grader(score=1.0, passed=True, trials=12, successes=12))).valid
+    # Floating-point tolerance: 1/3 does not round-trip exactly through a
+    # decimal literal, and must still be accepted.
+    assert validate_result_set(_rs_with_grader_result(_rate_grader(score=0.3333333, trials=3, successes=1))).valid
+
+def test_zero_of_five_and_zero_of_five_hundred_no_longer_serialize_identically():
+    # The motivating case, verbatim from issue #58: both scores are 0.0, and
+    # before this field the two GraderResults were byte-for-byte identical.
+    noisy = _rate_grader(trials=5, successes=0)
+    supported = _rate_grader(trials=500, successes=0)
+    assert noisy["score"] == supported["score"] == 0.0
+    assert noisy != supported
+    rs = _rs_with_grader_result(noisy)
+    rs["results"][0]["grader_results"].append(dict(supported, grader_id="gr_attack_success_large_n"))
+    assert validate_result_set(rs).valid
+
+def test_successes_without_trials_rejected():
+    result = validate_result_set(_rs_with_grader_result(_rate_grader(successes=0)))
+    assert not result.valid
+    assert any(
+        e["path"] == "$.results[0].grader_results[0].trials"
+        and e["code"] == "REQUIRED"
+        and e["message"] == "required when successes is present"
+        for e in result.errors
+    )
+
+def test_successes_exceeding_trials_rejected():
+    result = validate_result_set(_rs_with_grader_result(_rate_grader(score=1.0, trials=5, successes=7)))
+    assert not result.valid
+    assert any(
+        e["path"] == "$.results[0].grader_results[0].successes" and e["code"] == "SUCCESSES_EXCEED_TRIALS"
+        for e in result.errors
+    )
+    # The score-consistency check is NOT also reported when the counts are
+    # already inconsistent -- one root cause, one error.
+    assert not any(e["code"] == "RATE_SCORE_MISMATCH" for e in result.errors)
+
+def test_score_inconsistent_with_successes_over_trials_rejected():
+    # 1/5 = 0.2, but the producer wrote 0.5 -- a plausible-looking number
+    # that does not match its own denominator.
+    result = validate_result_set(_rs_with_grader_result(_rate_grader(score=0.5, trials=5, successes=1)))
+    assert not result.valid
+    assert any(
+        e["path"] == "$.results[0].grader_results[0].score" and e["code"] == "RATE_SCORE_MISMATCH"
+        for e in result.errors
+    )
+
+def test_trials_zero_rejected():
+    # A rate over zero trials is undefined; minimum is 1.
+    result = validate_result_set(_rs_with_grader_result(_rate_grader(trials=0)))
+    assert not result.valid
+    assert any(
+        e["path"] == "$.results[0].grader_results[0].trials" and e["code"] == "OUT_OF_RANGE"
+        for e in result.errors
+    )
+
+def test_negative_successes_rejected():
+    result = validate_result_set(_rs_with_grader_result(_rate_grader(trials=5, successes=-1)))
+    assert not result.valid
+    assert any(
+        e["path"] == "$.results[0].grader_results[0].successes" and e["code"] == "OUT_OF_RANGE"
+        for e in result.errors
+    )
+
+def test_bool_trials_rejected():
+    # Python's bool is an int subclass -- the same gotcha `score` already
+    # guards against. True must not sneak through as trials=1.
+    result = validate_result_set(_rs_with_grader_result(_rate_grader(trials=True)))
+    assert not result.valid
+    assert any(
+        e["path"] == "$.results[0].grader_results[0].trials" and e["code"] == "TYPE_ERROR"
+        for e in result.errors
+    )
+    result = validate_result_set(_rs_with_grader_result(_rate_grader(trials=5, successes=True)))
+    assert not result.valid
+    assert any(
+        e["path"] == "$.results[0].grader_results[0].successes" and e["code"] == "TYPE_ERROR"
+        for e in result.errors
+    )
+
+def test_non_integer_trials_rejected():
+    result = validate_result_set(_rs_with_grader_result(_rate_grader(trials=2.5)))
+    assert not result.valid
+    assert any(
+        e["path"] == "$.results[0].grader_results[0].trials" and e["code"] == "TYPE_ERROR"
+        for e in result.errors
+    )
+
+def test_null_score_with_trials_and_successes_accepted():
+    # Rule 6: score null means "not verified". A producer can still record
+    # how many trials it ran and how many succeeded (the denominator is
+    # known even if the grader declined to emit a rate) -- the consistency
+    # check only applies when there is a non-null score to be consistent with.
+    result = validate_result_set(_rs_with_grader_result(_rate_grader(score=None, trials=5, successes=3)))
+    assert result.valid, result.errors
+
+def test_rate_fields_apply_per_grader_result_not_per_result():
+    # Two graders on one Result: one rate-based with a denominator, one
+    # single-shot without. Neither constrains the other.
+    rs = _rs_with_grader_result(_rate_grader(score=0.2, trials=5, successes=1))
+    rs["results"][0]["grader_results"].append(
+        {"grader_id": "gr_exact", "type": "exact_match", "score": 1.0, "passed": True}
+    )
+    assert validate_result_set(rs).valid

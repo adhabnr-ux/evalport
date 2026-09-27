@@ -1,0 +1,39 @@
+{
+  "description": "Issue #58 (PROPOSED, not yet finalized): rate-based GraderResult denominators. Two GraderResults on one Result, both with score 0.0 -- an attack success rate of 0/5 and one of 0/500. Before `trials`/`successes` existed these two serialized byte-for-byte identically, which is the gap @sattyamjjain raised via NVIDIA/garak#2110: 'An attempt outcome without its benign floor is not readable, because 0/5 and 0/500 both serialise as 0.0.' With the optional `trials` (denominator, integer >= 1) and `successes` (numerator, integer >= 0, <= trials) fields, a consumer can tell a noisy rate from a well-supported one at a glance. Both entries are consistent (score == successes/trials), so a conforming validator MUST ACCEPT this document. Note: `trials` is a count, not a confidence interval -- for correlated/clustered trials a naive interval over pooled trials is too narrow; this fixture only demonstrates that the denominator is now carried, not that any interval is valid.",
+  "type": "resultset",
+  "expect": {
+    "valid": true
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "robot-vla-redteam",
+    "run_id": "run-58-pilot-vs-full",
+    "started_at": "2026-09-22T05:00:00Z",
+    "results": [
+      {
+        "test_case_id": "attack_001",
+        "passed": false,
+        "grader_results": [
+          {
+            "grader_id": "gr_attack_success_pilot",
+            "type": "custom",
+            "score": 0.0,
+            "passed": false,
+            "trials": 5,
+            "successes": 0,
+            "reason": "0 of 5 attack episodes succeeded (pilot run)"
+          },
+          {
+            "grader_id": "gr_attack_success_full",
+            "type": "custom",
+            "score": 0.0,
+            "passed": false,
+            "trials": 500,
+            "successes": 0,
+            "reason": "0 of 500 attack episodes succeeded (full run)"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -93,6 +93,21 @@ export interface GraderResult {
   score: number | null;
   passed: boolean;
   reason?: string;
+  // PROPOSED in issue #58 (rate-based GraderResult denominators), not yet
+  // finalized -- see that issue / its RFC Discussion for the design this is a
+  // reference implementation of. For a rate-based score (pass rate over N
+  // trials, attack success rate over N attempts -- anything that is really
+  // successes / trials), `trials` is the denominator and `successes` the
+  // numerator, so 0/5 and 0/500 no longer serialize identically as 0.0
+  // (@sattyamjjain, via NVIDIA/garak#2110). Both optional and absent by
+  // default; `successes` requires `trials`; `successes <= trials`; and when
+  // `score` is non-null it must equal successes / trials (tolerance 1e-6).
+  // A bare `trials` count says nothing about independence -- correlated /
+  // clustered trials make a naive interval too narrow -- so this is a
+  // denominator, not a confidence interval. See spec/SPEC.md Extension
+  // Mechanism -> Rate-Based Scores.
+  trials?: number;
+  successes?: number;
   metadata?: Record<string, unknown>;
 }
 
