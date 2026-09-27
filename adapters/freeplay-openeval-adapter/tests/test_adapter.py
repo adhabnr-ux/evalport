@@ -7,12 +7,21 @@ asserts every produced document against the real `evalport-sdk`
 validators (openeval.validate.validate_suite / validate_result_set) --
 never mocks.
 """
+
+import importlib.util
 import pytest
 
-from freeplay.freeplay import Freeplay
-from freeplay.resources.test_cases import Dataset, DatasetResults, DatasetTestCase
-from freeplay.resources.test_suites import CompletionTestCase, TestSuites, TraceTestCase
-from freeplay.model import AssistantMessage, UserMessage
+# Framework-dependent tests below are skipped (not failed) when freeplay
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_FREEPLAY = importlib.util.find_spec("freeplay") is not None
+requires_freeplay = pytest.mark.skipif(not HAS_FREEPLAY, reason="freeplay not installed")
+if HAS_FREEPLAY:
+    from freeplay.freeplay import Freeplay
+    from freeplay.resources.test_cases import Dataset, DatasetResults, DatasetTestCase
+    from freeplay.resources.test_suites import CompletionTestCase, TestSuites, TraceTestCase
+    from freeplay.model import AssistantMessage, UserMessage
 from openeval.validate import validate_suite, validate_result_set
 
 from freeplay_openeval_adapter import (
@@ -106,6 +115,7 @@ def _real_dataset():
     )
 
 
+@requires_freeplay
 def test_to_openeval_real_dataset_validates():
     suite = to_openeval(_real_dataset())
     result = validate_suite(suite)
@@ -114,6 +124,7 @@ def test_to_openeval_real_dataset_validates():
     assert len(suite["test_cases"]) == 2
 
 
+@requires_freeplay
 def test_to_openeval_flattens_named_variable_inputs():
     suite = to_openeval(_real_dataset())
     tc1, tc2 = suite["test_cases"]
@@ -124,6 +135,7 @@ def test_to_openeval_flattens_named_variable_inputs():
     assert json.loads(tc2["input"]) == {"a": 2, "b": 3}
 
 
+@requires_freeplay
 def test_to_openeval_preserves_original_inputs_in_metadata():
     suite = to_openeval(_real_dataset())
     tc1 = suite["test_cases"][0]
@@ -134,6 +146,7 @@ def test_to_openeval_preserves_original_inputs_in_metadata():
     assert tc1["metadata"]["source"] == "manual"
 
 
+@requires_freeplay
 def test_to_openeval_preserves_history():
     suite = to_openeval(_real_dataset())
     tc2 = suite["test_cases"][1]
@@ -144,12 +157,14 @@ def test_to_openeval_preserves_history():
     ]
 
 
+@requires_freeplay
 def test_to_openeval_default_grader_is_llm_judge():
     suite = to_openeval(_real_dataset())
     assert suite["graders"][0]["type"] == "llm_judge"
     assert suite["test_cases"][0]["graders"] == ["grader-1"]
 
 
+@requires_freeplay
 def test_to_openeval_grader_type_override():
     suite = to_openeval(_real_dataset(), grader_type="exact_match")
     assert suite["graders"][0]["type"] == "exact_match"
@@ -168,6 +183,7 @@ def test_to_openeval_accepts_plain_dict_dataset():
     assert suite["id"] == "ds-dict"
 
 
+@requires_freeplay
 def test_to_openeval_accepts_dataset_results():
     # fp.test_cases.get(...) returns DatasetResults, not Dataset -- same
     # shape (dataset_id, test_cases), but a distinct real class.
@@ -180,11 +196,13 @@ def test_to_openeval_accepts_dataset_results():
     assert suite["id"] == "ds-results"
 
 
+@requires_freeplay
 def test_to_openeval_empty_dataset_raises():
     with pytest.raises(ValueError):
         to_openeval(Dataset(dataset_id="empty", test_cases=[]))
 
 
+@requires_freeplay
 def test_to_openeval_missing_output_omits_expected_output():
     dataset = Dataset(
         dataset_id="ds-no-output",
@@ -198,6 +216,7 @@ def test_to_openeval_missing_output_omits_expected_output():
 # --- from_openeval ---
 
 
+@requires_freeplay
 def test_from_openeval_restores_original_inputs():
     suite = to_openeval(_real_dataset())
     items = from_openeval(suite)
@@ -206,6 +225,7 @@ def test_from_openeval_restores_original_inputs():
     assert items[0]["id"] == "tc-1"
 
 
+@requires_freeplay
 def test_from_openeval_restores_history():
     suite = to_openeval(_real_dataset())
     items = from_openeval(suite)
@@ -232,6 +252,7 @@ def test_from_openeval_fallback_for_foreign_test_case():
 # --- TestSuites client-wiring gap (documented in README's Design notes) ---
 
 
+@requires_freeplay
 def test_test_suites_not_wired_onto_client_but_constructible():
     """Confirms the README's claim: fp.test_suites doesn't exist on the
     real Freeplay client as of 0.6.0, but TestSuites(fp.call_support,
@@ -245,6 +266,7 @@ def test_test_suites_not_wired_onto_client_but_constructible():
 # --- results_to_openeval: CompletionTestCase (prompt-type suite) ---
 
 
+@requires_freeplay
 def test_results_to_openeval_completion_test_cases_validates():
     tc = CompletionTestCase(
         test_case_id="tc-1",
@@ -266,6 +288,7 @@ def test_results_to_openeval_completion_test_cases_validates():
     assert result_set["results"][0]["passed"] is True
 
 
+@requires_freeplay
 def test_results_to_openeval_trace_test_cases_validates():
     # Agent-type suites use TraceTestCase instead of CompletionTestCase --
     # results_to_openeval() is agnostic to which one produced the id, since
