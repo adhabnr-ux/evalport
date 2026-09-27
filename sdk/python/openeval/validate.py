@@ -5,6 +5,9 @@ import re
 
 STANDARD_GRADER_TYPES = {"exact_match","contains","regex","semantic_similarity","llm_judge","json_schema","json_path","code","human","model graded","custom"}
 
+# Result.verdict values -- PROPOSED in Discussion #49, not yet finalized.
+VERDICTS = ("passed","failed","unverified")
+
 # Full semver 2.0.0 pattern (https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions).
 # Was previously hardcoded to accept only "X.Y.Z" or "X.Y.Z-draft" -- rejected legitimate
 # prerelease versions like "1.0.0-rc.1" or "1.1.0-beta.2", which is what this project's own
@@ -177,6 +180,27 @@ def validate_result_set(r):
                         errors.append(_err(f"$.results[{i}].attempt",f"duplicate (test_case_id, run_id, attempt): {key}","DUPLICATE_ATTEMPT"))
                     else:
                         seen_attempts.add(key)
+            # Discussion #49 (PROPOSED): optional Result.verdict, the
+            # Result-level "was an outcome actually established" axis
+            # (@soul-sol's FAILED vs UNVERIFIED). Absent is a no-op. Unlike
+            # attempt/group, an explicit null is NOT treated as absent: the
+            # JSON Schema's enum rejects null, and both paths must agree.
+            # Both cross-field rules below are conditionals against constants,
+            # so spec/schemas/resultset.json expresses them too (allOf with
+            # if/then/const) -- not hand-rolled-only like SELF_PARENT.
+            if "verdict" in x:
+                verdict=x["verdict"]
+                if not isinstance(verdict,str) or verdict not in VERDICTS:
+                    errors.append(_err(f"$.results[{i}].verdict","must be one of passed|failed|unverified","INVALID_VALUE"))
+                else:
+                    passed=x.get("passed")
+                    if isinstance(passed,bool):
+                        if verdict=="passed" and passed is not True:
+                            errors.append(_err(f"$.results[{i}].verdict",'verdict "passed" requires passed: true',"VERDICT_PASSED_MISMATCH"))
+                        elif verdict!="passed" and passed is not False:
+                            errors.append(_err(f"$.results[{i}].verdict",f'verdict "{verdict}" requires passed: false',"VERDICT_PASSED_MISMATCH"))
+                    if x.get("error") is not None and verdict!="unverified":
+                        errors.append(_err(f"$.results[{i}].verdict",'verdict must be absent or "unverified" when error is present',"VERDICT_ERROR_CONFLICT"))
             grs=x.get("grader_results")
             if not isinstance(grs,list): errors.append(_err(f"$.results[{i}].grader_results","required","REQUIRED"))
             else:
