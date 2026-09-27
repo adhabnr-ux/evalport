@@ -6,6 +6,7 @@
 - **Want an adapter for a framework you use?** File an [Adapter request](https://github.com/adhabnr-ux/evalport/issues/new?template=adapter-request.yml), or read [Issue #6](https://github.com/adhabnr-ux/evalport/issues/6) and [Adding a New Converter](#adding-a-new-converter) below and build it yourself. That's the lowest-friction way in.
 - **Have a question?** Ask in [Q&A Discussions](https://github.com/adhabnr-ux/evalport/discussions/categories/q-a).
 - **Want to change the spec?** Start a `[Spec Change]` Discussion in [Ideas](https://github.com/adhabnr-ux/evalport/discussions/categories/ideas) (see [Spec Changes](#spec-changes) below). Open RFCs where comments are useful right now: [#47](https://github.com/adhabnr-ux/evalport/discussions/47) (`Result.constraint_violations`), [#49](https://github.com/adhabnr-ux/evalport/discussions/49) (FAILED vs. UNVERIFIED), and [#67](https://github.com/adhabnr-ux/evalport/discussions/67) (rate-based `GraderResult` denominators).
+- **See every RFC in one place:** [`docs/rfcs/README.md`](../docs/rfcs/README.md) lists every spec RFC, open and landed, with its comment-period dates, reference PR, and what makes a useful comment.
 - **Before opening a PR,** run the same checks CI runs for the parts you touched. The [PR template](PULL_REQUEST_TEMPLATE.md) lists them.
 
 ## Getting Started
