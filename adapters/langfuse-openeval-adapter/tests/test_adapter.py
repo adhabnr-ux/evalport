@@ -12,12 +12,22 @@ calling it.
 
 from __future__ import annotations
 
+import importlib.util
+
 import datetime
 
 import pytest
-from langfuse.api.commons.types.dataset_item import DatasetItem
-from langfuse.api.commons.types.dataset_status import DatasetStatus
-from langfuse.experiment import Evaluation, ExperimentItemResult, ExperimentResult
+
+# Framework-dependent tests below are skipped (not failed) when langfuse
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_LANGFUSE = importlib.util.find_spec("langfuse") is not None
+requires_langfuse = pytest.mark.skipif(not HAS_LANGFUSE, reason="langfuse not installed")
+if HAS_LANGFUSE:
+    from langfuse.api.commons.types.dataset_item import DatasetItem
+    from langfuse.api.commons.types.dataset_status import DatasetStatus
+    from langfuse.experiment import Evaluation, ExperimentItemResult, ExperimentResult
 from openeval.validate import validate_result_set, validate_suite
 
 from langfuse_openeval_adapter import (
@@ -53,6 +63,7 @@ def _dataset_items():
 
 
 class TestToOpenEval:
+    @requires_langfuse
     def test_converts_real_dataset_items(self):
         suite = to_openeval(_dataset_items(), suite_id="geo_science_eval")
         assert validate_suite(suite).valid
@@ -68,6 +79,7 @@ class TestToOpenEval:
         assert suite["test_cases"][0]["input"] == "2+2?"
         assert suite["test_cases"][0]["expected_output"] == "4"
 
+    @requires_langfuse
     def test_uses_dataset_item_id_as_test_case_id(self):
         suite = to_openeval(_dataset_items())
         assert [tc["id"] for tc in suite["test_cases"]] == ["item_0", "item_1"]
@@ -77,11 +89,13 @@ class TestToOpenEval:
         suite = to_openeval(items)
         assert suite["test_cases"][0]["id"] == "row_0"
 
+    @requires_langfuse
     def test_dict_input_is_stringified_as_json(self):
         suite = to_openeval(_dataset_items())
         tc = suite["test_cases"][0]
         assert "France" in tc["input"]
 
+    @requires_langfuse
     def test_preserves_full_raw_item_including_langfuse_only_fields(self):
         suite = to_openeval(_dataset_items())
         tc = suite["test_cases"][0]
@@ -95,12 +109,14 @@ class TestToOpenEval:
         suite = to_openeval(items)
         assert "expected_output" not in suite["test_cases"][0]
 
+    @requires_langfuse
     def test_default_grader_is_llm_judge_with_required_params(self):
         suite = to_openeval(_dataset_items())
         assert suite["graders"][0]["type"] == "llm_judge"
         assert "model" in suite["graders"][0]["params"]
         assert "prompt" in suite["graders"][0]["params"]
 
+    @requires_langfuse
     def test_exact_match_grader_type_option(self):
         suite = to_openeval(_dataset_items(), grader_type="exact_match")
         assert suite["graders"][0]["type"] == "exact_match"
@@ -111,6 +127,7 @@ class TestToOpenEval:
 
 
 class TestFromOpenEval:
+    @requires_langfuse
     def test_round_trip_preserves_original_dataset_item_fields(self):
         suite = to_openeval(_dataset_items(), suite_id="geo_science_eval")
         rows = from_openeval(suite)
@@ -118,6 +135,7 @@ class TestFromOpenEval:
         assert rows[0]["dataset_name"] == "geo_science_eval"
         assert rows[0]["expected_output"] == "Paris"
 
+    @requires_langfuse
     def test_round_tripped_rows_are_usable_as_run_experiment_data(self):
         suite = to_openeval(_dataset_items())
         rows = from_openeval(suite)
@@ -197,6 +215,7 @@ class TestExperimentResultToOpenEval:
             dataset_run_id="run_abc",
         )
 
+    @requires_langfuse
     def test_converts_real_experiment_result_shape(self):
         rs = experiment_result_to_openeval(
             self._experiment_result(), suite_id="geo_science_eval", started_at="2026-08-14T00:00:00Z"
@@ -205,10 +224,12 @@ class TestExperimentResultToOpenEval:
         assert len(rs["results"]) == 2
         assert len(rs["results"][0]["grader_results"]) == 2
 
+    @requires_langfuse
     def test_run_id_defaults_to_run_name(self):
         rs = experiment_result_to_openeval(self._experiment_result(), started_at="2026-08-14T00:00:00Z")
         assert rs["run_id"] == "run_abc"
 
+    @requires_langfuse
     def test_numeric_evaluation_clamped_and_passes_at_threshold(self):
         rs = experiment_result_to_openeval(self._experiment_result(), started_at="2026-08-14T00:00:00Z")
         gr = next(g for g in rs["results"][0]["grader_results"] if g["grader_id"] == "langfuse_correctness")
@@ -218,12 +239,14 @@ class TestExperimentResultToOpenEval:
         assert gr_low["score"] == 0.1
         assert gr_low["passed"] is False
 
+    @requires_langfuse
     def test_boolean_evaluation_maps_to_one_or_zero(self):
         rs = experiment_result_to_openeval(self._experiment_result(), started_at="2026-08-14T00:00:00Z")
         gr = next(g for g in rs["results"][0]["grader_results"] if g["grader_id"] == "langfuse_is_concise")
         assert gr["score"] == 1.0
         assert gr["passed"] is True
 
+    @requires_langfuse
     def test_categorical_evaluation_has_null_score_and_preserves_raw_value(self):
         rs = experiment_result_to_openeval(self._experiment_result(), started_at="2026-08-14T00:00:00Z")
         gr = next(g for g in rs["results"][1]["grader_results"] if g["grader_id"] == "langfuse_rubric_grade")
@@ -231,30 +254,36 @@ class TestExperimentResultToOpenEval:
         assert gr["passed"] is True  # "good" is in the affirmative label set
         assert gr["metadata"]["value"] == "good"
 
+    @requires_langfuse
     def test_comment_becomes_reason(self):
         rs = experiment_result_to_openeval(self._experiment_result(), started_at="2026-08-14T00:00:00Z")
         gr = next(g for g in rs["results"][0]["grader_results"] if g["grader_id"] == "langfuse_correctness")
         assert gr["reason"] == "Matches expected answer."
 
+    @requires_langfuse
     def test_test_case_id_comes_from_dataset_item_id(self):
         rs = experiment_result_to_openeval(self._experiment_result(), started_at="2026-08-14T00:00:00Z")
         assert [r["test_case_id"] for r in rs["results"]] == ["item_0", "item_1"]
 
+    @requires_langfuse
     def test_actual_output_comes_from_item_result_output(self):
         rs = experiment_result_to_openeval(self._experiment_result(), started_at="2026-08-14T00:00:00Z")
         assert rs["results"][0]["actual_output"] == "Paris is the capital of France."
 
+    @requires_langfuse
     def test_trace_id_and_dataset_run_id_preserved_in_result_metadata(self):
         rs = experiment_result_to_openeval(self._experiment_result(), started_at="2026-08-14T00:00:00Z")
         assert rs["results"][0]["metadata"]["trace_id"] == "trace_0"
         assert rs["results"][0]["metadata"]["dataset_run_id"] == "run_abc"
 
+    @requires_langfuse
     def test_run_evaluations_preserved_under_top_level_metadata(self):
         rs = experiment_result_to_openeval(self._experiment_result(), started_at="2026-08-14T00:00:00Z")
         run_evals = rs["metadata"]["langfuse"]["run_evaluations"]
         assert run_evals[0]["name"] == "overall_run_quality"
         assert run_evals[0]["value"] == 0.8
 
+    @requires_langfuse
     def test_accepts_bare_list_of_item_results_without_experiment_result_wrapper(self):
         er = self._experiment_result()
         rs = experiment_result_to_openeval(er.item_results, started_at="2026-08-14T00:00:00Z")
@@ -263,6 +292,7 @@ class TestExperimentResultToOpenEval:
         # No run_evaluations available from a bare list -> no top-level metadata key for it.
         assert "metadata" not in rs or "run_evaluations" not in rs.get("metadata", {}).get("langfuse", {})
 
+    @requires_langfuse
     def test_item_result_with_no_evaluations_produces_no_grader_results_and_fails(self):
         items = _dataset_items()
         item_result = ExperimentItemResult(
@@ -273,6 +303,7 @@ class TestExperimentResultToOpenEval:
         assert rs["results"][0]["passed"] is False
         assert validate_result_set(rs).valid
 
+    @requires_langfuse
     def test_full_pipeline_suite_to_result_set(self):
         suite = to_openeval(_dataset_items(), suite_id="geo_science_eval")
         assert validate_suite(suite).valid
