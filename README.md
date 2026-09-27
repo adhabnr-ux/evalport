@@ -199,7 +199,7 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 | IBM unitxt | [unitxt-openeval-adapter](adapters/unitxt-openeval-adapter/) |
 | TruLens | [trulens-openeval-adapter](adapters/trulens-openeval-adapter/) |
 | MMMU | [mmmu-openeval-adapter](adapters/mmmu-openeval-adapter/) |
-| BeeAI Framework | [beeai-openeval-adapter](adapters/beeai-openeval-adapter/) |
+| daimax-appbench | [daimax-openeval-adapter](adapters/daimax-openeval-adapter/) |
 
 ## Documentation
 
