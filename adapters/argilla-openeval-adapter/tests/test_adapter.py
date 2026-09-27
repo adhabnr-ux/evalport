@@ -15,10 +15,20 @@ one (see the module docstring in ``argilla_openeval_adapter`` for the full
 reasoning), so nothing here is skipped or mocked to route around that --
 the adapter's actual functionality doesn't touch that part of the SDK.
 """
+
+import importlib.util
 import uuid
 
 import pytest
-import argilla as rg
+
+# Framework-dependent tests below are skipped (not failed) when argilla
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_ARGILLA = importlib.util.find_spec("argilla") is not None
+requires_argilla = pytest.mark.skipif(not HAS_ARGILLA, reason="argilla not installed")
+if HAS_ARGILLA:
+    import argilla as rg
 
 from openeval.validate import validate_result_set, validate_suite
 
@@ -44,12 +54,14 @@ def _record(id_, fields, metadata=None, suggestions=None, responses=None):
 
 
 class TestToOpenEval:
+    @requires_argilla
     def test_single_field_becomes_string_input(self):
         records = [_record("r1", {"prompt": "What is 2+2?"})]
         suite = to_openeval(records)
         assert suite["test_cases"][0]["input"] == "What is 2+2?"
         assert isinstance(suite["test_cases"][0]["input"], str)
 
+    @requires_argilla
     def test_multi_field_becomes_array_input_in_order(self):
         records = [_record("r1", {"prompt": "2+2?", "context": "grade-school math"})]
         suite = to_openeval(records)
@@ -57,6 +69,7 @@ class TestToOpenEval:
         assert tc["input"] == ["2+2?", "grade-school math"]
         assert tc["metadata"]["argilla"]["field_names"] == ["prompt", "context"]
 
+    @requires_argilla
     def test_every_test_case_graded_by_human(self):
         records = [_record("r1", {"prompt": "hi"}), _record("r2", {"prompt": "bye"})]
         suite = to_openeval(records)
@@ -66,6 +79,7 @@ class TestToOpenEval:
             {"id": "human", "type": "human", "description": "A human annotator's judgment, captured in Argilla."}
         ]
 
+    @requires_argilla
     def test_expected_output_field(self):
         records = [_record("r1", {"prompt": "2+2?", "gold": "4"})]
         suite = to_openeval(records, expected_output_field="gold")
@@ -75,32 +89,38 @@ class TestToOpenEval:
         # gold was excluded from the auto-derived input fields
         assert "gold" not in tc["metadata"]["argilla"]["field_names"]
 
+    @requires_argilla
     def test_explicit_input_fields_overrides_autodetection(self):
         records = [_record("r1", {"a": "1", "b": "2", "c": "3"})]
         suite = to_openeval(records, input_fields=["c", "a"])
         assert suite["test_cases"][0]["input"] == ["3", "1"]
 
+    @requires_argilla
     def test_record_id_used_as_test_case_id(self):
         records = [_record("my-record-42", {"prompt": "hi"})]
         suite = to_openeval(records)
         assert suite["test_cases"][0]["id"] == "my-record-42"
         assert suite["test_cases"][0]["metadata"]["argilla"]["record_id"] == "my-record-42"
 
+    @requires_argilla
     def test_explicit_ids_override_record_id(self):
         records = [_record("my-record-42", {"prompt": "hi"})]
         suite = to_openeval(records, ids=["custom-1"])
         assert suite["test_cases"][0]["id"] == "custom-1"
 
+    @requires_argilla
     def test_record_without_id_falls_back_to_index(self):
         r = rg.Record(fields={"prompt": "hi"})  # auto-generated uuid id
         suite = to_openeval([r], ids=["explicit-id"])
         assert suite["test_cases"][0]["id"] == "explicit-id"
 
+    @requires_argilla
     def test_record_metadata_preserved(self):
         records = [_record("r1", {"prompt": "hi"}, metadata={"source": "eval-set-3"})]
         suite = to_openeval(records)
         assert suite["test_cases"][0]["metadata"]["argilla"]["record_metadata"] == {"source": "eval-set-3"}
 
+    @requires_argilla
     def test_suggestions_preserved_not_promoted_to_grader_results(self):
         sug = rg.Suggestion(question_name="quality", value="good", score=0.9, agent="gpt-4-judge")
         records = [_record("r1", {"prompt": "hi"}, suggestions=[sug])]
@@ -121,22 +141,26 @@ class TestToOpenEval:
         with pytest.raises(ValueError):
             to_openeval([])
 
+    @requires_argilla
     def test_no_input_fields_derivable_raises(self):
         records = [_record("r1", {"gold": "4"})]
         with pytest.raises(ValueError):
             to_openeval(records, expected_output_field="gold")
 
+    @requires_argilla
     def test_suite_id_and_description(self):
         records = [_record("r1", {"prompt": "hi"})]
         suite = to_openeval(records, suite_id="my_argilla_suite", description="A test suite")
         assert suite["id"] == "my_argilla_suite"
         assert suite["description"] == "A test suite"
 
+    @requires_argilla
     def test_default_suite_id(self):
         records = [_record("r1", {"prompt": "hi"})]
         suite = to_openeval(records)
         assert suite["id"] == "argilla_suite"
 
+    @requires_argilla
     def test_validates_against_real_openeval_schema(self):
         sug = rg.Suggestion(question_name="quality", value="good", score=0.9)
         records = [
@@ -154,16 +178,19 @@ class TestToOpenEval:
 
 
 class TestFromOpenEval:
+    @requires_argilla
     def test_single_input_string_becomes_one_field(self):
         suite = to_openeval([_record("r1", {"prompt": "hi"})])
         specs = from_openeval(suite)
         assert specs[0]["fields"] == {"prompt": "hi"}
 
+    @requires_argilla
     def test_multi_input_array_restores_field_names(self):
         suite = to_openeval([_record("r1", {"prompt": "hi", "context": "greeting"})])
         specs = from_openeval(suite)
         assert specs[0]["fields"] == {"prompt": "hi", "context": "greeting"}
 
+    @requires_argilla
     def test_specs_reconstruct_into_live_records(self):
         suite = to_openeval([_record("r1", {"prompt": "hi", "context": "greeting"})])
         specs = from_openeval(suite)
@@ -171,6 +198,7 @@ class TestFromOpenEval:
         assert record.fields["prompt"] == "hi"
         assert record.fields["context"] == "greeting"
 
+    @requires_argilla
     def test_suggestions_round_trip(self):
         sug = rg.Suggestion(question_name="quality", value="good", score=0.9, agent="judge")
         suite = to_openeval([_record("r1", {"prompt": "hi"}, suggestions=[sug])])
@@ -180,6 +208,7 @@ class TestFromOpenEval:
         record = rg.Record.from_dict(specs[0])
         assert record.suggestions["quality"].value == "good"
 
+    @requires_argilla
     def test_expected_output_becomes_a_field(self):
         suite = to_openeval(
             [_record("r1", {"prompt": "2+2?", "gold": "4"})], expected_output_field="gold"
@@ -199,6 +228,7 @@ class TestFromOpenEval:
         specs = from_openeval(generic_suite)
         assert specs[0]["fields"] == {"field_0": "hello", "field_1": "world"}
 
+    @requires_argilla
     def test_generic_suite_single_string_input(self):
         generic_suite = {
             "version": "1.0.0",
@@ -217,6 +247,7 @@ class TestFromOpenEval:
 
 
 class TestResponsesToOpenEval:
+    @requires_argilla
     def test_single_annotator_response_becomes_grader_result(self):
         u = uuid.uuid4()
         records = [
@@ -234,6 +265,7 @@ class TestResponsesToOpenEval:
         assert gr["metadata"]["user_id"] == str(u)
         assert gr["metadata"]["status"] == "ResponseStatus.submitted"
 
+    @requires_argilla
     def test_multiple_annotators_get_indexed_grader_ids(self):
         u1, u2 = uuid.uuid4(), uuid.uuid4()
         records = [
@@ -250,6 +282,7 @@ class TestResponsesToOpenEval:
         grader_ids = {gr["grader_id"] for gr in rs["results"][0]["grader_results"]}
         assert grader_ids == {"quality[0]", "quality[1]"}
 
+    @requires_argilla
     def test_boolean_response_scores_one_or_zero(self):
         u = uuid.uuid4()
         records = [
@@ -264,6 +297,7 @@ class TestResponsesToOpenEval:
         assert gr["score"] == 1.0
         assert gr["passed"] is True
 
+    @requires_argilla
     def test_numeric_rating_normalized_with_rating_ranges(self):
         u = uuid.uuid4()
         records = [
@@ -278,6 +312,7 @@ class TestResponsesToOpenEval:
         assert gr["score"] == pytest.approx(0.25)  # (2-1)/(5-1)
         assert gr["passed"] is False  # below default 0.5 threshold
 
+    @requires_argilla
     def test_numeric_rating_without_range_and_out_of_bounds_is_unscored(self):
         u = uuid.uuid4()
         records = [
@@ -292,6 +327,7 @@ class TestResponsesToOpenEval:
         assert gr["score"] is None
         assert gr["passed"] is True  # unscored responses default to passed
 
+    @requires_argilla
     def test_label_response_has_null_score(self):
         u = uuid.uuid4()
         records = [
@@ -306,6 +342,7 @@ class TestResponsesToOpenEval:
         assert gr["score"] is None
         assert "math" in gr["reason"]
 
+    @requires_argilla
     def test_records_without_responses_are_skipped(self):
         records = [
             _record("r1", {"prompt": "hi"}),  # no responses yet
@@ -319,11 +356,13 @@ class TestResponsesToOpenEval:
         assert len(rs["results"]) == 1
         assert rs["results"][0]["test_case_id"] == "r2"
 
+    @requires_argilla
     def test_all_unannotated_raises(self):
         records = [_record("r1", {"prompt": "hi"})]
         with pytest.raises(ValueError):
             responses_to_openeval(records)
 
+    @requires_argilla
     def test_overall_passed_is_and_of_grader_results(self):
         u = uuid.uuid4()
         records = [
@@ -339,6 +378,7 @@ class TestResponsesToOpenEval:
         rs = responses_to_openeval(records)
         assert rs["results"][0]["passed"] is False
 
+    @requires_argilla
     def test_validates_against_real_openeval_schema(self):
         u1, u2 = uuid.uuid4(), uuid.uuid4()
         records = [
@@ -369,6 +409,7 @@ class TestResponsesToOpenEval:
 
 
 class TestFullLoop:
+    @requires_argilla
     def test_full_loop_input_to_annotation_to_results(self):
         # 1. Start with source records (e.g. exported from a QA dataset).
         records = [
