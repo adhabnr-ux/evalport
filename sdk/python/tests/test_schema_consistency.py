@@ -520,3 +520,96 @@ def test_boolean_score_rejected_by_both_python_bool_is_int_subclass():
     }
     assert not _js_accepts(RESULTSET_VALIDATOR, doc)
     assert not validate_result_set(doc).valid
+
+
+# ---------------------------------------------------------------------------
+# Result.verdict (Discussion #49, PROPOSED -- FAILED vs UNVERIFIED).
+# Unlike SELF_PARENT / DUPLICATE_ATTEMPT, both verdict cross-field rules are
+# conditionals against constants, so the raw JSON Schema expresses them with
+# allOf + if/then/const (the same technique @MSKazemi showed for
+# CONSTRAINT_INVALIDATES_PASS on PR #48). This section checks the two paths
+# agree on the FULL truth table, not a hand-picked sample: every combination
+# of verdict (absent, the three values, an unknown string, null, a number) x
+# passed (true/false) x error (absent/present). No intentional divergence.
+# ---------------------------------------------------------------------------
+
+_ABSENT = object()
+_VERDICT_VALUES = [_ABSENT, "passed", "failed", "unverified", "unknown", None, 1]
+_VERDICT_TRUTH_TABLE = [
+    (verdict, passed, has_error)
+    for verdict in _VERDICT_VALUES
+    for passed in (True, False)
+    for has_error in (False, True)
+]
+
+
+def _verdict_expected_valid(verdict, passed, has_error):
+    if verdict is _ABSENT:
+        return True
+    if verdict not in ("passed", "failed", "unverified"):
+        return False
+    if (verdict == "passed") != passed:
+        return False
+    if has_error and verdict != "unverified":
+        return False
+    return True
+
+
+def _verdict_doc(verdict, passed, has_error):
+    doc = _minimal_result_set("1.0.0")
+    result = doc["results"][0]
+    result["passed"] = passed
+    if verdict is not _ABSENT:
+        result["verdict"] = verdict
+    if has_error:
+        result["error"] = {"type": "timeout", "message": "no terminal event"}
+    return doc
+
+
+def _verdict_case_id(case):
+    verdict, passed, has_error = case
+    v = "absent" if verdict is _ABSENT else repr(verdict)
+    return f"verdict={v},passed={passed},error={has_error}"
+
+
+@pytest.mark.parametrize(
+    "verdict,passed,has_error", _VERDICT_TRUTH_TABLE, ids=[_verdict_case_id(c) for c in _VERDICT_TRUTH_TABLE]
+)
+def test_verdict_truth_table_json_schema_and_hand_rolled_agree(verdict, passed, has_error):
+    doc = _verdict_doc(verdict, passed, has_error)
+    expected = _verdict_expected_valid(verdict, passed, has_error)
+    js_ok = _js_accepts(RESULTSET_VALIDATOR, doc)
+    hand_ok = validate_result_set(doc).valid
+    assert js_ok == expected, f"JSON Schema acceptance was {js_ok}, expected {expected}"
+    assert hand_ok == expected, f"hand-rolled acceptance was {hand_ok}, expected {expected}"
+
+
+def test_verdict_truth_table_has_expected_shape():
+    # 7 verdict values x 2 passed x 2 error = 28 cases, of which exactly these
+    # 8 are valid: absent (4 combos), passed/true/no-error, failed/false/no-error,
+    # unverified/false with and without error.
+    assert len(_VERDICT_TRUTH_TABLE) == 28
+    assert sum(_verdict_expected_valid(*c) for c in _VERDICT_TRUTH_TABLE) == 8
+
+
+def test_verdict_rules_are_expressed_in_json_schema_not_hand_rolled_only():
+    # Guards the design decision itself: if someone removes the allOf
+    # conditionals from resultset.json, the truth table above would start
+    # failing on the JSON Schema side; this test names why.
+    item = RESULTSET_SCHEMA["properties"]["results"]["items"]
+    assert item["properties"]["verdict"]["enum"] == ["passed", "failed", "unverified"]
+    conds = item["allOf"]
+    assert {"if": {"required": ["error", "verdict"]}, "then": {"properties": {"verdict": {"const": "unverified"}}}} in [
+        {"if": c["if"], "then": c["then"]} for c in conds
+    ]
+
+
+def test_verdict_misspelled_key_rejected_by_json_schema_only():
+    # A misspelled key ("verdikt") is caught by additionalProperties: false on
+    # the result item; the hand-rolled validator, as for every other optional
+    # field, does not police unknown keys. Same documented gap as `group`.
+    doc = _minimal_result_set("1.0.0")
+    doc["results"][0]["passed"] = False
+    doc["results"][0]["verdikt"] = "unverified"
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
