@@ -47,6 +47,10 @@ result = validate_suite({
 print(result.valid)  # True
 ```
 
+**In CI / pre-commit:** add `- uses: adhabnr-ux/evalport@main` to a workflow to validate every `**/*.evalport.json` and annotate invalid files on the PR,
+or add the `evalport-validate` hook from this repo to `.pre-commit-config.yaml`. Both run the `evalport-validate` CLI from the Python SDK.
+See [docs/github-action.md](docs/github-action.md).
+
 ## Contribute
 
 EvalPort is pre-1.0 and actively shaped by outside contributors — the fastest ways in, from least to most involved:

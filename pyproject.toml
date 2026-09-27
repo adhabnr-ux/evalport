@@ -1,0 +1,30 @@
+# Repo-root packaging for the pre-commit hook ONLY (.pre-commit-hooks.yaml).
+#
+# pre-commit installs a `language: python` hook by cloning this repo at the
+# pinned `rev` and running `pip install .` in the REPO ROOT -- without an
+# installable project here that fails with "Directory '.' is not installable"
+# (verified with `pre-commit try-repo`). This file builds the same `openeval`
+# package from sdk/python/ so the hook runs the validator at exactly the
+# pinned rev, with no dependency on what has been released to PyPI.
+#
+# It is NOT published anywhere. The real package is sdk/python/pyproject.toml
+# (`evalport-sdk` on PyPI); this distribution deliberately uses a different
+# name so it can never be mistaken for, or shadow, a released evalport-sdk.
+# Keep the console script below in sync with sdk/python/pyproject.toml.
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evalport-pre-commit-hook"
+version = "0.0.0"
+description = "pre-commit packaging of the EvalPort validator (sdk/python); not published"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+
+[project.scripts]
+evalport-validate = "openeval.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "sdk/python"}
+packages = ["openeval"]
