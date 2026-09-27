@@ -1,4 +1,5 @@
 from openeval.validate import validate_suite
+from openeval.types import OPENEVAL_VERSION
 
 from langsmith_openeval_adapter import to_openeval, from_openeval
 
@@ -110,7 +111,7 @@ def test_from_openeval_round_trip():
 def test_empty_runs_still_produces_well_formed_suite():
     suite = to_openeval([], run_id="empty")
     assert suite["test_cases"] == []
-    assert suite["version"] == "1.0.0"
+    assert suite["version"] == OPENEVAL_VERSION
     validation = validate_suite(suite)
     assert not validation.valid
     assert any(e["code"] == "MIN_ITEMS" for e in validation.errors)
