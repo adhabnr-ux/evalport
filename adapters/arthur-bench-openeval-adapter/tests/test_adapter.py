@@ -2,8 +2,10 @@ import importlib.util
 
 import pytest
 
-# The adapter itself imports arthur_bench at module import time, so nothing in
-# this module can run without arthur-bench. Skip the whole module when it is
+# Every test in this module drives real arthur_bench objects (the adapter
+# itself imports arthur-bench lazily; its framework-free tests live in
+# test_without_arthur_bench.py), so nothing here can run without
+# arthur-bench. Skip the whole module when it is
 # absent (CI's min-mode adapter-tests job installs evalport-sdk only). Checked
 # with find_spec rather than pytest.importorskip so that, with arthur-bench
 # installed, a broken install or upstream API drift still fails loudly instead

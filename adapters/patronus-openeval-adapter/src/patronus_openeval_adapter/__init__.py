@@ -90,7 +90,10 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Mapping, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional, Sequence, Union
+
+if TYPE_CHECKING:  # pragma: no cover - annotations only; patronus is imported lazily
+    from patronus.evals import Evaluator
 
 
 def _now_iso() -> str:
@@ -102,16 +105,26 @@ __all__ = [
     "batch_eval_result_to_openeval",
 ]
 
-try:
-    from patronus.evals import Evaluator, RemoteEvaluator
-except ImportError as e:  # pragma: no cover - exercised by the packaging itself
-    raise ImportError(
-        "patronus-openeval-adapter requires the 'patronus' package. "
-        "Install it with: pip install patronus"
-    ) from e
+def _import_remote_evaluator():
+    """Import patronus lazily, on first use.
+
+    patronus is an optional extra, not a hard dependency, so importing it at
+    module import time made a plain ``pip install patronus-openeval-adapter``
+    unimportable (and failed publish-adapter.yml's clean-venv wheel smoke
+    test). Only the functions that actually touch patronus classes call this.
+    """
+    try:
+        from patronus.evals import RemoteEvaluator
+    except ImportError as e:
+        raise ImportError(
+            "patronus-openeval-adapter needs the 'patronus' package for this call. "
+            'Install it with: pip install "patronus-openeval-adapter[patronus]" '
+            "(or `pip install patronus` directly)."
+        ) from e
+    return RemoteEvaluator
 
 try:
-    from openeval.version import OPENEVAL_VERSION
+    from openeval.types import OPENEVAL_VERSION
 except ImportError:  # pragma: no cover - evalport-sdk not installed
     OPENEVAL_VERSION = "1.0.0"
 
@@ -127,7 +140,7 @@ _LLM_JUDGE_RUBRIC_TEMPLATE = (
 
 
 def _is_remote_evaluator(ev: Any) -> bool:
-    return isinstance(ev, RemoteEvaluator)
+    return isinstance(ev, _import_remote_evaluator())
 
 
 def _canonical_name(ev: "Evaluator") -> str:
@@ -200,6 +213,7 @@ def _grader_to_evaluator(grader: Dict[str, Any]) -> Optional["Evaluator"]:
     if grader.get("type") == "llm_judge" and patronus_meta and patronus_meta.get(
         "evaluator_id_or_alias"
     ):
+        RemoteEvaluator = _import_remote_evaluator()
         return RemoteEvaluator(
             patronus_meta["evaluator_id_or_alias"],
             criteria=patronus_meta.get("criteria"),
@@ -217,7 +231,7 @@ def to_openeval(
     contexts_list: Optional[Sequence[Optional[List[str]]]] = None,
     ids: Optional[Sequence[str]] = None,
     suite_id: Optional[str] = None,
-    version: str = "1.0.0",
+    version: str = OPENEVAL_VERSION,
     description: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Build an EvalPort suite from evaluation inputs and Patronus evaluators.
@@ -388,7 +402,7 @@ def batch_eval_result_to_openeval(
     started_at: Optional[str] = None,
     completed_at: Optional[str] = None,
     pass_threshold: float = 0.5,
-    version: str = "1.0.0",
+    version: str = OPENEVAL_VERSION,
 ) -> Dict[str, Any]:
     """Convert a batch of Patronus ``EvaluationResult``s into an EvalPort ResultSet.
 

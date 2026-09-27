@@ -10,16 +10,33 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from arthur_bench.run.testsuite import TestSuite
-from arthur_bench.run.testrun import TestRun
-from arthur_bench.scoring import scorer_from_string
-from arthur_bench.scoring.scorer import Scorer
+# arthur-bench is an optional extra, not a hard dependency, so it must not be
+# imported at module import time: a plain `pip install
+# arthur-bench-openeval-adapter` has to stay importable. to_openeval() and
+# run_to_openeval() only read attributes off the objects they're given
+# (duck-typed), so they never need it; from_openeval(), which has to
+# construct a real TestSuite and resolve a scorer by name, imports it lazily
+# via _import_arthur_bench(). The names below are for type annotations only
+# (`from __future__ import annotations` keeps them unevaluated at runtime).
+if TYPE_CHECKING:  # pragma: no cover
+    from arthur_bench.run.testrun import TestRun
+    from arthur_bench.run.testsuite import TestSuite
+    from arthur_bench.scoring.scorer import Scorer
 
 __all__ = ["to_openeval", "from_openeval", "run_to_openeval"]
 
-SPEC_VERSION = "1.0.0-rc.2"
+try:
+    from openeval.types import OPENEVAL_VERSION
+except ImportError:  # pragma: no cover - evalport-sdk always required at runtime,
+    # but keep a sane fallback for static analysis / partial installs.
+    OPENEVAL_VERSION = "1.0.0"
+
+# The EvalPort spec version stamped on emitted Suites/ResultSets. Kept as a
+# public alias for backward compatibility; it is the installed evalport-sdk's
+# own OPENEVAL_VERSION (this was previously a stale hard-coded "1.0.0-rc.2").
+SPEC_VERSION = OPENEVAL_VERSION
 
 # Real category taxonomies for Arthur Bench's built-in categorical scorers,
 # confirmed by reading the installed package's source (arthur_bench.scoring.*),
@@ -45,6 +62,22 @@ _CATEGORY_PASS_NAMES: Dict[str, set] = {
 # built-in continuous scorer this adapter checked (specificity, bertscore,
 # word_count_match) is higher-is-better, matching the fallback below.
 _INVERTED_CONTINUOUS_SCORERS = {"hedging_language"}
+
+
+def _import_arthur_bench():
+    """Import the arthur-bench pieces from_openeval() needs, on first use."""
+    try:
+        from arthur_bench.run.testsuite import TestSuite
+        from arthur_bench.scoring import scorer_from_string
+    except ImportError as exc:
+        raise ImportError(
+            "from_openeval() needs the arthur-bench package to construct a real "
+            "arthur_bench TestSuite. Install it with: "
+            'pip install "arthur-bench-openeval-adapter[arthur-bench]" '
+            "(or `pip install arthur-bench` directly). to_openeval() and "
+            "run_to_openeval() work without it."
+        ) from exc
+    return TestSuite, scorer_from_string
 
 
 def _grader_for_scorer(scorer: Scorer) -> Dict[str, Any]:
@@ -171,6 +204,8 @@ def from_openeval(
     Returns:
         A new ``arthur_bench.run.testsuite.TestSuite``.
     """
+    TestSuite, scorer_from_string = _import_arthur_bench()
+
     graders = suite.get("graders") or []
     if len(graders) != 1:
         raise ValueError(
