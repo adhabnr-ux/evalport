@@ -1,0 +1,16 @@
+{
+  "about": "Hand-written, SYNTHETIC model outputs for the first 10 test cases of benchmarks/gsm8k/gsm8k.json. No model produced these; they exist so the interop demos can run offline and deterministically. The formatting variants ('$70,000', ' 540\\n', '45.') are deliberate: they exercise how each framework's own exact-match metric normalizes an answer. gsm8k_6 is simply wrong (correct answer: 260).",
+  "suite": "benchmarks/gsm8k/gsm8k.json",
+  "outputs": {
+    "gsm8k_0": "18",
+    "gsm8k_1": "3",
+    "gsm8k_2": "$70,000",
+    "gsm8k_3": " 540\n",
+    "gsm8k_4": "20",
+    "gsm8k_5": "64",
+    "gsm8k_6": "280",
+    "gsm8k_7": "160",
+    "gsm8k_8": "45.",
+    "gsm8k_9": "460"
+  }
+}
