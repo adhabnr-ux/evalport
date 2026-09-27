@@ -37,16 +37,23 @@ def test_dataset_portability():
     assert "RESULT: PASS" in out
     assert "UNEXPECTED" not in out
     assert "network connections attempted: 0" in out
-    # The portable test-case data survives DeepEval's LLMTestCase untouched...
+    # Every test-case data field survives both DeepEval's LLMTestCase and
+    # DSPy's dspy.Example byte for byte: string input stays a string,
+    # context / expected_tools (including the empty "no tool" list) and
+    # metadata (e.g. TruthfulQA's accepted-answer list) all come back...
     assert "tc.id lossless (24 cases) lossless (24 cases)" in rows
-    assert "tc.input lossless (24 cases) lossy 24/24 cases" in rows
+    assert "tc.input lossless (24 cases) lossless (24 cases)" in rows
     assert "tc.expected_output lossless (23 cases) lossless (23 cases)" in rows
-    assert "tc.context lossless (1 cases) lossy 1/1 cases" in rows
-    # ...while graders and metadata do not survive either framework.
+    assert "tc.context lossless (1 cases) lossless (1 cases)" in rows
+    assert "tc.expected_tools lossless (3 cases) lossless (3 cases)" in rows
+    assert "tc.metadata lossless (23 cases) lossless (23 cases)" in rows
+    # ...the DeepEval adapter adds only its own documented bookkeeping key...
+    assert "tc.metadata.deepeval added to 24/24 cases -" in rows
+    # ...and grader definitions still have no slot in either framework.
     assert "tc.graders lossy 24/24 cases lossy 24/24 cases" in rows
-    assert "tc.metadata lossy 24/24 cases lossy 24/24 cases" in rows
-    assert "tc.expected_tools lossy 1/3 cases lossy 3/3 cases" in rows
-    assert "deepeval: round-trips suite.id, tc.id, tc.input, tc.expected_output, tc.context" in out
+    for name in ("deepeval", "dspy"):
+        assert (f"{name}: round-trips suite.id, tc.id, tc.input, tc.expected_output, "
+                "tc.context, tc.expected_tools, tc.metadata") in out
 
 
 def test_results_portability():
@@ -68,7 +75,10 @@ def test_cross_framework_comparison():
     rows = lines(out)
     assert "RESULT: PASS" in out
     assert "network connections attempted: 0" in out
-    assert out.count("valid=True") == 3
+    # the three framework-native ResultSet files (the two suite-grader
+    # ResultSets further down are checked separately below)
+    assert sum(1 for r in rows if r.startswith("wrote ") and "valid=True" in r) == 3
+    assert "valid=False" not in out
     assert "group_id=gsm8k-exact-match-3-frameworks: 3 members joined on test_case_id" in rows
     assert "test case expected output deepeval dspy haystack verdict" in rows
     assert "gsm8k_2 70000 \"$70,000\" fail pass fail DISAGREE" in rows
@@ -76,6 +86,15 @@ def test_cross_framework_comparison():
     assert "gsm8k_6 260 \"280\" fail fail fail all fail" in rows
     assert "pass rate 0.70 0.90 0.60" in rows
     assert "3/10 test cases get different verdicts from different frameworks on identical outputs:" in rows
+    # Opt-in: the suite's own exact_match grader, run inside DeepEval and DSPy
+    # through the adapters' grader helpers, gives the same verdict everywhere.
+    assert "deepeval valid=True grader_id=gr_exact_match" in rows
+    assert "dspy valid=True grader_id=gr_exact_match" in rows
+    assert "test case expected output deepeval dspy spec agree" in rows
+    assert sum(1 for r in rows if r.startswith("gsm8k_") and r.endswith(" yes")) == 10
+    assert "gsm8k_2 70000 \"$70,000\" fail fail fail yes" in rows
+    assert "gsm8k_8 45 \"45.\" fail fail fail yes" in rows
+    assert "pass rate 0.70 0.70 0.70" in rows
 
 
 @pytest.mark.parametrize("script", [

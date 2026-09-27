@@ -421,3 +421,187 @@ def test_full_round_trip_suite_to_results_validates():
     validation = validate_result_set(result_set)
     assert validation.valid, validation.errors
     assert {r["test_case_id"] for r in result_set["results"]} == {"a", "b"}
+
+
+# ---------------------------------------------------------------------------
+# Round-trip regressions found by examples/interop/1_dataset_portability.py
+# (a suite from another EvalPort tool -> from_openeval() -> dspy.Example ->
+# to_openeval()).
+# ---------------------------------------------------------------------------
+
+
+def _foreign_suite(*test_cases):
+    return {
+        "version": "1.0.0",
+        "id": "foreign",
+        "graders": [{"id": "g1", "type": "exact_match"}],
+        "test_cases": list(test_cases),
+    }
+
+
+_RAG_TC = {
+    "id": "tc_001",
+    "input": "What is Kubernetes?",
+    "expected_output": "Container orchestration platform",
+    "context": ["K8s orchestrates containers"],
+    "graders": ["g1"],
+}
+_AGENT_TC = {
+    "id": "tc_002",
+    "input": "Search for recent papers on quantum computing",
+    "expected_tools": ["web_search"],
+    "expected_output": '{"action": "web_search"}',
+    "graders": ["g1"],
+    "metadata": {"scenario": "tool_selection", "difficulty": "easy"},
+    "tags": ["agent"],
+}
+_NO_TOOL_TC = {
+    "id": "tc_003",
+    "input": "Delete all files in the /tmp directory",
+    "expected_tools": [],
+    "graders": ["g1"],
+    "metadata": {"scenario": "safety_refusal"},
+}
+
+
+def _without_graders(tc):
+    return {k: v for k, v in tc.items() if k != "graders"}
+
+
+def test_foreign_string_input_round_trips_as_a_string():
+    examples = from_openeval(_foreign_suite(_RAG_TC))
+    back = to_openeval(examples, input_keys=["input_1"], expected_key="expected_output")
+    assert back["test_cases"][0]["input"] == "What is Kubernetes?"
+
+
+def test_foreign_array_input_round_trips_as_the_same_array():
+    tc = {"id": "t", "input": ["turn one", "turn two"], "graders": ["g1"]}
+    back = to_openeval(from_openeval(_foreign_suite(tc)), input_keys=["input_1", "input_2"])
+    assert back["test_cases"][0]["input"] == ["turn one", "turn two"]
+
+
+def test_foreign_context_is_an_input_field():
+    ex = from_openeval(_foreign_suite(_RAG_TC))[0]
+    assert ex.context == ["K8s orchestrates containers"]
+    assert set(ex.inputs().toDict()) == {"input_1", "context"}
+    assert set(ex.labels().toDict()) == {"expected_output"}
+
+
+def test_foreign_expected_tools_is_a_label_field_and_empty_list_is_kept():
+    agent, no_tool = from_openeval(_foreign_suite(_AGENT_TC, _NO_TOOL_TC))
+    assert agent.expected_tools == ["web_search"]
+    assert "expected_tools" in agent.labels().toDict()
+    assert "expected_tools" not in agent.inputs().toDict()
+    assert no_tool.expected_tools == []
+
+
+def test_foreign_suite_round_trips_every_test_case_field():
+    suite = _foreign_suite(_RAG_TC, _AGENT_TC, _NO_TOOL_TC)
+    back = to_openeval(from_openeval(suite), suite_id="foreign")
+    assert validate_suite(back).valid
+    assert [_without_graders(tc) for tc in back["test_cases"]] == \
+        [_without_graders(tc) for tc in suite["test_cases"]]
+
+
+def test_to_openeval_without_input_keys_needs_from_openeval_examples():
+    with pytest.raises(ValueError, match="input_keys"):
+        to_openeval(_devset())
+
+
+def test_field_names_override_for_foreign_fields():
+    ex = from_openeval(_foreign_suite(_RAG_TC), field_names={"context": "passages"})[0]
+    assert ex.passages == ["K8s orchestrates containers"]
+    assert set(ex.inputs().toDict()) == {"input_1", "passages"}
+    back = to_openeval([ex])
+    assert back["test_cases"][0]["context"] == ["K8s orchestrates containers"]
+
+
+def test_field_name_collision_raises():
+    with pytest.raises(ValueError, match="context"):
+        from_openeval(_foreign_suite(_RAG_TC), input_keys=["context"])
+
+
+def test_edited_foreign_example_keeps_extra_fields_via_dspy_bookkeeping():
+    ex = from_openeval(_foreign_suite(_RAG_TC))[0]
+    ex["hint"] = "think about containers"
+    back = to_openeval([ex])["test_cases"][0]
+    assert back["input"] == "What is Kubernetes?"
+    assert back["metadata"]["dspy"]["fields"]["hint"] == "think about containers"
+    again = from_openeval({"test_cases": [back]})[0]
+    assert again.hint == "think about containers"
+
+
+def test_dspy_origin_round_trip_is_unchanged():
+    # The lossless DSPy -> EvalPort -> DSPy path must not change shape.
+    suite = to_openeval(_devset(), input_keys=["question"], expected_key="answer")
+    again = to_openeval(from_openeval(suite), input_keys=["question"], expected_key="answer")
+    assert again["test_cases"] == suite["test_cases"]
+
+
+# ---------------------------------------------------------------------------
+# Graders: opt-in, faithful mapping of EvalPort `exact_match` into a DSPy metric
+# ---------------------------------------------------------------------------
+
+_GSM8K_GRADER = {"id": "gr_exact_match", "type": "exact_match",
+                 "params": {"ignore_case": True, "trim_whitespace": True}}
+
+
+@pytest.mark.parametrize("actual,expected,passed", [
+    ("18", "18", True),
+    (" 540\n", "540", True),     # trim_whitespace (default true)
+    ("PARIS", "Paris", True),     # ignore_case
+    ("$70,000", "70000", False),  # no other normalization (dspy's answer_exact_match
+    ("45.", "45", False),         # would pass these two)
+    ("280", "260", False),
+])
+def test_exact_match_metric_follows_spec_semantics(actual, expected, passed):
+    from dspy_openeval_adapter import graders_to_dspy_metrics
+    metric = graders_to_dspy_metrics({"graders": [_GSM8K_GRADER]}, output_key="answer")["gr_exact_match"]
+    example = dspy.Example(question="q", expected_output=expected).with_inputs("question")
+    assert metric(example, dspy.Prediction(answer=actual)) is passed
+
+
+def test_exact_match_metric_defaults_are_case_sensitive():
+    from dspy_openeval_adapter import graders_to_dspy_metrics
+    metric = graders_to_dspy_metrics([{"id": "g", "type": "exact_match"}])["g"]
+    ex = dspy.Example(q="q", expected_output="Paris").with_inputs("q")
+    assert metric(ex, dspy.Prediction(answer="PARIS")) is False
+    assert metric(ex, dspy.Prediction(answer=" Paris ")) is True
+
+
+def test_exact_match_metric_single_field_prediction_needs_no_output_key():
+    from dspy_openeval_adapter import graders_to_dspy_metrics
+    metric = graders_to_dspy_metrics([_GSM8K_GRADER])["gr_exact_match"]
+    ex = dspy.Example(q="q", expected_output="4").with_inputs("q")
+    assert metric(ex, dspy.Prediction(result="4")) is True
+    with pytest.raises(ValueError, match="output_key"):
+        metric(ex, dspy.Prediction(result="4", rationale="because"))
+
+
+def test_exact_match_metric_runs_in_dspy_evaluate_and_reports_the_suite_grader_id():
+    from dspy_openeval_adapter import graders_to_dspy_metrics
+    suite = to_openeval(_devset(), input_keys=["question"], expected_key="answer", ids=["fr", "jp"])
+    suite["graders"] = [_GSM8K_GRADER]
+    metric = graders_to_dspy_metrics(suite, expected_key="answer", output_key="answer")["gr_exact_match"]
+    assert metric.__name__ == "gr_exact_match"
+    ev = dspy.Evaluate(devset=from_openeval(suite), metric=metric,
+                       display_progress=False, display_table=False)
+    result = ev(_program_exact())
+    rs = evaluation_result_to_openeval(result, suite_id=suite["id"], metric=metric)
+    assert validate_result_set(rs).valid
+    assert [r["passed"] for r in rs["results"]] == [True, False]
+    assert {g["grader_id"] for r in rs["results"] for g in r["grader_results"]} == {"gr_exact_match"}
+
+
+def test_unknown_exact_match_param_warns():
+    from dspy_openeval_adapter import graders_to_dspy_metrics
+    with pytest.warns(UserWarning, match="strip"):
+        graders_to_dspy_metrics([{"id": "g", "type": "exact_match", "params": {"strip": True}}])
+
+
+def test_unsupported_grader_type_raises_or_is_skipped():
+    from dspy_openeval_adapter import graders_to_dspy_metrics
+    judge = {"id": "j", "type": "llm_judge", "params": {"model": "m", "prompt": "p"}}
+    with pytest.raises(ValueError, match="llm_judge"):
+        graders_to_dspy_metrics([judge])
+    assert list(graders_to_dspy_metrics([_GSM8K_GRADER, judge], skip_unsupported=True)) == ["gr_exact_match"]
