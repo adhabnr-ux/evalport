@@ -105,16 +105,27 @@ __all__ = [
     "batch_eval_result_to_openeval",
 ]
 
-try:
-    from vertexai.evaluation import CustomMetric, PairwiseMetric, PointwiseMetric
-except ImportError as e:  # pragma: no cover - exercised by the packaging itself
-    raise ImportError(
-        "vertexai-openeval-adapter requires the 'google-cloud-aiplatform[evaluation]' "
-        "package. Install it with: pip install google-cloud-aiplatform[evaluation]"
-    ) from e
+def _import_vertex_metrics():
+    """Import vertexai.evaluation lazily, on first use.
+
+    google-cloud-aiplatform is an optional extra, not a hard dependency, so
+    importing it at module import time made a plain
+    ``pip install vertexai-openeval-adapter`` unimportable (and failed
+    publish-adapter.yml's clean-venv wheel smoke test). Only the functions
+    that actually touch Vertex metric classes call this.
+    """
+    try:
+        from vertexai.evaluation import CustomMetric, PairwiseMetric, PointwiseMetric
+    except ImportError as e:
+        raise ImportError(
+            "vertexai-openeval-adapter needs the 'google-cloud-aiplatform[evaluation]' "
+            'package for this call. Install it with: pip install "vertexai-openeval-adapter[vertexai]" '
+            '(or `pip install "google-cloud-aiplatform[evaluation]"` directly).'
+        ) from e
+    return CustomMetric, PairwiseMetric, PointwiseMetric
 
 try:
-    from openeval.version import OPENEVAL_VERSION
+    from openeval.types import OPENEVAL_VERSION
 except ImportError:  # pragma: no cover - evalport-sdk not installed
     OPENEVAL_VERSION = "1.0.0"
 
@@ -141,6 +152,7 @@ def _metric_name(metric: Any) -> str:
 def _metric_to_grader(metric: Any) -> Dict[str, Any]:
     """Build an EvalPort grader dict describing one Vertex evaluation metric."""
     grader_id = _metric_name(metric)
+    CustomMetric, PairwiseMetric, PointwiseMetric = _import_vertex_metrics()
 
     if isinstance(metric, PointwiseMetric):
         real_prompt_text = str(metric.metric_prompt_template)
@@ -224,6 +236,7 @@ def _grader_to_metric(grader: Dict[str, Any]) -> Optional[Any]:
     if grader.get("type") == "llm_judge" and vertex_meta and vertex_meta.get(
         "class"
     ) == "PointwiseMetric" and vertex_meta.get("metric_prompt_template"):
+        _, _, PointwiseMetric = _import_vertex_metrics()
         return PointwiseMetric(
             metric=vertex_meta.get("metric_name") or grader["id"],
             metric_prompt_template=vertex_meta["metric_prompt_template"],
@@ -237,7 +250,7 @@ def to_openeval(
     metrics: Sequence[Any],
     ids: Optional[Sequence[str]] = None,
     suite_id: Optional[str] = None,
-    version: str = "1.0.0",
+    version: str = OPENEVAL_VERSION,
     description: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Build an EvalPort suite from evaluation instances and Vertex metrics.
@@ -390,7 +403,7 @@ def batch_eval_result_to_openeval(
     started_at: Optional[str] = None,
     completed_at: Optional[str] = None,
     pass_threshold: float = 0.5,
-    version: str = "1.0.0",
+    version: str = OPENEVAL_VERSION,
 ) -> Dict[str, Any]:
     """Convert a Vertex `metrics_table`-shaped DataFrame into an EvalPort ResultSet.
 
@@ -495,4 +508,5 @@ def batch_eval_result_to_openeval(
 
 
 def _grader_type_for(metric: Any) -> str:
+    _, _, PointwiseMetric = _import_vertex_metrics()
     return "llm_judge" if isinstance(metric, PointwiseMetric) else "custom"

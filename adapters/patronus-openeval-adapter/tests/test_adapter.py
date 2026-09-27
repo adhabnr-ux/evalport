@@ -21,8 +21,10 @@ import importlib.util
 
 import pytest
 
-# The adapter itself imports patronus at module import time, so nothing in
-# this module can run without patronus. Skip the whole module when it is
+# Every test in this module drives real patronus objects (the adapter itself
+# imports patronus lazily; its framework-free tests live in
+# test_without_patronus.py), so nothing here can run without patronus.
+# Skip the whole module when it is
 # absent (CI's min-mode adapter-tests job installs evalport-sdk only). Checked
 # with find_spec rather than pytest.importorskip so that, with patronus
 # installed, a broken install or upstream API drift still fails loudly instead
@@ -31,6 +33,7 @@ if importlib.util.find_spec("patronus") is None:
     pytest.skip("patronus not installed", allow_module_level=True)
 
 from openeval.validate import validate_result_set, validate_suite
+from openeval.types import OPENEVAL_VERSION
 from patronus.evals import Evaluator, EvaluationResult, RemoteEvaluator
 
 from patronus_openeval_adapter import (
@@ -80,6 +83,7 @@ class TestToOpeneval:
         assert grader["params"]["handler"]
 
         validation = validate_suite(suite)
+        assert suite["version"] == OPENEVAL_VERSION
         assert validation.valid, validation.errors
 
     def test_remote_evaluator_maps_to_llm_judge_with_valid_prompt_tokens(self):
@@ -274,6 +278,7 @@ class TestBatchEvalResultToOpeneval:
         assert r2["passed"] is False
 
         validation = validate_result_set(result_set)
+        assert result_set["version"] == OPENEVAL_VERSION
         assert validation.valid, validation.errors
 
     def test_remote_evaluator_produces_llm_judge_grader_type(self):
