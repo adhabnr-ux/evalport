@@ -19,8 +19,18 @@ against the real evalport-sdk (`openeval.validate.validate_suite`).
 """
 from __future__ import annotations
 
+import importlib.util
+
 import pytest
-from jinja2 import BaseLoader, Environment
+
+# Framework-dependent tests below are skipped (not failed) when jinja2
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_JINJA2 = importlib.util.find_spec("jinja2") is not None
+requires_jinja2 = pytest.mark.skipif(not HAS_JINJA2, reason="jinja2 not installed")
+if HAS_JINJA2:
+    from jinja2 import BaseLoader, Environment
 
 from promptsource_openeval_adapter import (
     dataset_templates_to_openeval,
@@ -29,7 +39,8 @@ from promptsource_openeval_adapter import (
 )
 from openeval.validate import validate_suite
 
-_env = Environment(loader=BaseLoader)
+if HAS_JINJA2:
+    _env = Environment(loader=BaseLoader)
 _PIPE_PROTECTOR = "3ed2dface8203c4c9dfb1a5dc58e41e0"
 
 
@@ -131,6 +142,7 @@ def ag_news_examples():
 
 
 class TestTemplateToOpenEval:
+    @requires_jinja2
     def test_real_jinja_rendering_and_validates(self, ag_news_template, ag_news_examples):
         suite = template_to_openeval(
             ag_news_template, ag_news_examples, dataset_name="ag_news"
@@ -139,6 +151,7 @@ class TestTemplateToOpenEval:
         assert validation.valid, validation.errors
         assert len(suite["test_cases"]) == 3
 
+    @requires_jinja2
     def test_rendered_input_matches_real_jinja_output(self, ag_news_template, ag_news_examples):
         suite = template_to_openeval(ag_news_template, ag_news_examples, dataset_name="ag_news")
         tc0 = suite["test_cases"][0]
@@ -147,6 +160,7 @@ class TestTemplateToOpenEval:
             "Stocks rallied on Friday after strong earnings."
         )
 
+    @requires_jinja2
     def test_expected_output_is_rendered_answer_choice(self, ag_news_template, ag_news_examples):
         suite = template_to_openeval(ag_news_template, ag_news_examples, dataset_name="ag_news")
         # label=2 -> answer_choices[2] == "Business"
@@ -156,6 +170,7 @@ class TestTemplateToOpenEval:
         # label=3 -> "Science and technology"
         assert suite["test_cases"][2]["expected_output"] == "Science and technology"
 
+    @requires_jinja2
     def test_answer_choices_preserved_in_metadata(self, ag_news_template, ag_news_examples):
         suite = template_to_openeval(ag_news_template, ag_news_examples, dataset_name="ag_news")
         assert suite["test_cases"][0]["metadata"]["promptsource"]["answer_choices"] == [
@@ -165,6 +180,7 @@ class TestTemplateToOpenEval:
             "Science and technology",
         ]
 
+    @requires_jinja2
     def test_accuracy_metric_maps_to_exact_match_grader(self, ag_news_template, ag_news_examples):
         suite = template_to_openeval(ag_news_template, ag_news_examples, dataset_name="ag_news")
         assert suite["graders"] == [{"id": "Accuracy", "type": "exact_match", "description": (
@@ -175,6 +191,7 @@ class TestTemplateToOpenEval:
         for tc in suite["test_cases"]:
             assert tc["graders"] == ["Accuracy"]
 
+    @requires_jinja2
     def test_unrecognized_metric_falls_back_to_custom(self, ag_news_examples):
         template = _Template(
             name="rouge_template", jinja="{{text}} ||| {{text}}", metrics=["ROUGE"]
@@ -185,23 +202,27 @@ class TestTemplateToOpenEval:
         assert grader["params"] == {"handler": "ROUGE"}
         assert validate_suite(suite).valid
 
+    @requires_jinja2
     def test_no_metrics_falls_back_to_plain_exact_match(self, ag_news_examples):
         template = _Template(name="open_ended", jinja="{{text}} ||| {{text}}", metrics=None)
         suite = template_to_openeval(template, ag_news_examples, dataset_name="ag_news")
         assert suite["graders"] == [{"id": "exact_match", "type": "exact_match"}]
         assert validate_suite(suite).valid
 
+    @requires_jinja2
     def test_no_answer_choices_omits_metadata_key(self, ag_news_examples):
         template = _Template(name="open_ended", jinja="{{text}} ||| summary", metrics=["Accuracy"])
         suite = template_to_openeval(template, ag_news_examples, dataset_name="ag_news")
         assert "answer_choices" not in suite["test_cases"][0]["metadata"]["promptsource"]
 
+    @requires_jinja2
     def test_default_suite_id_includes_dataset_and_template(
         self, ag_news_template, ag_news_examples
     ):
         suite = template_to_openeval(ag_news_template, ag_news_examples, dataset_name="ag_news")
         assert suite["id"] == "promptsource_ag_news_classify_question_first"
 
+    @requires_jinja2
     def test_subset_name_included_in_default_ids(self, ag_news_template, ag_news_examples):
         suite = template_to_openeval(
             ag_news_template, ag_news_examples, dataset_name="glue", subset_name="mrpc"
@@ -209,12 +230,14 @@ class TestTemplateToOpenEval:
         assert suite["id"] == "promptsource_glue_mrpc_classify_question_first"
         assert suite["test_cases"][0]["id"] == "glue_mrpc_classify_question_first_0"
 
+    @requires_jinja2
     def test_custom_ids(self, ag_news_template, ag_news_examples):
         suite = template_to_openeval(
             ag_news_template, ag_news_examples, dataset_name="ag_news", ids=["a", "b", "c"]
         )
         assert [tc["id"] for tc in suite["test_cases"]] == ["a", "b", "c"]
 
+    @requires_jinja2
     def test_dataset_and_template_recorded_in_metadata(self, ag_news_template, ag_news_examples):
         suite = template_to_openeval(ag_news_template, ag_news_examples, dataset_name="ag_news")
         meta = suite["test_cases"][0]["metadata"]["promptsource"]
@@ -232,6 +255,7 @@ class TestTemplateToOpenEval:
                 ag_news_template, ag_news_examples, dataset_name="ag_news", ids=["only_one"]
             )
 
+    @requires_jinja2
     def test_non_two_part_apply_raises(self, ag_news_examples):
         # A template missing the "|||" separator entirely violates
         # promptsource's own documented contract.
@@ -241,6 +265,7 @@ class TestTemplateToOpenEval:
 
 
 class TestDatasetTemplatesToOpenEval:
+    @requires_jinja2
     def test_merges_multiple_templates_into_one_suite(self, ag_news_examples):
         t1 = _Template(name="t1", jinja="{{text}} ||| a", metrics=["Accuracy"])
         t2 = _Template(name="t2", jinja="{{text}} ||| b", metrics=["Accuracy"])
@@ -250,6 +275,7 @@ class TestDatasetTemplatesToOpenEval:
         # 2 templates * 3 examples = 6 test cases
         assert len(suite["test_cases"]) == 6
 
+    @requires_jinja2
     def test_deduplicates_shared_grader_ids(self, ag_news_examples):
         t1 = _Template(name="t1", jinja="{{text}} ||| a", metrics=["Accuracy"])
         t2 = _Template(name="t2", jinja="{{text}} ||| b", metrics=["Accuracy"])
@@ -259,6 +285,7 @@ class TestDatasetTemplatesToOpenEval:
         # (validate_suite() would flag a literal duplicate as DUPLICATE_ID).
         assert [g["id"] for g in suite["graders"]] == ["Accuracy"]
 
+    @requires_jinja2
     def test_selects_only_named_templates(self, ag_news_examples):
         t1 = _Template(name="t1", jinja="{{text}} ||| a", metrics=["Accuracy"])
         t2 = _Template(name="t2", jinja="{{text}} ||| b", metrics=["Accuracy"])
@@ -287,6 +314,7 @@ class TestDatasetTemplatesToOpenEval:
                 collection, ag_news_examples, dataset_name="ag_news", template_names=[]
             )
 
+    @requires_jinja2
     def test_real_ag_news_template_end_to_end(self, ag_news_template, ag_news_examples):
         collection = _DatasetTemplates([ag_news_template])
         suite = dataset_templates_to_openeval(collection, ag_news_examples, dataset_name="ag_news")
@@ -295,6 +323,7 @@ class TestDatasetTemplatesToOpenEval:
 
 
 class TestFromOpenEval:
+    @requires_jinja2
     def test_round_trip_records(self, ag_news_template, ag_news_examples):
         suite = template_to_openeval(ag_news_template, ag_news_examples, dataset_name="ag_news")
         records = from_openeval(suite)
