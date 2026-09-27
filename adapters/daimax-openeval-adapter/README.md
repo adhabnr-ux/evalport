@@ -36,12 +36,16 @@ Not yet published to PyPI -- this installs directly from source via pip's
 `git+`/`#subdirectory=` support.
 
 `evalapp` itself is not on PyPI either. If you want the real upstream models
-alongside the adapter (they are optional), the `daimax` extra installs them
-from the upstream repo:
+alongside the adapter (they are optional -- the adapter never imports
+`evalapp` at runtime), install it separately from the upstream repo:
 
 ```
-pip install "daimax-openeval-adapter[daimax] @ git+https://github.com/adhabnr-ux/evalport.git#subdirectory=adapters/daimax-openeval-adapter"
+pip install "evalapp @ git+https://github.com/open-daimax/daimax-appbench"
 ```
+
+(There is intentionally no `[daimax]` extra for this: PyPI rejects any
+`name @ git+...` direct reference in a package's dependency metadata, extras
+included, so declaring one would make this adapter unpublishable to PyPI.)
 
 ## Usage
 
@@ -188,7 +192,7 @@ python -m pytest -q
 ```
 
 Fully offline. Fixtures are plain dicts shaped like `model_dump()`; when
-`evalapp` is importable (`pip install -e ".[daimax]"`, or an editable install
+`evalapp` is importable (`pip install "evalapp @ git+https://github.com/open-daimax/daimax-appbench"`, or an editable install
 of the upstream clone), two extra tests feed the same fixtures through the
 real `EvalRun` / `PromptResult` / `TestCaseResult` / `QualityMetrics` /
 `EvalSample` / `TestCase` models and assert identical output, otherwise they

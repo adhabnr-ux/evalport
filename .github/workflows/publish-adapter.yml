@@ -1,0 +1,228 @@
+name: Publish adapter
+
+# Builds, tests and publishes ONE standalone adapter package from adapters/<name>/
+# to PyPI (or TestPyPI) via OIDC Trusted Publishing -- the same mechanism
+# ci.yml's publish-pypi job uses for evalport-sdk (environment "pypi",
+# permissions id-token: write, pypa/gh-action-pypi-publish, no API token
+# anywhere). See docs/publishing-adapters.md for the one-time registry setup
+# every adapter needs before its first release, and the per-release steps.
+#
+# Two ways to run it:
+#   1. Push a tag  adapter/<adapter-dir-name>/v<version>
+#      e.g.        adapter/beeai-openeval-adapter/v0.1.0
+#      -> publishes to PyPI (environment "pypi"). The tag's version must equal
+#         the adapter's pyproject.toml version or the build job fails.
+#   2. Actions -> "Publish adapter" -> Run workflow, with inputs `adapter`
+#      (directory name under adapters/) and `repository` (testpypi | pypi).
+#      Intended for a TestPyPI dry run before the first real tag.
+#
+# Never runs on pull_request or branch pushes.
+
+on:
+  push:
+    tags:
+      - 'adapter/*/v*'
+  workflow_dispatch:
+    inputs:
+      adapter:
+        description: 'Adapter directory name under adapters/ (e.g. beeai-openeval-adapter)'
+        required: true
+        type: string
+      repository:
+        description: 'Package index to publish to'
+        required: true
+        type: choice
+        options:
+          - testpypi
+          - pypi
+        default: testpypi
+      python-version:
+        description: 'Python used to run the adapter tests (default 3.12, the lowest version every adapter supports)'
+        required: false
+        type: string
+        default: '3.12'
+
+concurrency:
+  # One publish at a time per adapter; never cancel an in-flight upload.
+  group: publish-adapter-${{ github.ref }}-${{ inputs.adapter }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      adapter: ${{ steps.resolve.outputs.adapter }}
+      project: ${{ steps.resolve.outputs.project }}
+      version: ${{ steps.resolve.outputs.version }}
+      repository: ${{ steps.resolve.outputs.repository }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          # giskard-openeval-adapter requires >=3.12; every other adapter
+          # accepts 3.12, so it is the one version that can test them all.
+          python-version: ${{ inputs.python-version || '3.12' }}
+
+      - name: Resolve adapter, target index and version
+        id: resolve
+        # All user-controlled values (tag name, dispatch inputs) are passed via
+        # env, never interpolated into the script, to avoid shell injection.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_ADAPTER: ${{ inputs.adapter }}
+          INPUT_REPOSITORY: ${{ inputs.repository }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "push" ]; then
+            # REF_NAME = adapter/<name>/v<version>
+            if [[ ! "$REF_NAME" =~ ^adapter/([^/]+)/v([^/]+)$ ]]; then
+              echo "::error::Tag '$REF_NAME' does not match adapter/<name>/v<version>"
+              exit 1
+            fi
+            adapter="${BASH_REMATCH[1]}"
+            tag_version="${BASH_REMATCH[2]}"
+            repository="pypi"
+          else
+            adapter="$INPUT_ADAPTER"
+            tag_version=""
+            repository="$INPUT_REPOSITORY"
+          fi
+          if [[ ! "$adapter" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
+            echo "::error::Invalid adapter name '$adapter' (expected a directory name like beeai-openeval-adapter)"
+            exit 1
+          fi
+          if [ "$repository" != "pypi" ] && [ "$repository" != "testpypi" ]; then
+            echo "::error::repository must be 'pypi' or 'testpypi', got '$repository'"
+            exit 1
+          fi
+          dir="adapters/$adapter"
+          if [ ! -f "$dir/pyproject.toml" ]; then
+            echo "::error::No adapter at $dir (missing $dir/pyproject.toml). Available: $(ls adapters | tr '\n' ' ')"
+            exit 1
+          fi
+          pip install --quiet packaging tomli
+          read -r project version < <(python - "$dir/pyproject.toml" <<'PY'
+          import sys
+          try:
+              import tomllib
+          except ModuleNotFoundError:
+              import tomli as tomllib
+          from packaging.version import Version
+          p = tomllib.load(open(sys.argv[1], "rb"))["project"]
+          print(p["name"], Version(str(p["version"])))
+          PY
+          )
+          if [ "$project" != "$adapter" ]; then
+            echo "::error::$dir/pyproject.toml has project.name='$project', but the directory is '$adapter'. They must match so tag, directory and PyPI project line up."
+            exit 1
+          fi
+          if [ -n "$tag_version" ]; then
+            if ! python -c "import sys; from packaging.version import Version as V; sys.exit(0 if V(sys.argv[1]) == V(sys.argv[2]) else 1)" "$tag_version" "$version"; then
+              echo "::error::Tag version v$tag_version != $dir/pyproject.toml version $version. Bump pyproject.toml (or fix the tag) so they match."
+              exit 1
+            fi
+          fi
+          echo "Adapter: $adapter  project: $project  version: $version  -> $repository"
+          {
+            echo "adapter=$adapter"
+            echo "dir=$dir"
+            echo "project=$project"
+            echo "version=$version"
+            echo "repository=$repository"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Install SDK (from this checkout) and adapter with test extras
+        env:
+          ADAPTER_DIR: ${{ steps.resolve.outputs.dir }}
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install -e sdk/python
+          pip install -e "$ADAPTER_DIR[test]"
+
+      - name: Run adapter tests
+        working-directory: ${{ steps.resolve.outputs.dir }}
+        run: python -m pytest tests/ -v
+
+      - name: Build sdist and wheel
+        env:
+          ADAPTER_DIR: ${{ steps.resolve.outputs.dir }}
+        run: |
+          set -euo pipefail
+          pip install build twine
+          rm -rf dist
+          python -m build --sdist --wheel --outdir dist "$ADAPTER_DIR"
+          ls -l dist
+
+      - name: twine check (README renders on PyPI, metadata well-formed)
+        run: twine check --strict dist/*
+
+      - name: Reject direct (git+/URL) references PyPI would refuse
+        # twine check does NOT catch this, but PyPI's upload endpoint rejects
+        # any Requires-Dist carrying a PEP 508 direct reference -- including
+        # ones behind an extra -- with "Can't have direct dependency"
+        # (pypi/warehouse warehouse/forklift/metadata.py). Fail here, before
+        # the publish job, with the same rule.
+        run: |
+          python - dist/*.whl <<'PY'
+          import sys, zipfile
+          from packaging.metadata import Metadata
+          bad = 0
+          for whl in sys.argv[1:]:
+              z = zipfile.ZipFile(whl)
+              raw = z.read(next(n for n in z.namelist() if n.endswith(".dist-info/METADATA")))
+              md = Metadata.from_email(raw, validate=True)
+              for req in md.requires_dist or []:
+                  if req.url is not None:
+                      print(f"::error::{whl}: PyPI rejects direct dependency: {req}")
+                      bad += 1
+          sys.exit(1 if bad else 0)
+          PY
+
+      - name: Smoke-test the built wheel in a clean venv
+        # Catches packaging mistakes the editable install above hides (e.g. a
+        # package missing from the wheel because of packages.find config).
+        run: |
+          set -euo pipefail
+          python -m venv /tmp/wheelcheck
+          /tmp/wheelcheck/bin/pip install --quiet sdk/python dist/*.whl
+          pkgs=$(python -c "import sys, zipfile; z = zipfile.ZipFile(sys.argv[1]); print(' '.join(sorted({n.split('/')[0] for n in z.namelist() if n.count('/') == 1 and n.endswith('/__init__.py')})))" dist/*.whl)
+          if [ -z "$pkgs" ]; then echo "::error::Wheel contains no top-level package"; exit 1; fi
+          for p in $pkgs; do
+            /tmp/wheelcheck/bin/python -c "import $p; print('imported', $p.__name__, 'from', $p.__file__)"
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ steps.resolve.outputs.adapter }}
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    # Mirrors ci.yml's publish-pypi (environment "pypi"). TestPyPI uses a
+    # separate "testpypi" environment. Each PyPI / TestPyPI project must have a
+    # trusted (or pending) publisher registered for: owner adhabnr-ux, repo
+    # evalport, workflow publish-adapter.yml, and this environment name.
+    environment:
+      name: ${{ needs.build.outputs.repository }}
+      url: ${{ needs.build.outputs.repository == 'testpypi' && format('https://test.pypi.org/p/{0}', needs.build.outputs.project) || format('https://pypi.org/p/{0}', needs.build.outputs.project) }}
+    permissions:
+      id-token: write  # OIDC token exchanged with PyPI; no API token anywhere
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ needs.build.outputs.adapter }}
+          path: dist/
+
+      - name: Publish ${{ needs.build.outputs.project }} ${{ needs.build.outputs.version }} to ${{ needs.build.outputs.repository }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          repository-url: ${{ needs.build.outputs.repository == 'testpypi' && 'https://test.pypi.org/legacy/' || 'https://upload.pypi.org/legacy/' }}
