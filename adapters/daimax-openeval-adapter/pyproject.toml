@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "daimax-openeval-adapter"
+version = "0.1.0"
+description = "Convert daimax-appbench EvalRun/PromptResult results and EvalSample/TestCase benchmark items to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["daimax", "appbench", "evalapp", "evalport", "openeval", "llm", "evaluation", "app-generation", "eval"]
+classifiers = [
+"License :: OSI Approved :: Apache Software License",
+"Programming Language :: Python :: 3",
+"Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/daimax-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Upstream = "https://github.com/open-daimax/daimax-appbench"
+
+[project.optional-dependencies]
+# The upstream package is `evalapp` (open-daimax/daimax-appbench, version
+# 0.2.0 at the time of writing). It is pip-installable from its git repo and
+# was installed that way to build the fixtures in tests/, but it is NOT
+# published on PyPI, so there is no index version a `>=` pin could resolve
+# against. The `daimax` extra therefore uses a PEP 508 direct reference to the
+# upstream repo instead of a version pin, and `test` deliberately does not
+# self-reference it: the adapter is duck-typed (plain dicts shaped like
+# `PromptResult.model_dump()` work), and the test suite runs fully against
+# those dicts, then additionally against the real pydantic models whenever
+# `evalapp` happens to be importable. Installing `test` must not require a
+# network clone of an unrelated repository.
+daimax = ["evalapp @ git+https://github.com/open-daimax/daimax-appbench"]
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
