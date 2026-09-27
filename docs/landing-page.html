@@ -44,13 +44,13 @@
   <div class="code-demo">
     <div class="code-block">
 <span class="comment"># Create an eval suite</span>
-openeval init my-eval-suite
+evalport init my-eval-suite
 
 <span class="comment"># Validate it</span>
-openeval validate my-eval-suite.json
+evalport validate my-eval-suite.json
 
 <span class="comment"># Convert from Promptfoo</span>
-openeval convert promptfoo openeval config.json output.json
+evalport convert promptfoo openeval config.json output.json
 
 <span class="comment"># Python SDK</span>
 <span class="key">from</span> openeval.validate <span class="key">import</span> validate_suite

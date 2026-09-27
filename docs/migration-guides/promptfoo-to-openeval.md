@@ -21,7 +21,7 @@ Promptfoo and EvalPort serve different purposes: Promptfoo is a full eval runner
 ## CLI Conversion
 
 ```bash
-openeval convert promptfoo openeval promptfoo-config.yaml output.json
+evalport convert promptfoo openeval promptfoo-config.yaml output.json
 ```
 
 ## SDK Conversion
@@ -40,7 +40,7 @@ json.dump(suite, open("output.json", "w"), indent=2)
 ### TypeScript
 
 ```typescript
-import { fromPromptfoo } from "@evalport/sdk";
+import { fromPromptfoo } from "evalport-sdk";
 import * as fs from "fs";
 
 const pf = JSON.parse(fs.readFileSync("promptfoo-config.json", "utf-8"));
