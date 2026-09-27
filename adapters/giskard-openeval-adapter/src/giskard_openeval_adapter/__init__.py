@@ -21,6 +21,12 @@ from __future__ import annotations
 
 from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional, Sequence, Union
 
+try:
+    from openeval.types import OPENEVAL_VERSION
+except ImportError:  # pragma: no cover - evalport-sdk always required at runtime,
+    # but keep a sane fallback for static analysis / partial installs.
+    OPENEVAL_VERSION = "1.0.0"
+
 __all__ = ["to_openeval", "from_openeval", "suite_result_to_openeval"]
 
 # ---------------------------------------------------------------------------
@@ -329,7 +335,7 @@ def _infer_expected_output(checks: Iterable[Any]) -> Optional[str]:
 def to_openeval(
     suite: Any,
     suite_id: Optional[str] = None,
-    version: str = "1.0.0",
+    version: str = OPENEVAL_VERSION,
     description: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Convert a `giskard.checks.Suite` definition into an EvalPort `EvalSuite`.
@@ -348,7 +354,7 @@ def to_openeval(
         EvalPort suite id. Defaults to `suite.name`.
     version:
         EvalPort spec version to stamp on the document. Defaults to the
-        current stable spec version, "1.0.0".
+        installed evalport-sdk's ``OPENEVAL_VERSION``.
     description:
         Optional human-readable suite description.
 
@@ -609,7 +615,7 @@ def suite_result_to_openeval(
     run_id: str,
     started_at: str,
     completed_at: Optional[str] = None,
-    version: str = "1.0.0",
+    version: str = OPENEVAL_VERSION,
 ) -> Dict[str, Any]:
     """Convert an executed `giskard.checks.SuiteResult` into an EvalPort `ResultSet`.
 
@@ -637,7 +643,8 @@ def suite_result_to_openeval(
     completed_at:
         Optional ISO 8601 run completion timestamp.
     version:
-        EvalPort spec version to stamp on the document. Defaults to "1.0.0".
+        EvalPort spec version to stamp on the document. Defaults to the
+        installed evalport-sdk's ``OPENEVAL_VERSION``.
 
     Returns
     -------

@@ -23,6 +23,7 @@ if HAS_FREEPLAY:
     from freeplay.resources.test_suites import CompletionTestCase, TestSuites, TraceTestCase
     from freeplay.model import AssistantMessage, UserMessage
 from openeval.validate import validate_suite, validate_result_set
+from openeval.types import OPENEVAL_VERSION
 
 from freeplay_openeval_adapter import (
     clamp_score,
@@ -119,6 +120,7 @@ def _real_dataset():
 def test_to_openeval_real_dataset_validates():
     suite = to_openeval(_real_dataset())
     result = validate_suite(suite)
+    assert suite["version"] == OPENEVAL_VERSION
     assert result.valid, result.errors
     assert suite["id"] == "ds-123"
     assert len(suite["test_cases"]) == 2
@@ -284,6 +286,7 @@ def test_results_to_openeval_completion_test_cases_validates():
     ]
     result_set = results_to_openeval("suite-1", "run-1", recorded)
     result = validate_result_set(result_set)
+    assert result_set["version"] == OPENEVAL_VERSION
     assert result.valid, result.errors
     assert result_set["results"][0]["passed"] is True
 
