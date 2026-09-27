@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dspy-openeval-adapter"
-version = "0.1.0"
+version = "0.2.0"
 description = "Convert DSPy devsets and dspy.Evaluate results to/from the EvalPort open evaluation format"
 readme = "README.md"
 license = {text = "Apache-2.0"}
@@ -32,6 +32,7 @@ Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 # `pip install -e ".[test]"` already pulls in the pinned dspy transitively via
 # `dependencies`. Re-verified 2026-08-23 in a fresh venv: resolved dspy==3.3.1
 # (current PyPI release, well above the >=2.5.0 floor) and passed 27/27.
+# Re-verified 2026-09-27 against dspy==3.4.0 (examples/interop pin): 48/48.
 test = ["pytest"]
 
 [tool.setuptools.packages.find]

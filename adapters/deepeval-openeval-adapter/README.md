@@ -203,8 +203,8 @@ agree.
 
 Details, so nothing is assumed:
 - Python's `str.strip()`/`str.lower()` stand in for JavaScript's `trim()`/`toLowerCase()`.
-  They agree on ASCII and common Unicode whitespace, and differ on U+FEFF (trimmed by JS only)
-  and U+001C–U+001F (stripped by Python only).
+  Their whitespace sets differ on exactly six code points: U+FEFF is trimmed by JS only;
+  U+001C–U+001F and U+0085 are stripped by Python only.
 - A missing `expected_output` compares as `""`, as in the reference runner.
 - Params the spec doesn't define (e.g. `strip`, used by `benchmarks/gsm8k`) raise a
   `UserWarning` and are ignored, as the reference runner ignores them.

@@ -644,9 +644,10 @@ def exact_match(
 
     One documented difference: Python's `str.strip()`/`str.lower()` are
     used where the TypeScript reference uses `String.trim()`/
-    `toLowerCase()`. They agree on ASCII and on all common Unicode
-    whitespace; they differ on U+FEFF (trimmed by JS only) and
-    U+001C-U+001F (stripped by Python only).
+    `toLowerCase()`. Their whitespace sets differ on exactly six code
+    points: U+FEFF is trimmed by JS only; U+001C-U+001F and U+0085 are
+    stripped by Python only. Lowercasing follows each language's Unicode
+    case tables.
     """
     a = "" if actual_output is None else str(actual_output)
     e = "" if expected_output is None else str(expected_output)
