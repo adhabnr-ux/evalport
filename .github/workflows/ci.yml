@@ -57,6 +57,14 @@ jobs:
             diff "spec/schemas/${f}.json" "schema/${f}.json" || (echo "::error::schema/${f}.json is out of sync with spec/schemas/${f}.json" && exit 1)
           done
           echo "✓ schema/ mirror is byte-identical to spec/schemas/"
+      - name: Cross-check root doc mirrors against spec/
+        # spec/ is canonical; the root copies are mirrors. CRITIQUE.md once
+        # drifted (a correction landed only in the root copy), so fail fast.
+        run: |
+          for f in SPEC.md CRITIQUE.md ADOPTION.md; do
+            diff "spec/${f}" "${f}" > /dev/null || (echo "::error::${f} is out of sync with spec/${f}" && exit 1)
+          done
+          echo "✓ root SPEC.md/CRITIQUE.md/ADOPTION.md are byte-identical to spec/"
 
   typescript-tests:
     runs-on: ubuntu-latest
