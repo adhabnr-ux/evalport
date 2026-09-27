@@ -8,8 +8,22 @@ here is mocked.
 """
 from __future__ import annotations
 
-import pandas as pd
+import importlib.util
+
 import pytest
+
+# The adapter itself imports pandas and evidently at module import time, so
+# nothing in this module can run without pandas + evidently. Skip the whole
+# module when it is absent (CI's min-mode adapter-tests job installs
+# evalport-sdk only). Checked with find_spec rather than pytest.importorskip
+# so that, with pandas + evidently installed, a broken install or upstream API
+# drift still fails loudly instead of being swallowed as a skip.
+_MISSING = [m for m in ("pandas", "evidently") if importlib.util.find_spec(m) is None]
+if _MISSING:
+    pytest.skip("not installed: " + ", ".join(_MISSING), allow_module_level=True)
+
+import pandas as pd  # noqa: E402
+
 from evidently import DataDefinition, Dataset
 from evidently.descriptors import Contains, ExactMatch, TextLength
 from openeval.validate import validate_result_set, validate_suite
