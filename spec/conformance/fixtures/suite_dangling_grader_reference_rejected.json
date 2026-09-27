@@ -1,0 +1,19 @@
+{
+  "description": "Test-case grader references must resolve to a suite-level grader. Referential integrity cannot be expressed in JSON Schema, so the hand-rolled validator rejects this dangling reference.",
+  "type": "suite",
+  "expect": {
+    "valid": false,
+    "error_paths": ["$.test_cases[0].graders[0]"]
+  },
+  "document": {
+    "version": "1.0.0",
+    "id": "suite_dangling_grader",
+    "test_cases": [
+      {
+        "id": "tc_1",
+        "input": "hello",
+        "graders": ["gr_missing"]
+      }
+    ]
+  }
+}

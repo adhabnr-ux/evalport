@@ -1,0 +1,26 @@
+{
+  "description": "The smallest representative suite with one shared grader and one test case referencing it.",
+  "type": "suite",
+  "expect": {
+    "valid": true
+  },
+  "document": {
+    "version": "1.0.0",
+    "id": "suite_minimal",
+    "graders": [
+      {
+        "id": "gr_exact",
+        "type": "exact_match",
+        "params": {}
+      }
+    ],
+    "test_cases": [
+      {
+        "id": "tc_1",
+        "input": "hello",
+        "expected_output": "hello",
+        "graders": ["gr_exact"]
+      }
+    ]
+  }
+}
