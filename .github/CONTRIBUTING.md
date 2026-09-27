@@ -76,6 +76,10 @@ There are two places a converter can live, depending on scope:
 
 This is the lowest-friction way to contribute: it doesn't touch the core SDK, ships independently on PyPI/npm under its own name, and doesn't require waiting on a review of core repo code.
 
+## Publishing an adapter
+
+Adapters are published to PyPI one at a time by [`.github/workflows/publish-adapter.yml`](workflows/publish-adapter.yml) (OIDC Trusted Publishing, no API tokens) when a maintainer pushes a tag `adapter/<adapter-dir>/v<version>` matching the adapter's `pyproject.toml` version. The workflow runs the adapter's tests, builds it, and runs `twine check` before uploading, so keep your adapter's tests green and its `project.name` identical to its directory name. Don't declare `name @ git+...` direct references in `dependencies` or extras: PyPI rejects them. One-time registry setup, per-release steps and the current publish status script are in [`docs/publishing-adapters.md`](../docs/publishing-adapters.md).
+
 ## License
 
 All contributions are licensed under Apache 2.0.

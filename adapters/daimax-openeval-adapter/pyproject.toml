@@ -29,14 +29,17 @@ Upstream = "https://github.com/open-daimax/daimax-appbench"
 # 0.2.0 at the time of writing). It is pip-installable from its git repo and
 # was installed that way to build the fixtures in tests/, but it is NOT
 # published on PyPI, so there is no index version a `>=` pin could resolve
-# against. The `daimax` extra therefore uses a PEP 508 direct reference to the
-# upstream repo instead of a version pin, and `test` deliberately does not
-# self-reference it: the adapter is duck-typed (plain dicts shaped like
-# `PromptResult.model_dump()` work), and the test suite runs fully against
-# those dicts, then additionally against the real pydantic models whenever
-# `evalapp` happens to be importable. Installing `test` must not require a
-# network clone of an unrelated repository.
-daimax = ["evalapp @ git+https://github.com/open-daimax/daimax-appbench"]
+# against. There is deliberately NO `daimax` extra: an earlier version used a
+# PEP 508 direct reference (`evalapp @ git+https://...`) there, but PyPI
+# rejects ANY direct reference in uploaded Requires-Dist metadata -- including
+# ones gated behind an extra -- with "Can't have direct dependency" (see
+# pypi/warehouse warehouse/forklift/metadata.py), so that extra made this
+# package unpublishable. The README documents installing `evalapp` from git
+# separately instead. `test` stays `pytest`-only: the adapter is duck-typed
+# (plain dicts shaped like `PromptResult.model_dump()` work), and the test
+# suite runs fully against those dicts, then additionally against the real
+# pydantic models whenever `evalapp` happens to be importable. Installing
+# `test` must not require a network clone of an unrelated repository.
 test = ["pytest"]
 
 [tool.setuptools.packages.find]
