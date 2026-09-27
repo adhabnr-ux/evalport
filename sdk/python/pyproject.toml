@@ -55,6 +55,11 @@ Repository = "https://github.com/adhabnr-ux/evalport"
 Documentation = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 Issues = "https://github.com/adhabnr-ux/evalport/issues"
 
+[project.scripts]
+# Command-line validator (openeval/cli.py). Also what the repo-root action.yml
+# GitHub Action and .pre-commit-hooks.yaml hook run -- see docs/github-action.md.
+evalport-validate = "openeval.cli:main"
+
 [project.optional-dependencies]
 # jsonschema is used only by tests/test_schema_consistency.py, which cross-checks
 # spec/schemas/*.json (the portable JSON Schema source of truth) against this

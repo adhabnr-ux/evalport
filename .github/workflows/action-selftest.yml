@@ -1,0 +1,122 @@
+name: Action self-test
+
+# Exercises the repo-root GitHub Action (action.yml) and pre-commit hook
+# (.pre-commit-hooks.yaml) exactly the way another repo consumes them, so a
+# change to either -- or to the validator/CLI they run -- can't silently break
+# downstream users. See docs/github-action.md.
+on:
+  pull_request:
+    paths:
+      - action.yml
+      - pyproject.toml
+      - .pre-commit-hooks.yaml
+      - sdk/python/**
+      - .github/workflows/action-selftest.yml
+  push:
+    branches: [main]
+    paths:
+      - action.yml
+      - pyproject.toml
+      - .pre-commit-hooks.yaml
+      - sdk/python/**
+      - .github/workflows/action-selftest.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  action-valid:
+    name: action passes on valid documents
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate the example suites and result set
+        uses: ./
+        with:
+          files: examples/*.json
+      - name: Validate with an explicit type and a newline-separated list
+        uses: ./
+        with:
+          type: suite
+          files: |
+            examples/basic-suite.json
+            examples/rag-eval-suite.json
+
+  action-invalid:
+    name: action fails on invalid documents
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unwrap a known-invalid conformance fixture into a plain document
+        # spec/conformance fixtures wrap the document with type/expect metadata;
+        # a user's *.evalport.json is just the document itself.
+        run: |
+          mkdir -p selftest
+          python3 -c "import json; json.dump(json.load(open('spec/conformance/fixtures/score_out_of_range_rejected.json'))['document'], open('selftest/score-out-of-range.evalport.json', 'w'), indent=2)"
+          cp examples/basic-suite.json selftest/basic-suite.evalport.json
+      - name: Validate (expected to fail)
+        id: invalid
+        continue-on-error: true
+        uses: ./
+        with:
+          files: selftest/**/*.evalport.json
+      - name: Assert the invalid document failed the action
+        env:
+          OUTCOME: ${{ steps.invalid.outcome }}
+        run: |
+          echo "outcome=$OUTCOME"
+          if [ "$OUTCOME" != "failure" ]; then
+            echo "::error::expected the action to fail on selftest/score-out-of-range.evalport.json, got '$OUTCOME'"
+            exit 1
+          fi
+      - name: Pattern matching no files (expected to fail)
+        id: nomatch
+        continue-on-error: true
+        uses: ./
+        with:
+          files: does-not-exist/**/*.evalport.json
+      - name: Assert an unmatched pattern failed the action
+        env:
+          OUTCOME: ${{ steps.nomatch.outcome }}
+        run: |
+          echo "outcome=$OUTCOME"
+          if [ "$OUTCOME" != "failure" ]; then
+            echo "::error::expected the action to fail when 'files' matches nothing, got '$OUTCOME'"
+            exit 1
+          fi
+
+  pre-commit-hook:
+    name: pre-commit try-repo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pre-commit
+        run: pip install pre-commit
+      - name: Run the hook from this checkout against a scratch consumer repo
+        run: |
+          set -euo pipefail
+          repo="$GITHUB_WORKSPACE"
+          consumer="$RUNNER_TEMP/consumer"
+          mkdir -p "$consumer" && cd "$consumer"
+          git init -q
+          cp "$repo/examples/basic-suite.json" good.evalport.json
+          cp "$repo/examples/results.json" results.evalport.json
+          python3 -c "import json,sys; json.dump(json.load(open(sys.argv[1]))['document'], open('bad.evalport.json', 'w'), indent=2)" \
+            "$repo/spec/conformance/fixtures/score_out_of_range_rejected.json"
+          git add -A
+
+          echo "::group::valid files (expect pass)"
+          pre-commit try-repo "$repo" evalport-validate --files good.evalport.json results.evalport.json
+          echo "::endgroup::"
+
+          echo "::group::invalid file (expect fail)"
+          if pre-commit try-repo "$repo" evalport-validate --files bad.evalport.json; then
+            echo "::error::pre-commit hook passed on an invalid document"
+            exit 1
+          fi
+          echo "::endgroup::"
+          echo "pre-commit hook: valid files passed, invalid file failed as expected"

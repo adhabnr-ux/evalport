@@ -1,0 +1,17 @@
+# pre-commit hook for validating EvalPort documents. Usage and caveats:
+# docs/github-action.md. pre-commit builds this `language: python` hook by
+# running `pip install .` in the repo root, which is why a root
+# pyproject.toml (packaging sdk/python/openeval) exists.
+#
+# `files` only matches *.evalport.json by default; consumers can override
+# it in their .pre-commit-config.yaml (e.g. `files: ^evals/.*\.json$`) and
+# pass `args: [--type, <suite|testcase|grader|resultset>]` to skip
+# auto-detection.
+- id: evalport-validate
+  name: EvalPort validate
+  description: Validate EvalPort documents (suites, test cases, graders, result sets) with the reference Python validator.
+  entry: evalport-validate
+  language: python
+  files: \.evalport\.json$
+  types: [json]
+  pass_filenames: true
