@@ -1,11 +1,11 @@
-# @evalport/sdk
+# evalport-sdk
 
 TypeScript SDK for EvalPort — The Open Evaluation Standard.
 
 ## Install
 
 ```bash
-npm install @evalport/sdk
+npm install evalport-sdk
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ npm install @evalport/sdk
 ### Validate a suite
 
 ```typescript
-import { validateSuite } from "@evalport/sdk";
+import { validateSuite } from "evalport-sdk";
 
 const result = validateSuite({
   version: "1.0.0",
@@ -27,7 +27,7 @@ console.log(result.valid); // true
 ### Convert from Promptfoo
 
 ```typescript
-import { fromPromptfoo } from "@evalport/sdk";
+import { fromPromptfoo } from "evalport-sdk";
 
 const suite = fromPromptfoo(promptfooConfig);
 ```
@@ -35,7 +35,7 @@ const suite = fromPromptfoo(promptfooConfig);
 ### Compute summary
 
 ```typescript
-import { computeSummary, createResultSet } from "@evalport/sdk";
+import { computeSummary, createResultSet } from "evalport-sdk";
 
 const summary = computeSummary(results);
 const resultSet = createResultSet(suite, results, "run_001");
