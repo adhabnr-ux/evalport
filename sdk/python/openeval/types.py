@@ -107,8 +107,8 @@ class ResultSet:
     # usage); W&B's sweep_id and group primitives are both flat by contrast, so
     # this field is optional and every existing flat group is unaffected. See
     # spec/SPEC.md Extension Mechanism -> Grouped/Sibling ResultSets.
-    # PROPOSED in Discussion #45, not yet finalized -- see that discussion for
-    # the RFC this field is a reference implementation of.
+    # Landed in PR #54 (2026-09-20) following Discussion #45 -- see that
+    # discussion for the RFC history behind this field.
     group: Optional[Dict[str, Any]] = None
     summary: Optional[Dict[str, Any]] = None
     metadata: Dict[str, Any] = field(default_factory=dict)

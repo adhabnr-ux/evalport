@@ -195,7 +195,7 @@ export function validateResultSet(r: unknown): ValidationResult {
     errors.push(err("$.isolation", "must be string", "TYPE_ERROR"));
   }
 
-  // Discussion #45 (proposed): optional group membership joining sibling
+  // Discussion #45 / PR #54: optional group membership joining sibling
   // ResultSets (a sweep, a mutation-testing run, a multi-model comparison).
   // Absent by default -- a no-op for every ResultSet produced before this.
   // Mirrors sdk/python/openeval/validate.py's validate_result_set rule-for-rule:
