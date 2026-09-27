@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "deepeval-openeval-adapter"
-version = "0.1.0"
+version = "0.2.0"
 description = "Convert DeepEval's LLMTestCase/TestResult/MetricData to/from the EvalPort open evaluation format"
 readme = "README.md"
 license = {text = "Apache-2.0"}
@@ -23,12 +23,13 @@ Homepage = "https://github.com/adhabnr-ux/evalport"
 Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/deepeval-openeval-adapter"
 Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 
-# Pinned to the real installed/tested surface (deepeval==4.1.10): LLMTestCase,
-# ToolCall, TestResult, MetricData, EvaluationResult from deepeval.test_case /
-# deepeval.evaluate.types / deepeval.test_run.api. This adapter itself never
-# imports `deepeval` at runtime (it converts already-constructed objects the
-# caller passes in), so the extra is for users who also want the real SDK
-# installed alongside it.
+# Pinned to the real installed/tested surface (deepeval==4.1.10, re-tested on
+# 4.2.6): LLMTestCase, ToolCall, TestResult, MetricData, EvaluationResult,
+# BaseMetric from deepeval.test_case / deepeval.evaluate.types /
+# deepeval.test_run.api / deepeval.metrics. deepeval stays optional: the
+# adapter imports it lazily, only to wrap tool names in ToolCall in
+# from_openeval() (skipped when it isn't installed) and to build metrics in
+# graders_to_deepeval_metrics() / to_tool_calls() (ImportError without it).
 [project.optional-dependencies]
 deepeval = ["deepeval>=4.0.0,<5"]
 # test self-references the deepeval extra (.github/CONTRIBUTING.md convention),

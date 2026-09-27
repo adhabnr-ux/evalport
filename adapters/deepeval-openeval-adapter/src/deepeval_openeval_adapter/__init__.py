@@ -22,8 +22,13 @@ two-layer model (test cases you define, and the metric results DeepEval's
   `evaluate()` output, each carrying a list of `MetricData`) -> an
   EvalPort `ResultSet`.
 
-Mapping, verified against the real, installed `deepeval==4.1.10` source
-(not the docs):
+Plus an opt-in grader mapping, `graders_to_deepeval_metrics()`, which turns
+an EvalPort `exact_match` grader into a real DeepEval metric with the same
+semantics (other grader types have no faithful DeepEval equivalent and are
+refused with the reason -- see its docstring).
+
+Mapping, verified against the real, installed `deepeval` source (4.1.10,
+re-checked against 4.2.6), not the docs:
 
 | DeepEval field (`LLMTestCase`)      | EvalPort `TestCase` field          |
 |--------------------------------------|-------------------------------------|
@@ -34,7 +39,12 @@ Mapping, verified against the real, installed `deepeval==4.1.10` source
 | `tools_called` (`List[ToolCall]`)    | `tools_called` (tool *names* only)  |
 | `expected_tools` (`List[ToolCall]`)  | `expected_tools` (tool *names* only)|
 | `tags`                               | `tags`                              |
-| `name`, `comments`, `token_cost`, `completion_time`, `flaky`, `multimodal`, full `ToolCall` objects, `metadata` | `metadata["deepeval"]` (no EvalPort `TestCase` field covers these) |
+| `metadata`                           | `metadata` (key for key; the `"deepeval"` key is reserved) |
+| `name`, `comments`, `token_cost`, `completion_time`, `flaky`, `multimodal`, full `ToolCall` objects | `metadata["deepeval"]` (no EvalPort `TestCase` field covers these) |
+
+Empty lists are kept as empty lists in both directions: `expected_tools=[]`
+("no tool should be called") is a different assertion from an absent
+`expected_tools` ("no expectation").
 
 DeepEval's `TestCase` schema fields (`context`, `retrieval_context`,
 `tools_called`, `expected_tools`, `tags`) line up with EvalPort's schema
@@ -52,6 +62,8 @@ exactly this shape (RAG context + agent tool-calls + tags) in mind.
 """
 from __future__ import annotations
 
+import copy
+import warnings
 from typing import Any, Dict, List, Optional, Sequence
 
 try:
@@ -60,8 +72,15 @@ except ImportError:  # pragma: no cover - evalport-sdk always required at runtim
     # but keep a sane fallback for static analysis / partial installs.
     OPENEVAL_VERSION = "1.0.0"
 
-__all__ = ["to_openeval", "from_openeval", "test_results_to_openeval", "__version__"]
-__version__ = "0.1.0"
+__all__ = [
+    "to_openeval", "from_openeval", "test_results_to_openeval",
+    "to_tool_calls", "graders_to_deepeval_metrics", "exact_match", "__version__",
+]
+__version__ = "0.2.0"
+
+# TestCase.metadata key reserved for this adapter's own bookkeeping.
+_NAMESPACE = "deepeval"
+_TOOL_CALL_MODES = ("auto", "objects", "names")
 
 # LLMTestCase fields this adapter reads explicitly. Anything else present on
 # the object (a genuinely new field added by a future deepeval release) is
@@ -206,32 +225,44 @@ def to_openeval(
         if expected_output is not None:
             ec["expected_output"] = expected_output
 
+        # List fields are emitted whenever they are set (`is not None`), so an
+        # empty list survives as an empty list. That matters most for
+        # `expected_tools=[]`, which asserts "no tool should be called" -- a
+        # different claim from an absent `expected_tools` ("no expectation").
         context = _get(tc, "context")
-        if context:
+        if context is not None:
             ec["context"] = [_stringify_context_item(c) for c in context]
 
         retrieval_context = _get(tc, "retrieval_context")
-        if retrieval_context:
+        if retrieval_context is not None:
             ec["retrieval_context"] = [_stringify_context_item(c) for c in retrieval_context]
 
         tools_called = _get(tc, "tools_called")
-        if tools_called:
+        if tools_called is not None:
             ec["tools_called"] = [n for n in (_tool_call_name(t) for t in tools_called) if n]
 
         expected_tools = _get(tc, "expected_tools")
-        if expected_tools:
+        if expected_tools is not None:
             ec["expected_tools"] = [n for n in (_tool_call_name(t) for t in expected_tools) if n]
 
         tags = _get(tc, "tags")
-        if tags:
+        if tags is not None:
             ec["tags"] = list(tags)
 
+        # `LLMTestCase.metadata` maps onto `TestCase.metadata` key for key;
+        # `from_openeval()` is the exact inverse. The one reserved key is
+        # "deepeval" (this adapter's own bookkeeping namespace), so a user
+        # metadata key that happens to be called "deepeval" is parked inside
+        # that namespace instead of being overwritten by it.
         metadata: Dict[str, Any] = {}
+        deepeval_meta: Dict[str, Any] = {}
         user_metadata = _get(tc, "metadata")
         if user_metadata:
-            metadata.update(dict(user_metadata))
+            user_metadata = copy.deepcopy(dict(user_metadata))
+            if _NAMESPACE in user_metadata:
+                deepeval_meta["metadata_deepeval"] = user_metadata.pop(_NAMESPACE)
+            metadata.update(user_metadata)
 
-        deepeval_meta: Dict[str, Any] = {}
         for field in ("actual_output", "comments", "token_cost", "completion_time",
                       "flaky", "multimodal", "name"):
             value = _get(tc, field)
@@ -245,7 +276,7 @@ def to_openeval(
         if identifier:
             deepeval_meta["identifier"] = identifier
         if deepeval_meta:
-            metadata["deepeval"] = deepeval_meta
+            metadata[_NAMESPACE] = deepeval_meta
 
         if metadata:
             ec["metadata"] = metadata
@@ -271,24 +302,101 @@ def to_openeval(
     }
 
 
-def from_openeval(suite: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Import an EvalPort suite into a list of DeepEval-constructible test case dicts.
+def _load_tool_call_class() -> Any:
+    """Return `deepeval.test_case.ToolCall`, or None when deepeval isn't installed.
+
+    Imported lazily so the adapter itself keeps working (and its framework-free
+    tests keep running) without deepeval installed.
+    """
+    try:
+        from deepeval.test_case import ToolCall
+    except ModuleNotFoundError as e:
+        # Only "deepeval isn't installed" means fall back to names. A broken
+        # install (e.g. deepeval imported after dspy in one process, which
+        # fails inside openai) should surface, not silently change the output.
+        if (e.name or "").split(".")[0] == "deepeval":
+            return None
+        raise
+    return ToolCall
+
+
+def to_tool_calls(tools: Optional[Sequence[Any]]) -> Optional[List[Any]]:
+    """Wrap tool names (or `ToolCall`-shaped dicts) as `deepeval.test_case.ToolCall`.
+
+    `LLMTestCase.tools_called` / `expected_tools` are typed
+    `Optional[List[ToolCall]]`, and deepeval 4.x rejects bare strings with a
+    `TypeError`. `from_openeval()` already does this wrapping when deepeval is
+    importable; use this helper on its output when you called it with
+    `tool_calls="names"` (or in an environment without deepeval, then
+    construct the `LLMTestCase` elsewhere). `None` stays `None` and `[]`
+    stays `[]`. Existing `ToolCall` objects pass through unchanged.
+
+    Raises ImportError if deepeval isn't installed.
+    """
+    if tools is None:
+        return None
+    tool_call_cls = _load_tool_call_class()
+    if tool_call_cls is None:
+        raise ImportError(
+            "to_tool_calls() needs the 'deepeval' package: "
+            "pip install 'deepeval-openeval-adapter[deepeval]'"
+        )
+    wrapped: List[Any] = []
+    for t in tools:
+        if isinstance(t, tool_call_cls):
+            wrapped.append(t)
+        elif isinstance(t, str):
+            wrapped.append(tool_call_cls(name=t))
+        else:
+            wrapped.append(tool_call_cls(**dict(t)))
+    return wrapped
+
+
+def _tool_specs(names: List[str], full: Any) -> List[Any]:
+    """Pair EvalPort tool names with the full `ToolCall` detail `to_openeval()`
+    recorded under `metadata.deepeval.<field>_full`, when that detail still
+    matches the names one for one (i.e. nobody edited the name list since).
+    Otherwise fall back to name-only specs."""
+    if isinstance(full, list) and [_get(f, "name") for f in full] == names:
+        return [dict(f) for f in full]
+    return [{"name": n} for n in names]
+
+
+def from_openeval(suite: Dict[str, Any], *, tool_calls: str = "auto") -> List[Dict[str, Any]]:
+    """Import an EvalPort suite into a list of `LLMTestCase` constructor kwargs.
 
     Each returned dict is keyed exactly like `LLMTestCase`'s constructor
     kwargs (`input`, `expected_output`, `context`, `retrieval_context`,
-    `tools_called`, `expected_tools`, `tags`, `name`) so callers can do
-    `LLMTestCase(**d)` directly -- verified against the real constructor
-    signature, not guessed. `tools_called`/`expected_tools` come back as
-    plain tool-name strings (EvalPort doesn't carry full `ToolCall` detail
-    at the suite level); construct real `ToolCall(name=...)` objects from
-    them if `LLMTestCase` requires `ToolCall` instances rather than dicts in
-    your installed deepeval version.
+    `tools_called`, `expected_tools`, `tags`, `metadata`, `name`, ...), so
+    `LLMTestCase(**d)` works directly -- including for test cases with tools.
+
+    - `metadata`: the EvalPort `TestCase.metadata`, deep-copied, minus the
+      adapter's own reserved `"deepeval"` namespace. It becomes
+      `LLMTestCase.metadata` (so e.g. TruthfulQA's `truthfulqa_all_correct`
+      answer list is available to a DeepEval metric), and `to_openeval()`
+      writes it back key for key.
+    - `tools_called` / `expected_tools`: an empty list stays an empty list
+      (`expected_tools: []` means "no tool should be called"); an absent
+      field stays absent. How the entries are returned depends on
+      `tool_calls`:
+
+      * `"auto"` (default): `deepeval.test_case.ToolCall` objects when
+        deepeval is importable -- restoring full `ToolCall` detail recorded
+        by `to_openeval()` under `metadata.deepeval.*_full` when it still
+        matches the names -- else plain name strings.
+      * `"objects"`: always `ToolCall` objects (ImportError without deepeval).
+      * `"names"`: plain name strings (the 0.1.x return shape); wrap them
+        with `to_tool_calls()` before constructing an `LLMTestCase`.
 
     Multi-turn `input` (a list of strings) is rejected outright: DeepEval's
     `LLMTestCase.input` is `str` only (multi-turn lives in a separate
     `ConversationalTestCase.turns`, out of scope for this adapter -- see the
     README for why).
     """
+    if tool_calls not in _TOOL_CALL_MODES:
+        raise ValueError(f"tool_calls must be one of {_TOOL_CALL_MODES}, got {tool_calls!r}")
+    wrap = tool_calls == "objects" or (tool_calls == "auto" and _load_tool_call_class() is not None)
+
     test_cases: List[Dict[str, Any]] = []
     for tc in suite.get("test_cases", []):
         input_value = tc.get("input")
@@ -300,6 +408,11 @@ def from_openeval(suite: Dict[str, Any]) -> List[Dict[str, Any]]:
                 "which this adapter does not cover."
             )
 
+        metadata = copy.deepcopy(tc.get("metadata") or {})
+        deepeval_meta = metadata.pop(_NAMESPACE, None) or {}
+        if "metadata_deepeval" in deepeval_meta:
+            metadata[_NAMESPACE] = deepeval_meta["metadata_deepeval"]
+
         item: Dict[str, Any] = {"input": input_value}
         if "expected_output" in tc:
             item["expected_output"] = tc["expected_output"]
@@ -307,15 +420,19 @@ def from_openeval(suite: Dict[str, Any]) -> List[Dict[str, Any]]:
             item["context"] = list(tc["context"])
         if "retrieval_context" in tc:
             item["retrieval_context"] = list(tc["retrieval_context"])
-        if "tools_called" in tc:
-            item["tools_called"] = list(tc["tools_called"])
-        if "expected_tools" in tc:
-            item["expected_tools"] = list(tc["expected_tools"])
+        for field in ("tools_called", "expected_tools"):
+            if field not in tc:
+                continue
+            names = list(tc[field])
+            if wrap:
+                item[field] = to_tool_calls(_tool_specs(names, deepeval_meta.get(f"{field}_full")))
+            else:
+                item[field] = names
         if "tags" in tc:
             item["tags"] = list(tc["tags"])
+        if metadata:
+            item["metadata"] = metadata
 
-        metadata = tc.get("metadata") or {}
-        deepeval_meta = dict(metadata.get("deepeval") or {})
         if "name" in deepeval_meta:
             item["name"] = deepeval_meta["name"]
         elif tc.get("id"):
@@ -488,3 +605,190 @@ def test_results_to_openeval(
         "summary": summary,
         "metadata": {"openeval": {"source": "deepeval"}},
     }
+
+
+# ---------------------------------------------------------------------------
+# Graders: opt-in, faithful EvalPort -> DeepEval metric mapping
+# ---------------------------------------------------------------------------
+
+# Params spec/SPEC.md defines for `exact_match` (both optional).
+_EXACT_MATCH_PARAMS = ("ignore_case", "trim_whitespace")
+
+# Why each other well-known grader type gets no DeepEval metric here. A
+# mapping is only offered when a DeepEval metric computes exactly what the
+# EvalPort grader definition says; "roughly similar" is not a mapping.
+_UNSUPPORTED_GRADER_REASONS = {
+    "semantic_similarity": "the score depends on the embedding model the runner picks; DeepEval "
+                           "has no deterministic embedding-cosine metric to pin it to",
+    "llm_judge": "DeepEval's GEval builds its own evaluation prompt around your criteria, so it "
+                 "would not run the grader's `prompt` verbatim",
+    "model graded": "alias of llm_judge (same reason)",
+}
+
+
+def exact_match(
+    actual_output: Optional[str],
+    expected_output: Optional[str],
+    *,
+    ignore_case: bool = False,
+    trim_whitespace: bool = True,
+) -> bool:
+    """EvalPort `exact_match` semantics (spec/SPEC.md grader table).
+
+    Mirrors the reference runner (`cli/src/run/graders/tier1.ts`,
+    `gradeExactMatch`) step for step: trim both sides when
+    `trim_whitespace` (default true), lowercase both sides when
+    `ignore_case` (default false), then compare with `==`. No other
+    normalization (punctuation, articles, number formatting) is applied.
+    A missing `expected_output` compares as `""`, as in the reference.
+
+    One documented difference: Python's `str.strip()`/`str.lower()` are
+    used where the TypeScript reference uses `String.trim()`/
+    `toLowerCase()`. They agree on ASCII and on all common Unicode
+    whitespace; they differ on U+FEFF (trimmed by JS only) and
+    U+001C-U+001F (stripped by Python only).
+    """
+    a = "" if actual_output is None else str(actual_output)
+    e = "" if expected_output is None else str(expected_output)
+    if trim_whitespace:
+        a, e = a.strip(), e.strip()
+    if ignore_case:
+        a, e = a.lower(), e.lower()
+    return a == e
+
+
+def _exact_match_params(grader: Dict[str, Any]) -> Dict[str, bool]:
+    params = dict(grader.get("params") or {})
+    unknown = sorted(k for k in params if k not in _EXACT_MATCH_PARAMS)
+    if unknown:
+        warnings.warn(
+            f"grader {grader.get('id')!r}: exact_match param(s) {unknown} are not defined by the "
+            f"EvalPort spec (which defines {list(_EXACT_MATCH_PARAMS)}) and are ignored, as the "
+            "reference runner ignores them",
+            UserWarning,
+            stacklevel=3,
+        )
+    return {
+        "ignore_case": params.get("ignore_case") is True,
+        "trim_whitespace": params.get("trim_whitespace") is not False,
+    }
+
+
+_EXACT_MATCH_METRIC_CLASS: Any = None
+
+
+def _exact_match_metric_class() -> Any:
+    """Build (once) a real `deepeval.metrics.BaseMetric` subclass for
+    EvalPort `exact_match`. Built lazily so importing this adapter never
+    requires deepeval."""
+    global _EXACT_MATCH_METRIC_CLASS
+    if _EXACT_MATCH_METRIC_CLASS is not None:
+        return _EXACT_MATCH_METRIC_CLASS
+    try:
+        from deepeval.metrics import BaseMetric
+    except ImportError as e:
+        raise ImportError(
+            "graders_to_deepeval_metrics() needs the 'deepeval' package: "
+            "pip install 'deepeval-openeval-adapter[deepeval]'"
+        ) from e
+
+    class EvalPortExactMatchMetric(BaseMetric):
+        """EvalPort `exact_match`, run as a DeepEval metric.
+
+        Deterministic, no model calls. Score 1.0 on match, 0.0 otherwise;
+        threshold 1.0, so `success` is the match itself. Its name is the
+        EvalPort grader id, so `test_results_to_openeval()` reports results
+        under that same grader id.
+        """
+
+        _required_params: List[Any] = []
+
+        def __init__(self, grader_id: str, *, ignore_case: bool = False,
+                     trim_whitespace: bool = True) -> None:
+            self.grader_id = grader_id
+            self.ignore_case = ignore_case
+            self.trim_whitespace = trim_whitespace
+            self.threshold = 1.0
+            self.async_mode = False
+            self.verbose_mode = False
+            self.include_reason = True
+            self.strict_mode = False
+
+        def measure(self, test_case: Any, *args: Any, **kwargs: Any) -> float:
+            matched = exact_match(
+                test_case.actual_output, test_case.expected_output,
+                ignore_case=self.ignore_case, trim_whitespace=self.trim_whitespace,
+            )
+            self.score = 1.0 if matched else 0.0
+            self.reason = (
+                "exact match" if matched else
+                f"expected {test_case.expected_output!r}, got {test_case.actual_output!r} "
+                f"(ignore_case={self.ignore_case}, trim_whitespace={self.trim_whitespace})"
+            )
+            self.success = self.is_successful()
+            return self.score
+
+        async def a_measure(self, test_case: Any, *args: Any, **kwargs: Any) -> float:
+            return self.measure(test_case)
+
+        def is_successful(self) -> bool:
+            return self.score is not None and self.score >= self.threshold
+
+        @property
+        def __name__(self) -> str:  # DeepEval reads a metric's name from here
+            return self.grader_id
+
+    _EXACT_MATCH_METRIC_CLASS = EvalPortExactMatchMetric
+    return _EXACT_MATCH_METRIC_CLASS
+
+
+def graders_to_deepeval_metrics(
+    suite_or_graders: Any, *, skip_unsupported: bool = False,
+) -> Dict[str, Any]:
+    """Opt-in: map an EvalPort suite's grader definitions to DeepEval metrics.
+
+    Returns `{grader_id: metric}` for every grader with a faithful DeepEval
+    equivalent, ready for `deepeval.evaluate(test_cases, metrics=[...])`.
+    Pass the suite dict (its `graders` list is read) or a list of grader
+    dicts. Inline grader objects inside `TestCase.graders` are not read.
+
+    Faithful mappings (the DeepEval metric computes exactly what the EvalPort
+    grader defines):
+
+    - `exact_match` -> `EvalPortExactMatchMetric` (a `BaseMetric` subclass;
+      see `exact_match()` for the semantics). DeepEval's own
+      `ExactMatchMetric` is *not* used: it always strips and is always
+      case-sensitive, so it can't express `ignore_case: true` or
+      `trim_whitespace: false`.
+
+    Any other type raises `ValueError` naming the grader and why there is no
+    faithful mapping, unless `skip_unsupported=True`, in which case it is
+    left out of the returned dict (compare the keys with the suite's grader
+    ids to see what was skipped). Unknown `exact_match` params (e.g. `strip`,
+    which is not a spec param) trigger a `UserWarning` and are ignored, as
+    the reference runner ignores them.
+
+    DeepEval applies every metric to every test case passed to
+    `evaluate()`; to honour per-test-case `graders` lists, group test cases
+    by the grader ids they reference and evaluate each group with its
+    metrics.
+    """
+    graders = suite_or_graders.get("graders", []) if isinstance(suite_or_graders, dict) \
+        else list(suite_or_graders)
+    metrics: Dict[str, Any] = {}
+    for grader in graders:
+        gtype = grader.get("type")
+        if gtype == "exact_match":
+            cls = _exact_match_metric_class()
+            metrics[grader["id"]] = cls(grader["id"], **_exact_match_params(grader))
+            continue
+        if skip_unsupported:
+            continue
+        reason = _UNSUPPORTED_GRADER_REASONS.get(
+            gtype, "this adapter maps only exact_match, and no DeepEval built-in metric "
+                   "computes exactly this grader type")
+        raise ValueError(
+            f"grader {grader.get('id')!r} (type {gtype!r}) has no faithful DeepEval metric: "
+            f"{reason}. Pass skip_unsupported=True to map only the supported graders."
+        )
+    return metrics

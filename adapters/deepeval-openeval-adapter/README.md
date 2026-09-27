@@ -38,6 +38,17 @@ result_set = test_results_to_openeval(
 )
 ```
 
+Going the other way, `from_openeval()` returns `LLMTestCase` constructor kwargs, and the
+suite's `exact_match` graders can run as real DeepEval metrics (opt-in):
+
+```python
+from deepeval_openeval_adapter import from_openeval, graders_to_deepeval_metrics
+
+cases = [LLMTestCase(**kw, actual_output=my_app(kw["input"])) for kw in from_openeval(suite)]
+metrics = graders_to_deepeval_metrics(suite, skip_unsupported=True)  # {grader_id: metric}
+evaluate(cases, list(metrics.values()))
+```
+
 ## Why this exists as a standalone package
 
 See [confident-ai/deepeval#3067](https://github.com/confident-ai/deepeval/issues/3067),
@@ -65,7 +76,12 @@ designed around the same shape: RAG context, agent tool-calls, and free-form tag
 | `tools_called` (`List[ToolCall]`) | `tools_called` (tool *names* only) | EvalPort's schema only carries names here |
 | `expected_tools` (`List[ToolCall]`) | `expected_tools` (tool *names* only) | same |
 | `tags` | `tags` | direct |
+| `metadata` | `metadata` | key for key; the `"deepeval"` key is reserved for this adapter (a user key of that name is parked inside it and restored) |
 | `actual_output`, `comments`, `token_cost`, `completion_time`, `flaky`, `multimodal`, `name`, full `ToolCall` detail | — | no EvalPort `TestCase` field covers these — preserved under `metadata["deepeval"]` |
+
+Empty lists are kept as empty lists in both directions. That matters for `expected_tools=[]`,
+which asserts "no tool should be called" — a different claim from an absent `expected_tools`
+("no expectation").
 
 On the results side, each `MetricData` in `TestResult.metrics_data` becomes one EvalPort
 `GraderResult`:
@@ -94,7 +110,20 @@ tools called"), not objects — verified against `spec/schemas/testcase.json`, n
 `ToolCall`'s richer detail (`description`, `reasoning`, `output`, `input_parameters`) is
 preserved under `metadata["deepeval"]["tools_called_full"]` / `["expected_tools_full"]`
 rather than silently dropped, but the EvalPort-native fields only ever carry names, matching
-what the schema actually allows.
+what the schema actually allows. On the way back, `from_openeval()` wraps the names in
+`deepeval.test_case.ToolCall` (deepeval 4.x's `LLMTestCase` rejects bare strings with a
+`TypeError`), restoring the full detail from `metadata["deepeval"]` when it is there and still
+matches the names. `tool_calls="names"` returns plain strings instead (the 0.1.x shape); wrap
+those with `to_tool_calls()`. Without deepeval installed, the default (`"auto"`) returns
+strings.
+
+**Why `TestCase.metadata` maps onto `LLMTestCase.metadata` key for key.** `to_openeval()`
+has always written `LLMTestCase.metadata` into `TestCase.metadata` at the top level, next to
+the adapter's own `"deepeval"` key, so the inverse is the same mapping: every key except
+`"deepeval"` goes into `LLMTestCase.metadata`. A metric then sees suite metadata where
+DeepEval users expect it (e.g. TruthfulQA's `truthfulqa_all_correct` list of accepted answers).
+DeepEval 4.2.6's `LLMTestCase.metadata` is a plain `Optional[Dict]` (`additional_metadata` is a
+deprecated alias for it), so no nesting is needed to fit.
 
 **Why DeepEval test-case IDs are `name` → `tc_{index}`, not a stable field DeepEval
 provides.** `LLMTestCase` has no public unique identifier — only an optional, user-chosen
@@ -127,40 +156,110 @@ prints and a value round-tripped through this adapter read identically.
 
 ## What round-trips losslessly, and what doesn't
 
-Round-trips cleanly: `input`, `expected_output`, `context`, `tags`, `name`, `comments`,
-`token_cost`, `completion_time`, `flaky`, `multimodal`, full `ToolCall` detail (via
-`metadata["deepeval"]["tools_called_full"]`/`["expected_tools_full"]`).
+DeepEval → EvalPort → DeepEval round-trips cleanly: `input`, `expected_output`, `context`,
+`tags`, `metadata`, `name`, `comments`, `token_cost`, `completion_time`, `flaky`,
+`multimodal`, `tools_called`/`expected_tools` as `ToolCall` objects with their full detail
+(via `metadata["deepeval"]["tools_called_full"]`/`["expected_tools_full"]`), and empty lists.
+
+EvalPort → DeepEval → EvalPort: every `TestCase` data field comes back byte-identical (`id`,
+`input`, `expected_output`, `context`, `retrieval_context` strings, `tools_called`,
+`expected_tools` including `[]`, `tags`, `metadata`). `to_openeval()` adds its own
+`metadata["deepeval"]` key (`name`, and the random `identifier` UUID each `LLMTestCase`
+instance generates). `examples/interop/1_dataset_portability.py` checks this against real
+benchmark suites.
 
 Does **not** round-trip losslessly:
+- **Graders.** A list of `LLMTestCase` has no slot for grader definitions, so `to_openeval()`
+  writes one placeholder `custom` grader (see above). For `exact_match`, run the suite's own
+  grader in DeepEval with `graders_to_deepeval_metrics()` (below).
+- **Suite-level fields** (`name`, `description`, `config`, `metadata`, `version`): a list of
+  `LLMTestCase` can't hold them; `to_openeval()` stamps its own name and version.
 - **`retrieval_context` items lose their `RetrievedContextData.source`/`context` split** once
   stringified — the combined `"source: context"` string comes back as a single string on
   `from_openeval()`, not a reconstructed `RetrievedContextData`.
-- **`tools_called`/`expected_tools` lose everything but the tool name** going through
-  EvalPort's native fields; `from_openeval()` returns plain name strings — construct real
-  `ToolCall(name=...)` objects from them yourself if your `LLMTestCase` needs `ToolCall`
-  instances rather than the loosely-typed strings deepeval's own `Union` type also accepts in
-  some contexts.
+- **`tools_called`/`expected_tools` from a suite this adapter didn't write** carry names only,
+  so `from_openeval()` builds `ToolCall(name=...)` with no other detail.
 - **Multi-turn `input` (a list of strings) is rejected outright by `from_openeval()`.**
   `LLMTestCase.input` is `str`-only single-turn; DeepEval's multi-turn shape is a separate
   `ConversationalTestCase.turns`, out of scope for this adapter.
 - **A DeepEval-side `score` outside `[0, 1]`** is clamped, not preserved raw (see above).
 
+## Grader mapping (opt-in): `graders_to_deepeval_metrics()`
+
+`graders_to_deepeval_metrics(suite)` returns `{grader_id: metric}` for every grader in the
+suite that has a faithful DeepEval equivalent — one that computes exactly what the EvalPort
+grader defines. Pass `skip_unsupported=True` to leave the others out instead of raising.
+
+| EvalPort grader | DeepEval metric | Faithful? |
+|---|---|---|
+| `exact_match` (`ignore_case`, `trim_whitespace`) | `EvalPortExactMatchMetric`, a `deepeval.metrics.BaseMetric` subclass named after the grader id | yes: trims when `trim_whitespace` (default true), lowercases when `ignore_case` (default false), then `==`, the same steps as the reference runner's `gradeExactMatch` (`cli/src/run/graders/tier1.ts`). Score 1.0/0.0, threshold 1.0 |
+| `semantic_similarity` | — | no: the score depends on the embedding model the runner picks, and DeepEval has no deterministic embedding-cosine metric to pin it to |
+| `llm_judge` / `model graded` | — | no: DeepEval's `GEval` builds its own evaluation prompt around your criteria, so it would not run the grader's `prompt` verbatim |
+| `contains`, `regex`, `json_schema`, `json_path`, `code`, `human`, `custom` | — | not mapped: no DeepEval built-in metric computes exactly these |
+
+Why not DeepEval's own `ExactMatchMetric`: it always strips and is always case-sensitive, so it
+can't express `ignore_case: true` or `trim_whitespace: false`. With the spec defaults the two
+agree.
+
+Details, so nothing is assumed:
+- Python's `str.strip()`/`str.lower()` stand in for JavaScript's `trim()`/`toLowerCase()`.
+  They agree on ASCII and common Unicode whitespace, and differ on U+FEFF (trimmed by JS only)
+  and U+001C–U+001F (stripped by Python only).
+- A missing `expected_output` compares as `""`, as in the reference runner.
+- Params the spec doesn't define (e.g. `strip`, used by `benchmarks/gsm8k`) raise a
+  `UserWarning` and are ignored, as the reference runner ignores them.
+- The metric's name is the grader id, so `test_results_to_openeval()` reports
+  `grader_id: "gr_exact_match"` (not `"exact_match"`), matching the suite. Its `type` in the
+  ResultSet stays `"custom"`, like every DeepEval metric result.
+- `deepeval.evaluate()` runs every metric on every test case. To honour per-test-case
+  `graders` lists, group the test cases by the grader ids they reference.
+
+`exact_match()` (the comparison itself, no deepeval needed) is exported too.
+
+## Changelog
+
+### 0.2.0
+
+Fixes found by the cross-framework demos in `examples/interop/`:
+
+- `from_openeval()` now sets `LLMTestCase.metadata` from `TestCase.metadata` (minus the
+  adapter's `"deepeval"` key). Previously it dropped it, losing e.g. TruthfulQA's accepted
+  answers.
+- `to_openeval()` keeps empty lists (`expected_tools: []`, "no tool should be called") instead
+  of dropping them. It now emits every list field that is set, including empty
+  `context`/`retrieval_context`/`tags`/`tools_called`.
+- **Behavior change:** `from_openeval()` returns `deepeval.test_case.ToolCall` objects for
+  `tools_called`/`expected_tools` when deepeval is importable (new `tool_calls="auto"`
+  default), restoring full `ToolCall` detail recorded by `to_openeval()`, so
+  `LLMTestCase(**kwargs)` works. Its output is no longer plain JSON when tools are present. Pass
+  `tool_calls="names"` for the 0.1.x return shape; `to_tool_calls()` wraps names later.
+- `to_openeval()` parks a user `LLMTestCase.metadata["deepeval"]` key inside the adapter
+  namespace instead of letting the namespace overwrite it.
+- New opt-in `graders_to_deepeval_metrics()` and `exact_match()` (see above).
+
+### 0.1.0
+
+Initial release.
+
 ## Testing
 
-40 tests in `tests/test_adapter.py`, all passing against the real, installed
-`deepeval==4.1.10` package (`LLMTestCase`, `ToolCall`, `RetrievedContextData`, `TestResult`,
-`MetricData`, `EvaluationResult` are imported and constructed from `deepeval.test_case` /
-`deepeval.evaluate.types` / `deepeval.test_run.api` directly, not reinvented) and the real
-`openeval.validate.validate_suite()` / `validate_result_set()`. Covers: full field mapping,
-metadata preservation, explicit vs. auto-generated test case IDs, score clamping at both
-bounds, `None` scores, the `success`-is-`None` fallback, multi-metric results, the
-empty/`None`-`metrics_data` → `runner_error` path, multimodal `actual_output` lists, the
-`EvaluationResult` wrapper, and a full suite → simulated run → `ResultSet` end-to-end
-round trip validated against the real spec.
+72 tests in `tests/test_adapter.py`, all passing against the real, installed
+`deepeval==4.2.6` package (`LLMTestCase`, `ToolCall`, `RetrievedContextData`, `TestResult`,
+`MetricData`, `EvaluationResult`, `BaseMetric` are imported and constructed from
+`deepeval.test_case` / `deepeval.evaluate.types` / `deepeval.test_run.api` /
+`deepeval.metrics` directly, not reinvented) and the real
+`openeval.validate.validate_suite()` / `validate_result_set()`. Without deepeval installed
+(CI's min mode), the framework-free tests still run and the rest skip. Covers: full field
+mapping, metadata preservation in both directions, empty vs absent tool lists, `ToolCall`
+reconstruction (and the `names` mode), explicit vs. auto-generated test case IDs, score
+clamping at both bounds, `None` scores, the `success`-is-`None` fallback, multi-metric
+results, the empty/`None`-`metrics_data` → `runner_error` path, multimodal `actual_output`
+lists, the `EvaluationResult` wrapper, the `exact_match` grader mapping, and a full suite →
+simulated run → `ResultSet` end-to-end round trip validated against the real spec.
 
 ```bash
 pip install -e ".[test]"
 pip install -e /path/to/evalport/sdk/python   # or: pip install evalport-sdk
-pip install deepeval==4.1.10
+pip install deepeval==4.2.6
 pytest tests/
 ```
