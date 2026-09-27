@@ -19,10 +19,24 @@ itself does internally (verified by reading that source file), with no
 network access and no mocking.
 """
 
+import importlib.util
 import math
 
-import pandas as pd
 import pytest
+
+# The adapter itself imports vertexai.evaluation at module import time, so
+# nothing in this module can run without google-cloud-aiplatform[evaluation].
+# Skip the whole module when it is absent (CI's min-mode adapter-tests job
+# installs evalport-sdk only). Checked with find_spec rather than
+# pytest.importorskip so that, with google-cloud-aiplatform[evaluation]
+# installed, a broken install or upstream API drift still fails loudly instead
+# of being swallowed as a skip.
+_MISSING = [m for m in ("pandas", "vertexai") if importlib.util.find_spec(m) is None]
+if _MISSING:
+    pytest.skip("not installed: " + ", ".join(_MISSING), allow_module_level=True)
+
+import pandas as pd  # noqa: E402
+
 from openeval.validate import validate_result_set, validate_suite
 from vertexai.evaluation import (
     CustomMetric,
