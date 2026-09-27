@@ -19,17 +19,17 @@ EvalPort is an open specification for portable LLM evaluation test cases, grader
 npm install -g evalport-cli
 
 # Create an eval suite
-openeval init my-eval-suite
+evalport init my-eval-suite
 
 # Validate
-openeval validate my-eval-suite.json
+evalport validate my-eval-suite.json
 
 # Convert from Promptfoo
 openeval convert promptfoo openeval config.json output.json
 
 # Run a suite against a real provider — always dry-run first to see estimated cost
-openeval run examples/basic-suite.json --provider openai --model gpt-4o-mini --dry-run
-openeval run examples/basic-suite.json --provider openai --model gpt-4o-mini --output results.json
+evalport run examples/basic-suite.json --provider openai --model gpt-4o-mini --dry-run
+evalport run examples/basic-suite.json --provider openai --model gpt-4o-mini --output results.json
 
 # Python SDK
 pip install evalport-sdk
@@ -93,8 +93,8 @@ openeval/
 `evalport run` executes an EvalPort suite against a real model provider and produces a spec-valid, self-validated `ResultSet` — no separate harness, no glue code. It's the CLI's headline command:
 
 ```bash
-openeval run suite.json --provider openai --model gpt-4o-mini --dry-run   # estimate cost first, spend nothing
-openeval run suite.json --provider anthropic --model claude-3-5-sonnet-20241022 --output results.json
+evalport run suite.json --provider openai --model gpt-4o-mini --dry-run   # estimate cost first, spend nothing
+evalport run suite.json --provider anthropic --model claude-3-5-sonnet-20241022 --output results.json
 ```
 
 - **Two providers out of the box** — OpenAI and Anthropic — plus any OpenAI-compatible endpoint (local inference servers, proxies, other vendors) via `--api-base`.

@@ -18,7 +18,7 @@ pip install evalport-sdk
 ### 2. Create an Eval Suite
 
 ```bash
-openeval init my-eval-suite
+evalport init my-eval-suite
 ```
 
 This creates `my-eval-suite.json`:
@@ -42,7 +42,7 @@ This creates `my-eval-suite.json`:
 ### 3. Validate
 
 ```bash
-openeval validate my-eval-suite.json
+evalport validate my-eval-suite.json
 # Output: Valid
 ```
 

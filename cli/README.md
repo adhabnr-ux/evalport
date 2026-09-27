@@ -1,11 +1,11 @@
-# @evalport/cli
+# evalport-cli
 
 Command-line tool for EvalPort — run eval suites against real providers, validate, convert, and init.
 
 ## Install
 
 ```bash
-npm install -g @evalport/cli
+npm install -g evalport-cli
 ```
 
 ## `run` — execute a suite against a real provider
@@ -13,13 +13,13 @@ npm install -g @evalport/cli
 This is the CLI's headline command: it loads an EvalPort suite, calls a real model provider for every test case, grades the outputs, and writes a spec-valid, self-validated `ResultSet`.
 
 ```bash
-openeval run <suite.json> --provider <openai|anthropic> [options]
+evalport run <suite.json> --provider <openai|anthropic> [options]
 ```
 
 **Always estimate cost before spending anything:**
 
 ```bash
-openeval run suite.json --provider openai --model gpt-4o-mini --dry-run
+evalport run suite.json --provider openai --model gpt-4o-mini --dry-run
 ```
 
 `--dry-run` makes zero API calls. It prints a per-test-case token/cost estimate and a total, using the built-in pricing table (falling back to a conservative rate — deliberately on the high side — for unlisted models, with a warning). Treat the number as a budget sanity check, not an invoice: it's a heuristic (`chars/4` token approximation, an assumed completion length), not a real tokenizer.
@@ -27,7 +27,7 @@ openeval run suite.json --provider openai --model gpt-4o-mini --dry-run
 Once you've reviewed the estimate and are ready to spend real money:
 
 ```bash
-openeval run suite.json --provider openai --model gpt-4o-mini --output results.json
+evalport run suite.json --provider openai --model gpt-4o-mini --output results.json
 ```
 
 ### Providers
@@ -97,8 +97,8 @@ A test case's own `provider` block (model / `api_base` / `api_key_env` / `temper
 Validate an EvalPort document against its schema.
 
 ```bash
-openeval validate my-suite.json
-openeval validate my-suite.json --type=resultset
+evalport validate my-suite.json
+evalport validate my-suite.json --type=resultset
 ```
 
 ### convert
@@ -117,7 +117,7 @@ Supported conversions:
 Create a starter eval suite.
 
 ```bash
-openeval init my-eval-suite
+evalport init my-eval-suite
 # Creates my-eval-suite.json
 ```
 

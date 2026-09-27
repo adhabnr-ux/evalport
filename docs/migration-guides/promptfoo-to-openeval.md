@@ -40,7 +40,7 @@ json.dump(suite, open("output.json", "w"), indent=2)
 ### TypeScript
 
 ```typescript
-import { fromPromptfoo } from "@evalport/sdk";
+import { fromPromptfoo } from "evalport-sdk";
 import * as fs from "fs";
 
 const pf = JSON.parse(fs.readFileSync("promptfoo-config.json", "utf-8"));
