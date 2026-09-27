@@ -24,6 +24,7 @@ from opencompass.datasets.custom import CustomDataset, OptionSimAccEvaluator  # 
 from opencompass.openicl.icl_evaluator import AccEvaluator  # noqa: E402
 
 from openeval.validate import validate_result_set, validate_suite  # noqa: E402
+from openeval.types import OPENEVAL_VERSION  # noqa: E402
 
 from opencompass_openeval_adapter import (  # noqa: E402
     from_openeval,
@@ -104,6 +105,7 @@ class TestToOpenevalMCQ:
             mcq_dataset_from_real_loader, options=["A", "B", "C", "D"], suite_id="mcq_smoke"
         )
         result = validate_suite(suite)
+        assert suite["version"] == OPENEVAL_VERSION
         assert result.valid, result.errors
 
     def test_test_case_count_matches_row_count(self, mcq_dataset_from_real_loader):
@@ -225,6 +227,7 @@ class TestResultToOpenevalMCQ:
             started_at="2026-08-21T00:00:00Z",
         )
         result = validate_result_set(result_set)
+        assert result_set["version"] == OPENEVAL_VERSION
         assert result.valid, result.errors
 
     def test_uses_real_option_sim_acc_evaluator_details(self, mcq_dataset_from_real_loader):
