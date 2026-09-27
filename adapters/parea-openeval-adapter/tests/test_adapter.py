@@ -235,3 +235,4 @@ def test_from_openeval_rebuilds_valid_parea_objects():
     assert rebuilt_tc.inputs == {"question": "What is 2+2?"}
     assert rebuilt_tc.target == "4"
     assert rebuilt_tc.tags == ["math"]
+
