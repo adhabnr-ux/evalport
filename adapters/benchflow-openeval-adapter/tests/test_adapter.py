@@ -10,10 +10,19 @@ conventions this repo's other adapters already use (see e.g.
 """
 from __future__ import annotations
 
+import importlib.util
+
 import pytest
 from openeval.validate import validate_result_set
 
-from benchflow.trajectories.results import build_rollout_results_record
+# Framework-dependent tests below are skipped (not failed) when benchflow
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_BENCHFLOW = importlib.util.find_spec("benchflow") is not None
+requires_benchflow = pytest.mark.skipif(not HAS_BENCHFLOW, reason="benchflow not installed")
+if HAS_BENCHFLOW:
+    from benchflow.trajectories.results import build_rollout_results_record
 
 from benchflow_openeval_adapter import (
     job_results_file_to_openeval,
@@ -48,6 +57,7 @@ def _row(tmp_path, **overrides):
 # ---------------------------------------------------------------------------
 
 
+@requires_benchflow
 def test_passed_rollout_reward_exactly_one(tmp_path):
     row = _row(tmp_path, rewards={"reward": 1.0})
     rs = job_results_to_openeval([row], suite_id="swe-bench", run_id="run_1")
@@ -66,6 +76,7 @@ def test_passed_rollout_reward_exactly_one(tmp_path):
     assert reward_gr["metadata"]["openeval"]["raw_score"] == 1.0
 
 
+@requires_benchflow
 def test_partial_credit_reward_is_not_promoted_to_a_pass(tmp_path):
     """BenchFlow's own convention: reward == 1.0 is the only passing value.
 
@@ -84,6 +95,7 @@ def test_partial_credit_reward_is_not_promoted_to_a_pass(tmp_path):
     assert reward_gr["passed"] is False
 
 
+@requires_benchflow
 def test_named_sub_scores_become_their_own_graders_without_duplicating_reward(tmp_path):
     row = _row(
         tmp_path,
@@ -111,6 +123,7 @@ def test_named_sub_scores_become_their_own_graders_without_duplicating_reward(tm
     assert coverage["passed"] is True  # hit its own range max
 
 
+@requires_benchflow
 def test_overall_passed_follows_reward_not_a_strict_and_of_every_grader(tmp_path):
     """A rollout with reward == 1.0 but an imperfect rubric sub-score must
     still be Result.passed == True -- BenchFlow's own pass/fail definition
@@ -127,6 +140,7 @@ def test_overall_passed_follows_reward_not_a_strict_and_of_every_grader(tmp_path
     assert rs["results"][0]["passed"] is True
 
 
+@requires_benchflow
 def test_verifier_error_is_unscored_not_a_fabricated_zero(tmp_path):
     row = _row(
         tmp_path,
@@ -152,6 +166,7 @@ def test_verifier_error_is_unscored_not_a_fabricated_zero(tmp_path):
     assert rs["summary"]["avg_score"] == 0  # no scored graders at all
 
 
+@requires_benchflow
 def test_agent_error_before_verification_is_unscored(tmp_path):
     row = _row(tmp_path, rewards=None, error="agent process crashed", verifier_error=None)
     rs = job_results_to_openeval([row], suite_id="swe-bench", run_id="run_1")
@@ -161,6 +176,7 @@ def test_agent_error_before_verification_is_unscored(tmp_path):
     assert rs["results"][0]["metadata"]["benchflow"]["error_category"] == "agent_error"
 
 
+@requires_benchflow
 def test_export_error_after_successful_verification_keeps_the_real_reward(tmp_path):
     """The verifier already produced a real reward before export failed --
     that reward must NOT be nulled out just because export_error is set.
@@ -177,6 +193,7 @@ def test_export_error_after_successful_verification_keeps_the_real_reward(tmp_pa
     assert result["metadata"]["benchflow"]["error_category"] == "export_error"
 
 
+@requires_benchflow
 def test_repeated_trials_of_the_same_task_get_ascending_attempt_numbers(tmp_path):
     rows = [
         _row(tmp_path, rollout_name="trial_1", rewards={"reward": 1.0}),
@@ -196,12 +213,14 @@ def test_repeated_trials_of_the_same_task_get_ascending_attempt_numbers(tmp_path
     assert len({(r["test_case_id"], a) for r, a in zip(rs["results"], attempts)}) == 3
 
 
+@requires_benchflow
 def test_single_row_per_task_gets_no_attempt_field(tmp_path):
     row = _row(tmp_path)
     rs = job_results_to_openeval([row], suite_id="swe-bench", run_id="run_1")
     assert "attempt" not in rs["results"][0]
 
 
+@requires_benchflow
 def test_two_different_tasks_are_not_grouped_as_attempts_of_each_other(tmp_path):
     rows = [
         _row(tmp_path, task_name="task_a", rollout_name="a_0"),
@@ -214,6 +233,7 @@ def test_two_different_tasks_are_not_grouped_as_attempts_of_each_other(tmp_path)
     assert all("attempt" not in r for r in rs["results"])
 
 
+@requires_benchflow
 def test_wider_reward_range_is_normalized_not_truncated(tmp_path):
     """A task whose verifier is documented to score in [-1, 1]: -0.5 and
     -0.9 must land at different normalized scores (0.25 vs 0.05), not both
@@ -241,6 +261,7 @@ def test_wider_reward_range_is_normalized_not_truncated(tmp_path):
     assert raw["other_task"] == -0.9
 
 
+@requires_benchflow
 def test_reward_outside_declared_range_is_defensively_clamped(tmp_path):
     row = _row(tmp_path, rewards={"reward": 5.0})  # outside default (0, 1)
     rs = job_results_to_openeval([row], suite_id="s", run_id="run_1")
@@ -250,6 +271,7 @@ def test_reward_outside_declared_range_is_defensively_clamped(tmp_path):
     assert reward_gr["metadata"]["openeval"]["raw_score"] == 5.0  # ...but the real value is not lost
 
 
+@requires_benchflow
 def test_metadata_carries_agent_model_and_tool_call_info(tmp_path):
     row = _row(tmp_path, agent="openclaw", model="anthropic/claude-sonnet-4-5", n_tool_calls=7)
     rs = job_results_to_openeval([row], suite_id="s", run_id="run_1")
@@ -260,18 +282,21 @@ def test_metadata_carries_agent_model_and_tool_call_info(tmp_path):
     assert meta["stop_condition"] == "agent_completed"
 
 
+@requires_benchflow
 def test_duration_ms_from_timing_total_seconds(tmp_path):
     row = _row(tmp_path, timing={"total": 12.5, "agent_execution": 10.0})
     rs = job_results_to_openeval([row], suite_id="s", run_id="run_1")
     assert rs["results"][0]["duration_ms"] == 12500
 
 
+@requires_benchflow
 def test_no_timing_omits_duration_ms(tmp_path):
     row = _row(tmp_path, timing=None)
     rs = job_results_to_openeval([row], suite_id="s", run_id="run_1")
     assert "duration_ms" not in rs["results"][0]
 
 
+@requires_benchflow
 def test_summary_stats_across_a_mixed_job(tmp_path):
     rows = [
         _row(tmp_path, rollout_name="p1", task_name="t1", rewards={"reward": 1.0}),
@@ -292,6 +317,7 @@ def test_empty_rows_raises_instead_of_emitting_an_invalid_document():
         job_results_to_openeval([], suite_id="s", run_id="run_1")
 
 
+@requires_benchflow
 def test_started_at_and_completed_at_default_sanely(tmp_path):
     row = _row(tmp_path)
     rs = job_results_to_openeval([row], suite_id="s", run_id="run_1")
@@ -305,6 +331,7 @@ def test_started_at_and_completed_at_default_sanely(tmp_path):
     assert rs2["completed_at"] == "2026-08-30T09:00:00Z"
 
 
+@requires_benchflow
 def test_runner_name_is_benchflow(tmp_path):
     row = _row(tmp_path)
     rs = job_results_to_openeval([row], suite_id="s", run_id="run_1")
@@ -315,6 +342,7 @@ def test_runner_name_is_benchflow(tmp_path):
     assert rs2["runner"]["version"] == "0.7.6"
 
 
+@requires_benchflow
 def test_actual_output_extracted_from_completion_when_present(tmp_path):
     row = _row(
         tmp_path,
@@ -340,6 +368,7 @@ def test_actual_output_extracted_from_completion_when_present(tmp_path):
     assert "actual_output" not in rs["results"][0]  # no trajectory file -> no completion
 
 
+@requires_benchflow
 def test_isolation_is_not_set_unless_explicitly_passed(tmp_path):
     row = _row(tmp_path)
     rs = job_results_to_openeval([row], suite_id="s", run_id="run_1")
@@ -457,6 +486,7 @@ def test_end_to_end_row_with_completion_and_a_non_numeric_metric_value():
 # ---------------------------------------------------------------------------
 
 
+@requires_benchflow
 def test_job_results_file_to_openeval_reads_a_real_jsonl_file(tmp_path):
     import json
 
@@ -475,6 +505,7 @@ def test_job_results_file_to_openeval_reads_a_real_jsonl_file(tmp_path):
     assert len(rs["results"]) == 2
 
 
+@requires_benchflow
 def test_job_results_file_to_openeval_accepts_str_path(tmp_path):
     import json
 
