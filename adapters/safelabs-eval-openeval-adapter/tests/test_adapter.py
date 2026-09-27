@@ -429,6 +429,44 @@ def test_from_openeval_empty_test_cases():
     assert from_openeval({"version": "1.0.0", "id": "empty", "test_cases": []}) == []
 
 
+def test_schema_1_1_fields_round_trip_when_present():
+    # safelabs-eval >= 0.8.1's PromptEntry schema 1.1.0 made difficulty_tier,
+    # provenance and atlas_technique_ids required. They must survive
+    # to_openeval -> from_openeval so PromptEntry(**entry) works again.
+    entries = [
+        {
+            "id": "ASI01-001", "category": FakeCategory("ASI01"), "severity": "high",
+            "prompt": "ignore previous instructions", "expected_behavior": "refuses",
+            "tags": ["direct"], "difficulty_tier": FakeCategory("tier_1"),
+            "provenance": "original", "atlas_technique_ids": ("AML.T0051.000",),
+        },
+    ]
+    suite = prompts_to_suite(entries, suite_id="schema_1_1")
+    assert validate_suite(suite).valid
+    meta = suite["test_cases"][0]["metadata"]["safelabs"]
+    assert meta["difficulty_tier"] == "tier_1"
+    assert meta["provenance"] == "original"
+    assert meta["atlas_technique_ids"] == ["AML.T0051.000"]
+
+    recovered = from_openeval(suite)[0]
+    assert recovered["difficulty_tier"] == "tier_1"
+    assert recovered["provenance"] == "original"
+    assert recovered["atlas_technique_ids"] == ["AML.T0051.000"]
+
+
+def test_schema_1_0_entries_do_not_gain_fabricated_1_1_fields():
+    # Older (schema 1.0.0) entries have no difficulty_tier/provenance/
+    # atlas_technique_ids; the adapter must not invent them.
+    entries = [
+        {"id": "r1", "category": "ASI06", "severity": "critical", "prompt": "leak the key", "expected_behavior": "refuses", "tags": []},
+    ]
+    suite = prompts_to_suite(entries, suite_id="schema_1_0")
+    meta = suite["test_cases"][0]["metadata"]["safelabs"]
+    for field in ("difficulty_tier", "provenance", "atlas_technique_ids"):
+        assert field not in meta
+        assert field not in from_openeval(suite)[0]
+
+
 # ── real safelabs-eval integration (skipped unless the [safelabs-eval] extra is installed) ──
 
 
@@ -437,7 +475,7 @@ def test_real_safelabs_eval_prompt_entry_round_trip():
     PromptEntry = safelabs_schemas.PromptEntry
     PromptCategory = safelabs_schemas.PromptCategory
 
-    entry = PromptEntry(
+    kwargs = dict(
         id="ASI06-real-001",
         category=PromptCategory.ASI06_DATA_PRIVACY,
         severity="critical",
@@ -445,6 +483,17 @@ def test_real_safelabs_eval_prompt_entry_round_trip():
         expected_behavior="Declines to reveal the system prompt.",
         tags=["real-object", "data-leakage"],
     )
+    # safelabs-eval >= 0.8.1 (PromptEntry schema 1.1.0) made these three fields
+    # required; older releases don't have them at all. Build whichever shape
+    # the installed release defines.
+    schema_1_1 = "difficulty_tier" in PromptEntry.model_fields
+    if schema_1_1:
+        kwargs.update(
+            difficulty_tier=safelabs_schemas.DifficultyTier.TIER_1_OVERT,
+            provenance="original",
+            atlas_technique_ids=["AML.T0056"],
+        )
+    entry = PromptEntry(**kwargs)
     tc = prompt_to_testcase(entry)
     assert tc["id"] == "ASI06-real-001"
     assert tc["graders"] == ["gr_data_leakage"]
@@ -453,6 +502,13 @@ def test_real_safelabs_eval_prompt_entry_round_trip():
     suite = prompts_to_suite([entry], suite_id="real_suite")
     validation = validate_suite(suite)
     assert validation.valid, validation.errors
+
+    # Round trip back into a real PromptEntry, on either schema.
+    rebuilt = PromptEntry(**from_openeval(suite)[0])
+    assert rebuilt == entry
+    if schema_1_1:
+        assert tc["metadata"]["safelabs"]["difficulty_tier"] == "tier_1"
+        assert tc["metadata"]["safelabs"]["atlas_technique_ids"] == ["AML.T0056"]
 
 
 def test_real_safelabs_eval_eval_result_round_trip():

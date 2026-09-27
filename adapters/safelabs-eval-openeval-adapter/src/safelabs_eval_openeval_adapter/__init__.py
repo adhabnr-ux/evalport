@@ -89,6 +89,12 @@ VERDICT_SCORE: Dict[str, Optional[float]] = {
 }
 
 
+# PromptEntry fields added (as required, no defaults) in safelabs-eval's
+# PromptEntry schema 1.1.0 (safelabs-eval >= 0.8.1). Carried through
+# metadata.safelabs only when present -- see prompt_to_testcase().
+_SCHEMA_1_1_FIELDS = ("difficulty_tier", "provenance", "atlas_technique_ids")
+
+
 def _get(obj: Any, key: str, default: Any = None) -> Any:
     """Read `key` from a dict-like or attribute-like object.
 
@@ -132,6 +138,18 @@ def prompt_to_testcase(entry: Any, *, eval_type: Optional[str] = None) -> Dict[s
         category, severity -> carried in metadata.safelabs (EvalPort has no
                                first-class OWASP-ASI field)
         detector eval_type -> graders: ["gr_<eval_type>"]
+        difficulty_tier, provenance, atlas_technique_ids
+                           -> metadata.safelabs.<same name>, only when the
+                               entry carries them (see below)
+
+    safelabs-eval's PromptEntry schema 1.1.0 (first shipped in safelabs-eval
+    0.8.1) added three *required* fields -- `difficulty_tier` (a
+    `DifficultyTier` str-enum, stored here as its value, e.g. "tier_1"),
+    `provenance`, and `atlas_technique_ids`. Entries from older releases
+    (schema 1.0.0) don't have them. Both shapes are accepted: the new fields
+    are carried through when present and simply omitted when absent, never
+    fabricated, so `from_openeval()` can hand them back for
+    `PromptEntry(**entry)` on the newer schema.
 
     Pass an explicit `eval_type` to override the category-derived detector
     (e.g. when building a suite for a `Scorer` configured with custom
@@ -156,6 +174,16 @@ def prompt_to_testcase(entry: Any, *, eval_type: Optional[str] = None) -> Dict[s
             }
         },
     }
+    safelabs_meta = tc["metadata"]["safelabs"]
+    for field in _SCHEMA_1_1_FIELDS:
+        value = _get(entry, field)
+        if value is None:
+            continue
+        if field == "difficulty_tier":
+            value = _enum_value(value)
+        elif field == "atlas_technique_ids":
+            value = list(value)
+        safelabs_meta[field] = value
     if expected_behavior is not None:
         tc["expected_output"] = expected_behavior
     return tc
@@ -380,7 +408,13 @@ def from_openeval(suite: Dict[str, Any]) -> List[Dict[str, Any]]:
 
     Round-tripping a suite this adapter itself produced (via
     `prompts_to_suite`) recovers the original `category`/`severity`/`tags`
-    from `metadata.safelabs`. For a suite from another EvalPort producer
+    from `metadata.safelabs` -- plus `difficulty_tier`/`provenance`/
+    `atlas_technique_ids` when the source entries had them (safelabs-eval
+    >= 0.8.1's PromptEntry schema 1.1.0, where all three are required). They
+    are only returned when present in the suite, never invented: a suite
+    that lacks them (from an older safelabs-eval, or another producer) needs
+    the caller to supply them before `PromptEntry(**entry)` on safelabs-eval
+    >= 0.8.1. For a suite from another EvalPort producer
     (the point of `from_openeval` per AgentSafeLabs/safelabs-eval#1 — "the 30
     OWASP ASI prompts get pulled into another EvalPort-based pipeline" runs
     in reverse too: someone else's test cases get run through safelabs-eval's
@@ -393,14 +427,17 @@ def from_openeval(suite: Dict[str, Any]) -> List[Dict[str, Any]]:
     entries: List[Dict[str, Any]] = []
     for tc in suite.get("test_cases", []):
         safelabs_meta = (tc.get("metadata") or {}).get("safelabs") or {}
-        entries.append(
-            {
-                "id": tc.get("id"),
-                "category": safelabs_meta.get("category") or "ASI01",
-                "severity": safelabs_meta.get("severity") or "medium",
-                "prompt": tc.get("input"),
-                "expected_behavior": tc.get("expected_output") or "",
-                "tags": list(safelabs_meta.get("tags") or []),
-            }
-        )
+        entry: Dict[str, Any] = {
+            "id": tc.get("id"),
+            "category": safelabs_meta.get("category") or "ASI01",
+            "severity": safelabs_meta.get("severity") or "medium",
+            "prompt": tc.get("input"),
+            "expected_behavior": tc.get("expected_output") or "",
+            "tags": list(safelabs_meta.get("tags") or []),
+        }
+        for field in _SCHEMA_1_1_FIELDS:
+            value = safelabs_meta.get(field)
+            if value is not None:
+                entry[field] = list(value) if field == "atlas_technique_ids" else value
+        entries.append(entry)
     return entries
