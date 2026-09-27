@@ -1,3 +1,5 @@
+import importlib.util
+import pytest
 from openeval.validate import validate_result_set, validate_suite
 
 from phoenix_openeval_adapter import (
@@ -12,7 +14,23 @@ from phoenix_openeval_adapter import (
 # than hand-rolled fakes, so a shape drift in the real `arize-phoenix-client`
 # package would be caught here, not just in a fake that mirrors last year's
 # SDK.
-from phoenix.client.resources.experiments.types import ExperimentEvaluationRun
+
+
+def _installed(module):
+    try:
+        return importlib.util.find_spec(module) is not None
+    except ModuleNotFoundError:  # a parent package (e.g. `phoenix`) is missing
+        return False
+
+
+# Framework-dependent tests below are skipped (not failed) when phoenix.client
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_PHOENIX = _installed("phoenix.client")
+requires_phoenix = pytest.mark.skipif(not HAS_PHOENIX, reason="phoenix.client not installed")
+if HAS_PHOENIX:
+    from phoenix.client.resources.experiments.types import ExperimentEvaluationRun
 
 
 def _example(id, input, output, metadata=None):
@@ -197,6 +215,7 @@ def test_from_openeval_no_expected_output_produces_empty_output_mapping():
 # ---------------------------------------------------------------------------
 
 
+@requires_phoenix
 def test_experiment_to_openeval_from_real_ran_experiment():
     ran_experiment = {
         "experiment_id": "exp_1",
@@ -240,6 +259,7 @@ def test_experiment_to_openeval_from_real_ran_experiment():
     assert validation.valid, validation.errors
 
 
+@requires_phoenix
 def test_experiment_to_openeval_label_only_evaluator_no_score():
     # Phoenix code evaluators commonly return only a label (e.g. a
     # pass/fail heuristic) with no numeric score.
@@ -254,6 +274,7 @@ def test_experiment_to_openeval_label_only_evaluator_no_score():
     assert rs["results"][0]["grader_results"][0]["score"] is None
 
 
+@requires_phoenix
 def test_experiment_to_openeval_multiple_evaluators_all_must_pass():
     ran_experiment = {
         "experiment_id": "exp_3",
@@ -269,6 +290,7 @@ def test_experiment_to_openeval_multiple_evaluators_all_must_pass():
     assert rs["results"][0]["passed"] is False
 
 
+@requires_phoenix
 def test_experiment_to_openeval_evaluator_error_marks_grader_failed():
     ran_experiment = {
         "experiment_id": "exp_4",
@@ -304,6 +326,7 @@ def test_experiment_to_openeval_no_evaluations_fails_cleanly():
     assert rs["results"][0]["grader_results"] == []
 
 
+@requires_phoenix
 def test_experiment_to_openeval_custom_pass_threshold():
     ran_experiment = {
         "experiment_id": "exp_7",
@@ -318,6 +341,7 @@ def test_experiment_to_openeval_custom_pass_threshold():
     assert rs_strict["results"][0]["passed"] is False  # 0.6 < 0.9
 
 
+@requires_phoenix
 def test_experiment_to_openeval_score_clamped_to_valid_range():
     ran_experiment = {
         "experiment_id": "exp_8",
@@ -336,6 +360,7 @@ def test_experiment_to_openeval_score_clamped_to_valid_range():
 # ---------------------------------------------------------------------------
 
 
+@requires_phoenix
 def test_end_to_end_dataset_and_experiment_round_trip_both_validate():
     examples = [
         _example("ex_1", {"question": "What is the capital of France?"}, {"answer": "Paris"}),
