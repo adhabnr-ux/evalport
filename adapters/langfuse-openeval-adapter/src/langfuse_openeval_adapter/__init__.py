@@ -70,7 +70,7 @@ import json
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Union
 
 try:
-    from openeval.version import OPENEVAL_VERSION
+    from openeval.types import OPENEVAL_VERSION
 except ImportError:  # pragma: no cover - evalport-sdk not installed
     OPENEVAL_VERSION = "1.0.0"
 
