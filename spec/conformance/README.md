@@ -34,6 +34,8 @@ A conformance implementation in any language: load every file in `fixtures/`, ru
 python3 spec/conformance/run.py
 ```
 
+The TypeScript SDK runs the same portable fixtures as part of `cd sdk/typescript && npm test`, so additions are checked automatically by both reference validators.
+
 Every fixture here has also been independently checked against the raw JSON Schema files in `spec/schemas/` (via the same `Draft202012Validator` machinery `test_schema_consistency.py` uses) — not just the hand-rolled validator — so `expect.valid` reflects genuine agreement between both validation paths this project maintains, not just one of them.
 
 ## What's covered so far
