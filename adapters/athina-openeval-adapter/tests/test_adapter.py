@@ -28,6 +28,7 @@ if HAS_ATHINA:
     from athina.interfaces.result import EvalResult
 
 from openeval.validate import validate_suite, validate_result_set
+from openeval.types import OPENEVAL_VERSION
 
 from athina_openeval_adapter import to_openeval, result_to_openeval, from_openeval
 
@@ -243,6 +244,7 @@ def test_to_openeval_produces_spec_valid_suite_for_every_real_evaluator_shape():
     for data, eval_name in cases:
         suite = to_openeval(data, eval_name)
         result = validate_suite(suite)
+        assert suite["version"] == OPENEVAL_VERSION
         assert result.valid, f"{eval_name}: {result.errors}"
 
 
@@ -378,6 +380,7 @@ def test_result_to_openeval_produces_spec_valid_result_set():
         started_at="2026-08-22T00:00:00Z", completed_at="2026-08-22T00:00:05Z",
     )
     result = validate_result_set(rs)
+    assert rs["version"] == OPENEVAL_VERSION
     assert result.valid, result.errors
 
 

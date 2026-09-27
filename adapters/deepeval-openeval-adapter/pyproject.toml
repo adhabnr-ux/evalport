@@ -31,7 +31,10 @@ Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 # installed alongside it.
 [project.optional-dependencies]
 deepeval = ["deepeval>=4.0.0,<5"]
-test = ["pytest"]
+# test self-references the deepeval extra (.github/CONTRIBUTING.md convention),
+# so a full `pip install -e ".[test]"` -- what publish-adapter.yml runs --
+# exercises the real-deepeval tests instead of silently skipping them.
+test = ["pytest", "deepeval-openeval-adapter[deepeval]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

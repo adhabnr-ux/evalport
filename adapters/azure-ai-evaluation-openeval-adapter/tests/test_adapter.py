@@ -27,6 +27,7 @@ if HAS_AZURE:
         evaluate,
     )
 from openeval.validate import validate_result_set, validate_suite
+from openeval.types import OPENEVAL_VERSION
 
 from azure_ai_evaluation_openeval_adapter import (
     evaluation_result_to_openeval,
@@ -77,6 +78,7 @@ def _run_real_evaluate(evaluators, rows=None):
 def test_to_openeval_produces_valid_suite_with_f1():
     suite = to_openeval(ROWS, evaluators={"f1": F1ScoreEvaluator()}, suite_id="test-suite")
     validate_suite(suite)  # raises on invalid -- real validator, not a mock
+    assert suite["version"] == OPENEVAL_VERSION
 
     assert suite["id"] == "test-suite"
     assert len(suite["test_cases"]) == 2
@@ -230,6 +232,7 @@ def test_evaluation_result_to_openeval_valid_result_set_single_evaluator():
     result = _run_real_evaluate({"f1": F1ScoreEvaluator()})
     result_set = evaluation_result_to_openeval(result, suite_id="test-suite", run_id="run-1")
     validate_result_set(result_set)  # real validator
+    assert result_set["version"] == OPENEVAL_VERSION
 
     assert result_set["suite_id"] == "test-suite"
     assert result_set["run_id"] == "run-1"

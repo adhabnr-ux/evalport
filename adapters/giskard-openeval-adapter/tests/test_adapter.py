@@ -14,6 +14,7 @@ import sys
 
 import pytest
 from openeval.validate import validate_result_set, validate_suite
+from openeval.types import OPENEVAL_VERSION
 
 giskard_checks = pytest.importorskip(
     "giskard.checks",
@@ -70,7 +71,7 @@ class TestToOpenevalSingleStep:
         eval_suite = to_openeval(suite, suite_id="geo_quiz")
 
         assert eval_suite["id"] == "geo_quiz"
-        assert eval_suite["version"] == "1.0.0"
+        assert eval_suite["version"] == OPENEVAL_VERSION
         assert len(eval_suite["test_cases"]) == 1
         tc = eval_suite["test_cases"][0]
         assert tc["id"] == "geo_fact"
@@ -529,6 +530,7 @@ class TestSuiteResultToOpenevalWithRealRun:
         assert by_id["failing_check"]["actual_output"] == "5"
 
         validation = validate_result_set(result_set)
+        assert result_set["version"] == OPENEVAL_VERSION
         assert validation.valid, validation.errors
 
     @pytest.mark.asyncio

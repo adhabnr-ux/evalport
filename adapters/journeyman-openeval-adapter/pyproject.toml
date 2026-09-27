@@ -33,7 +33,10 @@ Discussion = "https://github.com/codechu/journeyman/issues/1"
 # journeyman-bench==0.4.0 (report.schema.json schema_version 1).
 [project.optional-dependencies]
 journeyman = ["journeyman-bench>=0.4.0,<0.5"]
-test = ["pytest"]
+# test self-references the journeyman extra (.github/CONTRIBUTING.md convention),
+# so a full `pip install -e ".[test]"` -- what publish-adapter.yml runs --
+# exercises the real-journeyman tests instead of silently skipping them.
+test = ["pytest", "journeyman-openeval-adapter[journeyman]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

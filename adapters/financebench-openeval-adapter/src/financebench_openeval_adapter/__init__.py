@@ -64,7 +64,15 @@ __all__ = [
     "load_jsonl",
 ]
 
-_SPEC_VERSION = "1.0.0"
+try:
+    from openeval.types import OPENEVAL_VERSION
+except ImportError:  # pragma: no cover - evalport-sdk always required at runtime,
+    # but keep a sane fallback for static analysis / partial installs.
+    OPENEVAL_VERSION = "1.0.0"
+
+# The EvalPort spec version stamped on every emitted document -- the
+# installed evalport-sdk's own constant, never a hard-coded literal.
+_SPEC_VERSION = OPENEVAL_VERSION
 _GRADER_ID = "gr_financebench_judge"
 _HUMAN_GRADER_ID = "gr_financebench_human_label"
 

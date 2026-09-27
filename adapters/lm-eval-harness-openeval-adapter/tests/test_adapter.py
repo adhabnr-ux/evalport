@@ -20,6 +20,7 @@ lm_eval = pytest.importorskip(
 from lm_eval import simple_evaluate  # noqa: E402
 
 from openeval.validate import validate_result_set, validate_suite  # noqa: E402
+from openeval.types import OPENEVAL_VERSION  # noqa: E402
 
 from lm_eval_harness_openeval_adapter import (  # noqa: E402
     from_openeval,
@@ -61,6 +62,7 @@ class TestToOpenevalMultipleChoice:
         samples = copa_eval["samples"]["copa"]
         suite = to_openeval("copa", samples, suite_id="copa_smoke")
         result = validate_suite(suite)
+        assert suite["version"] == OPENEVAL_VERSION
         assert result.valid, result.errors
 
     def test_copa_test_case_count_matches_doc_count(self, copa_eval):
@@ -191,6 +193,7 @@ class TestResultToOpeneval:
             aggregate=copa_eval["results"]["copa"],
         )
         result = validate_result_set(rs)
+        assert rs["version"] == OPENEVAL_VERSION
         assert result.valid, result.errors
 
     def test_copa_result_count_matches_doc_count(self, copa_eval):

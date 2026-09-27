@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import pytest
 from openeval.validate import validate_result_set, validate_suite
+from openeval.types import OPENEVAL_VERSION
 
 pytest.importorskip("evaluate", reason="evaluate is required for these tests; see README.md for the install command.")
 
@@ -37,7 +38,7 @@ class TestToOpenevalExactMatch:
         suite = to_openeval(inputs, references, "exact_match", suite_id="geo_and_math")
 
         assert suite["id"] == "geo_and_math"
-        assert suite["version"] == "1.0.0"
+        assert suite["version"] == OPENEVAL_VERSION
         assert len(suite["test_cases"]) == 2
         tc = suite["test_cases"][0]
         assert tc["id"] == "case_0"
@@ -244,6 +245,7 @@ class TestMetricResultToOpeneval:
         assert by_id["math"]["actual_output"] == "5"
 
         validation = validate_result_set(result_set)
+        assert result_set["version"] == OPENEVAL_VERSION
         assert validation.valid, validation.errors
 
     def test_real_accuracy_run_maps_to_custom_grader_type(self):

@@ -50,8 +50,17 @@ Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 # self-references the athina extra (rather than duplicating these version
 # strings) per the packaging convention settled in
 # https://github.com/adhabnr-ux/evalport/discussions/13.
+#
+# setuptools<82 is a third upstream gap of the same kind (verified 2026-09-27
+# against athina==1.7.39, the latest release): athina/services/
+# athina_api_service.py does `import pkg_resources` at import time (reached
+# from `import athina` -> athina.guard -> athina.evals), but athina declares
+# no setuptools dependency. pkg_resources ships only in setuptools <= 81
+# (setuptools 82.0.0 removed it), and a fresh Python >= 3.12 venv has no
+# setuptools at all, so `import athina` raises
+# ModuleNotFoundError: No module named 'pkg_resources' there.
 [project.optional-dependencies]
-athina = ["athina>=1.7.0,<2", "langchain-community<0.4", "qdrant-client<1.12"]
+athina = ["athina>=1.7.0,<2", "langchain-community<0.4", "qdrant-client<1.12", "setuptools<82"]
 test = ["pytest", "athina-openeval-adapter[athina]"]
 
 [tool.setuptools.packages.find]

@@ -29,6 +29,7 @@ if HAS_LANGFUSE:
     from langfuse.api.commons.types.dataset_status import DatasetStatus
     from langfuse.experiment import Evaluation, ExperimentItemResult, ExperimentResult
 from openeval.validate import validate_result_set, validate_suite
+from openeval.types import OPENEVAL_VERSION
 
 from langfuse_openeval_adapter import (
     experiment_result_to_openeval,
@@ -67,6 +68,7 @@ class TestToOpenEval:
     def test_converts_real_dataset_items(self):
         suite = to_openeval(_dataset_items(), suite_id="geo_science_eval")
         assert validate_suite(suite).valid
+        assert suite["version"] == OPENEVAL_VERSION
         assert len(suite["test_cases"]) == 2
 
     def test_accepts_local_experiment_item_dicts(self):
@@ -221,6 +223,7 @@ class TestExperimentResultToOpenEval:
             self._experiment_result(), suite_id="geo_science_eval", started_at="2026-08-14T00:00:00Z"
         )
         assert validate_result_set(rs).valid
+        assert rs["version"] == OPENEVAL_VERSION
         assert len(rs["results"]) == 2
         assert len(rs["results"][0]["grader_results"]) == 2
 

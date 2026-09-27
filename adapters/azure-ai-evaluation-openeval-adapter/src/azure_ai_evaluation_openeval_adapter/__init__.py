@@ -15,7 +15,16 @@ from typing import Any, Dict, List, Optional, Union
 
 __all__ = ["to_openeval", "from_openeval", "evaluation_result_to_openeval"]
 
-SPEC_VERSION = "1.0.0-rc.2"
+try:
+    from openeval.types import OPENEVAL_VERSION
+except ImportError:  # pragma: no cover - evalport-sdk always required at runtime,
+    # but keep a sane fallback for static analysis / partial installs.
+    OPENEVAL_VERSION = "1.0.0"
+
+# The EvalPort spec version stamped on emitted Suites/ResultSets. Kept as a
+# public alias for backward compatibility; it is the installed evalport-sdk's
+# own OPENEVAL_VERSION (this was previously a stale hard-coded "1.0.0-rc.2").
+SPEC_VERSION = OPENEVAL_VERSION
 
 # azure-ai-evaluation's own local, offline-computable NLP-metric evaluator
 # classes. Even these are still mapped to EvalPort's "custom" grader type

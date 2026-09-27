@@ -24,7 +24,13 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-humanloop = ["humanloop>=0.8.38"]
+# `requests` works around an upstream packaging gap, not a need of this
+# adapter (which never imports requests): humanloop==0.8.38 (latest as of
+# 2026-09-27) imports `requests` in humanloop/otel/exporter/__init__.py,
+# reached from `import humanloop` via humanloop.client, but does not declare
+# it in its own dependencies -- so in a fresh venv `import humanloop` raises
+# ModuleNotFoundError: No module named 'requests'.
+humanloop = ["humanloop>=0.8.38", "requests"]
 test = [
     "pytest>=7.0.0",
     "humanloop-openeval-adapter[humanloop]",

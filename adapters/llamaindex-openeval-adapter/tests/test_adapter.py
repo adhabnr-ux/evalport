@@ -45,6 +45,7 @@ from llama_index.core.evaluation import (
 from llama_index.core.llms import MockLLM
 
 from openeval.validate import validate_result_set, validate_suite
+from openeval.types import OPENEVAL_VERSION
 
 from llamaindex_openeval_adapter import (
     batch_eval_result_to_openeval,
@@ -88,6 +89,7 @@ class TestToOpeneval:
             suite_id="li_suite",
         )
         result = validate_suite(suite)
+        assert suite["version"] == OPENEVAL_VERSION
         assert result.valid, result.errors
 
         grader = suite["graders"][0]
@@ -410,6 +412,7 @@ class TestBatchEvalResultToOpeneval:
             started_at="2026-08-15T00:00:00Z",
         )
         assert validate_result_set(result_set).valid
+        assert result_set["version"] == OPENEVAL_VERSION
 
         rows = {r["test_case_id"]: r for r in result_set["results"]}
         assert rows["tc_0"]["passed"] is True

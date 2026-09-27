@@ -24,8 +24,10 @@ import math
 
 import pytest
 
-# The adapter itself imports vertexai.evaluation at module import time, so
-# nothing in this module can run without google-cloud-aiplatform[evaluation].
+# Every test in this module drives real vertexai.evaluation objects (the
+# adapter itself imports them lazily; its framework-free tests live in
+# test_without_vertexai.py), so nothing here can run without
+# google-cloud-aiplatform[evaluation].
 # Skip the whole module when it is absent (CI's min-mode adapter-tests job
 # installs evalport-sdk only). Checked with find_spec rather than
 # pytest.importorskip so that, with google-cloud-aiplatform[evaluation]
@@ -38,6 +40,7 @@ if _MISSING:
 import pandas as pd  # noqa: E402
 
 from openeval.validate import validate_result_set, validate_suite
+from openeval.types import OPENEVAL_VERSION
 from vertexai.evaluation import (
     CustomMetric,
     PairwiseMetric,
@@ -96,6 +99,7 @@ class TestToOpeneval:
         assert grader["params"]["handler"] == "exact_match_custom"
 
         validation = validate_suite(suite)
+        assert suite["version"] == OPENEVAL_VERSION
         assert validation.valid, validation.errors
 
     def test_pointwise_metric_maps_to_llm_judge_with_real_prompt_and_required_tokens(self):
@@ -306,6 +310,7 @@ class TestBatchEvalResultToOpeneval:
         assert r2["passed"] is False
 
         validation = validate_result_set(result_set)
+        assert result_set["version"] == OPENEVAL_VERSION
         assert validation.valid, validation.errors
 
     def test_pointwise_metric_produces_llm_judge_grader_type(self):

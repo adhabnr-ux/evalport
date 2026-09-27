@@ -32,7 +32,10 @@ Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
 # the extra is for users who also want the real SDK installed alongside it.
 [project.optional-dependencies]
 galileo = ["galileo>=2.0.0,<3"]
-test = ["pytest"]
+# test self-references the galileo extra (.github/CONTRIBUTING.md convention),
+# so a full `pip install -e ".[test]"` -- what publish-adapter.yml runs --
+# exercises the real-galileo tests instead of silently skipping them.
+test = ["pytest", "galileo-openeval-adapter[galileo]"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

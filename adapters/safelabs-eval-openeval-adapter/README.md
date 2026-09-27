@@ -24,6 +24,7 @@ Unlike a framework whose "run" and "test definition" collapse into one object, s
 | `PromptEntry.prompt` | `TestCase.input` | |
 | `PromptEntry.expected_behavior` | `TestCase.expected_output` | |
 | `PromptEntry.category`, `.severity`, `.tags` | `TestCase.metadata.safelabs` | EvalPort has no first-class OWASP-ASI field |
+| `PromptEntry.difficulty_tier`, `.provenance`, `.atlas_technique_ids` | `TestCase.metadata.safelabs` | Required since safelabs-eval 0.8.1 (PromptEntry schema 1.1.0); carried through when present, omitted (never fabricated) for older schema-1.0.0 entries, and returned by `from_openeval()` so `PromptEntry(**entry)` works on either schema |
 | detector (`PromptInjectionDetector`, `JailbreakDetector`, `DataLeakageDetector`, `HallucinationDetector`, `ScopeViolationDetector`) | `custom` Grader, `params.handler = "safelabs:<eval_type>"` | one grader per distinct detector `eval_type` actually used |
 | `EvalRecord` | `Result` | `response` carried through unchanged as `actual_output` |
 | `EvalRecord.scoring_result` | `Result.grader_results[0]` | full `ScoringResult` (`reasoning`, `indicators`, `remediation_hint`, `confidence`) preserved under `metadata.safelabs` |
