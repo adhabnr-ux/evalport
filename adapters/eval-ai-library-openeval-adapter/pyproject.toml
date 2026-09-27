@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eval-ai-library-openeval-adapter"
+version = "0.1.0"
+description = "Convert Eval-ai-library (eval_lib) EvalTestCase/TestCaseResult/MetricResult to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["eval-ai-library", "eval_lib", "evalport", "openeval", "llm", "evaluation", "rag", "eval"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/eval-ai-library-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Upstream = "https://github.com/meshkovQA/Eval-ai-library"
+
+# Pinned to the real installed/tested surface (eval-ai-library==0.7.26, PyPI
+# name `eval-ai-library`, import path `eval_lib`): EvalTestCase from
+# eval_lib.testcases_schema, TestCaseResult/MetricResult from
+# eval_lib.evaluation_schema, and the MetricPattern subclasses' `.name` /
+# `.threshold` / `.model` attributes. The 0.7.x line is where the maintainer
+# split heavy ML deps into extras (0.7.0) and confirmed the schema module is
+# public and stable (meshkovQA/Eval-ai-library#2). This adapter itself never
+# imports `eval_lib` at module import time -- it converts already-constructed
+# objects (or dicts with the same field names) the caller passes in -- so the
+# extra is for users who want the real SDK alongside it, and for the test
+# suite's real-model tests (which skip cleanly when it is absent).
+[project.optional-dependencies]
+eval-ai-library = ["eval-ai-library>=0.7.0,<0.8"]
+test = ["pytest", "eval-ai-library-openeval-adapter[eval-ai-library]"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

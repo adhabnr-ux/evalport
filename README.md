@@ -199,6 +199,7 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 | IBM unitxt | [unitxt-openeval-adapter](adapters/unitxt-openeval-adapter/) |
 | TruLens | [trulens-openeval-adapter](adapters/trulens-openeval-adapter/) |
 | MMMU | [mmmu-openeval-adapter](adapters/mmmu-openeval-adapter/) |
+| eval-ai-library | [eval-ai-library-openeval-adapter](adapters/eval-ai-library-openeval-adapter/) |
 
 ## Documentation
 
