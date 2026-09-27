@@ -1,7 +1,7 @@
 import type { DryRunReport } from "./cost";
 import type { ProviderName, RunOptions } from "./types";
 import { runEval } from "./runner";
-import type { ResultSet } from "../../../sdk/typescript/src/types";
+import type { ResultSet } from "evalport-sdk";
 
 export class CliArgError extends Error {}
 /** Thrown for `--help`/`-h` specifically, so runCommand can print to stdout

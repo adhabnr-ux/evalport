@@ -1,4 +1,4 @@
-import type { Grader } from "../../../../sdk/typescript/src/types";
+import type { Grader } from "evalport-sdk";
 import type { GraderOutcome, ProviderClient } from "../types";
 import { estimateCostUsd } from "../cost";
 

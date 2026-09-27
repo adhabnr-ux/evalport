@@ -1,9 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, resolve as resolvePath } from "path";
-import type { EvalSuite, GraderResult, ProviderConfig, Result, ResultSet, TestCase } from "../../../sdk/typescript/src/types";
-import { OPENEVAL_VERSION } from "../../../sdk/typescript/src/types";
-import { validateResultSet, validateSuite } from "../../../sdk/typescript/src/validate";
-import { computeSummary } from "../../../sdk/typescript/src/convert";
+import type { EvalSuite, GraderResult, ProviderConfig, Result, ResultSet, TestCase } from "evalport-sdk";
+import { OPENEVAL_VERSION, computeSummary, validateResultSet, validateSuite } from "evalport-sdk";
 import type { GraderClients } from "./graders/index";
 import { gradeOne, resolveGraders } from "./graders/index";
 import { estimateCostUsd, estimateTokens, pricingFor } from "./cost";

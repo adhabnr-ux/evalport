@@ -71,6 +71,42 @@ jobs:
       - name: Run tests
         working-directory: sdk/typescript
         run: npm test
+      - name: Typecheck
+        working-directory: sdk/typescript
+        run: npx tsc --noEmit
+      - name: Smoke-test the packed tarball from plain Node (CJS require + ESM import)
+        # Tests above run vitest against src/*.ts. This step checks what npm
+        # users actually get: `npm pack` (prepack builds dist/), install the
+        # tarball into an empty project, and load it with plain `node` -- no
+        # TypeScript loader, which is exactly what failed in #73.
+        working-directory: sdk/typescript
+        env:
+          SUITE: ${{ github.workspace }}/examples/basic-suite.json
+        run: |
+          set -euo pipefail
+          npm pack --pack-destination "$RUNNER_TEMP"
+          tarball=$(ls "$RUNNER_TEMP"/evalport-sdk-*.tgz)
+          listing=$(tar tzf "$tarball")
+          if grep -E '\.ts$' <<< "$listing" | grep -vE '\.d\.ts$'; then
+            echo "::error::$tarball ships TypeScript sources"; exit 1
+          fi
+          grep -qx 'package/dist/index.js' <<< "$listing" || { echo "::error::$tarball has no dist/index.js"; exit 1; }
+          mkdir -p "$RUNNER_TEMP/sdk-smoke" && cd "$RUNNER_TEMP/sdk-smoke"
+          npm init -y > /dev/null
+          npm install "$tarball"
+          node -e "
+            const sdk = require('evalport-sdk');
+            const r = sdk.validateSuite(JSON.parse(require('fs').readFileSync(process.env.SUITE, 'utf8')));
+            console.log('require:', JSON.stringify(r));
+            if (!r.valid) process.exit(1);
+          "
+          node --input-type=module -e "
+            import { validateSuite } from 'evalport-sdk';
+            import { readFileSync } from 'fs';
+            const r = validateSuite(JSON.parse(readFileSync(process.env.SUITE, 'utf8')));
+            console.log('import:', JSON.stringify(r));
+            if (!r.valid) process.exit(1);
+          "
 
   cli-tests:
     runs-on: ubuntu-latest
@@ -88,6 +124,32 @@ jobs:
       - name: Run tests (unit + mocked-API — no live keys used)
         working-directory: cli
         run: npm test
+      - name: Smoke-test the packed CLI as a global install
+        # Tests above run from source. This step installs what `npm install -g`
+        # would: the packed CLI (prepack bundles dist/index.js) plus this
+        # commit's packed SDK, since the CLI depends on evalport-sdk by semver
+        # and the SDK on the registry may be older than this commit (#73/#74).
+        run: |
+          set -euo pipefail
+          (cd sdk/typescript && npm install && npm pack --pack-destination "$RUNNER_TEMP")
+          (cd cli && npm pack --pack-destination "$RUNNER_TEMP")
+          tarball=$(ls "$RUNNER_TEMP"/evalport-cli-*.tgz)
+          listing=$(tar tzf "$tarball")
+          if grep -E '\.ts$' <<< "$listing"; then
+            echo "::error::$tarball ships TypeScript sources"; exit 1
+          fi
+          grep -qx 'package/dist/index.js' <<< "$listing" || { echo "::error::$tarball has no dist/index.js"; exit 1; }
+          npm install -g --prefix "$RUNNER_TEMP/g" "$RUNNER_TEMP"/evalport-sdk-*.tgz "$tarball"
+          evalport="$RUNNER_TEMP/g/bin/evalport"
+          "$evalport" --help
+          "$evalport" validate examples/basic-suite.json
+          "$evalport" validate examples/results.json --type=resultset
+          "$evalport" run examples/basic-suite.json --provider openai --model gpt-4o-mini --dry-run
+          cd "$RUNNER_TEMP"
+          "$evalport" init smoke-suite
+          "$evalport" validate smoke-suite.json
+          "$evalport" convert promptfoo openeval "$GITHUB_WORKSPACE/examples/migrations/from-promptfoo.json" converted.json
+          "$evalport" validate converted.json
 
   python-tests:
     runs-on: ubuntu-latest
@@ -354,6 +416,12 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - name: Update npm to a version that supports OIDC trusted publishing
         run: npm install -g npm@latest
+      - name: Install dependencies
+        # `npm publish` runs the package's prepack script, which compiles
+        # src/ to dist/ with tsc (a devDependency). Without dist/ the package
+        # ships only .ts sources that plain Node can't load (#73).
+        working-directory: sdk/typescript
+        run: npm ci
       - name: Publish
         working-directory: sdk/typescript
         run: npm publish --access public

@@ -136,7 +136,11 @@ npm install
 npm run typecheck   # tsc --noEmit
 npm test            # vitest — unit tests for Tier 1 graders, mocked-API tests for
                      # providers/Tier 2 graders/the full runner. No live API keys required or used.
+npm run build       # esbuild bundles src/ into dist/index.js (the published `evalport` bin);
+                     # runs automatically on `npm pack` / `npm publish`
 ```
+
+In this repo, `typecheck` and `test` resolve `evalport-sdk` to the sibling `../sdk/typescript/src` (via `tsconfig.json` `paths` and `vitest.config.ts`). The published CLI keeps `evalport-sdk` external and loads it from its npm dependency at runtime.
 
 ## License
 

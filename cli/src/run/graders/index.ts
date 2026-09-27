@@ -1,4 +1,4 @@
-import type { EvalSuite, Grader, TestCase } from "../../../../sdk/typescript/src/types";
+import type { EvalSuite, Grader, TestCase } from "evalport-sdk";
 import type { GraderOutcome, ProviderClient } from "../types";
 import { TIER1_TYPES, gradeTier1 } from "./tier1";
 import { TIER2_TYPES, gradeLlmJudge, gradeSemanticSimilarity } from "./tier2";
