@@ -76,7 +76,8 @@ KNOWN_LOSSY = {
     "metadata": "ResultSet-level metadata ({'openeval': {'source': 'deepeval'}}) has no slot",
     "summary.avg_score": "the Haystack adapter's summary omits avg_score (optional field)",
     "summary.skipped": "the Haystack adapter's summary omits skipped (optional field)",
-    "results[].metadata": "per-result metadata (deepeval index/conversational/multimodal) has no slot",
+    "results[].metadata": "per-result metadata (deepeval index/conversational/multimodal, plus "
+                          "the test case's own metadata as user_metadata) has no slot",
     "results[].grader_results[].reason": "EvaluationRunResult stores only numeric individual_scores; "
                                          "MetricData.reason is dropped",
     "results[].grader_results[].metadata": "threshold, strict_mode, evaluation_model, metric_name "

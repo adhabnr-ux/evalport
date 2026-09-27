@@ -53,34 +53,47 @@ synthetic**; no model produced them. They include deliberate formatting variants
 
 For each source suite, the script runs EvalPort → `from_openeval()` → real framework objects
 (`LLMTestCase(**kwargs)`; `dspy.Example`) → `to_openeval()` → EvalPort. It validates the
-result and diffs every Suite and TestCase field against the original. Real output, table
-section (the script also prints one before/after example and the reason for each lossy field):
+result and diffs every Suite and TestCase field against the original. `tc.metadata` is
+compared without an adapter's own bookkeeping key (`metadata.deepeval`), which gets its own
+row and must be listed in `KNOWN_ADDED`. Real output, table section (the script also prints
+one before/after example and the reason for each changed field):
 
 ```
-  field               via LLMTestCase         via dspy.Example
-  suite.id            lossless (4 suites)     lossless (4 suites)
-  suite.version       lossy 4/4 suites        lossy 4/4 suites
-  suite.name          lossy 4/4 suites        lossy 4/4 suites
-  suite.description   lossy 1/1 suites        lossy 1/1 suites
-  suite.graders       lossy 4/4 suites        lossy 4/4 suites
-  suite.config        lossy 2/2 suites        lossy 2/2 suites
-  suite.metadata      lossy 4/4 suites        lossy 4/4 suites
-  tc.id               lossless (24 cases)     lossless (24 cases)
-  tc.input            lossless (24 cases)     lossy 24/24 cases
-  tc.expected_output  lossless (23 cases)     lossless (23 cases)
-  tc.context          lossless (1 cases)      lossy 1/1 cases
-  tc.expected_tools   lossy 1/3 cases         lossy 3/3 cases
-  tc.graders          lossy 24/24 cases       lossy 24/24 cases
-  tc.metadata         lossy 24/24 cases       lossy 24/24 cases
+  field                 via LLMTestCase         via dspy.Example
+  suite.id              lossless (4 suites)     lossless (4 suites)
+  suite.version         lossy 4/4 suites        lossy 4/4 suites
+  suite.name            lossy 4/4 suites        lossy 4/4 suites
+  suite.description     lossy 1/1 suites        lossy 1/1 suites
+  suite.graders         lossy 4/4 suites        lossy 4/4 suites
+  suite.config          lossy 2/2 suites        lossy 2/2 suites
+  suite.metadata        lossy 4/4 suites        lossy 4/4 suites
+  tc.id                 lossless (24 cases)     lossless (24 cases)
+  tc.input              lossless (24 cases)     lossless (24 cases)
+  tc.expected_output    lossless (23 cases)     lossless (23 cases)
+  tc.context            lossless (1 cases)      lossless (1 cases)
+  tc.expected_tools     lossless (3 cases)      lossless (3 cases)
+  tc.graders            lossy 24/24 cases       lossy 24/24 cases
+  tc.metadata           lossless (23 cases)     lossless (23 cases)
+  tc.metadata.deepeval  added to 24/24 cases    -
 ...
 network connections attempted: 0
-deepeval: round-trips suite.id, tc.id, tc.input, tc.expected_output, tc.context
-dspy: round-trips suite.id, tc.id, tc.expected_output
-RESULT: PASS -- every round-tripped suite validates and every changed field is a documented lossy field (see 'why' above).
+deepeval: round-trips suite.id, tc.id, tc.input, tc.expected_output, tc.context, tc.expected_tools, tc.metadata
+dspy: round-trips suite.id, tc.id, tc.input, tc.expected_output, tc.context, tc.expected_tools, tc.metadata
+RESULT: PASS -- every round-tripped suite validates and every changed field is a documented lossy field or documented adapter bookkeeping (see 'why' above).
 ```
 
-The test-case data (ids, prompts, references, context and non-empty tool lists) survives
-DeepEval unchanged. Grader definitions and metadata don't survive either framework.
+Every test-case data field these suites carry survives both frameworks byte for byte: a
+string `input` stays a string, `context` and `expected_tools` (including `expected_tools: []`, "no tool should be
+called") come back, and so does `metadata`, e.g. TruthfulQA's `truthfulqa_all_correct` list of
+accepted answers, which now reaches `LLMTestCase.metadata`. The DeepEval adapter adds one
+bookkeeping key per case, `metadata.deepeval` (`name`, and the random `identifier` UUID
+`LLMTestCase` generates). Grader definitions and suite-level fields still don't survive: neither
+a list of `LLMTestCase` nor a list of `dspy.Example` has a slot for them.
+
+Before the adapter fixes in `deepeval-openeval-adapter` / `dspy-openeval-adapter` 0.2.0, the
+same run printed `tc.input … lossy 24/24` and `tc.context … lossy 1/1` for DSPy,
+`tc.expected_tools lossy 1/3 | lossy 3/3`, `tc.metadata lossy 24/24 | lossy 24/24`, and the
+DeepEval round trip needed a hand-written `ToolCall` wrapper to construct `LLMTestCase` at all.
 
 ## Demo 2: results portability
 
@@ -95,7 +108,7 @@ DeepEval unchanged. Grader definitions and metadata don't survive either framewo
 
 ```
 [1] deepeval 4.2.6: evaluate() -> EvaluationResult with 10 TestResult (metric 'Exact Match', threshold 1.0)
-[2] test_results_to_openeval() -> ResultSet: 10 results, valid=True, 4393 bytes of JSON
+[2] test_results_to_openeval() -> ResultSet: 10 results, valid=True, 7793 bytes of JSON
 [3] resultset_to_haystack() -> EvaluationRunResult; Haystack's own aggregated_report(): {'exact_match': 0.7}
 [4] evaluation_result_to_openeval() -> ResultSet: 10 results, valid=True
 
@@ -112,7 +125,7 @@ DeepEval unchanged. Grader definitions and metadata don't survive either framewo
     lossy: metadata  (1 value(s)) -- ResultSet-level metadata ({'openeval': {'source': 'deepeval'}}) has no slot
     lossy: results[].grader_results[].metadata  (40 value(s)) -- threshold, strict_mode, evaluation_model, metric_name are replaced by Haystack's aggregate_score
     lossy: results[].grader_results[].reason  (10 value(s)) -- EvaluationRunResult stores only numeric individual_scores; MetricData.reason is dropped
-    lossy: results[].metadata  (30 value(s)) -- per-result metadata (deepeval index/conversational/multimodal) has no slot
+    lossy: results[].metadata  (40 value(s)) -- per-result metadata (deepeval index/conversational/multimodal, plus the test case's own metadata as user_metadata) has no slot
     lossy: runner  (2 value(s)) -- EvaluationRunResult has no runner/tool-version field
     lossy: summary.avg_score  (1 value(s)) -- the Haystack adapter's summary omits avg_score (optional field)
     lossy: summary.skipped  (1 value(s)) -- the Haystack adapter's summary omits skipped (optional field)
@@ -163,35 +176,68 @@ that framework produced natively.
     gsm8k_2: "$70,000" vs "70000" -- passed by dspy only
     gsm8k_3: " 540\n" vs "540" -- passed by deepeval, dspy only
     gsm8k_8: "45." vs "45" -- passed by dspy only
-  Why: DeepEval strips whitespace then compares; Haystack compares raw strings; DSPy lowercases and drops punctuation/articles first. The suite's own grader (exact_match {"ignore_case": true, "strip": true}) does not travel into any of them (demo 1), so each applies its own semantics.
+  Why: DeepEval strips whitespace then compares; Haystack compares raw strings; DSPy lowercases and drops punctuation/articles first. Converting a suite into a framework does not carry the suite's own grader (exact_match {"ignore_case": true, "strip": true}) with it (demo 1), so each framework's built-in metric applies its own semantics.
+
+  Opt-in: the suite's own grader gr_exact_match (exact_match {"ignore_case": true, "strip": true}) run inside each framework:
+    deepeval  valid=True  grader_id=gr_exact_match
+    dspy      valid=True  grader_id=gr_exact_match
+
+  test case expected  output       deepeval      dspy      spec  agree
+  gsm8k_0         18  "18"             pass      pass      pass  yes
+  gsm8k_1          3  "3"              pass      pass      pass  yes
+  gsm8k_2      70000  "$70,000"        fail      fail      fail  yes
+  gsm8k_3        540  " 540\n"         pass      pass      pass  yes
+  gsm8k_4         20  "20"             pass      pass      pass  yes
+  gsm8k_5         64  "64"             pass      pass      pass  yes
+  gsm8k_6        260  "280"            fail      fail      fail  yes
+  gsm8k_7        160  "160"            pass      pass      pass  yes
+  gsm8k_8         45  "45."            fail      fail      fail  yes
+  gsm8k_9        460  "460"            pass      pass      pass  yes
+  pass rate                                    0.70      0.70      0.70
+  note: exact_match param(s) ['strip'] are not defined by the EvalPort spec (which defines ['ignore_case', 'trim_whitespace']) and are ignored, as the reference runner ignores them
 
 network connections attempted: 0
-RESULT: PASS -- 3 valid ResultSets joined via group.group_id; every score in them equals the framework's native score.
+RESULT: PASS -- 3 valid ResultSets joined via group.group_id; every score in them equals the framework's native score; the suite's own grader gives identical verdicts in DeepEval and DSPy.
 ```
 
-All three frameworks call their metric "exact match", yet they give pass rates of 0.60, 0.70
-and 0.90 on identical outputs. The data moved without loss; the metric semantics differ.
-Joining sibling ResultSets per test case is what makes that difference visible.
+All three frameworks call their metric "exact match", yet their built-in metrics give pass
+rates of 0.60, 0.70 and 0.90 on identical outputs. The data moved without loss; the metric
+semantics differ. Joining sibling ResultSets per test case is what makes that difference
+visible.
+
+The second table is the fix for that, and it is opt-in: `graders_to_deepeval_metrics(suite)`
+and `graders_to_dspy_metrics(suite)` turn the suite's own `exact_match` grader into a real
+DeepEval metric (a `BaseMetric` subclass, run by `deepeval.evaluate()`) and a DSPy metric
+function (run by `dspy.Evaluate()`). Both implement the spec semantics (`trim_whitespace`
+default true, `ignore_case`, nothing else) and report under the suite's grader id
+`gr_exact_match`. The `spec` column is an independent transcription of the reference runner's
+`gradeExactMatch` (`cli/src/run/graders/tier1.ts`) inside the script. All 10 verdicts agree.
+The GSM8K suite's `strip` param is not a spec param, so it is ignored with a warning (the
+reference runner ignores it too; trimming is on by default anyway). Only `exact_match` is
+mapped; the adapter READMEs explain why the other grader types have no faithful equivalent.
+Haystack's adapter has no such helper, so it isn't in the second table.
 
 ## Lossy fields for the adapters used here
 
 The demos surfaced every entry below, and each script lists them in its `KNOWN_LOSSY` table.
-Entries marked **undocumented** were not in the adapter's own README or docstring when these
-demos were written.
+Rows marked **fixed** were losses in the 0.1.x adapters that the demos found; they are
+lossless in `deepeval-openeval-adapter` / `dspy-openeval-adapter` 0.2.0 and demo 1 now checks
+that.
 
 | Adapter / direction | Field | What happens |
 |---|---|---|
-| deepeval: suite → `LLMTestCase` → suite | `graders` (suite and test case) | replaced by one placeholder `custom` grader, `gr_deepeval_metrics`, because DeepEval picks metrics at `evaluate()` time (documented) |
-| | `TestCase.metadata` | dropped: `from_openeval()` never sets `LLMTestCase.metadata`, so e.g. TruthfulQA's `truthfulqa_all_correct` answer list is lost (**undocumented**) |
-| | `expected_tools: []` | an empty list, meaning "no tool should be called", is dropped because `to_openeval()` skips falsy lists; the assertion becomes "no expectation". Non-empty lists round-trip (**undocumented**) |
-| | `tools_called` / `expected_tools` | `from_openeval()` returns name strings, which `LLMTestCase` 4.2.6 rejects with `TypeError`; callers must wrap them in `ToolCall(name=...)` (documented as "construct `ToolCall` yourself") |
+| deepeval: suite → `LLMTestCase` → suite | `graders` (suite and test case) | replaced by one placeholder `custom` grader, `gr_deepeval_metrics`, because DeepEval picks metrics at `evaluate()` time. `exact_match` graders can be run in DeepEval with `graders_to_deepeval_metrics()` (demo 3) |
 | | suite `name`, `description`, `config`, `metadata`, `version` | not representable on a list of `LLMTestCase`; the adapter stamps its own name and version |
-| dspy: suite → `dspy.Example` → suite | `input` | a string input becomes the `input_1` field and comes back as `["input_1: <text>"]` (documented in the module docstring) |
-| | `context`, `expected_tools` | dropped: `from_openeval()` maps only `input` and `expected_output` onto a foreign suite's Example fields |
-| | `graders`, `metadata`, suite-level fields | placeholder `dspy_metric` grader; metadata replaced by `metadata.dspy` |
+| | `TestCase.metadata` | **fixed**: now becomes `LLMTestCase.metadata` and comes back key for key (was dropped, so TruthfulQA's `truthfulqa_all_correct` list was lost). The adapter adds its own `metadata.deepeval` key (`name`, `identifier`) |
+| | `expected_tools: []` | **fixed**: kept as `[]` ("no tool should be called"), distinct from absent (was dropped by a falsy check) |
+| | `tools_called` / `expected_tools` | **fixed**: `from_openeval()` returns `ToolCall` objects when deepeval is installed, so `LLMTestCase(**kwargs)` works (was: name strings, `TypeError` in deepeval 4.2.6) |
+| dspy: suite → `dspy.Example` → suite | `graders`, suite-level fields | placeholder `dspy_metric` grader; `exact_match` graders can be run in DSPy with `graders_to_dspy_metrics()` (demo 3) |
+| | `input` | **fixed**: a string input comes back as the same string (was `["input_1: <text>"]`) |
+| | `context`, `expected_tools` | **fixed**: carried as Example fields (`context` an input, `expected_tools` a label) and written back (were dropped) |
+| | `metadata` | **fixed**: comes back unchanged, with no `metadata.dspy` added (was replaced by `metadata.dspy`) |
 | deepeval → ResultSet → haystack → ResultSet | `grader_results[].reason` | dropped: `EvaluationRunResult` stores only numeric scores |
 | | `grader_results[].metadata` | `threshold`, `strict_mode`, `evaluation_model` and `metric_name` are dropped |
-| | `results[].metadata`, `runner`, `completed_at`, ResultSet `metadata`, `summary.avg_score`/`skipped` | no slot in `EvaluationRunResult`, or omitted by the Haystack adapter |
+| | `results[].metadata`, `runner`, `completed_at`, ResultSet `metadata`, `summary.avg_score`/`skipped` | no slot in `EvaluationRunResult`, or omitted by the Haystack adapter. `results[].metadata` now also carries the test case's own metadata (as `user_metadata`), because it reaches DeepEval since the metadata fix |
 | | `run_id` | kept only if the caller passes `run_id=run.run_name`; the adapter doesn't read `run_name` itself |
 
 ## Findings: what isn't round-trippable
@@ -201,9 +247,16 @@ demos were written.
   Braintrust, LangSmith, TruLens and others) takes a Suite. The only ResultSet importers
   (luml, nasde, clawbench, nuguard, pyserini, daimax) target niche tools, and some of those
   can't be installed from PyPI. Demo 2 uses its own 15-line bridge for that reason.
-- **Graders never travel into a framework.** Neither DeepEval nor DSPy has a slot for a grader
-  definition, so the suite's `exact_match {ignore_case, strip}` is replaced by a placeholder.
-  Demo 3 shows the consequence: three frameworks apply three different "exact match" rules.
+- **Graders don't travel with the data.** Neither `LLMTestCase` nor `dspy.Example` has a slot
+  for a grader definition, so converting a suite drops its graders (demo 1), and each
+  framework's built-in "exact match" applies its own rules (demo 3, first table). For
+  `exact_match` the DeepEval and DSPy adapters now offer an opt-in faithful mapping
+  (`graders_to_deepeval_metrics()`, `graders_to_dspy_metrics()`; demo 3, second table). The
+  other grader types have no faithful equivalent in either framework.
+- **The GSM8K benchmark's grader uses a non-spec param.** `benchmarks/gsm8k` declares
+  `exact_match {"ignore_case": true, "strip": true}`; the spec's param is `trim_whitespace`
+  (default true). The reference runner ignores `strip`, and so do the new helpers (with a
+  warning). The result is the same because trimming is on by default.
 - **The Ragas and MLflow adapters convert results to Suites, not ResultSets.** Scores go under
   `TestCase.metadata.*_scores`, so they couldn't be used for a ResultSet round trip here.
 - **Import order:** importing `dspy` before `deepeval` in one process makes `deepeval` fail

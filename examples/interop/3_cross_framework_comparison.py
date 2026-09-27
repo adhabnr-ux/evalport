@@ -18,10 +18,17 @@ the frameworks then loads the files, joins them on group_id + test_case_id,
 and builds the comparison table: the use case Discussion #45 designed
 `group` for.
 
-Exit status 0 only if all three ResultSets validate, form one complete group
-over identical test_case_ids, and every per-test-case score in each
-ResultSet equals the score that framework produced natively. Disagreements
-BETWEEN frameworks are the finding, not a failure -- they're printed.
+Then, opt-in, the suite's OWN exact_match grader is run inside DeepEval and
+DSPy through the adapters' grader helpers (graders_to_deepeval_metrics(),
+graders_to_dspy_metrics()) and checked against an independent transcription
+of the reference runner's gradeExactMatch.
+
+Exit status 0 only if all ResultSets validate, the three built-in-metric
+ResultSets form one complete group over identical test_case_ids, every
+per-test-case score in each ResultSet equals the score that framework
+produced natively, and the suite grader gives the same verdict in DeepEval,
+DSPy and the reference transcription. Disagreements BETWEEN the frameworks'
+built-in metrics are the finding, not a failure -- they're printed.
 """
 from __future__ import annotations
 
@@ -33,6 +40,7 @@ import os
 import socket
 import sys
 import tempfile
+import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -141,6 +149,107 @@ def run_haystack(suite: Dict[str, Any], outputs: Dict[str, str]) -> Tuple[Dict[s
     return rs, native
 
 
+# --- the suite's OWN grader, run inside DeepEval and DSPy ----------------------
+# The adapters' opt-in grader helpers turn the suite's exact_match grader into
+# a DeepEval metric / DSPy metric with EvalPort's semantics, so both frameworks
+# grade by the suite's definition instead of their own "exact match".
+
+
+def spec_exact_match(grader: Dict[str, Any], actual: str, expected: str) -> bool:
+    """Independent transcription of the reference runner's gradeExactMatch
+    (cli/src/run/graders/tier1.ts), used only to check the two adapters."""
+    params = grader.get("params") or {}
+    a, e = actual, expected
+    if params.get("trim_whitespace") is not False:
+        a, e = a.strip(), e.strip()
+    if params.get("ignore_case") is True:
+        a, e = a.lower(), e.lower()
+    return a == e
+
+
+def suite_grader_deepeval(suite: Dict[str, Any], outputs: Dict[str, str],
+                          grader_id: str) -> Tuple[Dict[str, Any], Native]:
+    metric = de_adapter.graders_to_deepeval_metrics(suite)[grader_id]
+    cases = [LLMTestCase(**kw, actual_output=outputs[kw["name"]])
+             for kw in de_adapter.from_openeval(suite)]
+    cwd = os.getcwd()
+    with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()):
+        os.chdir(tmp)
+        try:
+            result = deepeval.evaluate(
+                cases, [metric],
+                async_config=AsyncConfig(run_async=False),
+                display_config=DisplayConfig(show_indicator=False, print_results=False),
+                cache_config=CacheConfig(write_cache=False, use_cache=False))
+        finally:
+            os.chdir(cwd)
+    native = {tr.name: tr.metrics_data[0].score for tr in result.test_results}
+    rs = de_adapter.test_results_to_openeval(
+        result, suite_id=suite["id"], run_id="gsm8k-deepeval-suite-grader",
+        started_at=STARTED_AT, runner_version=deepeval.__version__)
+    return rs, native
+
+
+def suite_grader_dspy(suite: Dict[str, Any], outputs: Dict[str, str],
+                      grader_id: str) -> Tuple[Dict[str, Any], Native]:
+    metric = dspy_adapter.graders_to_dspy_metrics(
+        suite, expected_key="answer", output_key="answer")[grader_id]
+    devset = dspy_adapter.from_openeval(suite, input_keys=["question"], expected_key="answer")
+    by_question = {tc["input"]: outputs[tc["id"]] for tc in suite["test_cases"]}
+    evaluate = dspy.Evaluate(devset=devset, metric=metric, num_threads=1,
+                             display_progress=False, display_table=False)
+    with contextlib.redirect_stdout(io.StringIO()):
+        result = evaluate(FixedOutputs(by_question))
+    native = {getattr(ex, "_openeval_test_case_id"): float(score)
+              for ex, _, score in result.results}
+    rs = dspy_adapter.evaluation_result_to_openeval(
+        result, suite_id=suite["id"], metric=metric, run_id="gsm8k-dspy-suite-grader",
+        started_at=STARTED_AT)
+    return rs, native
+
+
+def run_suite_grader(suite: Dict[str, Any], outputs: Dict[str, str],
+                     expected: Dict[str, str], failures: List[str]) -> None:
+    grader = suite["graders"][0]
+    gid = grader["id"]
+    print(f"\n  Opt-in: the suite's own grader {gid} ({grader['type']} "
+          f"{json.dumps(grader.get('params', {}))}) run inside each framework:")
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        runs = [("deepeval", *suite_grader_deepeval(suite, outputs, gid)),
+                ("dspy", *suite_grader_dspy(suite, outputs, gid))]
+    notes = sorted({str(w.message).split(": ", 1)[1] for w in caught
+                    if issubclass(w.category, UserWarning) and "exact_match param" in str(w.message)})
+    for role, rs, native in runs:
+        v = validate_result_set(rs)
+        ids = {g["grader_id"] for r in rs["results"] for g in r["grader_results"]}
+        print(f"    {role:<9} valid={v.valid}  grader_id={', '.join(sorted(ids))}")
+        if not v.valid:
+            failures.append(f"{role} suite-grader ResultSet invalid: {v.errors[:3]}")
+        if ids != {gid}:
+            failures.append(f"{role} suite-grader ResultSet grader_ids {ids} != {{{gid!r}}}")
+        for r in rs["results"]:
+            if r["grader_results"][0]["score"] != native[r["test_case_id"]]:
+                failures.append(f"{role}/{r['test_case_id']}: ResultSet score != native score")
+    print(f"\n  {'test case':<9} {'expected':>8}  {'output':<11}{'deepeval':>10}{'dspy':>10}"
+          f"{'spec':>10}  agree")
+    passes = {role: {r["test_case_id"]: r["passed"] for r in rs["results"]} for role, rs, _ in runs}
+    for tid in sorted(expected, key=lambda t: int(t.split("_")[1])):
+        spec = spec_exact_match(grader, outputs[tid], expected[tid])
+        cells = [passes["deepeval"][tid], passes["dspy"][tid], spec]
+        agree = len(set(cells)) == 1
+        if not agree:
+            failures.append(f"suite grader {gid}/{tid}: deepeval/dspy/spec disagree: {cells}")
+        print(f"  {tid:<9} {expected[tid]:>8}  {json.dumps(outputs[tid]):<11}" +
+              "".join(f"{'pass' if c else 'fail':>10}" for c in cells) +
+              f"  {'yes' if agree else 'NO'}")
+    rates = [sum(p.values()) / len(p) for p in (passes["deepeval"], passes["dspy"])]
+    spec_rate = sum(spec_exact_match(grader, outputs[t], expected[t]) for t in expected) / len(expected)
+    print("  pass rate" + " " * 30 + "".join(f"{r:>10.2f}" for r in rates + [spec_rate]))
+    for note in notes:
+        print(f"  note: {note}")
+
+
 PRODUCERS = [
     ("deepeval", f"DeepEval {deepeval.__version__} ExactMatchMetric", run_deepeval),
     ("dspy", f"DSPy {dspy.__version__} answer_exact_match", run_dspy),
@@ -221,9 +330,12 @@ def main() -> int:
               f"passed by {', '.join(passed_by)} only")
     grader = suite["graders"][0]
     print(f"  Why: DeepEval strips whitespace then compares; Haystack compares raw strings; DSPy "
-          f"lowercases and drops punctuation/articles first. The suite's own grader "
-          f"({grader['type']} {json.dumps(grader.get('params', {}))}) does not travel into any of "
-          f"them (demo 1), so each applies its own semantics.")
+          f"lowercases and drops punctuation/articles first. Converting a suite into a framework "
+          f"does not carry the suite's own grader "
+          f"({grader['type']} {json.dumps(grader.get('params', {}))}) with it (demo 1), so each "
+          f"framework's built-in metric applies its own semantics.")
+
+    run_suite_grader(suite, outputs, expected, failures)
 
     print(f"\nnetwork connections attempted: {len(NETWORK_ATTEMPTS)}")
     if failures:
@@ -232,7 +344,8 @@ def main() -> int:
             print(f"  - {f}")
         return 1
     print("RESULT: PASS -- 3 valid ResultSets joined via group.group_id; every score in them "
-          "equals the framework's native score.")
+          "equals the framework's native score; the suite's own grader gives identical verdicts "
+          "in DeepEval and DSPy.")
     return 0
 
 

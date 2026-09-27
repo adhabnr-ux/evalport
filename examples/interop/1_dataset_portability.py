@@ -17,8 +17,9 @@ Nothing here calls a model or the network (a socket guard enforces that).
 
 Exit status: 0 when every round-tripped suite validates AND every field that
 changed is listed in KNOWN_LOSSY for that adapter (each entry says where the
-loss comes from). Any other difference -- a field that silently changed and
-that nobody documented -- exits 1.
+loss comes from), or -- for a key an adapter adds to TestCase.metadata for its
+own bookkeeping -- in KNOWN_ADDED. Any other difference -- a field that
+silently changed and that nobody documented -- exits 1.
 """
 from __future__ import annotations
 
@@ -58,7 +59,7 @@ socket.getaddrinfo = _blocked  # type: ignore[assignment]
 
 # deepeval before dspy: dspy installs a lazy `openai` module proxy that breaks
 # deepeval's own `openai.types` imports if dspy is imported first.
-from deepeval.test_case import LLMTestCase, ToolCall  # noqa: E402
+from deepeval.test_case import LLMTestCase  # noqa: E402
 import dspy  # noqa: E402
 
 import deepeval_openeval_adapter as de_adapter  # noqa: E402
@@ -80,33 +81,39 @@ KNOWN_LOSSY: Dict[str, Dict[str, str]] = {
         "suite.name": "a list of LLMTestCase has no suite name; the adapter synthesizes one",
         "suite.graders": "LLMTestCase has no grader slot; one placeholder `custom` grader "
                          "(`gr_deepeval_metrics`) replaces the suite's graders "
-                         "(adapter README, 'Design decisions')",
+                         "(adapter README, 'Design decisions'). exact_match graders can run "
+                         "in DeepEval via graders_to_deepeval_metrics() -- see demo 3",
         "suite.description": "a list of LLMTestCase has no suite description",
         "suite.config": "a list of LLMTestCase has no suite config (provider/model settings)",
         "suite.metadata": "a list of LLMTestCase has no suite-level metadata",
-        "tc.expected_tools": "an EMPTY list (`[]`, i.e. 'no tool should be called') is dropped: "
-                             "to_openeval() skips falsy lists, so the assertion silently becomes "
-                             "'no expectation'. Non-empty lists round-trip -- NOT in the README",
         "tc.graders": "every case references the placeholder grader (same reason)",
-        "tc.metadata": "from_openeval() never sets LLMTestCase.metadata, so the original "
-                       "TestCase.metadata is dropped -- NOT listed in the adapter README",
     },
     "dspy": {
         "suite.version": "to_openeval() stamps the SDK's current spec version (1.0.0-rc.5)",
         "suite.name": "a list of dspy.Example has no suite name",
         "suite.description": "a list of dspy.Example has no suite description",
-        "suite.graders": "dspy.Example has no grader slot; placeholder `dspy_metric` grader",
+        "suite.graders": "dspy.Example has no grader slot; placeholder `dspy_metric` grader. "
+                         "exact_match graders can run in DSPy via graders_to_dspy_metrics() "
+                         "-- see demo 3",
         "suite.config": "a list of dspy.Example has no suite config (provider/model settings)",
         "suite.metadata": "a list of dspy.Example has no suite-level metadata",
-        "tc.input": "a string input becomes Example field `input_1`; to_openeval() "
-                    "re-flattens it as ['input_1: <text>'] (adapter module docstring)",
-        "tc.context": "from_openeval() only maps input + expected_output onto Example "
-                      "fields; `context` is dropped",
-        "tc.expected_tools": "same: `expected_tools` is dropped",
         "tc.graders": "every case references the placeholder grader",
-        "tc.metadata": "replaced by the adapter's own metadata.dspy bookkeeping",
     },
 }
+
+# Keys an adapter ADDS to TestCase.metadata for its own bookkeeping. They are
+# reported on their own row ("added"), and tc.metadata is compared without
+# them, so the tc.metadata row answers "did every original key/value come
+# back byte-identical?". An added key not listed here fails the demo.
+KNOWN_ADDED: Dict[str, Dict[str, str]] = {
+    "deepeval": {
+        "tc.metadata.deepeval": "to_openeval() records LLMTestCase-only fields here: `name` "
+                                "(= the test case id) and `identifier` (the random UUID "
+                                "LLMTestCase generates per instance)",
+    },
+    "dspy": {},
+}
+ADAPTER_NAMESPACE = {"deepeval": "deepeval", "dspy": "dspy"}
 
 
 def load(rel_path: str) -> Dict[str, Any]:
@@ -117,15 +124,9 @@ def load(rel_path: str) -> Dict[str, Any]:
 
 
 def via_deepeval(suite: Dict[str, Any]) -> Dict[str, Any]:
-    cases = []
-    for kwargs in de_adapter.from_openeval(suite):
-        # from_openeval() returns tool *names*; LLMTestCase (deepeval 4.2.6)
-        # rejects plain strings with TypeError, so wrap them in ToolCall as the
-        # adapter README instructs.
-        for key in ("tools_called", "expected_tools"):
-            if key in kwargs:
-                kwargs[key] = [ToolCall(name=name) for name in kwargs[key]]
-        cases.append(LLMTestCase(**kwargs))
+    # The adapter README's documented usage, unmodified: from_openeval()
+    # returns LLMTestCase constructor kwargs (tools already wrapped in ToolCall).
+    cases = [LLMTestCase(**kwargs) for kwargs in de_adapter.from_openeval(suite)]
     assert all(type(c) is LLMTestCase for c in cases)
     # suite_id is a required argument: a list of LLMTestCase carries no suite id.
     return de_adapter.to_openeval(cases, suite_id=suite["id"])
@@ -134,20 +135,40 @@ def via_deepeval(suite: Dict[str, Any]) -> Dict[str, Any]:
 def via_dspy(suite: Dict[str, Any]) -> Dict[str, Any]:
     examples = dspy_adapter.from_openeval(suite)
     assert all(isinstance(e, dspy.Example) for e in examples)
-    ids = [getattr(e, "_openeval_test_case_id") for e in examples]
-    return dspy_adapter.to_openeval(examples, input_keys=["input_1"],
-                                    expected_key="expected_output", ids=ids,
-                                    suite_id=suite["id"])
+    # Examples from a foreign suite remember their layout (input field names,
+    # string vs array input, context/expected_tools fields), so no
+    # input_keys/expected_key/ids are needed to write them back.
+    return dspy_adapter.to_openeval(examples, suite_id=suite["id"])
 
 
 FRAMEWORKS: List[Tuple[str, str, Callable[[Dict[str, Any]], Dict[str, Any]]]] = [
     ("deepeval", "LLMTestCase", via_deepeval),
     ("dspy", "dspy.Example", via_dspy),
 ]
+ADDED_ROWS = [f"tc.metadata.{ADAPTER_NAMESPACE[name]}" for name, _, _ in FRAMEWORKS]
+ROWS = FIELDS + ADDED_ROWS + ["tc.count"]
 
 
-def diff(original: Dict[str, Any], back: Dict[str, Any]) -> Dict[str, List[Tuple[str, Any, Any]]]:
-    """{field: [(where, before, after), ...]} for every field whose value changed."""
+def split_namespace(metadata: Any, ns: str, original: Any) -> Tuple[Any, Any]:
+    """(metadata without the adapter's bookkeeping key `ns`, that key's value).
+
+    Only splits when the original metadata didn't itself use key `ns`; an
+    emptied dict becomes None (absent), matching an original with no metadata.
+    """
+    if not isinstance(metadata, dict) or ns not in metadata or \
+            (isinstance(original, dict) and ns in original):
+        return metadata, None
+    rest = {k: v for k, v in metadata.items() if k != ns}
+    return (rest or None), metadata[ns]
+
+
+def diff(original: Dict[str, Any], back: Dict[str, Any],
+         ns: str) -> Dict[str, List[Tuple[str, Any, Any]]]:
+    """{field: [(where, before, after), ...]} for every field whose value changed.
+
+    `tc.metadata.<ns>` collects what the adapter added under its own
+    bookkeeping key; `tc.metadata` is compared without it.
+    """
     changes: Dict[str, List[Tuple[str, Any, Any]]] = {}
     for f in SUITE_FIELDS:
         if original.get(f) != back.get(f):
@@ -159,8 +180,15 @@ def diff(original: Dict[str, Any], back: Dict[str, Any]) -> Dict[str, List[Tuple
     for tc in original["test_cases"]:
         other = back_by_id.get(tc["id"], {})
         for f in TC_FIELDS:
-            if tc.get(f) != other.get(f):
-                changes.setdefault(f"tc.{f}", []).append((tc["id"], tc.get(f), other.get(f)))
+            after = other.get(f)
+            if f == "metadata":
+                after, added = split_namespace(after, ns, tc.get(f))
+                if added is not None:
+                    # keys only: `identifier` is a fresh random UUID per run
+                    shown = sorted(added) if isinstance(added, dict) else added
+                    changes.setdefault(f"tc.metadata.{ns}", []).append((tc["id"], None, shown))
+            if tc.get(f) != after:
+                changes.setdefault(f"tc.{f}", []).append((tc["id"], tc.get(f), after))
     return changes
 
 
@@ -193,11 +221,13 @@ def main() -> int:
             valid = validate_suite(back)
             if not valid.valid:
                 failures.append(f"{name}/{original['id']}: round-tripped suite invalid: {valid.errors[:3]}")
-            changes = diff(original, back)
-            for field in FIELDS + ["tc.count"]:
+            changes = diff(original, back, ADAPTER_NAMESPACE[name])
+            for field in ROWS:
                 scope, fname = field.split(".", 1)
                 if scope == "suite":
                     total = 1 if fname in original else 0
+                elif field in ADDED_ROWS:
+                    total = len(original["test_cases"]) if field in changes else 0
                 else:
                     total = sum(1 for tc in original["test_cases"] if fname in tc)
                 changed = changes.get(field, [])
@@ -209,15 +239,15 @@ def main() -> int:
                 cell[1] += total
                 if changed:
                     examples.setdefault((name, field), changed[0])
-                    if field not in KNOWN_LOSSY[name]:
+                    if field not in KNOWN_LOSSY[name] and field not in KNOWN_ADDED[name]:
                         failures.append(f"{name}/{original['id']}: undocumented change to {field}")
 
     unit = {"suite": "suites", "tc": "cases"}
-    print(f"\n  {'field':<20}" + "".join(f"{f'via {native}':<24}" for _, native, _ in FRAMEWORKS))
-    for field in FIELDS + ["tc.count"]:
+    print(f"\n  {'field':<22}" + "".join(f"{f'via {native}':<24}" for _, native, _ in FRAMEWORKS))
+    for field in ROWS:
         if not any((name, field) in tally for name, _, _ in FRAMEWORKS):
             continue
-        row = f"  {field:<20}"
+        row = f"  {field:<22}"
         for name, _, _ in FRAMEWORKS:
             changed, total = tally.get((name, field), (0, 0))
             u = unit[field.split(".")[0]]
@@ -225,6 +255,9 @@ def main() -> int:
                 cell = "-"
             elif not changed:
                 cell = f"lossless ({total} {u})"
+            elif field in ADDED_ROWS:
+                label = "added" if field in KNOWN_ADDED[name] else "UNEXPECTED"
+                cell = f"{label} to {changed}/{total} {u}"
             else:
                 label = "lossy" if field in KNOWN_LOSSY[name] else "UNEXPECTED"
                 cell = f"{label} {changed}/{total} {u}"
@@ -233,10 +266,11 @@ def main() -> int:
 
     print("\nWhy each changed field changes (first occurrence):")
     for name, _, _ in FRAMEWORKS:
-        for field in FIELDS + ["tc.count"]:
+        for field in ROWS:
             if (name, field) not in examples:
                 continue
-            why = KNOWN_LOSSY[name].get(field, "UNEXPECTED -- not a documented lossy field")
+            why = KNOWN_LOSSY[name].get(field) or KNOWN_ADDED[name].get(field) or \
+                "UNEXPECTED -- not a documented lossy field"
             where, before, after = examples[(name, field)]
             print(f"  [{name}] {field}: {why}")
             print(f"      {where}: {short(before)} -> {short(after, 40)}")
@@ -251,7 +285,7 @@ def main() -> int:
         kept = [f for f in FIELDS if (name, f) in tally and not tally[(name, f)][0]]
         print(f"{name}: round-trips {', '.join(kept)}")
     print("RESULT: PASS -- every round-tripped suite validates and every changed field "
-          "is a documented lossy field (see 'why' above).")
+          "is a documented lossy field or documented adapter bookkeeping (see 'why' above).")
     return 0
 
 
