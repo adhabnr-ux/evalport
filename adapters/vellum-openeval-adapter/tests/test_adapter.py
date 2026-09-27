@@ -10,9 +10,18 @@ wherever practical, matching the convention set by
 `adapters/literalai-openeval-adapter`.
 """
 
+import importlib.util
+
 import pytest
 
-import vellum.types as vt
+# Framework-dependent tests below are skipped (not failed) when vellum
+# isn't installed, so CI's min-mode adapter-tests job (evalport-sdk only) still
+# runs every framework-free test in this module. With the framework installed,
+# the imports below run unguarded, so API drift still fails loudly.
+HAS_VELLUM = importlib.util.find_spec("vellum") is not None
+requires_vellum = pytest.mark.skipif(not HAS_VELLUM, reason="vellum not installed")
+if HAS_VELLUM:
+    import vellum.types as vt
 from openeval.validate import validate_suite, validate_result_set
 
 from vellum_openeval_adapter import (
@@ -57,15 +66,19 @@ class FakeExecutions:
 # ============================================================
 
 class TestStringifyVariableValue:
+    @requires_vellum
     def test_string_type_passthrough(self):
         assert stringify_variable_value(string_var("q", "What is 2+2?")) == "What is 2+2?"
 
+    @requires_vellum
     def test_string_type_none_becomes_empty(self):
         assert stringify_variable_value(string_var("q", None)) == ""
 
+    @requires_vellum
     def test_number_type(self):
         assert stringify_variable_value(number_var("n", 42.5)) == "42.5"
 
+    @requires_vellum
     def test_chat_history_type(self):
         msg1 = vt.ChatMessage(role="SYSTEM", text="You are helpful.")
         msg2 = vt.ChatMessage(role="USER", text="Hi")
@@ -75,6 +88,7 @@ class TestStringifyVariableValue:
         result = stringify_variable_value(var)
         assert result == "SYSTEM: You are helpful.\nUSER: Hi"
 
+    @requires_vellum
     def test_json_type_serializes(self):
         var = vt.TestCaseJsonVariableValue(
             variable_id="var_j", name="ctx", type="JSON", value={"b": 2, "a": 1}
@@ -84,11 +98,13 @@ class TestStringifyVariableValue:
 
 
 class TestVariablesToInput:
+    @requires_vellum
     def test_single_string_variable_returns_plain_string(self):
         """★ Core case from the issue: one STRING variable -> plain string, not a 1-item array."""
         result = variables_to_input([string_var("input", "What is 2+2?")])
         assert result == "What is 2+2?"
 
+    @requires_vellum
     def test_single_number_variable_returns_labeled_array(self):
         # NUMBER is typed as Optional[float] on the real model, so pydantic
         # coerces 3 -> 3.0 -- asserting against that real coercion rather
@@ -96,6 +112,7 @@ class TestVariablesToInput:
         result = variables_to_input([number_var("count", 3)])
         assert result == ["count: 3.0"]
 
+    @requires_vellum
     def test_multiple_variables_all_preserved_as_labeled_array(self):
         """★ Core wrinkle: a named, typed variable system -- every variable
         kept, not just the first/preferred one."""
@@ -112,6 +129,7 @@ class TestVariablesToInput:
 # ============================================================
 
 class TestMapMetricOutput:
+    @requires_vellum
     def test_number_output_becomes_real_score(self):
         """★ Core case: a NUMBER metric output is a genuine score."""
         mr = vt.TestSuiteRunExecutionMetricResult(
@@ -126,6 +144,7 @@ class TestMapMetricOutput:
         assert gr["type"] == "custom"
         assert gr["metadata"]["openeval"]["raw_score"] == 0.8
 
+    @requires_vellum
     def test_number_output_is_clamped(self):
         mr = vt.TestSuiteRunExecutionMetricResult(
             metric_id="m1", outputs=[vt.TestSuiteRunMetricNumberOutput(name="score", type="NUMBER", value=8.5)]
@@ -134,6 +153,7 @@ class TestMapMetricOutput:
         assert gr["score"] == 1.0
         assert gr["metadata"]["openeval"]["raw_score"] == 8.5
 
+    @requires_vellum
     def test_number_output_below_threshold_fails(self):
         mr = vt.TestSuiteRunExecutionMetricResult(
             metric_id="m1", outputs=[vt.TestSuiteRunMetricNumberOutput(name="score", type="NUMBER", value=0.3)]
@@ -141,6 +161,7 @@ class TestMapMetricOutput:
         gr = map_metric_output(mr, pass_threshold=0.5)
         assert gr["passed"] is False
 
+    @requires_vellum
     def test_string_output_has_null_score_and_passes_by_default(self):
         """★ Honest degradation: non-numeric metric output -> score: null,
         not a fabricated number."""
@@ -153,6 +174,7 @@ class TestMapMetricOutput:
         assert gr["passed"] is True
         assert gr["metadata"]["vellum"]["outputs"][0]["value"] == "looks good"
 
+    @requires_vellum
     def test_error_output_fails_with_null_score(self):
         mr = vt.TestSuiteRunExecutionMetricResult(
             metric_id="m1",
@@ -166,6 +188,7 @@ class TestMapMetricOutput:
         assert gr["score"] is None
         assert gr["passed"] is False
 
+    @requires_vellum
     def test_falls_back_to_metric_id_when_no_label(self):
         mr = vt.TestSuiteRunExecutionMetricResult(
             metric_id="m_raw_id",
@@ -180,6 +203,7 @@ class TestMapMetricOutput:
 # ============================================================
 
 class TestToOpenEval:
+    @requires_vellum
     def test_single_test_case_validates_against_real_schema(self):
         tc = make_test_case("tc1", [string_var("input", "What is 2+2?")], [string_var("expected", "4")])
         suite = to_openeval([tc], id="my_suite")
@@ -189,6 +213,7 @@ class TestToOpenEval:
         assert suite["test_cases"][0]["expected_output"] == "4"
         assert suite["test_cases"][0]["graders"] == ["gr_vellum_default"]
 
+    @requires_vellum
     def test_multi_variable_test_case_validates(self):
         tc = make_test_case(
             "tc1",
@@ -199,12 +224,14 @@ class TestToOpenEval:
         assert validation.valid, validation.errors
         assert suite["test_cases"][0]["input"] == ["system: Be terse.", "question: 2+2?"]
 
+    @requires_vellum
     def test_exact_match_grader_option_also_validates(self):
         tc = make_test_case("tc1", [string_var("input", "hi")])
         suite = to_openeval([tc], grader_type="exact_match")
         assert validate_suite(suite).valid
         assert suite["graders"][0]["type"] == "exact_match"
 
+    @requires_vellum
     def test_no_evaluation_values_omits_expected_output(self):
         tc = make_test_case("tc1", [string_var("input", "hi")])
         suite = to_openeval([tc])
@@ -214,6 +241,7 @@ class TestToOpenEval:
         with pytest.raises(ValueError):
             to_openeval([])
 
+    @requires_vellum
     def test_external_id_used_when_id_missing(self):
         tc = vt.TestSuiteTestCase(
             id=None, external_id="ext-1", label=None,
@@ -224,6 +252,7 @@ class TestToOpenEval:
 
 
 class TestFromOpenEval:
+    @requires_vellum
     def test_round_trip_recovers_original_named_variables(self):
         tc = make_test_case(
             "tc1",
@@ -255,6 +284,7 @@ class TestFromOpenEval:
 
 
 class TestResultsToOpenEval:
+    @requires_vellum
     def test_full_results_conversion_validates_against_real_schema(self):
         execution = vt.TestSuiteRunExecution(
             id="exec1",
@@ -278,6 +308,7 @@ class TestResultsToOpenEval:
         assert result_set["results"][0]["actual_output"] == "4"
         assert result_set["results"][0]["passed"] is True
 
+    @requires_vellum
     def test_accepts_paginated_response_with_results_attribute(self):
         execution = vt.TestSuiteRunExecution(id="e1", test_case_id="tc1", outputs=[], metric_results=[])
         result_set = results_to_openeval(
@@ -286,6 +317,7 @@ class TestResultsToOpenEval:
         assert validate_result_set(result_set).valid
         assert result_set["results"][0]["passed"] is False  # no graders -> unpassed, per convention
 
+    @requires_vellum
     def test_multiple_metrics_each_mapped_independently(self):
         execution = vt.TestSuiteRunExecution(
             id="e1", test_case_id="tc1", outputs=[],
@@ -305,12 +337,14 @@ class TestResultsToOpenEval:
         assert len(result_set["results"][0]["grader_results"]) == 2
         assert result_set["results"][0]["passed"] is False  # second metric fails threshold
 
+    @requires_vellum
     def test_started_at_defaults_when_omitted(self):
         execution = vt.TestSuiteRunExecution(id="e1", test_case_id="tc1", outputs=[], metric_results=[])
         result_set = results_to_openeval([execution], suite_id="s1", run_id="r1")
         assert "started_at" in result_set and result_set["started_at"]
         assert validate_result_set(result_set).valid
 
+    @requires_vellum
     def test_multiple_outputs_joined_with_labels(self):
         execution = vt.TestSuiteRunExecution(
             id="e1", test_case_id="tc1",
