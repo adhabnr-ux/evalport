@@ -1,0 +1,32 @@
+{
+  "description": "Issue #58 (PROPOSED, not yet finalized): when `trials`, `successes` and a non-null `score` are all present, `score` MUST equal successes / trials (within a 1e-6 floating-point tolerance). Here 1/5 = 0.2 but the producer wrote 0.5 -- a plausible-looking number that contradicts its own denominator, the 'looks complete and is not' failure mode @sattyamjjain described. Note for implementers: like SUCCESSES_EXCEED_TRIALS, this is arithmetic over sibling fields that plain JSON Schema cannot express, so spec/schemas/resultset.json accepts this document and only the hand-rolled SDK validators reject it (code RATE_SCORE_MISMATCH at the `score` path). A conformance implementation MUST perform this same check itself. A conforming validator MUST REJECT this document.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.results[0].grader_results[0].score"
+    ]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "robot-vla-redteam",
+    "run_id": "run-58-score-contradicts-counts",
+    "started_at": "2026-09-22T05:00:00Z",
+    "results": [
+      {
+        "test_case_id": "attack_001",
+        "passed": false,
+        "grader_results": [
+          {
+            "grader_id": "gr_attack_success",
+            "type": "custom",
+            "score": 0.5,
+            "passed": false,
+            "trials": 5,
+            "successes": 1
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -520,3 +520,102 @@ def test_boolean_score_rejected_by_both_python_bool_is_int_subclass():
     }
     assert not _js_accepts(RESULTSET_VALIDATOR, doc)
     assert not validate_result_set(doc).valid
+
+
+# ---------------------------------------------------------------------------
+# GraderResult: `trials` / `successes` (issue #58, proposed -- rate-based
+# denominators). additionalProperties: false on the grader_results item means
+# the raw JSON Schema would have rejected either key before this schema change
+# -- both sides (schema + hand-rolled validator) must move together, which is
+# what this section checks. The structural rules (integer types, minimums,
+# successes-requires-trials via `dependentRequired`) are expressed in BOTH
+# paths and must agree. The two cross-field rules (successes <= trials, and
+# score == successes/trials) are hand-rolled-only BY DESIGN -- documented in
+# the last two tests, the same way SELF_PARENT is documented above.
+# ---------------------------------------------------------------------------
+
+def _rate_result_set(**grader_overrides):
+    doc = _minimal_result_set("1.0.0")
+    gr = doc["results"][0]["grader_results"][0]
+    gr.update({"score": 0.0, "passed": False})
+    gr.update(grader_overrides)
+    return doc
+
+
+def test_trials_and_successes_absent_still_valid_in_both_paths():
+    doc = _rate_result_set()
+    assert "trials" not in doc["results"][0]["grader_results"][0]
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+
+
+def test_trials_only_valid_in_both_paths():
+    doc = _rate_result_set(trials=500)
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+
+
+def test_trials_and_successes_consistent_valid_in_both_paths():
+    for successes, trials, score in [(0, 5, 0.0), (0, 500, 0.0), (3, 4, 0.75), (12, 12, 1.0)]:
+        doc = _rate_result_set(trials=trials, successes=successes, score=score)
+        assert _js_accepts(RESULTSET_VALIDATOR, doc), (successes, trials)
+        assert validate_result_set(doc).valid, (successes, trials)
+
+
+def test_null_score_with_trials_and_successes_valid_in_both_paths():
+    doc = _rate_result_set(score=None, trials=5, successes=3)
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert validate_result_set(doc).valid
+
+
+def test_successes_without_trials_rejected_by_both_paths():
+    # `dependentRequired: {"successes": ["trials"]}` (Draft 2020-12) carries
+    # this rule on the schema side; the hand-rolled validator reports
+    # REQUIRED at ...trials.
+    doc = _rate_result_set(successes=0)
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+def test_trials_zero_rejected_by_both_paths():
+    doc = _rate_result_set(trials=0)
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+def test_negative_successes_rejected_by_both_paths():
+    doc = _rate_result_set(trials=5, successes=-1)
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+@pytest.mark.parametrize("bad", [True, 2.5, "5", [5], {"n": 5}], ids=["bool", "float", "str", "list", "dict"])
+def test_non_integer_trials_rejected_by_both_paths(bad):
+    doc = _rate_result_set(trials=bad)
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert not validate_result_set(doc).valid
+
+
+def test_successes_exceed_trials_json_schema_allows_hand_rolled_rejects():
+    # `successes <= trials` compares two sibling values -- a cross-field
+    # constraint JSON Schema's properties/minimum vocabulary cannot express
+    # without a $data reference (not part of this project's supported draft
+    # usage elsewhere in the schema). Same class as SELF_PARENT and
+    # DUPLICATE_ATTEMPT: intentionally enforced only by the hand-rolled
+    # validator, and documented here so a future $data-based schema check is
+    # a deliberate decision, not a rediscovery.
+    doc = _rate_result_set(score=1.0, trials=5, successes=7)
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    result = validate_result_set(doc)
+    assert not result.valid
+    assert any(e["code"] == "SUCCESSES_EXCEED_TRIALS" for e in result.errors)
+
+
+def test_rate_score_mismatch_json_schema_allows_hand_rolled_rejects():
+    # `score == successes / trials` is arithmetic over three sibling values,
+    # which JSON Schema cannot express at all. Hand-rolled-only by design.
+    doc = _rate_result_set(score=0.5, trials=5, successes=1)
+    assert _js_accepts(RESULTSET_VALIDATOR, doc)
+    result = validate_result_set(doc)
+    assert not result.valid
+    assert any(e["code"] == "RATE_SCORE_MISMATCH" for e in result.errors)

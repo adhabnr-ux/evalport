@@ -188,6 +188,34 @@ def validate_result_set(r):
                     if not isinstance(sc,(int,float,type(None))) or isinstance(sc,bool): errors.append(_err(f"$.results[{i}].grader_results[{j}].score","number|null","TYPE_ERROR"))
                     elif sc is not None and (sc<0 or sc>1): errors.append(_err(f"$.results[{i}].grader_results[{j}].score","must be in [0,1] or null","OUT_OF_RANGE"))
                     if not isinstance(gr.get("passed"),bool): errors.append(_err(f"$.results[{i}].grader_results[{j}].passed","required","REQUIRED"))
+                    # Issue #58 (proposed): optional rate-based denominator
+                    # (`trials`) and numerator (`successes`) for a score that
+                    # is really successes / trials. Absent by default -- a
+                    # no-op for every GraderResult produced before this.
+                    # `successes` requires `trials`; `successes <= trials`;
+                    # and a non-null `score` must equal successes / trials.
+                    # The last two are cross-field rules plain JSON Schema
+                    # can't express without $data (same class as
+                    # SELF_PARENT / DUPLICATE_ATTEMPT), so they live here only.
+                    trials_ok=False
+                    if "trials" in gr and gr["trials"] is not None:
+                        trials=gr["trials"]
+                        if not isinstance(trials,int) or isinstance(trials,bool): errors.append(_err(f"$.results[{i}].grader_results[{j}].trials","must be an integer","TYPE_ERROR"))
+                        elif trials<1: errors.append(_err(f"$.results[{i}].grader_results[{j}].trials","must be an integer >= 1","OUT_OF_RANGE"))
+                        else: trials_ok=True
+                    if "successes" in gr and gr["successes"] is not None:
+                        successes=gr["successes"]
+                        successes_ok=False
+                        if not isinstance(successes,int) or isinstance(successes,bool): errors.append(_err(f"$.results[{i}].grader_results[{j}].successes","must be an integer","TYPE_ERROR"))
+                        elif successes<0: errors.append(_err(f"$.results[{i}].grader_results[{j}].successes","must be an integer >= 0","OUT_OF_RANGE"))
+                        else: successes_ok=True
+                        if "trials" not in gr or gr["trials"] is None:
+                            errors.append(_err(f"$.results[{i}].grader_results[{j}].trials","required when successes is present","REQUIRED"))
+                        elif trials_ok and successes_ok:
+                            if successes>gr["trials"]:
+                                errors.append(_err(f"$.results[{i}].grader_results[{j}].successes",f"successes ({successes}) exceeds trials ({gr['trials']})","SUCCESSES_EXCEED_TRIALS"))
+                            elif isinstance(sc,(int,float)) and not isinstance(sc,bool) and abs(sc-successes/gr["trials"])>1e-6:
+                                errors.append(_err(f"$.results[{i}].grader_results[{j}].score",f"score ({sc}) does not equal successes/trials ({successes}/{gr['trials']} = {successes/gr['trials']})","RATE_SCORE_MISMATCH"))
     return ValidationResult(not errors,errors)
 
 def validate_document(d,t):

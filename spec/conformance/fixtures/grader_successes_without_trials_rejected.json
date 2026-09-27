@@ -1,0 +1,31 @@
+{
+  "description": "Issue #58 (PROPOSED, not yet finalized): `successes` requires `trials`. A numerator without its denominator is exactly the unreadable-rate failure this proposal exists to prevent, so it is rejected. This rule IS expressible in plain JSON Schema (Draft 2020-12 `dependentRequired: {\"successes\": [\"trials\"]}` on the grader_results item), so spec/schemas/resultset.json and the hand-rolled SDK validators agree; the hand-rolled validators report REQUIRED at the missing `trials` path. A conforming validator MUST REJECT this document.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.results[0].grader_results[0].trials"
+    ]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "robot-vla-redteam",
+    "run_id": "run-58-missing-denominator",
+    "started_at": "2026-09-22T05:00:00Z",
+    "results": [
+      {
+        "test_case_id": "attack_001",
+        "passed": false,
+        "grader_results": [
+          {
+            "grader_id": "gr_attack_success",
+            "type": "custom",
+            "score": 0.0,
+            "passed": false,
+            "successes": 0
+          }
+        ]
+      }
+    ]
+  }
+}

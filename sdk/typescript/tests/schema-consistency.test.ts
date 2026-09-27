@@ -465,3 +465,105 @@ describe("resultset: group (Discussion #45, proposed) agrees", () => {
     expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
   });
 });
+
+describe("grader_results: trials/successes (issue #58, proposed) agrees", () => {
+  // additionalProperties: false on the grader_results item means the raw JSON
+  // Schema would have rejected either key before this schema change -- both
+  // sides (schema + hand-rolled validator) must move together. Structural
+  // rules (integer types, minimums, successes-requires-trials via Draft
+  // 2020-12 `dependentRequired`) are in BOTH paths and must agree; the two
+  // cross-field rules (successes <= trials, score == successes/trials) are
+  // hand-rolled-only BY DESIGN, documented in the last two tests exactly the
+  // way SELF_PARENT is documented above.
+  function rateDoc(overrides: Record<string, unknown> = {}) {
+    return {
+      version: "1.0.0",
+      suite_id: "s1",
+      run_id: "run1",
+      started_at: "2026-08-16T00:00:00Z",
+      results: [
+        {
+          test_case_id: "tc1",
+          grader_results: [{ grader_id: "g1", type: "custom", score: 0.0, passed: false, ...overrides }],
+          passed: false,
+        },
+      ],
+    };
+  }
+
+  test("absent still valid in both paths", () => {
+    const doc = rateDoc();
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+  });
+
+  test("trials only valid in both paths", () => {
+    const doc = rateDoc({ trials: 500 });
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+  });
+
+  test("consistent trials/successes/score valid in both paths", () => {
+    for (const [successes, trials, score] of [[0, 5, 0.0], [0, 500, 0.0], [3, 4, 0.75], [12, 12, 1.0]]) {
+      const doc = rateDoc({ trials, successes, score });
+      expect(resultsetValidate(doc) as boolean, `JSON Schema ${successes}/${trials}`).toBe(true);
+      expect(validateResultSet(doc).valid, `hand-rolled ${successes}/${trials}`).toBe(true);
+    }
+  });
+
+  test("null score with trials/successes valid in both paths", () => {
+    const doc = rateDoc({ score: null, trials: 5, successes: 3 });
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(true);
+  });
+
+  test("successes without trials rejected by both paths (dependentRequired)", () => {
+    const doc = rateDoc({ successes: 0 });
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(false);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
+  });
+
+  test("trials 0 rejected by both paths", () => {
+    const doc = rateDoc({ trials: 0 });
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(false);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
+  });
+
+  test("negative successes rejected by both paths", () => {
+    const doc = rateDoc({ trials: 5, successes: -1 });
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(false);
+    expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
+  });
+
+  for (const [name, bad] of [["bool", true], ["float", 2.5], ["string", "5"], ["array", [5]], ["object", { n: 5 }]] as const) {
+    test(`non-integer trials (${name}) rejected by both paths`, () => {
+      const doc = rateDoc({ trials: bad });
+      expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(false);
+      expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
+    });
+  }
+
+  test("successes > trials: JSON Schema allows it structurally, hand-rolled validator rejects it (SUCCESSES_EXCEED_TRIALS)", () => {
+    // `successes <= trials` compares two sibling values -- a cross-field
+    // constraint JSON Schema's properties/minimum vocabulary cannot express
+    // without a $data reference (not part of this project's supported draft
+    // usage elsewhere in the schema). Same class as SELF_PARENT and
+    // DUPLICATE_ATTEMPT: intentionally hand-rolled-only, documented here so a
+    // future $data-based schema check is a deliberate decision.
+    const doc = rateDoc({ score: 1.0, trials: 5, successes: 7 });
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    const r = validateResultSet(doc);
+    expect(r.valid, "hand-rolled").toBe(false);
+    expect(r.errors.some(e => e.code === "SUCCESSES_EXCEED_TRIALS")).toBe(true);
+  });
+
+  test("score != successes/trials: JSON Schema allows it structurally, hand-rolled validator rejects it (RATE_SCORE_MISMATCH)", () => {
+    // Arithmetic over three sibling values -- JSON Schema cannot express this
+    // at all. Hand-rolled-only by design.
+    const doc = rateDoc({ score: 0.5, trials: 5, successes: 1 });
+    expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
+    const r = validateResultSet(doc);
+    expect(r.valid, "hand-rolled").toBe(false);
+    expect(r.errors.some(e => e.code === "RATE_SCORE_MISMATCH")).toBe(true);
+  });
+});

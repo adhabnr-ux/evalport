@@ -281,6 +281,50 @@ export function validateResultSet(r: unknown): ValidationResult {
             errors.push(err(`$.results[${i}].grader_results[${j}].score`, "must be in [0,1] or null", "OUT_OF_RANGE"));
           }
           if (typeof gr.passed !== "boolean") errors.push(err(`$.results[${i}].grader_results[${j}].passed`, "required", "REQUIRED"));
+
+          // Issue #58 (proposed): optional rate-based denominator (`trials`)
+          // and numerator (`successes`) for a score that is really
+          // successes / trials. Absent by default -- a no-op for every
+          // GraderResult produced before this. `successes` requires `trials`;
+          // `successes <= trials`; and a non-null `score` must equal
+          // successes / trials. The last two are cross-field rules plain JSON
+          // Schema can't express without $data (same class as SELF_PARENT /
+          // DUPLICATE_ATTEMPT), so they live here only. Mirrors
+          // sdk/python/openeval/validate.py rule-for-rule (same paths,
+          // messages, codes).
+          let trialsOk = false;
+          if (gr.trials !== undefined && gr.trials !== null) {
+            const trials = gr.trials;
+            if (typeof trials !== "number" || !Number.isInteger(trials)) {
+              errors.push(err(`$.results[${i}].grader_results[${j}].trials`, "must be an integer", "TYPE_ERROR"));
+            } else if (trials < 1) {
+              errors.push(err(`$.results[${i}].grader_results[${j}].trials`, "must be an integer >= 1", "OUT_OF_RANGE"));
+            } else {
+              trialsOk = true;
+            }
+          }
+          if (gr.successes !== undefined && gr.successes !== null) {
+            const successes = gr.successes;
+            let successesOk = false;
+            if (typeof successes !== "number" || !Number.isInteger(successes)) {
+              errors.push(err(`$.results[${i}].grader_results[${j}].successes`, "must be an integer", "TYPE_ERROR"));
+            } else if (successes < 0) {
+              errors.push(err(`$.results[${i}].grader_results[${j}].successes`, "must be an integer >= 0", "OUT_OF_RANGE"));
+            } else {
+              successesOk = true;
+            }
+            if (gr.trials === undefined || gr.trials === null) {
+              errors.push(err(`$.results[${i}].grader_results[${j}].trials`, "required when successes is present", "REQUIRED"));
+            } else if (trialsOk && successesOk) {
+              const trials = gr.trials as number;
+              const s = successes as number;
+              if (s > trials) {
+                errors.push(err(`$.results[${i}].grader_results[${j}].successes`, `successes (${s}) exceeds trials (${trials})`, "SUCCESSES_EXCEED_TRIALS"));
+              } else if (typeof sc === "number" && Math.abs(sc - s / trials) > 1e-6) {
+                errors.push(err(`$.results[${i}].grader_results[${j}].score`, `score (${sc}) does not equal successes/trials (${s}/${trials} = ${s / trials})`, "RATE_SCORE_MISMATCH"));
+              }
+            }
+          }
         });
       }
     });

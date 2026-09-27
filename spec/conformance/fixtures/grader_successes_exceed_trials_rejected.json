@@ -1,0 +1,32 @@
+{
+  "description": "Issue #58 (PROPOSED, not yet finalized): `successes` MUST be <= `trials` (7 successes out of 5 trials is impossible). Note for implementers: this is a cross-field constraint that plain JSON Schema (without a $data reference, which this project's schema does not otherwise use) cannot express, so EvalPort's own raw JSON Schema at spec/schemas/resultset.json accepts this document -- it is the hand-rolled SDK validators (sdk/python/openeval/validate.py, sdk/typescript/src/validate.ts) that enforce it with code SUCCESSES_EXCEED_TRIALS, exactly as they already do for group.parent_group_id's SELF_PARENT and the (test_case_id, run_id, attempt) DUPLICATE_ATTEMPT rule. A conformance implementation MUST perform this same cross-field check itself. A conforming validator MUST REJECT this document.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.results[0].grader_results[0].successes"
+    ]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "robot-vla-redteam",
+    "run_id": "run-58-impossible-count",
+    "started_at": "2026-09-22T05:00:00Z",
+    "results": [
+      {
+        "test_case_id": "attack_001",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_attack_success",
+            "type": "custom",
+            "score": 1.0,
+            "passed": true,
+            "trials": 5,
+            "successes": 7
+          }
+        ]
+      }
+    ]
+  }
+}
