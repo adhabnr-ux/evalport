@@ -1,4 +1,16 @@
+import importlib.util
+
 import pytest
+
+# Every test here builds real parea schema objects, so nothing in this module
+# can run without parea-ai. Skip the whole module when it is absent (CI's
+# min-mode adapter-tests job installs evalport-sdk only). Checked with
+# find_spec rather than pytest.importorskip so that, with parea-ai installed,
+# a broken install or upstream API drift still fails loudly instead of being
+# swallowed as a skip.
+if importlib.util.find_spec("parea") is None:
+    pytest.skip("parea not installed", allow_module_level=True)
+
 from parea.schemas import TestCase, TestCaseCollection, ExperimentStatsSchema
 from parea.schemas.models import TraceStatsSchema, EvaluationResultSchema, TraceLog
 from openeval.validate import validate_suite, validate_result_set
@@ -223,4 +235,3 @@ def test_from_openeval_rebuilds_valid_parea_objects():
     assert rebuilt_tc.inputs == {"question": "What is 2+2?"}
     assert rebuilt_tc.target == "4"
     assert rebuilt_tc.tags == ["math"]
-
