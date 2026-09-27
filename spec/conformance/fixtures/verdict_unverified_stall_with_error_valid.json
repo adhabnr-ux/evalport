@@ -1,0 +1,30 @@
+{
+  "description": "PROPOSED (Discussion #49), not yet finalized. error and verdict together. soul-sol/agent-watch's worker_watch.sh reports STALL when 'the outcome cannot be established at all' -- here its verbatim line 'STALL <name> — process exited but exit code is unavailable' (worker_launch.sh writes $? to <name>.exit; the file is missing). The harness failed to record how the run ended, so error.type is runner_error; but the worker ran and may have acted before exiting, so verdict: \"unverified\" is set. With error present, verdict MUST be absent or \"unverified\" (VERDICT_ERROR_CONFLICT otherwise). Setting verdict is the producer's explicit statement that this row MUST stay in result-level denominators and be counted as unverified, instead of being dropped the way a bare error row may be. A conforming validator MUST ACCEPT this document; both validation paths do.",
+  "type": "resultset",
+  "expect": {
+    "valid": true
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "background-codex-workers",
+    "run_id": "run-49-stall",
+    "started_at": "2026-09-27T06:10:00Z",
+    "results": [
+      {
+        "test_case_id": "fix_billing_status_mapping",
+        "passed": false,
+        "verdict": "unverified",
+        "grader_results": [],
+        "error": {
+          "type": "runner_error",
+          "message": "STALL api_task — process exited but exit code is unavailable",
+          "retryable": false
+        },
+        "metadata": {
+          "watcher": "soul-sol/agent-watch worker_watch.sh",
+          "watcher_status": "STALL"
+        }
+      }
+    ]
+  }
+}

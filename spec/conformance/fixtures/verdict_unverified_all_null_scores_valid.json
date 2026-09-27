@@ -1,0 +1,30 @@
+{
+  "description": "PROPOSED (Discussion #49), not yet finalized. How Result.verdict relates to Validation Rule 6. Rule 6 already says a GraderResult with score: null means 'not verified' for that one grader. verdict lifts the same idea to the whole Result. Here the only grader is an llm_judge whose output could not be parsed (the same shape as null_score_not_scored_failure.json), so no grader established anything, and verdict: \"unverified\" is the RECOMMENDED (not required) value. The two are not redundant: a Result can be unverified with every grader scored (see verdict_unverified_worker_left_unknown_valid.json), and a producer may leave verdict absent here, in which case consumers apply Rule 6 exactly as before. A conforming validator MUST ACCEPT this document.",
+  "type": "resultset",
+  "expect": {
+    "valid": true
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_rag_eval",
+    "run_id": "run-49-null-scores",
+    "started_at": "2026-09-27T06:20:00Z",
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "actual_output": "The answer is somewhere in the retrieved context.",
+        "passed": false,
+        "verdict": "unverified",
+        "grader_results": [
+          {
+            "grader_id": "gr_llm_judge_faithfulness",
+            "type": "llm_judge",
+            "score": null,
+            "passed": false,
+            "reason": "Judge output could not be parsed into YES/NO -- no verdict was produced."
+          }
+        ]
+      }
+    ]
+  }
+}
