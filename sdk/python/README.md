@@ -5,8 +5,10 @@ Python SDK for EvalPort — The Open Evaluation Standard.
 ## Install
 
 ```bash
-pip install openeval
+pip install evalport-sdk
 ```
+
+The distribution is `evalport-sdk`; the import name is `openeval`. (The unrelated `openeval` project on PyPI is not this SDK.)
 
 ## Usage
 

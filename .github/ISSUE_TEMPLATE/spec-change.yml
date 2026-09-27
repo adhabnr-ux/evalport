@@ -1,0 +1,55 @@
+name: Spec change / RFC implementation
+description: Track implementation of a spec or JSON Schema change that has already been discussed in a "[Spec Change]" Discussion.
+title: "[Spec Change] <short description>"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Spec changes start in Discussions, not issues.** Per the
+        [Governance section of spec/SPEC.md](https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md#governance):
+
+        1. Open a Discussion in the **Ideas** category titled `[Spec Change] <short description>`, stating the problem, the proposed change, and its impact on backward compatibility.
+        2. A two-week comment period follows.
+        3. If rough consensus emerges, the change is implemented in a PR against `spec/SPEC.md` (mirrored to the root `SPEC.md`), the JSON Schemas, and both reference SDKs together.
+        4. Changes that break backward compatibility require sign-off from the spec lead regardless of comment-period consensus.
+
+        If you haven't opened the Discussion yet, [start one in Ideas](https://github.com/adhabnr-ux/evalport/discussions/categories/ideas) instead of filing this form.
+        Open RFCs you can weigh in on today: [#47](https://github.com/adhabnr-ux/evalport/discussions/47), [#49](https://github.com/adhabnr-ux/evalport/discussions/49), [#67](https://github.com/adhabnr-ux/evalport/discussions/67).
+
+        A new conformance fixture that isn't itself a spec or behavior change doesn't need the comment period — just open a PR (see `spec/conformance/README.md`).
+  - type: input
+    id: discussion
+    attributes:
+      label: "[Spec Change] Discussion link"
+      placeholder: https://github.com/adhabnr-ux/evalport/discussions/NN
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome of the discussion
+      description: Summarize the consensus reached, including objections and how they were resolved. Link specific comments.
+    validations:
+      required: true
+  - type: dropdown
+    id: compat
+    attributes:
+      label: Backward compatibility
+      options:
+        - Additive / backward-compatible (existing documents stay valid)
+        - Breaking (needs spec lead sign-off)
+    validations:
+      required: true
+  - type: checkboxes
+    id: surfaces
+    attributes:
+      label: What the implementing PR must touch
+      description: A spec change that doesn't touch the SDKs' validators isn't actually specified (spec/SPEC.md#governance).
+      options:
+        - label: "`spec/SPEC.md` (and the byte-identical root `SPEC.md` mirror), including a Change Log row"
+        - label: "`spec/schemas/*.json` and the byte-identical `schema/*.json` mirror (CI fails if they differ)"
+        - label: "Python SDK: `sdk/python/openeval/types.py` + `validate.py`, with tests"
+        - label: "TypeScript SDK: `sdk/typescript/src/types.ts` + `validate.ts`, with tests"
+        - label: "Schema-vs-validator agreement tests (`test_schema_consistency.py`, `schema-consistency.test.ts`)"
+        - label: "Conformance fixture(s) in `spec/conformance/fixtures/`, if the change is testable as a document"

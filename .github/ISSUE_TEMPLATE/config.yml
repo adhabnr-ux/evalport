@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Question or usage help
+    url: https://github.com/adhabnr-ux/evalport/discussions/categories/q-a
+    about: Ask how to use the spec, SDKs, CLI, or an adapter in the Q&A Discussions category. Issues are for concrete bugs and scoped work.
+  - name: Propose a spec change (RFC)
+    url: https://github.com/adhabnr-ux/evalport/discussions/categories/ideas
+    about: Spec and JSON Schema changes start as a Discussion in the Ideas category titled "[Spec Change] <short description>" — see spec/SPEC.md#governance.
+  - name: Looking for something to work on?
+    url: https://github.com/adhabnr-ux/evalport/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
+    about: Open issues labelled "good first issue" — each one lists the files to touch, the tests to add, and how to run them.

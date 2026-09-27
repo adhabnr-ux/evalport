@@ -1,6 +1,6 @@
 ---
 name: EvalPort Integration Proposal
-about: Propose adding EvalPort import/export support to this framework
+about: Copy-paste template for proposing EvalPort support in ANOTHER framework's repo. To request an adapter here, use "Adapter request" instead.
 title: "[Proposal] EvalPort Import/Export Support"
 labels: ["enhancement", "interop"]
 ---
@@ -43,7 +43,7 @@ import { fromEvalPort, toEvalPort } from "evalport-sdk"; // npm install evalport
 
 - ✅ Full spec: https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md
 - ✅ TypeScript SDK: `evalport-sdk` on npm
-- ✅ Python SDK: `openeval` on PyPI
+- ✅ Python SDK: `evalport-sdk` on PyPI (imported as `openeval`)
 - ✅ CLI: `openeval convert promptfoo openeval config.json output.json`
 - ✅ Converters for Promptfoo, DeepEval, Inspect AI, OpenAI Evals
 - ✅ JSON Schemas for validation

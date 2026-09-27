@@ -1,0 +1,65 @@
+name: Bug report
+description: Something in the spec, schemas, SDKs, CLI, conformance suite, or an adapter behaves differently than documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Questions about usage go to [Q&A Discussions](https://github.com/adhabnr-ux/evalport/discussions/categories/q-a).
+        A report with a minimal document and the exact validator output is usually fixable the same day.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Python SDK (sdk/python, evalport-sdk on PyPI)
+        - TypeScript SDK (sdk/typescript, evalport-sdk on npm)
+        - CLI (cli/, evalport-cli)
+        - JSON Schemas / spec text (spec/)
+        - Conformance fixtures (spec/conformance/)
+        - An adapter (adapters/)
+        - Benchmarks (benchmarks/)
+        - Docs
+    validations:
+      required: true
+  - type: input
+    id: adapter
+    attributes:
+      label: Adapter name and upstream package version (if an adapter)
+      placeholder: e.g. deepeval-openeval-adapter with deepeval==3.1.0
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Package version (`pip show evalport-sdk` / `npm ls evalport-sdk`) or the git commit you're on.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: The smallest document or code that shows the problem, and the command you ran.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: Paste the exact output, e.g. the `errors` list from `validate_suite()` / `validate_result_set()` or the traceback.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and why
+      description: If the expectation comes from the spec or a schema, link the line (e.g. spec/schemas/testcase.json#L17).
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues (open and closed) for this problem.
