@@ -1,4 +1,4 @@
-import type { Grader } from "../../../../sdk/typescript/src/types";
+import type { Grader } from "evalport-sdk";
 import type { GraderOutcome } from "../types";
 import { validateAgainstJsonSchema } from "./jsonSchema";
 import { queryJsonPathFirst, JsonPathSyntaxError } from "./jsonPath";

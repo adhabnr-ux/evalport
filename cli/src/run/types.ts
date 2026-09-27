@@ -1,7 +1,7 @@
 // Internal types for the `evalport run` command. These are runner
 // implementation details, not part of the EvalPort spec itself — the spec
 // types (EvalSuite, TestCase, Grader, Result, ResultSet, ...) live in
-// ../../../sdk/typescript/src/types.ts and are what actually gets written
+// the evalport-sdk package (sdk/typescript/src/types.ts) and are what actually gets written
 // to disk / validated.
 
 export type ProviderName = "openai" | "anthropic";

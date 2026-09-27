@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-import { validateSuite, validateResultSet, validateGrader, validateTestCase } from "../../sdk/typescript/src/validate";
-import { fromPromptfoo, computeSummary } from "../../sdk/typescript/src/convert";
+import { validateSuite, validateResultSet, validateGrader, validateTestCase, fromPromptfoo, computeSummary } from "evalport-sdk";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { runCommand } from "./run/cli";
 
