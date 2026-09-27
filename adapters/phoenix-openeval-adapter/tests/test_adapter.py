@@ -1,6 +1,7 @@
 import importlib.util
 import pytest
 from openeval.validate import validate_result_set, validate_suite
+from openeval.types import OPENEVAL_VERSION
 
 from phoenix_openeval_adapter import (
     experiment_to_openeval,
@@ -146,7 +147,7 @@ def test_to_openeval_default_grader_is_llm_judge():
 def test_to_openeval_empty_examples_still_valid_shape():
     suite = to_openeval([])
     assert suite["test_cases"] == []
-    assert suite["version"] == "1.0.0"
+    assert suite["version"] == OPENEVAL_VERSION
     assert suite["graders"] == []
 
 
@@ -154,6 +155,7 @@ def test_to_openeval_validates_against_real_evalport_spec():
     examples = [_example("ex_1", {"question": "q1"}, {"answer": "a1"})]
     suite = to_openeval(examples)
     validation = validate_suite(suite)
+    assert suite["version"] == OPENEVAL_VERSION
     assert validation.valid, validation.errors
 
 
@@ -256,6 +258,7 @@ def test_experiment_to_openeval_from_real_ran_experiment():
     assert rs["summary"]["pass_rate"] == 0.5
 
     validation = validate_result_set(rs)
+    assert rs["version"] == OPENEVAL_VERSION
     assert validation.valid, validation.errors
 
 
