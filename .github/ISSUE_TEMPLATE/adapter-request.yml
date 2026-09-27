@@ -1,0 +1,86 @@
+name: Adapter request
+description: Ask for (or offer to build) a standalone to_openeval()/from_openeval() adapter for an evaluation framework or benchmark.
+title: "Adapter wanted: <Framework> (to_openeval() / from_openeval())"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Adapters live in `adapters/<framework>-openeval-adapter/` and follow the shape of
+        [`adapters/autogen-openeval-adapter`](https://github.com/adhabnr-ux/evalport/tree/main/adapters/autogen-openeval-adapter).
+        Before filing, check the README's Framework Adapters table and `adapters/` — 65 packages already exist —
+        and [issue #6](https://github.com/adhabnr-ux/evalport/issues/6) ("Adapters wanted").
+        The full checklist for building one is in
+        [CONTRIBUTING.md → Adding a New Converter](https://github.com/adhabnr-ux/evalport/blob/main/.github/CONTRIBUTING.md#adding-a-new-converter).
+  - type: input
+    id: framework
+    attributes:
+      label: Framework or benchmark name
+      description: As it appears on PyPI/npm or in its own README.
+      placeholder: e.g. ragas
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Link
+      description: Repository, docs, or package page for the framework.
+      placeholder: https://github.com/org/project
+    validations:
+      required: true
+  - type: input
+    id: package
+    attributes:
+      label: Installable package and version you would pin
+      description: |
+        CONTRIBUTING.md requires a named, pinned extra with a real, verified minimum version.
+        For a static dataset with no installable package (like financebench), write "none — static dataset".
+      placeholder: e.g. ragas>=0.2.0
+    validations:
+      required: true
+  - type: textarea
+    id: shapes
+    attributes:
+      label: Data shapes to map
+      description: |
+        Which of the framework's real objects map to which EvalPort documents? Name the actual classes/files/fields.
+        Test-case/dataset definitions map to a Suite (`validate_suite`); scored outputs map to a ResultSet (`validate_result_set`).
+      placeholder: |
+        - `EvaluationDataset.samples[]` -> Suite.test_cases[] (input, expected_output, context)
+        - `EvaluationResult.scores[metric]` -> ResultSet.results[].grader_results[] (score already in [0, 1])
+        - Not mappable / lossy: ...
+    validations:
+      required: true
+  - type: dropdown
+    id: direction
+    attributes:
+      label: Direction
+      options:
+        - Both (to_openeval and from_openeval)
+        - Export only (to_openeval)
+        - Import only (from_openeval)
+        - Not sure yet
+    validations:
+      required: true
+  - type: dropdown
+    id: maintainer
+    attributes:
+      label: Has the framework's maintainer been consulted?
+      description: Several recent adapters (e.g. #61, #62, #63) were built at the upstream maintainer's request. It's fine if not, but say so.
+      options:
+        - "Yes — link below"
+        - "I am a maintainer of that framework"
+        - "Not yet"
+    validations:
+      required: true
+  - type: input
+    id: maintainer_link
+    attributes:
+      label: Link to the upstream conversation (if any)
+      placeholder: https://github.com/org/project/issues/123
+  - type: checkboxes
+    id: build
+    attributes:
+      label: Building it
+      options:
+        - label: I'd like to build this adapter myself (a maintainer will confirm scope here before you start).

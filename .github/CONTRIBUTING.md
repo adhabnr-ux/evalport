@@ -1,5 +1,13 @@
 # Contributing to EvalPort
 
+## Where to start
+
+- **Pick up a scoped task:** [open `good first issue`s](https://github.com/adhabnr-ux/evalport/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22). Each one names the files to change, the tests to add, and the exact commands to run, so you can finish it without waiting on a reply. Larger pieces of work are labelled [`help wanted`](https://github.com/adhabnr-ux/evalport/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22). Say in a comment that you're taking one, so two people don't do the same work.
+- **Want an adapter for a framework you use?** File an [Adapter request](https://github.com/adhabnr-ux/evalport/issues/new?template=adapter-request.yml), or read [Issue #6](https://github.com/adhabnr-ux/evalport/issues/6) and [Adding a New Converter](#adding-a-new-converter) below and build it yourself. That's the lowest-friction way in.
+- **Have a question?** Ask in [Q&A Discussions](https://github.com/adhabnr-ux/evalport/discussions/categories/q-a).
+- **Want to change the spec?** Start a `[Spec Change]` Discussion in [Ideas](https://github.com/adhabnr-ux/evalport/discussions/categories/ideas) (see [Spec Changes](#spec-changes) below). Open RFCs where comments are useful right now: [#47](https://github.com/adhabnr-ux/evalport/discussions/47) (`Result.constraint_violations`), [#49](https://github.com/adhabnr-ux/evalport/discussions/49) (FAILED vs. UNVERIFIED), and [#67](https://github.com/adhabnr-ux/evalport/discussions/67) (rate-based `GraderResult` denominators).
+- **Before opening a PR,** run the same checks CI runs for the parts you touched. The [PR template](PULL_REQUEST_TEMPLATE.md) lists them.
+
 ## Getting Started
 
 1. Fork the repository
@@ -31,11 +39,13 @@ Four open examples, if it helps to see the shape of a real one before writing yo
 
 ## Adding a New Grader Type
 
-1. Add the type to `SPEC.md` grader type table
-2. Add validation rules in `sdk/typescript/src/validate.ts` and `sdk/python/openeval/validate.py`
-3. Add to the JSON Schema `grader.json` enum
-4. Add a test case
-5. Update `docs/grader-reference.md`
+A new *standard* grader type is a spec change, so it goes through the RFC process in [Spec Changes](#spec-changes) first. A framework-specific type needs none of this: any non-empty `type` string is already valid as long as it sets `params.handler`.
+
+1. Add the type to the Grader Type System table in `spec/SPEC.md` and keep the root `SPEC.md` byte-identical
+2. Add it to `STANDARD_GRADER_TYPES` and its params rules in both `sdk/python/openeval/validate.py` and `sdk/typescript/src/validate.ts` (plus the `GraderType` union in `sdk/typescript/src/types.ts`)
+3. List it in the `type` description/`examples` in `spec/schemas/grader.json` (the field is an open string, not an enum) and copy the file byte-for-byte to `schema/grader.json`. CI fails if the two differ
+4. Add a test case in both SDKs
+5. Update `docs/grader-reference/README.md`
 
 ## Adding a New Converter
 
