@@ -1,0 +1,31 @@
+{
+  "description": "Suite-level grader ids must be unique. This cross-item uniqueness rule cannot be expressed in JSON Schema, so the hand-rolled validator rejects the duplicate.",
+  "type": "suite",
+  "expect": {
+    "valid": false,
+    "error_paths": ["$.graders[1].id"]
+  },
+  "document": {
+    "version": "1.0.0",
+    "id": "suite_duplicate_grader",
+    "graders": [
+      {
+        "id": "gr_duplicate",
+        "type": "exact_match",
+        "params": {}
+      },
+      {
+        "id": "gr_duplicate",
+        "type": "exact_match",
+        "params": {}
+      }
+    ],
+    "test_cases": [
+      {
+        "id": "tc_1",
+        "input": "hello",
+        "graders": ["gr_duplicate"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "description": "Suite test-case ids must be unique. This cross-item uniqueness rule cannot be expressed in JSON Schema, so the hand-rolled validator rejects the duplicate.",
+  "type": "suite",
+  "expect": {
+    "valid": false,
+    "error_paths": ["$.test_cases[1].id"]
+  },
+  "document": {
+    "version": "1.0.0",
+    "id": "suite_duplicate_test_case",
+    "graders": [
+      {
+        "id": "gr_exact",
+        "type": "exact_match",
+        "params": {}
+      }
+    ],
+    "test_cases": [
+      {
+        "id": "tc_duplicate",
+        "input": "first",
+        "graders": ["gr_exact"]
+      },
+      {
+        "id": "tc_duplicate",
+        "input": "second",
+        "graders": ["gr_exact"]
+      }
+    ]
+  }
+}
