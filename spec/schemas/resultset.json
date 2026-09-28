@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://evalport.org/schema/resultset.json",
+  "$id": "https://adhabnr-ux.github.io/evalport/schema/resultset.json",
   "title": "EvalPort ResultSet",
   "description": "The output of running an eval suite — results and summary statistics.",
   "type": "object",

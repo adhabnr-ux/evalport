@@ -1,10 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://evalport.org/schema/testcase.json",
+  "$id": "https://adhabnr-ux.github.io/evalport/schema/testcase.json",
   "title": "EvalPort TestCase",
-  "description": "A single evaluation test case — the atomic unit of LLM evaluation.",
+  "description": "A single evaluation test case \u2014 the atomic unit of LLM evaluation.",
   "type": "object",
-  "required": ["id", "input", "graders"],
+  "required": [
+    "id",
+    "input",
+    "graders"
+  ],
   "properties": {
     "id": {
       "type": "string",
@@ -14,10 +18,15 @@
     "input": {
       "description": "The input prompt(s) sent to the LLM. String for single-turn, array for multi-turn.",
       "oneOf": [
-        { "type": "string", "minLength": 1 },
+        {
+          "type": "string",
+          "minLength": 1
+        },
         {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "minItems": 1
         }
       ]
@@ -29,22 +38,30 @@
     "context": {
       "type": "array",
       "description": "Supplementary context (retrieved docs, conversation history, tool results).",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "retrieval_context": {
       "type": "array",
       "description": "Documents retrieved by a RAG system, separated from general context.",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "tools_called": {
       "type": "array",
       "description": "Names of tools called during execution (for agent evaluation).",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "expected_tools": {
       "type": "array",
       "description": "Names of tools that SHOULD be called (for agent evaluation).",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "graders": {
       "type": "array",
@@ -52,8 +69,13 @@
       "minItems": 1,
       "items": {
         "oneOf": [
-          { "type": "string", "minLength": 1 },
-          { "$ref": "https://evalport.org/schema/grader.json" }
+          {
+            "type": "string",
+            "minLength": 1
+          },
+          {
+            "$ref": "https://adhabnr-ux.github.io/evalport/schema/grader.json"
+          }
         ]
       }
     },
@@ -65,18 +87,34 @@
     "tags": {
       "type": "array",
       "description": "Categorization tags for filtering and grouping.",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "provider": {
       "type": "object",
       "description": "Per-test-case provider override.",
       "properties": {
-        "model": { "type": "string" },
-        "api_base": { "type": "string" },
-        "api_key_env": { "type": "string" },
-        "temperature": { "type": "number" },
-        "max_tokens": { "type": "integer", "minimum": 1 },
-        "extra": { "type": "object", "additionalProperties": true }
+        "model": {
+          "type": "string"
+        },
+        "api_base": {
+          "type": "string"
+        },
+        "api_key_env": {
+          "type": "string"
+        },
+        "temperature": {
+          "type": "number"
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "extra": {
+          "type": "object",
+          "additionalProperties": true
+        }
       },
       "additionalProperties": false
     },
@@ -95,6 +133,11 @@
       "description": "Relative weight for score aggregation.",
       "minimum": 0,
       "default": 1.0
+    },
+    "$schema": {
+      "type": "string",
+      "format": "uri",
+      "description": "The JSON Schema URI."
     }
   },
   "additionalProperties": false

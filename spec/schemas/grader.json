@@ -1,10 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://evalport.org/schema/grader.json",
+  "$id": "https://adhabnr-ux.github.io/evalport/schema/grader.json",
   "title": "EvalPort Grader",
   "description": "A scoring criterion that evaluates a test case's actual output.",
   "type": "object",
-  "required": ["id", "type"],
+  "required": [
+    "id",
+    "type"
+  ],
   "properties": {
     "id": {
       "type": "string",
@@ -16,8 +19,17 @@
       "minLength": 1,
       "description": "The grader type. Well-known types (with standardized params validation below): exact_match, contains, regex, semantic_similarity, llm_judge, json_schema, json_path, code, human, model graded, custom. Any other non-empty string is also a valid, framework-specific type (e.g. 'trulens_feedback') -- it is validated exactly like 'custom' (params.handler is required) so a runner that doesn't recognize it can skip gracefully instead of guessing.",
       "examples": [
-        "exact_match", "contains", "regex", "semantic_similarity", "llm_judge",
-        "json_schema", "json_path", "code", "human", "model graded", "custom"
+        "exact_match",
+        "contains",
+        "regex",
+        "semantic_similarity",
+        "llm_judge",
+        "json_schema",
+        "json_path",
+        "code",
+        "human",
+        "model graded",
+        "custom"
       ]
     },
     "params": {
@@ -34,6 +46,11 @@
     "description": {
       "type": "string",
       "description": "Human-readable description of what this grader checks."
+    },
+    "$schema": {
+      "type": "string",
+      "format": "uri",
+      "description": "The JSON Schema URI."
     }
   },
   "additionalProperties": false,
@@ -41,18 +58,32 @@
     {
       "if": {
         "properties": {
-          "type": { "const": "contains" }
+          "type": {
+            "const": "contains"
+          }
         },
-        "required": ["type"]
+        "required": [
+          "type"
+        ]
       },
       "then": {
-        "required": ["params"],
+        "required": [
+          "params"
+        ],
         "properties": {
           "params": {
-            "required": ["substring"],
+            "required": [
+              "substring"
+            ],
             "properties": {
-              "substring": { "type": "string", "minLength": 1 },
-              "ignore_case": { "type": "boolean", "default": false }
+              "substring": {
+                "type": "string",
+                "minLength": 1
+              },
+              "ignore_case": {
+                "type": "boolean",
+                "default": false
+              }
             }
           }
         }
@@ -61,18 +92,31 @@
     {
       "if": {
         "properties": {
-          "type": { "const": "regex" }
+          "type": {
+            "const": "regex"
+          }
         },
-        "required": ["type"]
+        "required": [
+          "type"
+        ]
       },
       "then": {
-        "required": ["params"],
+        "required": [
+          "params"
+        ],
         "properties": {
           "params": {
-            "required": ["pattern"],
+            "required": [
+              "pattern"
+            ],
             "properties": {
-              "pattern": { "type": "string", "minLength": 1 },
-              "flags": { "type": "string" }
+              "pattern": {
+                "type": "string",
+                "minLength": 1
+              },
+              "flags": {
+                "type": "string"
+              }
             }
           }
         }
@@ -81,19 +125,35 @@
     {
       "if": {
         "properties": {
-          "type": { "const": "semantic_similarity" }
+          "type": {
+            "const": "semantic_similarity"
+          }
         },
-        "required": ["type"]
+        "required": [
+          "type"
+        ]
       },
       "then": {
-        "required": ["params"],
+        "required": [
+          "params"
+        ],
         "properties": {
           "params": {
-            "required": ["threshold"],
+            "required": [
+              "threshold"
+            ],
             "properties": {
-              "threshold": { "type": "number", "minimum": 0, "maximum": 1 },
-              "model": { "type": "string" },
-              "provider": { "type": "string" }
+              "threshold": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "model": {
+                "type": "string"
+              },
+              "provider": {
+                "type": "string"
+              }
             }
           }
         }
@@ -102,21 +162,44 @@
     {
       "if": {
         "properties": {
-          "type": { "const": "llm_judge" }
+          "type": {
+            "const": "llm_judge"
+          }
         },
-        "required": ["type"]
+        "required": [
+          "type"
+        ]
       },
       "then": {
-        "required": ["params"],
+        "required": [
+          "params"
+        ],
         "properties": {
           "params": {
-            "required": ["model", "prompt"],
+            "required": [
+              "model",
+              "prompt"
+            ],
             "properties": {
-              "model": { "type": "string", "minLength": 1 },
-              "prompt": { "type": "string", "minLength": 1 },
-              "provider": { "type": "string" },
-              "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
-              "schema": { "type": "object" }
+              "model": {
+                "type": "string",
+                "minLength": 1
+              },
+              "prompt": {
+                "type": "string",
+                "minLength": 1
+              },
+              "provider": {
+                "type": "string"
+              },
+              "temperature": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 2
+              },
+              "schema": {
+                "type": "object"
+              }
             }
           }
         }
@@ -125,18 +208,31 @@
     {
       "if": {
         "properties": {
-          "type": { "const": "json_schema" }
+          "type": {
+            "const": "json_schema"
+          }
         },
-        "required": ["type"]
+        "required": [
+          "type"
+        ]
       },
       "then": {
-        "required": ["params"],
+        "required": [
+          "params"
+        ],
         "properties": {
           "params": {
-            "required": ["schema"],
+            "required": [
+              "schema"
+            ],
             "properties": {
-              "schema": { "type": "object" },
-              "strict": { "type": "boolean", "default": false }
+              "schema": {
+                "type": "object"
+              },
+              "strict": {
+                "type": "boolean",
+                "default": false
+              }
             }
           }
         }
@@ -145,21 +241,43 @@
     {
       "if": {
         "properties": {
-          "type": { "const": "json_path" }
+          "type": {
+            "const": "json_path"
+          }
         },
-        "required": ["type"]
+        "required": [
+          "type"
+        ]
       },
       "then": {
-        "required": ["params"],
+        "required": [
+          "params"
+        ],
         "properties": {
           "params": {
-            "required": ["path", "expected"],
+            "required": [
+              "path",
+              "expected"
+            ],
             "properties": {
-              "path": { "type": "string", "minLength": 1 },
-              "expected": { "type": "string" },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "expected": {
+                "type": "string"
+              },
               "operator": {
                 "type": "string",
-                "enum": ["eq", "ne", "gt", "lt", "gte", "lte", "contains"],
+                "enum": [
+                  "eq",
+                  "ne",
+                  "gt",
+                  "lt",
+                  "gte",
+                  "lte",
+                  "contains"
+                ],
                 "default": "eq"
               }
             }
@@ -170,22 +288,41 @@
     {
       "if": {
         "properties": {
-          "type": { "const": "code" }
+          "type": {
+            "const": "code"
+          }
         },
-        "required": ["type"]
+        "required": [
+          "type"
+        ]
       },
       "then": {
-        "required": ["params"],
+        "required": [
+          "params"
+        ],
         "properties": {
           "params": {
-            "required": ["language", "source"],
+            "required": [
+              "language",
+              "source"
+            ],
             "properties": {
               "language": {
                 "type": "string",
-                "enum": ["python", "javascript"]
+                "enum": [
+                  "python",
+                  "javascript"
+                ]
               },
-              "source": { "type": "string", "minLength": 1 },
-              "timeout_ms": { "type": "integer", "minimum": 100, "default": 5000 }
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "minimum": 100,
+                "default": 5000
+              }
             }
           }
         }
@@ -194,17 +331,28 @@
     {
       "if": {
         "properties": {
-          "type": { "const": "custom" }
+          "type": {
+            "const": "custom"
+          }
         },
-        "required": ["type"]
+        "required": [
+          "type"
+        ]
       },
       "then": {
-        "required": ["params"],
+        "required": [
+          "params"
+        ],
         "properties": {
           "params": {
-            "required": ["handler"],
+            "required": [
+              "handler"
+            ],
             "properties": {
-              "handler": { "type": "string", "minLength": 1 }
+              "handler": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           }
         }
@@ -216,21 +364,39 @@
           "type": {
             "not": {
               "enum": [
-                "exact_match", "contains", "regex", "semantic_similarity", "llm_judge",
-                "json_schema", "json_path", "code", "human", "model graded", "custom"
+                "exact_match",
+                "contains",
+                "regex",
+                "semantic_similarity",
+                "llm_judge",
+                "json_schema",
+                "json_path",
+                "code",
+                "human",
+                "model graded",
+                "custom"
               ]
             }
           }
         },
-        "required": ["type"]
+        "required": [
+          "type"
+        ]
       },
       "then": {
-        "required": ["params"],
+        "required": [
+          "params"
+        ],
         "properties": {
           "params": {
-            "required": ["handler"],
+            "required": [
+              "handler"
+            ],
             "properties": {
-              "handler": { "type": "string", "minLength": 1 }
+              "handler": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           }
         }

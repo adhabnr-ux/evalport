@@ -153,7 +153,7 @@ A test case is the atomic unit of evaluation. It represents a single input to an
 
 ```json
 {
-  "$schema": "https://evalport.org/schema/testcase.json",
+  "$schema": "https://adhabnr-ux.github.io/evalport/schema/testcase.json",
   "id": "tc_001",
   "input": "What is the capital of France?",
   "expected_output": "Paris",
@@ -202,7 +202,7 @@ A grader defines how a test case's actual output is scored. Graders are defined 
 
 ```json
 {
-  "$schema": "https://evalport.org/schema/grader.json",
+  "$schema": "https://adhabnr-ux.github.io/evalport/schema/grader.json",
   "id": "gr_semantic_sim",
   "type": "semantic_similarity",
   "params": {
@@ -259,7 +259,7 @@ An eval suite is a named collection of test cases and shared grader definitions.
 
 ```json
 {
-  "$schema": "https://evalport.org/schema/suite.json",
+  "$schema": "https://adhabnr-ux.github.io/evalport/schema/suite.json",
   "version": "1.0.0",
   "id": "suite_rag_eval_001",
   "name": "RAG Evaluation Suite — Knowledge Base v2",
@@ -349,7 +349,7 @@ A result set is the output of running an eval suite. It contains one result per 
 
 ```json
 {
-  "$schema": "https://evalport.org/schema/resultset.json",
+  "$schema": "https://adhabnr-ux.github.io/evalport/schema/resultset.json",
   "version": "1.0.0",
   "suite_id": "suite_rag_eval_001",
   "suite_version": "1.0.0",
@@ -524,8 +524,8 @@ The `version` field in each document specifies the EvalPort spec version the doc
 ### Schema Evolution
 
 JSON Schemas are versioned and published at:
-- `https://evalport.org/schema/testcase.json` (latest)
-- `https://evalport.org/schema/v1.0.0/testcase.json` (pinned)
+- `https://adhabnr-ux.github.io/evalport/schema/testcase.json` (latest)
+- `https://adhabnr-ux.github.io/evalport/schema/v1.0.0/testcase.json` (pinned)
 
 ---
 
@@ -832,7 +832,7 @@ See `spec/conformance/fixtures/group_membership_valid.json` (a valid grouped `Re
 
 ### Extensions Registry
 
-EvalPort maintains an extensions registry at `https://evalport.org/extensions` where the community can register:
+EvalPort maintains an extensions registry at `https://adhabnr-ux.github.io/evalport/extensions` where the community can register:
 - Custom grader types with handler identifiers
 - Provider-specific configuration extensions
 - Metadata field conventions
@@ -977,7 +977,7 @@ EvalPort is designed to be a superset of common framework formats. Conversion gu
 
 ```json
 {
-  "$schema": "https://evalport.org/schema/suite.json",
+  "$schema": "https://adhabnr-ux.github.io/evalport/schema/suite.json",
   "version": "1.0.0",
   "id": "suite_qa_basic",
   "name": "Basic Q&A Evaluation",
@@ -1012,7 +1012,7 @@ EvalPort is designed to be a superset of common framework formats. Conversion gu
 
 ```json
 {
-  "$schema": "https://evalport.org/schema/suite.json",
+  "$schema": "https://adhabnr-ux.github.io/evalport/schema/suite.json",
   "version": "1.0.0",
   "id": "suite_rag_001",
   "name": "RAG Pipeline Evaluation",
@@ -1064,7 +1064,7 @@ EvalPort is designed to be a superset of common framework formats. Conversion gu
 
 ```json
 {
-  "$schema": "https://evalport.org/schema/suite.json",
+  "$schema": "https://adhabnr-ux.github.io/evalport/schema/suite.json",
   "version": "1.0.0",
   "id": "suite_agent_001",
   "name": "Agent Tool Selection Evaluation",
@@ -1108,7 +1108,7 @@ EvalPort is designed to be a superset of common framework formats. Conversion gu
 
 ```json
 {
-  "$schema": "https://evalport.org/schema/resultset.json",
+  "$schema": "https://adhabnr-ux.github.io/evalport/schema/resultset.json",
   "version": "1.0.0",
   "suite_id": "suite_qa_basic",
   "suite_version": "1.0.0",
