@@ -42,6 +42,8 @@ export function validateTestCase(tc: unknown): ValidationResult {
   const isStringListInput = Array.isArray(input) && input.every((x) => typeof x === "string");
   if (!isStringInput && !isStringListInput) {
     errors.push(err("$.input", "input required", "REQUIRED"));
+  } else if (typeof input === "string" && input.length === 0) {
+    errors.push(err("$.input", "empty", "MIN_LENGTH"));
   } else if (isStringListInput && (input as unknown[]).length === 0) {
     errors.push(err("$.input", "empty", "MIN_ITEMS"));
   }
