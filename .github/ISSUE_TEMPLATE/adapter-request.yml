@@ -8,7 +8,7 @@ body:
       value: |
         Adapters live in `adapters/<framework>-openeval-adapter/` and follow the shape of
         [`adapters/autogen-openeval-adapter`](https://github.com/adhabnr-ux/evalport/tree/main/adapters/autogen-openeval-adapter).
-        Before filing, check the README's Framework Adapters table and `adapters/` — 65 packages already exist —
+        Before filing, check the README's Framework Adapters table and `adapters/` — 66 packages already exist —
         and [issue #6](https://github.com/adhabnr-ux/evalport/issues/6) ("Adapters wanted").
         The full checklist for building one is in
         [CONTRIBUTING.md → Adding a New Converter](https://github.com/adhabnr-ux/evalport/blob/main/.github/CONTRIBUTING.md#adding-a-new-converter).
