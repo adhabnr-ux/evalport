@@ -1,0 +1,58 @@
+{
+  "what": "Two invocations of FrontierOR's one_shot_eval.py Quick Start path, re-running the pre-generated programs shipped in samples/oneshot_code (no LLM calls) on public instances of the Hugging Face dataset. Every number in examples/output/ comes from these two CSVs plus the public reference rows in gurobi_references_subset.csv.",
+  "frontieror_commit": "Minw913/FrontierOR@bc1bddebc4bbd97f246ceddf0056296a4ac87fcc",
+  "dataset": "SmartOR/FrontierOR (resolves to frontieror/FrontierOR) @ 9f5cd5436f7f4e013dfa81aebea77a1cc98628b8, lastModified 2026-09-28T00:15:24Z; only tasks/{bierwirth2017,liao2020,walteros2020} and metadata/ downloaded",
+  "invocations": [
+    {
+      "command": "python -u one_shot_eval.py --task-plan-json task_plan_non_gurobi.json --reuse-code all --code-root samples/oneshot_code --exec-mode bare --instance_workers 1 --results_csv eval_results_quickstart.csv",
+      "plan": "task_plan_non_gurobi.json: the 11 (paper, model) sample programs that do not import gurobipy, instances tiny + large_1",
+      "started_at": "2026-09-29T18:24:54Z",
+      "csv_written_at": "2026-09-29T18:25:42Z",
+      "output": "eval_results_quickstart.csv"
+    },
+    {
+      "command": "python -u one_shot_eval.py --task-plan-json task_plan_gurobi_tiny.json --reuse-code all --code-root samples/oneshot_code --exec-mode bare --instance_workers 1 --results_csv eval_results_quickstart_gurobi_tiny.csv",
+      "plan": "task_plan_gurobi_tiny.json: the 10 remaining sample programs for these papers (all import gurobipy), tiny only",
+      "started_at": "2026-09-29T18:26:56Z",
+      "csv_written_at": "2026-09-29T18:34:03Z",
+      "output": "eval_results_quickstart_gurobi_tiny.csv"
+    }
+  ],
+  "settings": {
+    "time_limit_seconds": 300,
+    "note": "one_shot_eval.py's --time_limit default, applied to tiny and large_1 alike (the Quick Start passes no time flags). The paper's protocol uses 3600 s for large instances, so large_1 here is a shorter budget than the paper's.",
+    "exec_mode": "bare",
+    "max_debug_retries": 5,
+    "max_correct_retries": 0
+  },
+  "environment": {
+    "python": "3.13.13",
+    "gurobipy": "12.0.3 from PyPI, no GRB_LICENSE_FILE (size-limited pip license)",
+    "cpus": 2,
+    "memory_gb": 7
+  },
+  "excluded_from_export": {
+    "rows": [
+      [
+        "liao2020",
+        "claude-opus-4.6",
+        "tiny"
+      ],
+      [
+        "walteros2020",
+        "llama-4-maverick",
+        "tiny"
+      ],
+      [
+        "walteros2020",
+        "qwen3-coder-plus",
+        "tiny"
+      ]
+    ],
+    "reason": "runtime_error caused by this environment, not by the programs: the run log shows 'gurobipy._exception.GurobiError: Model too large for size-limited license' for each. The rows stay in the CSV verbatim; export_example.py skips them."
+  },
+  "observations": [
+    "The four non-Gurobi liao2020 samples and two Gurobi-based ones (gemini-3.1-pro-preview, qwen3-coder-plus) are rejected by the dataset's hardened checker: 'missing required solution field(s): c_g, c_o, c_w, cost_structure, model_variables'.",
+    "bierwirth2017/deepseek-r1 timed out at 300 s on tiny in this 2-vCPU environment."
+  ]
+}

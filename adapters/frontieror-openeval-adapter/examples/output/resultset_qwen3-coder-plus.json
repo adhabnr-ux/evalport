@@ -1,0 +1,350 @@
+{
+  "version": "1.0.0-rc.5",
+  "suite_id": "frontieror_quickstart_samples",
+  "run_id": "frontieror-quickstart-samples-2026-09-29/qwen3-coder-plus",
+  "started_at": "2026-09-29T18:24:54Z",
+  "results": [
+    {
+      "test_case_id": "bierwirth2017:tiny",
+      "passed": false,
+      "grader_results": [
+        {
+          "grader_id": "gr_frontieror_quality_only",
+          "type": "custom",
+          "score": null,
+          "passed": false,
+          "metadata": {
+            "frontieror": {
+              "signed_gap": null,
+              "stage_boundary": 0.01,
+              "is_staged_qte": false,
+              "formula": "min(1, max(0, 1 - g))"
+            }
+          },
+          "reason": "undefined: solution not feasible, so its objective is not a valid objective"
+        },
+        {
+          "grader_id": "gr_frontieror_staged_qte",
+          "type": "custom",
+          "score": null,
+          "passed": false,
+          "reason": "staged_qte=0.0 (stage 0); not placed in the [0,1] score slot because staged_qte is unbounded above",
+          "metadata": {
+            "frontieror": {
+              "stage_id": 0,
+              "quality_part": 0.0,
+              "speed_part": 0.0,
+              "signed_gap": 1.0,
+              "beat_amount": 0.0,
+              "matched": false,
+              "beat_gurobi": false,
+              "reason": "infeasible",
+              "staged_qte": 0.0,
+              "contract_version": "staged-qte-v1",
+              "stage_boundary": 0.01,
+              "scorer_source": "upstream StagedQteScorer",
+              "score_slot": "null: staged_qte is unbounded above and is not clamped or rescaled",
+              "signed_gap_note": "1.0 is FrontierOR's sentinel for stage 0, not a measured gap"
+            }
+          }
+        },
+        {
+          "grader_id": "gr_frontieror_binary_qte",
+          "type": "custom",
+          "score": 0.0,
+          "passed": false,
+          "metadata": {
+            "frontieror": {
+              "quality_ok": false,
+              "fast_enough": true,
+              "gap": 0.817934,
+              "gap_threshold": 0.01,
+              "proven_zero_optimum_tolerance": null,
+              "candidate_effective_time_seconds": 0.06,
+              "reference_effective_time_seconds": 3.75,
+              "time_tolerance_seconds": 0.01,
+              "in_paper_beat_gurobi_1_grid": false,
+              "tiny_gate": "not_applicable"
+            }
+          }
+        }
+      ],
+      "metadata": {
+        "frontieror": {
+          "paper_id": "bierwirth2017",
+          "instance": "tiny",
+          "model": "qwen3-coder-plus",
+          "direction": "min",
+          "input_source": "one_shot_csv",
+          "feasible": false,
+          "status": "fail",
+          "fail_reason": "infeasible",
+          "candidate_objective": 3994.0,
+          "candidate_time_seconds": 0.06,
+          "candidate_time_limit_seconds": 300.0,
+          "candidate_time_limit_source": "candidate_time_limits argument",
+          "reference_objective": 2197.0,
+          "reference_runtime_seconds": 3.75,
+          "reference_time_limit_seconds": 300.0,
+          "reference_status": "optimal",
+          "visibility": "public (instance is in the dataset's public gurobi_references table)",
+          "error_message": "Solution is INFEASIBLE Violations: Job 1, op 1->2: s[2] (143.0) < s[1]+p[1] (205.0); Job 3, op 1->2: s[2] (206.0) < s[1]+p[1] (235.0); Job 9, op 1->2: s[2] (256.0) < s[1]+p[1] (289.0)"
+        }
+      },
+      "duration_ms": 60
+    },
+    {
+      "test_case_id": "bierwirth2017:large_1",
+      "passed": false,
+      "grader_results": [
+        {
+          "grader_id": "gr_frontieror_quality_only",
+          "type": "custom",
+          "score": null,
+          "passed": false,
+          "metadata": {
+            "frontieror": {
+              "signed_gap": null,
+              "stage_boundary": 0.01,
+              "is_staged_qte": false,
+              "formula": "min(1, max(0, 1 - g))"
+            }
+          },
+          "reason": "undefined: not run (tiny-instance gate failed)"
+        },
+        {
+          "grader_id": "gr_frontieror_staged_qte",
+          "type": "custom",
+          "score": null,
+          "passed": false,
+          "reason": "staged_qte=0.0 (stage 0); not placed in the [0,1] score slot because staged_qte is unbounded above",
+          "metadata": {
+            "frontieror": {
+              "stage_id": 0,
+              "quality_part": 0.0,
+              "speed_part": 0.0,
+              "signed_gap": 1.0,
+              "beat_amount": 0.0,
+              "matched": false,
+              "beat_gurobi": false,
+              "reason": "infeasible",
+              "staged_qte": 0.0,
+              "contract_version": "staged-qte-v1",
+              "stage_boundary": 0.01,
+              "scorer_source": "upstream StagedQteScorer",
+              "score_slot": "null: staged_qte is unbounded above and is not clamped or rescaled",
+              "signed_gap_note": "1.0 is FrontierOR's sentinel for stage 0, not a measured gap"
+            }
+          }
+        },
+        {
+          "grader_id": "gr_frontieror_binary_qte",
+          "type": "custom",
+          "score": 0.0,
+          "passed": false,
+          "metadata": {
+            "frontieror": {
+              "quality_ok": false,
+              "fast_enough": false,
+              "gap": null,
+              "gap_threshold": 0.01,
+              "proven_zero_optimum_tolerance": null,
+              "candidate_effective_time_seconds": null,
+              "reference_effective_time_seconds": 3600.0,
+              "time_tolerance_seconds": 3.6,
+              "in_paper_beat_gurobi_1_grid": true,
+              "tiny_gate": "fail",
+              "excluded_by_tiny_gate": true
+            }
+          }
+        }
+      ],
+      "metadata": {
+        "frontieror": {
+          "paper_id": "bierwirth2017",
+          "instance": "large_1",
+          "model": "qwen3-coder-plus",
+          "direction": "min",
+          "input_source": "one_shot_csv",
+          "feasible": null,
+          "status": "gate_fail",
+          "fail_reason": "infeasible",
+          "candidate_objective": null,
+          "candidate_time_seconds": null,
+          "candidate_time_limit_seconds": 300.0,
+          "candidate_time_limit_source": "candidate_time_limits argument",
+          "reference_objective": 30879.999981,
+          "reference_runtime_seconds": 3600.35,
+          "reference_time_limit_seconds": 3600.0,
+          "reference_status": "feasible",
+          "visibility": "public (instance is in the dataset's public gurobi_references table)",
+          "error_message": "Skipped: tiny-instance gate failed on instance tiny"
+        }
+      }
+    },
+    {
+      "test_case_id": "liao2020:tiny",
+      "passed": false,
+      "grader_results": [
+        {
+          "grader_id": "gr_frontieror_quality_only",
+          "type": "custom",
+          "score": null,
+          "passed": false,
+          "metadata": {
+            "frontieror": {
+              "signed_gap": null,
+              "stage_boundary": 0.01,
+              "is_staged_qte": false,
+              "formula": "min(1, max(0, 1 - g))"
+            }
+          },
+          "reason": "undefined: solution not feasible, so its objective is not a valid objective"
+        },
+        {
+          "grader_id": "gr_frontieror_staged_qte",
+          "type": "custom",
+          "score": null,
+          "passed": false,
+          "reason": "staged_qte=0.0 (stage 0); not placed in the [0,1] score slot because staged_qte is unbounded above",
+          "metadata": {
+            "frontieror": {
+              "stage_id": 0,
+              "quality_part": 0.0,
+              "speed_part": 0.0,
+              "signed_gap": 1.0,
+              "beat_amount": 0.0,
+              "matched": false,
+              "beat_gurobi": false,
+              "reason": "infeasible",
+              "staged_qte": 0.0,
+              "contract_version": "staged-qte-v1",
+              "stage_boundary": 0.01,
+              "scorer_source": "upstream StagedQteScorer",
+              "score_slot": "null: staged_qte is unbounded above and is not clamped or rescaled",
+              "signed_gap_note": "1.0 is FrontierOR's sentinel for stage 0, not a measured gap"
+            }
+          }
+        },
+        {
+          "grader_id": "gr_frontieror_binary_qte",
+          "type": "custom",
+          "score": 0.0,
+          "passed": false,
+          "metadata": {
+            "frontieror": {
+              "quality_ok": false,
+              "fast_enough": true,
+              "gap": -0.967924,
+              "gap_threshold": 0.01,
+              "proven_zero_optimum_tolerance": null,
+              "candidate_effective_time_seconds": 0.11,
+              "reference_effective_time_seconds": 0.16487140953540802,
+              "time_tolerance_seconds": 0.01,
+              "in_paper_beat_gurobi_1_grid": false,
+              "tiny_gate": "not_applicable"
+            }
+          }
+        }
+      ],
+      "metadata": {
+        "frontieror": {
+          "paper_id": "liao2020",
+          "instance": "tiny",
+          "model": "qwen3-coder-plus",
+          "direction": "min",
+          "input_source": "one_shot_csv",
+          "feasible": false,
+          "status": "fail",
+          "fail_reason": "infeasible",
+          "candidate_objective": 40.5313,
+          "candidate_time_seconds": 0.11,
+          "candidate_time_limit_seconds": 300.0,
+          "candidate_time_limit_source": "candidate_time_limits argument",
+          "reference_objective": 1263.60121024,
+          "reference_runtime_seconds": 0.16487140953540802,
+          "reference_time_limit_seconds": 300.0,
+          "reference_status": "optimal",
+          "visibility": "public (instance is in the dataset's public gurobi_references table)",
+          "error_message": "Solution is INFEASIBLE Violations: missing required solution field(s): c_g, c_o, c_w, cost_structure, model_variables"
+        }
+      },
+      "duration_ms": 110
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "passed": 0,
+    "failed": 3,
+    "pass_rate": 0.0,
+    "by_grader": {
+      "gr_frontieror_quality_only": {
+        "passed": 0,
+        "failed": 3
+      },
+      "gr_frontieror_staged_qte": {
+        "passed": 0,
+        "failed": 3
+      },
+      "gr_frontieror_binary_qte": {
+        "passed": 0,
+        "failed": 3,
+        "avg_score": 0.0
+      }
+    }
+  },
+  "metadata": {
+    "frontieror": {
+      "source": "frontieror",
+      "adapter": "frontieror-openeval-adapter 0.1.0",
+      "contract": {
+        "schema_version": 1,
+        "contract_version": "staged-qte-v1",
+        "scorer": "staged_qte",
+        "stage_boundary": 0.01,
+        "scale_D": "abs(r) if abs(r)>=0.001 else max(abs(c),0.001)",
+        "per_instance_decimal_places": 6,
+        "aggregation": "arithmetic_mean_over_declared_instances; missing_or_failed_instance_score = 0.0"
+      },
+      "summary_note": "summary.avg_score is the EvalPort-style mean of the non-null quality_only scores, which is NOT a FrontierOR metric. FrontierOR's own aggregates are in metadata.frontieror.aggregates.",
+      "aggregates": {
+        "staged_qte_mean": 0.0,
+        "staged_qte_mean_rule": "contract: arithmetic mean over the results in this ResultSet, missing/failed instances = 0.0. Equals FrontierOR's aggregate only when every declared instance is present (declared_instances_complete).",
+        "declared_instances_complete": false,
+        "quality_only_mean_null_as_zero": 0.0,
+        "quality_only_mean_non_null": null,
+        "quality_only_null_count": 3,
+        "stage_counts": {
+          "0": 3,
+          "1": 0,
+          "2": 0
+        },
+        "binary_qte_large_cells": 1,
+        "binary_qte_large_passed": 0,
+        "binary_qte_large_rate": 0.0,
+        "binary_qte_rate_rule": "beat_gurobi_1 over the large_* results present. The paper divides by 5 x |papers| over a fixed anchor set, so this equals the paper's number only when all five large instances of every paper are present."
+      },
+      "staged_qte_scorer_sources": {
+        "upstream StagedQteScorer": 3
+      },
+      "visibility_policy": "Only instances in the public reference table are exported; reference data for hidden/trusted-only instances is never written.",
+      "non_public_results_omitted": 0,
+      "upstream_contract_version_checked": "staged-qte-v1",
+      "dataset_revision": "SmartOR/FrontierOR@9f5cd5436f7f4e013dfa81aebea77a1cc98628b8"
+    }
+  },
+  "completed_at": "2026-09-29T18:34:03Z",
+  "provider": {
+    "model": "qwen3-coder-plus"
+  },
+  "runner": {
+    "name": "FrontierOR one_shot_eval.py (--reuse-code all --code-root samples/oneshot_code --exec-mode bare)",
+    "version": "Minw913/FrontierOR@bc1bdde"
+  },
+  "group": {
+    "group_id": "frontieror-quickstart-samples-2026-09-29",
+    "role": "model",
+    "label": "qwen3-coder-plus",
+    "sequence": 6
+  }
+}

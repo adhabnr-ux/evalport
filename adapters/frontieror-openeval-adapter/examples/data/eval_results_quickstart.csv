@@ -1,0 +1,23 @@
+paper_id,model,instance,status,fail_reason,error,gap,delta_time,feasible,debug_retries,correction_retries,obj,time,aocc,first_status,first_fail_reason,first_gap,first_feasible,first_time,first_obj
+bierwirth2017,claude-opus-4.6,tiny,fail,infeasible,"Solution is INFEASIBLE Violations: Job 0, op 1->2: s[2] (86.0) < s[1]+p[1] (99.0); Job 1, op 1->2: s[2] (0.0) < s[1]+p[1] (117.0); Job 2, op 0->1: s[1] (0.0) < s[0]+p[0] (76.0); Job 2, op 1->2: s[2] (0.0) < s[1]+p[1] (55.0); Job 4, op 0->1: s[1] (65.0) < s[0]+p[0] (72.0)",-1.0,31.09,False,0,0,0.0,34.84,0.888029,fail,infeasible,-1.0,False,34.84,0.0
+bierwirth2017,claude-opus-4.6,large_1,gate_fail,infeasible,Skipped: tiny-instance gate failed on instance tiny,,,,0,0,,,1.0,,,,,,
+bierwirth2017,qwen3-coder-plus,tiny,fail,infeasible,"Solution is INFEASIBLE Violations: Job 1, op 1->2: s[2] (143.0) < s[1]+p[1] (205.0); Job 3, op 1->2: s[2] (206.0) < s[1]+p[1] (235.0); Job 9, op 1->2: s[2] (256.0) < s[1]+p[1] (289.0)",0.817934,-3.69,False,0,0,3994.0,0.06,1.0,fail,infeasible,0.817934,False,0.06,3994.0
+bierwirth2017,qwen3-coder-plus,large_1,gate_fail,infeasible,Skipped: tiny-instance gate failed on instance tiny,,,,0,0,,,1.0,,,,,,
+liao2020,deepseek-r1,tiny,fail,infeasible,"Solution is INFEASIBLE Violations: missing required solution field(s): c_g, c_o, c_w, cost_structure, model_variables",-0.927401,-0.1,False,0,0,91.736747,0.06,0.0,fail,infeasible,-0.927401,False,0.06,91.736747
+liao2020,deepseek-r1,large_1,gate_fail,infeasible,Skipped: tiny-instance gate failed on instance tiny,,,,0,0,,,1.0,,,,,,
+liao2020,gpt-5.3-codex,tiny,fail,infeasible,"Solution is INFEASIBLE Violations: missing required solution field(s): c_g, c_o, c_w, cost_structure, model_variables",-0.912058,-0.1,False,0,0,111.12304,0.06,0.016667,fail,infeasible,-0.912058,False,0.06,111.12304
+liao2020,gpt-5.3-codex,large_1,gate_fail,infeasible,Skipped: tiny-instance gate failed on instance tiny,,,,0,0,,,1.0,,,,,,
+liao2020,grok-4.20-beta,tiny,fail,infeasible,"Solution is INFEASIBLE Violations: missing required solution field(s): c_g, c_o, c_w, cost_structure, model_variables",-0.995331,-0.13,False,0,0,5.9,0.03,0.0,fail,infeasible,-0.995331,False,0.03,5.9
+liao2020,grok-4.20-beta,large_1,gate_fail,infeasible,Skipped: tiny-instance gate failed on instance tiny,,,,0,0,,,1.0,,,,,,
+liao2020,llama-4-maverick,tiny,fail,infeasible,"Solution is INFEASIBLE Violations: missing required solution field(s): c_g, c_o, c_w, cost_structure, model_variables",-0.923156,-0.09,False,0,0,97.10078,0.07,0.0,fail,infeasible,-0.923156,False,0.07,97.10078
+liao2020,llama-4-maverick,large_1,gate_fail,infeasible,Skipped: tiny-instance gate failed on instance tiny,,,,0,0,,,1.0,,,,,,
+walteros2020,claude-opus-4.6,tiny,pass,,,0.0,-6.35,True,0,0,7.0,0.06,0.333333,pass,,0.0,True,0.06,7.0
+walteros2020,claude-opus-4.6,large_1,pass,,,0.0,-37.52,True,0,0,35.0,0.06,0.266667,pass,,0.0,True,0.06,35.0
+walteros2020,deepseek-r1,tiny,pass,,,0.0,-6.35,True,0,0,7.0,0.06,0.457143,pass,,0.0,True,0.06,7.0
+walteros2020,deepseek-r1,large_1,pass,,,0.0,-37.46,True,0,0,35.0,0.12,0.025,pass,,0.0,True,0.12,35.0
+walteros2020,gemini-3.1-pro-preview,tiny,pass,,,0.0,-1.35,True,0,0,7.0,5.06,0.429136,pass,,0.0,True,5.06,7.0
+walteros2020,gemini-3.1-pro-preview,large_1,pass,,,0.0,-32.49,True,0,0,35.0,5.09,0.94288,pass,,0.0,True,5.09,35.0
+walteros2020,gpt-5.3-codex,tiny,pass,,,0.0,-6.35,True,0,0,7.0,0.06,0.861905,pass,,0.0,True,0.06,7.0
+walteros2020,gpt-5.3-codex,large_1,pass,,,0.0,-37.52,True,0,0,35.0,0.06,0.971905,pass,,0.0,True,0.06,35.0
+walteros2020,grok-4.20-beta,tiny,pass,,,0.0,-6.3,True,0,0,7.0,0.11,0.645455,pass,,0.0,True,0.11,7.0
+walteros2020,grok-4.20-beta,large_1,pass,,,0.0,-37.41,True,0,0,35.0,0.17,0.741176,pass,,0.0,True,0.17,35.0

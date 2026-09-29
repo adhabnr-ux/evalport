@@ -1,0 +1,47 @@
+[
+  {
+    "paper_id": "bierwirth2017",
+    "paper_title": "Extended GRASP for the Job Shop Scheduling Problem with Total Weighted Tardiness Objective",
+    "publication": "European Journal of Operational Research",
+    "year": 2017,
+    "direction": "min",
+    "problem_class": "Scheduling (Machine / Crew / Workforce)",
+    "category": "operational",
+    "formulation_type": "CP",
+    "application_field": "Manufacturing & Production",
+    "avg_num_var": 4710.0,
+    "avg_num_int_var": 4350.0,
+    "avg_num_constr": 9060.0,
+    "source_link": "https://doi.org/10.1016/j.ejor.2017.03.030"
+  },
+  {
+    "paper_id": "liao2020",
+    "paper_title": "A Distributionally Robust Optimization Approach for Outpatient Colonoscopy Scheduling",
+    "publication": "European Journal of Operational Research",
+    "year": 2020,
+    "direction": "min",
+    "problem_class": "Stochastic / Robust / Bilevel Optimization",
+    "category": "operational",
+    "formulation_type": "Stochastic/Robust/DRO",
+    "application_field": "Healthcare",
+    "avg_num_var": 6104.0,
+    "avg_num_int_var": 729.0,
+    "avg_num_constr": 18848.0,
+    "source_link": "https://doi.org/10.1016/j.ejor.2019.11.039"
+  },
+  {
+    "paper_id": "walteros2020",
+    "paper_title": "Why Is Maximum Clique Often Easy in Practice?",
+    "publication": "Operations Research",
+    "year": 2020,
+    "direction": "max",
+    "problem_class": "Graph Optimization",
+    "category": "planning",
+    "formulation_type": "BIP",
+    "application_field": "Foundational / Theoretical",
+    "avg_num_var": 3000.0,
+    "avg_num_int_var": 3000.0,
+    "avg_num_constr": 4497847.0,
+    "source_link": "https://pubsonline.informs.org/doi/10.1287/opre.2019.1970"
+  }
+]

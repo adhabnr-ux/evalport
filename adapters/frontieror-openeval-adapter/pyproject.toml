@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "frontieror-openeval-adapter"
+version = "0.1.0"
+description = "Convert FrontierOR (large-scale OR benchmark) results and public task instances to the EvalPort open evaluation format, keeping staged_qte unchanged"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["frontieror", "operations-research", "optimization", "benchmark", "evalport", "openeval", "llm", "evaluation"]
+classifiers = [
+"License :: OSI Approved :: Apache Software License",
+"Programming Language :: Python :: 3",
+"Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/frontieror-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Upstream = "https://github.com/Minw913/FrontierOR"
+Dataset = "https://huggingface.co/datasets/SmartOR/FrontierOR"
+
+[project.optional-dependencies]
+# No `frontieror` extra: FrontierOR is a research repository plus a Hugging
+# Face dataset, not a package on PyPI, so there is no version to pin. The
+# adapter reads FrontierOR's own output shapes (one-shot results CSV,
+# augment_results_with_staged_qte() dicts) and the dataset's metadata files
+# with the standard library. When a FrontierOR checkout is available
+# (frontieror_root=... or PYTHONPATH), it imports FrontierOR's own
+# StagedQteScorer instead of the built-in port, and the parity tests run
+# against it (set FRONTIEROR_ROOT). Those tests skip otherwise.
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

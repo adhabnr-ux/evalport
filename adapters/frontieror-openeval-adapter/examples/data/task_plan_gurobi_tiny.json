@@ -1,0 +1,12 @@
+{"groups": [
+ {"paper_id": "bierwirth2017", "model": "deepseek-r1", "instances": ["tiny"]},
+ {"paper_id": "bierwirth2017", "model": "gemini-3.1-pro-preview", "instances": ["tiny"]},
+ {"paper_id": "bierwirth2017", "model": "gpt-5.3-codex", "instances": ["tiny"]},
+ {"paper_id": "bierwirth2017", "model": "grok-4.20-beta", "instances": ["tiny"]},
+ {"paper_id": "bierwirth2017", "model": "llama-4-maverick", "instances": ["tiny"]},
+ {"paper_id": "liao2020", "model": "claude-opus-4.6", "instances": ["tiny"]},
+ {"paper_id": "liao2020", "model": "gemini-3.1-pro-preview", "instances": ["tiny"]},
+ {"paper_id": "liao2020", "model": "qwen3-coder-plus", "instances": ["tiny"]},
+ {"paper_id": "walteros2020", "model": "llama-4-maverick", "instances": ["tiny"]},
+ {"paper_id": "walteros2020", "model": "qwen3-coder-plus", "instances": ["tiny"]}
+]}
