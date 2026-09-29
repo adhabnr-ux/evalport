@@ -28,7 +28,7 @@
           "type": "custom",
           "score": null,
           "passed": false,
-          "reason": "staged_qte=0.0 (stage 0); not placed in the [0,1] score slot because staged_qte is unbounded above",
+          "reason": "staged_qte=0.0 (stage 0); not placed in the [0,1] score slot because staged_qte is unbounded above, so passed is false (EvalPort Rule 6); see metadata.frontieror.stage_id",
           "metadata": {
             "frontieror": {
               "stage_id": 0,
@@ -117,7 +117,7 @@
           "type": "custom",
           "score": null,
           "passed": false,
-          "reason": "staged_qte=0.0 (stage 0); not placed in the [0,1] score slot because staged_qte is unbounded above",
+          "reason": "staged_qte=0.0 (stage 0); not placed in the [0,1] score slot because staged_qte is unbounded above, so passed is false (EvalPort Rule 6); see metadata.frontieror.stage_id",
           "metadata": {
             "frontieror": {
               "stage_id": 0,
@@ -206,7 +206,7 @@
           "type": "custom",
           "score": null,
           "passed": false,
-          "reason": "staged_qte=0.0 (stage 0); not placed in the [0,1] score slot because staged_qte is unbounded above",
+          "reason": "staged_qte=0.0 (stage 0); not placed in the [0,1] score slot because staged_qte is unbounded above, so passed is false (EvalPort Rule 6); see metadata.frontieror.stage_id",
           "metadata": {
             "frontieror": {
               "stage_id": 0,
@@ -284,7 +284,7 @@
       },
       "gr_frontieror_staged_qte": {
         "passed": 0,
-        "failed": 3
+        "failed": 0
       },
       "gr_frontieror_binary_qte": {
         "passed": 0,
