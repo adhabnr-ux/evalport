@@ -13,7 +13,7 @@ function loadJson(p: string): unknown {
 
 if (cmd === "validate") {
   const file = args[1];
-  if (!file) { console.error("Usage: openeval validate <file> [--type=suite|testcase|grader|resultset]"); process.exit(1); }
+  if (!file) { console.error("Usage: evalport validate <file> [--type=suite|testcase|grader|resultset]"); process.exit(1); }
   const doc = loadJson(file);
   const tf = args.find(a => a.startsWith("--type="));
   const type = tf ? tf.split("=")[1] : "suite";
@@ -25,7 +25,7 @@ if (cmd === "validate") {
 }
 else if (cmd === "convert") {
   const [from,to,input,output] = args.slice(1);
-  if (!from||!to||!input) { console.error("Usage: openeval convert <from> <to> <input> [output]"); process.exit(1); }
+  if (!from||!to||!input) { console.error("Usage: evalport convert <from> <to> <input> [output]"); process.exit(1); }
   const doc = loadJson(input);
   if (from==="promptfoo"&&to==="openeval") {
     const r = fromPromptfoo(doc);
@@ -48,7 +48,7 @@ else if (cmd === "init") {
 }
 else if (cmd === "summary") {
   const file = args[1];
-  if (!file) { console.error("Usage: openeval summary <resultset.json>"); process.exit(1); }
+  if (!file) { console.error("Usage: evalport summary <resultset.json>"); process.exit(1); }
   const rs: any = loadJson(file);
   const s = rs.summary || computeSummary(rs.results);
   console.log("Total: "+(s.total||s.passed+s.failed));
