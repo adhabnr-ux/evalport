@@ -233,11 +233,23 @@ class TestMemberToResult:
         assert "1 assertion(s) unavailable" in gr["reason"]
 
     def test_failed_with_not_scored(self):
+        # A real verdict with no numeric score is encoded as a binary score
+        # (EvalPort Rule 6 reserves score: null for "not verified").
         member = make_member(verdict="failed", score={"state": "not-scored"})
         result = member_to_result(member, test_case_id="eval_1")
         gr = result["grader_results"][0]
-        assert gr["score"] is None
+        assert gr["score"] == 0.0
         assert gr["passed"] is False
+        assert gr["metadata"]["niceeval"]["score_source"] == "verdict"
+        assert gr["metadata"]["niceeval"]["score_raw"] == {"state": "not-scored"}
+
+    def test_passed_with_not_scored_is_a_binary_1_not_null(self):
+        member = make_member(verdict="passed", score={"state": "not-scored"})
+        result = member_to_result(member, test_case_id="eval_1")
+        gr = result["grader_results"][0]
+        assert gr["score"] == 1.0 and gr["passed"] is True
+        assert result["passed"] is True
+        assert gr["metadata"]["niceeval"]["score_source"] == "verdict"
 
     def test_errored_execution_failure(self):
         member = make_member(verdict="errored", outcome="errored")
@@ -256,31 +268,36 @@ class TestMemberToResult:
         result = member_to_result(member, test_case_id="eval_1")
         assert result["passed"] is False
         assert result["grader_results"] == []
-        assert result["error"]["type"] == "assertion_error"
+        assert result["error"]["type"] == "runner_error"
+        assert result["metadata"]["niceeval"]["error_kind"] == "assertion_error"
 
     def test_skipped(self):
         member = make_member(verdict="skipped", outcome="completed")
         result = member_to_result(member, test_case_id="eval_1")
         assert result["passed"] is False
         assert result["grader_results"] == []
-        assert result["error"]["type"] == "skipped"
+        assert result["error"]["type"] == "runner_error"
+        assert result["metadata"]["niceeval"]["error_kind"] == "skipped"
 
     def test_not_dispatched_never_evaluated(self):
         member = make_member(verdict=None, outcome=None, state="not-dispatched", locator=None)
         result = member_to_result(member, test_case_id="eval_1")
         assert result["passed"] is False
         assert result["grader_results"] == []
-        assert result["error"]["type"] == "not_evaluated"
+        assert result["error"]["type"] == "runner_error"
+        assert result["metadata"]["niceeval"]["error_kind"] == "not_evaluated"
 
     def test_missing_state_never_evaluated(self):
         member = make_member(verdict=None, outcome=None, state="missing", locator=None)
         result = member_to_result(member, test_case_id="eval_1")
-        assert result["error"]["type"] == "not_evaluated"
+        assert result["error"]["type"] == "runner_error"
+        assert result["metadata"]["niceeval"]["error_kind"] == "not_evaluated"
 
     def test_interrupted_state_never_evaluated(self):
         member = make_member(verdict=None, outcome=None, state="interrupted", locator=None)
         result = member_to_result(member, test_case_id="eval_1")
-        assert result["error"]["type"] == "not_evaluated"
+        assert result["error"]["type"] == "runner_error"
+        assert result["metadata"]["niceeval"]["error_kind"] == "not_evaluated"
 
     def test_attempt_ordinal_converted_to_one_based(self):
         # NiceEval's attemptOrdinal is zero-based; EvalPort's Result.attempt
