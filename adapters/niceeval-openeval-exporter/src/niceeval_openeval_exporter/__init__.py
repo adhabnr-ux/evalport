@@ -351,8 +351,11 @@ def member_to_result(
     if verdict is None or state in _NOT_EXECUTED_STATES:
         result["passed"] = False
         result["grader_results"] = []
+        # error.type is a closed enum in EvalPort (timeout | provider_error |
+        # runner_error); the finer NiceEval-side kind is metadata.niceeval.error_kind.
+        niceeval_meta["error_kind"] = "not_evaluated"
         result["error"] = {
-            "type": "not_evaluated",
+            "type": "runner_error",
             "message": (
                 f"NiceEval member state={state!r}, outcome={outcome!r}: "
                 "this eval attempt has no verdict because it was never "
@@ -365,8 +368,9 @@ def member_to_result(
     if verdict == "skipped":
         result["passed"] = False
         result["grader_results"] = []
+        niceeval_meta["error_kind"] = "skipped"
         result["error"] = {
-            "type": "skipped",
+            "type": "runner_error",
             "message": "NiceEval verdict=skipped: this attempt's eval was explicitly skipped and was never evaluated against its assertions.",
         }
         return result
@@ -382,7 +386,7 @@ def member_to_result(
                 f"NiceEval attempt outcome={outcome!r}: execution did not "
                 "complete, so its assertions were never evaluated."
             )
-            error_type = "runner_error"
+            error_kind = "runner_error"
         else:
             message = (
                 "NiceEval verdict=errored with a completed execution: a "
@@ -390,8 +394,9 @@ def member_to_result(
                 "during evaluation (see attempt.get's `limitations` for "
                 "detail, not available at this layer)."
             )
-            error_type = "assertion_error"
-        result["error"] = {"type": error_type, "message": message}
+            error_kind = "assertion_error"
+        niceeval_meta["error_kind"] = error_kind
+        result["error"] = {"type": "runner_error", "message": message}
         return result
 
     # -- Passed / failed: a real verdict was computed. -----------------------
@@ -403,6 +408,17 @@ def member_to_result(
             niceeval_meta["assertions"] = entries
 
     passed = verdict == "passed"
+    if score is None:
+        # NiceEval computed a real passed/failed verdict but no numeric score
+        # (score state "not-scored", or no usable earned/possible). EvalPort
+        # Validation Rule 6 reserves score: null for "not verified" and
+        # requires passed: false with it, so a verified verdict is encoded as
+        # the binary score it is -- 1.0 for passed, 0.0 for failed -- and
+        # marked as such; score_raw still records NiceEval's own state.
+        score = 1.0 if passed else 0.0
+        niceeval_meta["score_source"] = "verdict"
+    else:
+        niceeval_meta["score_source"] = "earned/possible"
     reason_parts = [f"NiceEval verdict={verdict}"]
     if score_raw.get("state") in ("complete", "unavailable"):
         reason_parts.append(f"score={score_raw.get('earned')}/{score_raw.get('possible')}")
