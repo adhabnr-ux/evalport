@@ -1,0 +1,226 @@
+{
+  "version": "1.0.0-rc.5",
+  "id": "frontieror_quickstart_samples",
+  "graders": [
+    {
+      "id": "gr_frontieror_quality_only",
+      "type": "custom",
+      "description": "Normalized quality-only score min(1, max(0, 1 - g)) on the staged-qte-v1 signed gap g. NOT FrontierOR's staged_qte: the speed term is dropped and both sides are clamped to fit [0, 1].",
+      "params": {
+        "handler": "frontieror:quality_only",
+        "formula": "min(1, max(0, 1 - g))",
+        "signed_gap": "g = (c - r)/D (min) or (r - c)/D (max); D = abs(r) if abs(r) >= 0.001 else max(abs(c), 0.001)",
+        "pass_rule": "feasible and max(0, g) <= stage_boundary",
+        "stage_boundary": 0.01,
+        "is_staged_qte": false,
+        "undefined_score": "null (infeasible, not run, or missing objective/reference)"
+      }
+    },
+    {
+      "id": "gr_frontieror_staged_qte",
+      "type": "custom",
+      "description": "FrontierOR staged_qte (staged-qte-v1), unchanged. Unbounded above ([0, 2 + beat_amount]), so the EvalPort score slot is always null and the raw value is in metadata.frontieror.staged_qte.",
+      "params": {
+        "handler": "frontieror:staged_qte",
+        "contract_version": "staged-qte-v1",
+        "stage_boundary": 0.01,
+        "stage_1": "max(0, 1 - g) when max(0, g) > b",
+        "stage_2": "(1 - g) + max(0, 1 - t/tau) when max(0, g) <= b",
+        "score_slot": "null; raw value in metadata.frontieror.staged_qte",
+        "pass_rule": "stage_id == 2"
+      }
+    },
+    {
+      "id": "gr_frontieror_binary_qte",
+      "type": "custom",
+      "description": "The FrontierOR paper's binary QTE (beat_gurobi_1): feasible, gap <= 1%, and budget-capped wall time no slower than Gurobi within the clock tolerance.",
+      "params": {
+        "handler": "frontieror:beat_gurobi_1",
+        "gap_threshold": 0.01,
+        "time_tolerance_seconds": 0.01,
+        "time_tolerance_fraction": 0.001,
+        "candidate_time_cap_seconds_large": 3600.0,
+        "source": "scripts/compute_benchmark_main_metrics.py"
+      }
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "bierwirth2017:tiny",
+      "input": "# Problem Description\n\nA job shop contains a set of jobs and a set of machines. Each job consists of exactly as many operations as there are machines, with each operation assigned to a distinct machine, so that every job visits every machine exactly once. The order in which a job visits the machines is prescribed and may differ from job to job; this sequence is called the job's technological sequence. Each operation has a known processing time that depends on both the job and the machine. Every job has a release date (the earliest time its first operation may begin), a due date (the target completion time), and a positive weight reflecting the job's priority.\n\nThe input data for an instance specifies the number of jobs, the number of machines, and, for every job, its weight, release date, due date, and the ordered list of operations with their respective machines and processing times.\n\nThe scheduler must determine, for every operation, when it starts processing. Equivalently, for every machine the scheduler must fix the order in which the jobs assigned to that machine are processed. A schedule is valid when four conditions hold simultaneously. First, the first operation of a job may not start before that job's release date. Second, the operations of each job must be processed in the prescribed technological order: the next operation of a job cannot start until the preceding operation of the same job has finished, where finishing means the start time plus the processing time. Third, each machine can process at most one operation at a time, so for every pair of operations sharing a machine one must finish entirely before the other begins. Fourth, the completion time of a job equals the start time of its last operation plus that operation's processing time, and the tardiness of a job is the amount by which its completion time exceeds its due date, or zero if the job finishes on time or early.\n\nThe goal is to find a valid schedule that minimizes the total weighted tardiness, which is the sum over all jobs of each job's weight multiplied by its tardiness.\n",
+      "graders": [
+        "gr_frontieror_quality_only",
+        "gr_frontieror_staged_qte",
+        "gr_frontieror_binary_qte"
+      ],
+      "metadata": {
+        "frontieror": {
+          "paper_id": "bierwirth2017",
+          "instance": "tiny",
+          "visibility": "public",
+          "instance_path": "tasks/bierwirth2017/instance/tiny_instance.json",
+          "instance_schema_path": "tasks/bierwirth2017/instance_schema.json",
+          "solution_schema_path": "tasks/bierwirth2017/solution_schema.json",
+          "mathematical_formulation_path": "tasks/bierwirth2017/mathematical_formulation.md",
+          "direction": "min",
+          "paper_title": "Extended GRASP for the Job Shop Scheduling Problem with Total Weighted Tardiness Objective",
+          "publication": "European Journal of Operational Research",
+          "year": 2017,
+          "problem_class": "Scheduling (Machine / Crew / Workforce)",
+          "formulation_type": "CP",
+          "application_field": "Manufacturing & Production",
+          "source_link": "https://doi.org/10.1016/j.ejor.2017.03.030"
+        }
+      }
+    },
+    {
+      "id": "bierwirth2017:large_1",
+      "input": "# Problem Description\n\nA job shop contains a set of jobs and a set of machines. Each job consists of exactly as many operations as there are machines, with each operation assigned to a distinct machine, so that every job visits every machine exactly once. The order in which a job visits the machines is prescribed and may differ from job to job; this sequence is called the job's technological sequence. Each operation has a known processing time that depends on both the job and the machine. Every job has a release date (the earliest time its first operation may begin), a due date (the target completion time), and a positive weight reflecting the job's priority.\n\nThe input data for an instance specifies the number of jobs, the number of machines, and, for every job, its weight, release date, due date, and the ordered list of operations with their respective machines and processing times.\n\nThe scheduler must determine, for every operation, when it starts processing. Equivalently, for every machine the scheduler must fix the order in which the jobs assigned to that machine are processed. A schedule is valid when four conditions hold simultaneously. First, the first operation of a job may not start before that job's release date. Second, the operations of each job must be processed in the prescribed technological order: the next operation of a job cannot start until the preceding operation of the same job has finished, where finishing means the start time plus the processing time. Third, each machine can process at most one operation at a time, so for every pair of operations sharing a machine one must finish entirely before the other begins. Fourth, the completion time of a job equals the start time of its last operation plus that operation's processing time, and the tardiness of a job is the amount by which its completion time exceeds its due date, or zero if the job finishes on time or early.\n\nThe goal is to find a valid schedule that minimizes the total weighted tardiness, which is the sum over all jobs of each job's weight multiplied by its tardiness.\n",
+      "graders": [
+        "gr_frontieror_quality_only",
+        "gr_frontieror_staged_qte",
+        "gr_frontieror_binary_qte"
+      ],
+      "metadata": {
+        "frontieror": {
+          "paper_id": "bierwirth2017",
+          "instance": "large_1",
+          "visibility": "public",
+          "instance_path": "tasks/bierwirth2017/instance/large_instance_1.json",
+          "instance_schema_path": "tasks/bierwirth2017/instance_schema.json",
+          "solution_schema_path": "tasks/bierwirth2017/solution_schema.json",
+          "mathematical_formulation_path": "tasks/bierwirth2017/mathematical_formulation.md",
+          "direction": "min",
+          "paper_title": "Extended GRASP for the Job Shop Scheduling Problem with Total Weighted Tardiness Objective",
+          "publication": "European Journal of Operational Research",
+          "year": 2017,
+          "problem_class": "Scheduling (Machine / Crew / Workforce)",
+          "formulation_type": "CP",
+          "application_field": "Manufacturing & Production",
+          "source_link": "https://doi.org/10.1016/j.ejor.2017.03.030"
+        }
+      }
+    },
+    {
+      "id": "liao2020:tiny",
+      "input": "# Problem Description\n\nBenchmark cost convention: when an instance contains several named cost structures, the first declared structure (`Cost1` in all released instances) is authoritative. The solution repeats its name and its `c_w`, `c_g`, and `c_o` values, and the checker verifies them against the instance.\n\nAn outpatient procedure clinic schedules P colonoscopy patients for a single provider within a session of L minutes. Each patient must be assigned to exactly one appointment position in the sequence (positions one through P), and each position receives exactly one patient. The clinic must also determine the scheduled start time for each position. The first position always starts at time zero, every start time must lie between zero and L, and start times must be non-decreasing across positions.\n\nOn the day of service, three sources of variability affect operations and are treated as uncertain random parameters: (i) the quality of each patient's bowel preparation, which is either adequate or inadequate; (ii) the procedure duration, which has a known lower and upper bound and a known mean separately for the adequate-preparation case and for the inadequate-preparation case; (iii) each patient's deviation from the scheduled arrival time, which has known lower/upper bounds and a known mean. For each patient p the input data specifies the mean procedure duration with adequate preparation mu_A_p and with inadequate preparation mu_I_p, the lower and upper bounds on duration with adequate preparation d_AL_p and d_AU_p, the lower and upper bounds with inadequate preparation d_IL_p and d_IU_p, the probability of adequate preparation mu_q_p, the mean arrival-time deviation mu_u_p, and the lower and upper bounds on arrival-time deviation u_L_p and u_U_p. Only these per-patient marginal means and support intervals are given; the full joint distribution of preparation quality, procedure durations, and arrival deviations across all patients is NOT known.\n\nAfter a schedule is realized, each position incurs operational costs as follows. A patient's waiting time at a given position is the amount by which the patient's actual procedure-ready time (the later of its arrival time and the completion of the preceding patient's procedure) exceeds the scheduled start time of that position. A provider idle time between two consecutive positions is the amount by which the scheduled start of the later position exceeds the completion of the earlier position plus any incurred waiting. Provider overtime is the amount by which the completion time of the final position exceeds L. The cost structure specifies a unit waiting cost c_w_i per appointment position i, a unit provider idle cost c_g_i per gap between consecutive positions, and a unit provider overtime cost c_o. The total operational cost for a given realization of uncertainty is the sum over all positions of the unit waiting cost times the waiting time, plus the sum over all gaps of the unit idle cost times the idle time, plus the unit overtime cost times the overtime.\n\nThe clinic seeks an appointment assignment and schedule that minimizes the worst-case expected total operational cost, where the worst case is taken over all joint probability distributions of preparation quality, procedure durations, and arrival-time deviations that are consistent with the given patient-level means and support intervals. Equivalently, let the set of distributions consistent with the given marginal means and support intervals form an ambiguity set; the objective is the supremum over distributions in this ambiguity set of the expected operational cost induced by the chosen assignment and schedule. The clinic chooses the assignment and schedule to minimize this worst-case expected cost.\n",
+      "graders": [
+        "gr_frontieror_quality_only",
+        "gr_frontieror_staged_qte",
+        "gr_frontieror_binary_qte"
+      ],
+      "metadata": {
+        "frontieror": {
+          "paper_id": "liao2020",
+          "instance": "tiny",
+          "visibility": "public",
+          "instance_path": "tasks/liao2020/instance/tiny_instance.json",
+          "instance_schema_path": "tasks/liao2020/instance_schema.json",
+          "solution_schema_path": "tasks/liao2020/solution_schema.json",
+          "mathematical_formulation_path": "tasks/liao2020/mathematical_formulation.md",
+          "direction": "min",
+          "paper_title": "A Distributionally Robust Optimization Approach for Outpatient Colonoscopy Scheduling",
+          "publication": "European Journal of Operational Research",
+          "year": 2020,
+          "problem_class": "Stochastic / Robust / Bilevel Optimization",
+          "formulation_type": "Stochastic/Robust/DRO",
+          "application_field": "Healthcare",
+          "source_link": "https://doi.org/10.1016/j.ejor.2019.11.039"
+        }
+      }
+    },
+    {
+      "id": "liao2020:large_1",
+      "input": "# Problem Description\n\nBenchmark cost convention: when an instance contains several named cost structures, the first declared structure (`Cost1` in all released instances) is authoritative. The solution repeats its name and its `c_w`, `c_g`, and `c_o` values, and the checker verifies them against the instance.\n\nAn outpatient procedure clinic schedules P colonoscopy patients for a single provider within a session of L minutes. Each patient must be assigned to exactly one appointment position in the sequence (positions one through P), and each position receives exactly one patient. The clinic must also determine the scheduled start time for each position. The first position always starts at time zero, every start time must lie between zero and L, and start times must be non-decreasing across positions.\n\nOn the day of service, three sources of variability affect operations and are treated as uncertain random parameters: (i) the quality of each patient's bowel preparation, which is either adequate or inadequate; (ii) the procedure duration, which has a known lower and upper bound and a known mean separately for the adequate-preparation case and for the inadequate-preparation case; (iii) each patient's deviation from the scheduled arrival time, which has known lower/upper bounds and a known mean. For each patient p the input data specifies the mean procedure duration with adequate preparation mu_A_p and with inadequate preparation mu_I_p, the lower and upper bounds on duration with adequate preparation d_AL_p and d_AU_p, the lower and upper bounds with inadequate preparation d_IL_p and d_IU_p, the probability of adequate preparation mu_q_p, the mean arrival-time deviation mu_u_p, and the lower and upper bounds on arrival-time deviation u_L_p and u_U_p. Only these per-patient marginal means and support intervals are given; the full joint distribution of preparation quality, procedure durations, and arrival deviations across all patients is NOT known.\n\nAfter a schedule is realized, each position incurs operational costs as follows. A patient's waiting time at a given position is the amount by which the patient's actual procedure-ready time (the later of its arrival time and the completion of the preceding patient's procedure) exceeds the scheduled start time of that position. A provider idle time between two consecutive positions is the amount by which the scheduled start of the later position exceeds the completion of the earlier position plus any incurred waiting. Provider overtime is the amount by which the completion time of the final position exceeds L. The cost structure specifies a unit waiting cost c_w_i per appointment position i, a unit provider idle cost c_g_i per gap between consecutive positions, and a unit provider overtime cost c_o. The total operational cost for a given realization of uncertainty is the sum over all positions of the unit waiting cost times the waiting time, plus the sum over all gaps of the unit idle cost times the idle time, plus the unit overtime cost times the overtime.\n\nThe clinic seeks an appointment assignment and schedule that minimizes the worst-case expected total operational cost, where the worst case is taken over all joint probability distributions of preparation quality, procedure durations, and arrival-time deviations that are consistent with the given patient-level means and support intervals. Equivalently, let the set of distributions consistent with the given marginal means and support intervals form an ambiguity set; the objective is the supremum over distributions in this ambiguity set of the expected operational cost induced by the chosen assignment and schedule. The clinic chooses the assignment and schedule to minimize this worst-case expected cost.\n",
+      "graders": [
+        "gr_frontieror_quality_only",
+        "gr_frontieror_staged_qte",
+        "gr_frontieror_binary_qte"
+      ],
+      "metadata": {
+        "frontieror": {
+          "paper_id": "liao2020",
+          "instance": "large_1",
+          "visibility": "public",
+          "instance_path": "tasks/liao2020/instance/large_instance_1.json",
+          "instance_schema_path": "tasks/liao2020/instance_schema.json",
+          "solution_schema_path": "tasks/liao2020/solution_schema.json",
+          "mathematical_formulation_path": "tasks/liao2020/mathematical_formulation.md",
+          "direction": "min",
+          "paper_title": "A Distributionally Robust Optimization Approach for Outpatient Colonoscopy Scheduling",
+          "publication": "European Journal of Operational Research",
+          "year": 2020,
+          "problem_class": "Stochastic / Robust / Bilevel Optimization",
+          "formulation_type": "Stochastic/Robust/DRO",
+          "application_field": "Healthcare",
+          "source_link": "https://doi.org/10.1016/j.ejor.2019.11.039"
+        }
+      }
+    },
+    {
+      "id": "walteros2020:tiny",
+      "input": "# Problem Description\n\nGiven a simple, undirected graph specified by a set of vertices numbered from zero up to one less than the total vertex count, and a set of undirected edges where each edge connects two distinct vertices with no parallel edges or self-loops, the task is to select a subset of vertices of maximum size such that every pair of selected vertices is directly connected by an edge. Such a fully interconnected subset is called a clique. The input data provides the number of vertices, the number of edges, and the complete list of edges as pairs of vertex indices. Additional metadata may include the graph's maximum degree, its degeneracy (the smallest value d such that every subgraph contains a vertex of degree at most d), the known maximum clique size, and the clique-core gap (defined as the degeneracy plus one minus the maximum clique size), but these are supplementary and not required for stating the problem.\n\nThe sole decision to be made is which vertices to include in the chosen subset. The only rule governing this selection is that for every pair of vertices in the subset, an edge must exist between them in the given graph. Equivalently, for every pair of vertices in the graph that are not connected by an edge (a \"non-edge\"), at most one of the two may be selected. The goal is to maximize the total number of vertices in the selected subset.\n",
+      "graders": [
+        "gr_frontieror_quality_only",
+        "gr_frontieror_staged_qte",
+        "gr_frontieror_binary_qte"
+      ],
+      "metadata": {
+        "frontieror": {
+          "paper_id": "walteros2020",
+          "instance": "tiny",
+          "visibility": "public",
+          "instance_path": "tasks/walteros2020/instance/tiny_instance.json",
+          "instance_schema_path": "tasks/walteros2020/instance_schema.json",
+          "solution_schema_path": "tasks/walteros2020/solution_schema.json",
+          "mathematical_formulation_path": "tasks/walteros2020/mathematical_formulation.md",
+          "direction": "max",
+          "paper_title": "Why Is Maximum Clique Often Easy in Practice?",
+          "publication": "Operations Research",
+          "year": 2020,
+          "problem_class": "Graph Optimization",
+          "formulation_type": "BIP",
+          "application_field": "Foundational / Theoretical",
+          "source_link": "https://pubsonline.informs.org/doi/10.1287/opre.2019.1970"
+        }
+      }
+    },
+    {
+      "id": "walteros2020:large_1",
+      "input": "# Problem Description\n\nGiven a simple, undirected graph specified by a set of vertices numbered from zero up to one less than the total vertex count, and a set of undirected edges where each edge connects two distinct vertices with no parallel edges or self-loops, the task is to select a subset of vertices of maximum size such that every pair of selected vertices is directly connected by an edge. Such a fully interconnected subset is called a clique. The input data provides the number of vertices, the number of edges, and the complete list of edges as pairs of vertex indices. Additional metadata may include the graph's maximum degree, its degeneracy (the smallest value d such that every subgraph contains a vertex of degree at most d), the known maximum clique size, and the clique-core gap (defined as the degeneracy plus one minus the maximum clique size), but these are supplementary and not required for stating the problem.\n\nThe sole decision to be made is which vertices to include in the chosen subset. The only rule governing this selection is that for every pair of vertices in the subset, an edge must exist between them in the given graph. Equivalently, for every pair of vertices in the graph that are not connected by an edge (a \"non-edge\"), at most one of the two may be selected. The goal is to maximize the total number of vertices in the selected subset.\n",
+      "graders": [
+        "gr_frontieror_quality_only",
+        "gr_frontieror_staged_qte",
+        "gr_frontieror_binary_qte"
+      ],
+      "metadata": {
+        "frontieror": {
+          "paper_id": "walteros2020",
+          "instance": "large_1",
+          "visibility": "public",
+          "instance_path": "tasks/walteros2020/instance/large_instance_1.json",
+          "instance_schema_path": "tasks/walteros2020/instance_schema.json",
+          "solution_schema_path": "tasks/walteros2020/solution_schema.json",
+          "mathematical_formulation_path": "tasks/walteros2020/mathematical_formulation.md",
+          "direction": "max",
+          "paper_title": "Why Is Maximum Clique Often Easy in Practice?",
+          "publication": "Operations Research",
+          "year": 2020,
+          "problem_class": "Graph Optimization",
+          "formulation_type": "BIP",
+          "application_field": "Foundational / Theoretical",
+          "source_link": "https://pubsonline.informs.org/doi/10.1287/opre.2019.1970"
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "frontieror": {
+      "source": "frontieror",
+      "contract_version": "staged-qte-v1",
+      "dataset_revision": "SmartOR/FrontierOR@9f5cd5436f7f4e013dfa81aebea77a1cc98628b8"
+    }
+  },
+  "name": "FrontierOR quick-start sample papers",
+  "description": "Public FrontierOR tasks bierwirth2017, liao2020, walteros2020 (tiny, large_1: the instances the example run covered). CC-BY-4.0, SmartOR/FrontierOR."
+}
