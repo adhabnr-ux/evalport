@@ -231,10 +231,13 @@ def guard_decision_to_result(
         )
         result["passed"] = False
         result["grader_results"] = []
+        # error.type is a closed enum in resultset.json (timeout |
+        # provider_error | runner_error) and the error object takes no extra
+        # keys: a Groq backend failure is a provider_error, and the backend
+        # name is kept in metadata.pytector.backend below.
         result["error"] = {
-            "type": "detector_error",
+            "type": "provider_error",
             "message": message,
-            "backend": metadata.get("backend"),
         }
         result["metadata"] = {
             "pytector": {
