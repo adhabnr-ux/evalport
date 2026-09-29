@@ -34,7 +34,10 @@ Three graders are emitted per result, and they measure different things:
     FrontierOR's own score, carried unchanged. staged_qte ranges over
     ``[0, 2 + beat_amount]`` and has no upper bound, so it cannot go in
     EvalPort's [0, 1] ``score`` without being clamped or rescaled. Either one
-    would change the number. ``score`` is therefore always null, and the raw
+    would change the number. ``score`` is therefore always null, and so
+    ``passed`` is always false: EvalPort Validation Rule 6 says a null score
+    means "not verified" and MUST carry ``passed: false``. Whether the result
+    reached stage 2 is ``metadata.frontieror.stage_id``. The raw
     value plus every debug field (``stage_id``, ``quality_part``,
     ``speed_part``, ``signed_gap``, ``beat_amount``, ``matched``,
     ``beat_gurobi``, the contract version and the scorer source) live in
@@ -162,7 +165,11 @@ def _graders(stage_boundary: float) -> List[Dict[str, Any]]:
                 "stage_1": "max(0, 1 - g) when max(0, g) > b",
                 "stage_2": "(1 - g) + max(0, 1 - t/tau) when max(0, g) <= b",
                 "score_slot": "null; raw value in metadata.frontieror.staged_qte",
-                "pass_rule": "stage_id == 2",
+                "pass_rule": (
+                    "always false: score is null (not verified), and EvalPort Validation "
+                    "Rule 6 requires passed false with a null score. The stage reached "
+                    "is metadata.frontieror.stage_id."
+                ),
             },
         },
         {
@@ -1031,10 +1038,13 @@ def results_to_openeval(
                 "grader_id": GRADER_STAGED_QTE,
                 "type": "custom",
                 "score": None,
-                "passed": stage_id == 2,
+                # EvalPort Validation Rule 6: a null score means "not verified" and
+                # MUST have passed false. The stage verdict is metadata stage_id.
+                "passed": False,
                 "reason": (
                     f"staged_qte={staged_score} (stage {stage_id}); not placed in the [0,1] "
-                    "score slot because staged_qte is unbounded above"
+                    "score slot because staged_qte is unbounded above, so passed is false "
+                    "(EvalPort Rule 6); see metadata.frontieror.stage_id"
                 ),
                 "metadata": {_NS: staged_meta},
             },
@@ -1066,7 +1076,6 @@ def results_to_openeval(
     n_passed = sum(1 for r in results if r["passed"])
     non_null = [s for s in quality_scores if s is not None]
     q_pass = sum(1 for r in results if r["grader_results"][0]["passed"])
-    s_pass = sum(1 for r in results if r["grader_results"][1]["passed"])
     summary: Dict[str, Any] = {
         "total": total,
         "passed": n_passed,
@@ -1074,7 +1083,9 @@ def results_to_openeval(
         "pass_rate": n_passed / total,
         "by_grader": {
             GRADER_QUALITY_ONLY: {"passed": q_pass, "failed": total - q_pass},
-            GRADER_STAGED_QTE: {"passed": s_pass, "failed": total - s_pass},
+            # Null-scored ("not verified", Rule 6), so excluded from pass/fail
+            # counts. Per-stage counts: metadata.frontieror.aggregates.stage_counts.
+            GRADER_STAGED_QTE: {"passed": 0, "failed": 0},
             GRADER_BINARY_QTE: {"passed": n_passed, "failed": total - n_passed, "avg_score": n_passed / total},
         },
     }
