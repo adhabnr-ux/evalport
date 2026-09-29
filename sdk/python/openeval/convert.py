@@ -36,4 +36,12 @@ def compute_summary(results):
 def create_result_set(suite, results, run_id, runner_name="evalport-sdk", runner_version="1.0.0"):
     from datetime import datetime, timezone
     now = datetime.now(timezone.utc).isoformat()
-    return {"version": OPENEVAL_VERSION, "suite_id": suite["id"], "suite_version": suite.get("version"), "run_id": run_id, "started_at": now, "completed_at": now, "provider": suite.get("config", {}).get("provider"), "runner": {"name": runner_name, "version": runner_version}, "results": results, "summary": compute_summary(results)}
+    rs = {"version": OPENEVAL_VERSION, "suite_id": suite["id"], "run_id": run_id, "started_at": now, "completed_at": now, "runner": {"name": runner_name, "version": runner_version}, "results": results, "summary": compute_summary(results)}
+    # Optional fields are omitted rather than emitted as null: resultset.json types
+    # suite_version as string and provider as object, neither nullable, so
+    # "provider": null (a suite with no config.provider) is schema-invalid. Matches
+    # createResultSet() in sdk/typescript, whose `undefined` is dropped by JSON.stringify.
+    if suite.get("version") is not None: rs["suite_version"] = suite["version"]
+    provider = (suite.get("config") or {}).get("provider")
+    if provider is not None: rs["provider"] = provider
+    return rs

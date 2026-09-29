@@ -15,7 +15,136 @@ SEMVER_RE = re.compile(
     r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
 )
 
+# RFC 3339 section 5.6 `date-time` (what resultset.json's `format: "date-time"` means):
+#   full-date "T" full-time, where full-time = partial-time time-offset,
+#   partial-time = HH ":" MM ":" SS [time-secfrac], time-offset = "Z" / ("+" / "-") HH ":" MM.
+# Seconds and an offset are both mandatory: a date-only value ("2026-01-15") or an
+# offset-less local time ("2026-01-15T10:30:00") is NOT an RFC 3339 date-time, even
+# though both are valid ISO 8601. RFC 3339 5.6 NOTE: "T" and "Z" may alternatively be
+# lower case. time-second allows 60 (leap second) per the RFC 3339 grammar.
+# [0-9] rather than \d so non-ASCII digits never match. Must be used with fullmatch
+# (the TypeScript twin anchors with ^...$, which in JS never matches before a trailing
+# newline -- Python's `$` would, so it is deliberately not used here).
+RFC3339_DATE_TIME_RE = re.compile(
+    r"([0-9]{4})-([0-9]{2})-([0-9]{2})[Tt]"
+    r"(?:[01][0-9]|2[0-3]):[0-5][0-9]:(?:[0-5][0-9]|60)(?:\.[0-9]+)?"
+    r"(?:[Zz]|[+-](?:[01][0-9]|2[0-3]):[0-5][0-9])"
+)
+
+_DAYS_IN_MONTH = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+
+def is_rfc3339_date_time(v: Any) -> bool:
+    """True iff v is a string that is a valid RFC 3339 date-time (incl. calendar-valid day)."""
+    if not isinstance(v, str): return False
+    m = RFC3339_DATE_TIME_RE.fullmatch(v)
+    if not m: return False
+    year, month, day = int(m.group(1)), int(m.group(2)), int(m.group(3))
+    if not 1 <= month <= 12: return False
+    leap = year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
+    max_day = 29 if (month == 2 and leap) else _DAYS_IN_MONTH[month - 1]
+    return 1 <= day <= max_day
+
 def _err(p,m,c): return {"path":p,"message":m,"code":c}
+
+# JSON Schema type predicates. bool is a subclass of int in Python, so every numeric
+# predicate excludes it explicitly -- JSON Schema's "integer"/"number" never match
+# true/false. "integer" also matches an integral float (5.0), exactly as JSON Schema
+# 2020-12 does ("integer" = any number with a zero fractional part).
+def _is_num(v): return isinstance(v,(int,float)) and not isinstance(v,bool)
+def _is_int(v): return (isinstance(v,int) and not isinstance(v,bool)) or (isinstance(v,float) and v.is_integer())
+
+# Optional-field type checks. Each spec entry is (key, kind[, min[, max]]) or
+# (key, "enum", allowed_values). A field is checked only when its key is PRESENT --
+# including an explicit null, which JSON Schema's `type` keyword rejects for every
+# field below (none of them is declared nullable). Unknown keys are deliberately NOT
+# policed here (see test_schema_consistency.py -- that's a separate spec question).
+# Mirrors sdk/typescript/src/validate.ts's checkOptional() rule-for-rule, including
+# error codes and messages.
+def _check_optional(obj, base, fields, errors):
+    for f in fields:
+        key, kind = f[0], f[1]
+        if key not in obj: continue
+        v = obj[key]
+        path = f"{base}.{key}"
+        if kind == "string":
+            if not isinstance(v,str): errors.append(_err(path,"must be string","TYPE_ERROR"))
+        elif kind == "object":
+            if not isinstance(v,dict): errors.append(_err(path,"must be object","TYPE_ERROR"))
+        elif kind == "boolean":
+            if not isinstance(v,bool): errors.append(_err(path,"must be boolean","TYPE_ERROR"))
+        elif kind == "string_array":
+            if not isinstance(v,list) or not all(isinstance(x,str) for x in v): errors.append(_err(path,"must be array of strings","TYPE_ERROR"))
+        elif kind == "string_or_integer":
+            if not isinstance(v,str) and not _is_int(v): errors.append(_err(path,"must be string or integer","TYPE_ERROR"))
+        elif kind == "date_time":
+            if not isinstance(v,str): errors.append(_err(path,"must be string","TYPE_ERROR"))
+            elif not is_rfc3339_date_time(v): errors.append(_err(path,"must be an RFC 3339 date-time with seconds and an offset, e.g. 2026-01-15T10:30:00Z","INVALID_DATE_TIME"))
+        elif kind == "enum":
+            allowed = f[2]
+            if not isinstance(v,str) or v not in allowed: errors.append(_err(path,"must be one of: "+", ".join(allowed),"INVALID_VALUE"))
+        elif kind in ("integer","number"):
+            lo = f[2] if len(f) > 2 else None
+            hi = f[3] if len(f) > 3 else None
+            if not (_is_int(v) if kind == "integer" else _is_num(v)):
+                errors.append(_err(path,f"must be {'an integer' if kind == 'integer' else 'a number'}","TYPE_ERROR"))
+            elif (lo is not None and v < lo) or (hi is not None and v > hi):
+                rng = f">= {lo}" if hi is None else (f"<= {hi}" if lo is None else f"in [{lo},{hi}]")
+                errors.append(_err(path,f"must be {rng}","OUT_OF_RANGE"))
+        else:  # pragma: no cover -- programming error in a spec table below
+            raise ValueError(f"unknown field kind: {kind}")
+
+# spec/schemas/testcase.json + suite.json `provider` (both declare max_tokens minimum: 1).
+_CONFIG_PROVIDER_FIELDS = [("model","string"),("api_base","string"),("api_key_env","string"),("temperature","number"),("max_tokens","integer",1),("extra","object")]
+# spec/schemas/testcase.json optional properties.
+_TESTCASE_FIELDS = [
+    ("expected_output","string"),("context","string_array"),("retrieval_context","string_array"),
+    ("tools_called","string_array"),("expected_tools","string_array"),("metadata","object"),
+    ("tags","string_array"),("provider","object"),("params","object"),
+    ("timeout_ms","integer",1),("weight","number",0),
+]
+# spec/schemas/grader.json optional properties.
+_GRADER_FIELDS = [("params","object"),("weight","number",0),("description","string")]
+# spec/schemas/grader.json per-type allOf/then optional params.
+_GRADER_PARAM_FIELDS = {
+    "contains": [("ignore_case","boolean")],
+    "regex": [("flags","string")],
+    "semantic_similarity": [("model","string"),("provider","string")],
+    "llm_judge": [("provider","string"),("temperature","number",0,2),("schema","object")],
+    "json_schema": [("strict","boolean")],
+    "json_path": [("operator","enum",("eq","ne","gt","lt","gte","lte","contains"))],
+    "code": [("timeout_ms","integer",100)],
+}
+# spec/schemas/suite.json optional properties (graders/test_cases arrays are
+# checked inline in validate_suite, since their items are validated there too).
+_SUITE_FIELDS = [
+    ("$schema","string"),("name","string"),("description","string"),
+    ("test_cases_file","string"),("config","object"),("metadata","object"),("tags","string_array"),
+]
+_SUITE_CONFIG_FIELDS = [("provider","object"),("defaults","object"),("parallel","integer",1),("retry","object")]
+_SUITE_DEFAULTS_FIELDS = [("timeout_ms","integer",1),("weight","number",0)]
+_SUITE_RETRY_FIELDS = [("max_attempts","integer",1),("backoff_ms","integer",100)]
+# spec/schemas/resultset.json optional top-level properties (group/isolation are
+# checked separately below).
+_RESULTSET_FIELDS = [
+    ("$schema","string"),("suite_version","string"),("completed_at","date_time"),
+    ("provider","object"),("runner","object"),("summary","object"),("metadata","object"),
+]
+_RESULTSET_PROVIDER_FIELDS = [("model","string"),("api_base","string"),("temperature","number"),("max_tokens","integer"),("extra","object")]
+_RUNNER_FIELDS = [("name","string"),("version","string")]
+_SUMMARY_FIELDS = [
+    ("total","integer",0),("passed","integer",0),("failed","integer",0),("skipped","integer",0),
+    ("pass_rate","number",0,1),("avg_score","number",0,1),("duration_ms","integer",0),("by_grader","object"),
+]
+_BY_GRADER_ENTRY_FIELDS = [("passed","integer"),("failed","integer"),("avg_score","number")]
+_RESULT_FIELDS = [
+    ("actual_output","string"),("duration_ms","integer",0),("completed_at","date_time"),
+    ("error","object"),("metadata","object"),
+]
+_RESULT_ERROR_FIELDS = [
+    ("type","enum",("timeout","provider_error","runner_error")),("message","string"),
+    ("code","string_or_integer"),("retryable","boolean"),
+]
+_GRADER_RESULT_FIELDS = [("reason","string"),("metadata","object")]
 
 def validate_test_case(tc):
     errors=[]
@@ -36,16 +165,22 @@ def validate_test_case(tc):
                 if not gv.valid:
                     for e in gv.errors: errors.append(_err(f"$.graders[{i}].{e['path']}",e["message"],e["code"]))
             else: errors.append(_err(f"$.graders[{i}]","must be string or object","TYPE_ERROR"))
+    _check_optional(tc,"$",_TESTCASE_FIELDS,errors)
+    if isinstance(tc.get("provider"),dict): _check_optional(tc["provider"],"$.provider",_CONFIG_PROVIDER_FIELDS,errors)
     return ValidationResult(not errors,errors)
 
 def validate_grader(g):
     errors=[]
     if not isinstance(g,dict): return ValidationResult(False,[_err("$","Must be object","TYPE_ERROR")])
     if not isinstance(g.get("id"),str) or not g["id"]: errors.append(_err("$.id","id required","REQUIRED"))
+    _check_optional(g,"$",_GRADER_FIELDS,errors)
     gt=g.get("type")
     if not isinstance(gt,str) or not gt: errors.append(_err("$.type","type required","REQUIRED"))
     else:
-        p=g.get("params") or {}
+        # A non-object params already produced a TYPE_ERROR above; validate the
+        # per-type requirements against {} so they're still reported (and so a
+        # list/string params can't crash the .get() calls in _vp).
+        p=g.get("params") if isinstance(g.get("params"),dict) else {}
         if gt in STANDARD_GRADER_TYPES:
             for e in _vp(gt,p): errors.append(_err(f"$.params.{e['path']}",e["message"],e["code"]))
         else:
@@ -64,7 +199,7 @@ def _vp(t,p):
         if not isinstance(p.get("pattern"),str) or not p["pattern"]: e.append(_err("pattern","required","REQUIRED"))
     elif t=="semantic_similarity":
         th=p.get("threshold")
-        if not isinstance(th,(int,float)) or th<0 or th>1: e.append(_err("threshold","0-1","OUT_OF_RANGE"))
+        if not _is_num(th) or th<0 or th>1: e.append(_err("threshold","0-1","OUT_OF_RANGE"))
     elif t=="llm_judge":
         if not isinstance(p.get("model"),str) or not p["model"]: e.append(_err("model","required","REQUIRED"))
         pr=p.get("prompt")
@@ -80,6 +215,11 @@ def _vp(t,p):
         if not isinstance(p.get("source"),str) or not p["source"]: e.append(_err("source","required","REQUIRED"))
     elif t=="custom":
         if not isinstance(p.get("handler"),str) or not p["handler"]: e.append(_err("handler","required","REQUIRED"))
+    # Optional, typed per-type params (grader.json allOf/then blocks). Paths here are
+    # relative to params (validate_grader prefixes "$.params.").
+    opt=[]
+    _check_optional(p,"$",_GRADER_PARAM_FIELDS.get(t,[]),opt)
+    for x in opt: e.append(_err(x["path"][2:],x["message"],x["code"]))
     return e
 
 def validate_suite(s):
@@ -89,6 +229,29 @@ def validate_suite(s):
     if not isinstance(s.get("id"),str) or not s["id"]: errors.append(_err("$.id","required","REQUIRED"))
     tcs=s.get("test_cases")
     if not isinstance(tcs,list) and not isinstance(s.get("test_cases_file"),str): errors.append(_err("$.test_cases","required","REQUIRED"))
+    elif "test_cases" in s and not isinstance(tcs,list): errors.append(_err("$.test_cases","must be array","TYPE_ERROR"))
+    _check_optional(s,"$",_SUITE_FIELDS,errors)
+    grs=s.get("graders",[])
+    if not isinstance(grs,list): errors.append(_err("$.graders","must be array","TYPE_ERROR"))
+    cfg=s.get("config")
+    if isinstance(cfg,dict):
+        _check_optional(cfg,"$.config",_SUITE_CONFIG_FIELDS,errors)
+        if isinstance(cfg.get("provider"),dict): _check_optional(cfg["provider"],"$.config.provider",_CONFIG_PROVIDER_FIELDS,errors)
+        if isinstance(cfg.get("defaults"),dict): _check_optional(cfg["defaults"],"$.config.defaults",_SUITE_DEFAULTS_FIELDS,errors)
+        if isinstance(cfg.get("retry"),dict): _check_optional(cfg["retry"],"$.config.retry",_SUITE_RETRY_FIELDS,errors)
+    # Shared graders are validated whether test cases are inline or in
+    # test_cases_file -- previously an invalid grader in a test_cases_file suite
+    # was never looked at.
+    gids=set()
+    if isinstance(grs,list):
+        for i,g in enumerate(grs):
+            gv=validate_grader(g)
+            if not gv.valid:
+                for e in gv.errors: errors.append(_err(f"$.graders[{i}].{e['path']}",e["message"],e["code"]))
+            gid=g.get("id") if isinstance(g,dict) else None
+            if isinstance(gid,str):
+                if gid in gids: errors.append(_err(f"$.graders[{i}].id",f"dup:{gid}","DUPLICATE_ID"))
+                gids.add(gid)
     if isinstance(tcs,list):
         if not tcs: errors.append(_err("$.test_cases","empty","MIN_ITEMS"))
         ids=set()
@@ -100,17 +263,7 @@ def validate_suite(s):
             if isinstance(tid,str):
                 if tid in ids: errors.append(_err(f"$.test_cases[{i}].id",f"dup:{tid}","DUPLICATE_ID"))
                 ids.add(tid)
-        grs=s.get("graders",[])
         if isinstance(grs,list):
-            gids=set()
-            for i,g in enumerate(grs):
-                gv=validate_grader(g)
-                if not gv.valid:
-                    for e in gv.errors: errors.append(_err(f"$.graders[{i}].{e['path']}",e["message"],e["code"]))
-                gid=g.get("id") if isinstance(g,dict) else None
-                if isinstance(gid,str):
-                    if gid in gids: errors.append(_err(f"$.graders[{i}].id",f"dup:{gid}","DUPLICATE_ID"))
-                    gids.add(gid)
             for i,tc in enumerate(tcs):
                 if isinstance(tc,dict) and isinstance(tc.get("graders"),list):
                     for j,gr in enumerate(tc["graders"]):
@@ -124,29 +277,40 @@ def validate_result_set(r):
     if not isinstance(r.get("suite_id"),str) or not r["suite_id"]: errors.append(_err("$.suite_id","required","REQUIRED"))
     run_id=r.get("run_id")
     if not isinstance(run_id,str) or not run_id: errors.append(_err("$.run_id","required","REQUIRED"))
-    if not isinstance(r.get("started_at"),str): errors.append(_err("$.started_at","required","REQUIRED"))
-    isolation=r.get("isolation")
-    if isolation is not None and not isinstance(isolation,str): errors.append(_err("$.isolation","must be string","TYPE_ERROR"))
+    started_at=r.get("started_at")
+    if not isinstance(started_at,str): errors.append(_err("$.started_at","required","REQUIRED"))
+    elif not is_rfc3339_date_time(started_at): errors.append(_err("$.started_at","must be an RFC 3339 date-time with seconds and an offset, e.g. 2026-01-15T10:30:00Z","INVALID_DATE_TIME"))
+    _check_optional(r,"$",_RESULTSET_FIELDS,errors)
+    if isinstance(r.get("provider"),dict): _check_optional(r["provider"],"$.provider",_RESULTSET_PROVIDER_FIELDS,errors)
+    if isinstance(r.get("runner"),dict): _check_optional(r["runner"],"$.runner",_RUNNER_FIELDS,errors)
+    summary=r.get("summary")
+    if isinstance(summary,dict):
+        _check_optional(summary,"$.summary",_SUMMARY_FIELDS,errors)
+        if isinstance(summary.get("by_grader"),dict):
+            for gk,gv in summary["by_grader"].items():
+                if not isinstance(gv,dict): errors.append(_err(f"$.summary.by_grader.{gk}","must be object","TYPE_ERROR"))
+                else: _check_optional(gv,f"$.summary.by_grader.{gk}",_BY_GRADER_ENTRY_FIELDS,errors)
+    # isolation / group / group.* / attempt below: like every other optional field,
+    # an explicit null is a type error (resultset.json declares none of them nullable).
+    if "isolation" in r and not isinstance(r["isolation"],str): errors.append(_err("$.isolation","must be string","TYPE_ERROR"))
     # Discussion #45 / PR #54: optional group membership joining sibling
     # ResultSets (a sweep, a mutation-testing run, a multi-model comparison).
     # Absent by default -- a no-op for every ResultSet produced before this.
-    group=r.get("group")
-    if group is not None:
+    if "group" in r:
+        group=r["group"]
         if not isinstance(group,dict): errors.append(_err("$.group","must be object","TYPE_ERROR"))
         else:
             gid=group.get("group_id")
             if not isinstance(gid,str) or not gid: errors.append(_err("$.group.group_id","required","REQUIRED"))
-            if "parent_group_id" in group and group["parent_group_id"] is not None:
+            if "parent_group_id" in group:
                 pgid=group["parent_group_id"]
                 if not isinstance(pgid,str) or not pgid: errors.append(_err("$.group.parent_group_id","must be a non-empty string","REQUIRED"))
                 elif isinstance(gid,str) and pgid==gid: errors.append(_err("$.group.parent_group_id","a group cannot be its own parent","SELF_PARENT"))
-            role=group.get("role")
-            if role is not None and not isinstance(role,str): errors.append(_err("$.group.role","must be string","TYPE_ERROR"))
-            label=group.get("label")
-            if label is not None and not isinstance(label,str): errors.append(_err("$.group.label","must be string","TYPE_ERROR"))
-            if "sequence" in group and group["sequence"] is not None:
+            if "role" in group and not isinstance(group["role"],str): errors.append(_err("$.group.role","must be string","TYPE_ERROR"))
+            if "label" in group and not isinstance(group["label"],str): errors.append(_err("$.group.label","must be string","TYPE_ERROR"))
+            if "sequence" in group:
                 seq=group["sequence"]
-                if not isinstance(seq,int) or isinstance(seq,bool) or seq<0: errors.append(_err("$.group.sequence","must be an integer >= 0","OUT_OF_RANGE"))
+                if not _is_int(seq) or seq<0: errors.append(_err("$.group.sequence","must be an integer >= 0","OUT_OF_RANGE"))
     rs=r.get("results")
     if not isinstance(rs,list) or not rs: errors.append(_err("$.results","required","REQUIRED"))
     else:
@@ -159,11 +323,13 @@ def validate_result_set(r):
         seen_attempts=set()
         for i,x in enumerate(rs):
             if not isinstance(x,dict): errors.append(_err(f"$.results[{i}]","object","TYPE_ERROR"));continue
-            if not isinstance(x.get("test_case_id"),str): errors.append(_err(f"$.results[{i}].test_case_id","required","REQUIRED"))
+            if not isinstance(x.get("test_case_id"),str) or not x["test_case_id"]: errors.append(_err(f"$.results[{i}].test_case_id","required","REQUIRED"))
             if not isinstance(x.get("passed"),bool): errors.append(_err(f"$.results[{i}].passed","required","REQUIRED"))
-            if "attempt" in x and x["attempt"] is not None:
+            _check_optional(x,f"$.results[{i}]",_RESULT_FIELDS,errors)
+            if isinstance(x.get("error"),dict): _check_optional(x["error"],f"$.results[{i}].error",_RESULT_ERROR_FIELDS,errors)
+            if "attempt" in x:
                 attempt=x["attempt"]
-                if not isinstance(attempt,int) or isinstance(attempt,bool) or attempt<1:
+                if not _is_int(attempt) or attempt<1:
                     errors.append(_err(f"$.results[{i}].attempt","must be an integer >= 1","OUT_OF_RANGE"))
                 elif isinstance(x.get("test_case_id"),str) and isinstance(run_id,str):
                     # Only build the uniqueness key once test_case_id/run_id are
@@ -183,12 +349,29 @@ def validate_result_set(r):
             else:
                 for j,gr in enumerate(grs):
                     if not isinstance(gr,dict): errors.append(_err(f"$.results[{i}].grader_results[{j}]","object","TYPE_ERROR"));continue
-                    if not isinstance(gr.get("grader_id"),str): errors.append(_err(f"$.results[{i}].grader_results[{j}].grader_id","required","REQUIRED"))
+                    if not isinstance(gr.get("grader_id"),str) or not gr["grader_id"]: errors.append(_err(f"$.results[{i}].grader_results[{j}].grader_id","required","REQUIRED"))
                     if not isinstance(gr.get("type"),str): errors.append(_err(f"$.results[{i}].grader_results[{j}].type","required","REQUIRED"))
-                    sc=gr.get("score")
-                    if not isinstance(sc,(int,float,type(None))) or isinstance(sc,bool): errors.append(_err(f"$.results[{i}].grader_results[{j}].score","number|null","TYPE_ERROR"))
-                    elif sc is not None and (sc<0 or sc>1): errors.append(_err(f"$.results[{i}].grader_results[{j}].score","must be in [0,1] or null","OUT_OF_RANGE"))
+                    # score is REQUIRED (resultset.json) -- an absent key is not the
+                    # same as an explicit null ("not verified", Rule 6).
+                    if "score" not in gr: errors.append(_err(f"$.results[{i}].grader_results[{j}].score","required","REQUIRED"))
+                    else:
+                        sc=gr["score"]
+                        if sc is not None and not _is_num(sc): errors.append(_err(f"$.results[{i}].grader_results[{j}].score","number|null","TYPE_ERROR"))
+                        elif sc is not None and (sc<0 or sc>1): errors.append(_err(f"$.results[{i}].grader_results[{j}].score","must be in [0,1] or null","OUT_OF_RANGE"))
                     if not isinstance(gr.get("passed"),bool): errors.append(_err(f"$.results[{i}].grader_results[{j}].passed","required","REQUIRED"))
+                    # SPEC.md Validation Rules -> 6. Result Consistency: "Skipped or
+                    # not-yet-executed graders (e.g. `human` review pending, an
+                    # `unsupported_grader_type`, a runner error before scoring) MUST be
+                    # represented with `score: null` and `passed: false`. `score: null`
+                    # means "not verified" [...]"
+                    elif "score" in gr and gr["score"] is None and gr["passed"] is True:
+                        errors.append(_err(f"$.results[{i}].grader_results[{j}].passed","a GraderResult with score null (not verified) MUST have passed false (SPEC Rule 6)","NULL_SCORE_PASSED"))
+                    _check_optional(gr,f"$.results[{i}].grader_results[{j}]",_GRADER_RESULT_FIELDS,errors)
+                # SPEC.md Extension Mechanism -> Aggregation Extension: "A test case
+                # whose graders are *all* null-scored has no basis for a pass/fail
+                # verdict; runners MUST report such a case's `passed` as `false` [...]"
+                if grs and x.get("passed") is True and all(isinstance(gr,dict) and "score" in gr and gr["score"] is None for gr in grs):
+                    errors.append(_err(f"$.results[{i}].passed","a Result whose grader_results are all null-scored MUST have passed false (SPEC Aggregation Extension / Rule 6)","UNSCORED_RESULT_PASSED"))
     return ValidationResult(not errors,errors)
 
 def validate_document(d,t):
