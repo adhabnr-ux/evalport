@@ -149,7 +149,9 @@ def test_stage_2_quality_plus_speed():
     assert s["quality_part"] == 0.995 and s["speed_part"] == 0.5
     assert s["staged_qte"] == 1.495           # > 1: kept as-is, never clamped
     assert grader(r, GRADER_STAGED_QTE)["score"] is None
-    assert grader(r, GRADER_STAGED_QTE)["passed"] is True
+    # EvalPort Rule 6: a null score ("not verified") MUST have passed false,
+    # even at stage 2 -- the stage verdict lives in metadata stage_id.
+    assert grader(r, GRADER_STAGED_QTE)["passed"] is False
     assert grader(r, GRADER_QUALITY_ONLY)["score"] == 0.995
     assert r["passed"] is True and grader(r, GRADER_BINARY_QTE)["score"] == 1.0
 
