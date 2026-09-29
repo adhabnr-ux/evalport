@@ -141,6 +141,13 @@ range. EvalPort's schema requires `score` in `[0, 1]` or `null`. The clamp is a 
 information loss for any metric that scores outside that range — not an assumption that all
 of them do.
 
+**Why a `None` score always has `passed: false`.** EvalPort Validation Rule 6 says a
+`score: null` means "not verified" and MUST carry `passed: false`, and a `Result` whose graders
+are all null-scored MUST be `passed: false` too. When DeepEval reports `success: True` with a
+`None` score, the grader is exported with `passed: false` and DeepEval's own verdict is kept as
+`metadata.native_success` (on the `GraderResult`, or on `Result.metadata.deepeval` for the
+whole test case).
+
 **Why a `TestResult` with empty/`None` `metrics_data` becomes an explicit `runner_error`.**
 DeepEval logs a metric failure rather than raising (verified by reading
 `deepeval/evaluate/types.py` and the shape `TestResult.metrics_data` allows — `Union[List[MetricData], None]`),
