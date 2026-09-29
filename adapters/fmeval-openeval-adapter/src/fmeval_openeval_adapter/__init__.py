@@ -350,8 +350,14 @@ def eval_output_to_openeval(
             "test_case_id": str(test_case_id),
             "passed": len(grader_results) > 0 and all(g["passed"] for g in grader_results),
             "grader_results": grader_results,
-            "actual_output": record.get("model_output"),
         }
+        # actual_output is an optional string in resultset.json: omitted when
+        # absent, serialized when fmeval recorded a non-string output.
+        model_output = record.get("model_output")
+        if isinstance(model_output, str):
+            result["actual_output"] = model_output
+        elif model_output is not None:
+            result["actual_output"] = _json.dumps(model_output, default=str)
         fmeval_extra = {k: v for k, v in record.items() if k not in ("model_input", "model_output", "target_output", "scores")}
         if fmeval_extra:
             result["metadata"] = {"fmeval": fmeval_extra}
