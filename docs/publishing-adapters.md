@@ -164,8 +164,8 @@ released.
   workflow checks for it explicitly. If an upstream is not on PyPI, document
   installing it from git in the README instead of declaring it as an extra
   (see `daimax-openeval-adapter`).
-- **License metadata (follow-up, not yet required).** 64 of 65 adapters use
-  the table form `license = {text = "Apache-2.0"}` (63 also carry a
+- **License metadata (follow-up, not yet required).** 66 of 67 adapters use
+  the table form `license = {text = "Apache-2.0"}` (65 also carry a
   `License ::` classifier). Current setuptools builds them fine but warns that
   the table form is deprecated (it says builds stop being supported by
   2027-02-18) and that license classifiers are deprecated. Before then,
