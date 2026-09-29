@@ -28,7 +28,7 @@
           "type": "custom",
           "score": null,
           "passed": false,
-          "reason": "staged_qte=0.0 (stage 0); not placed in the [0,1] score slot because staged_qte is unbounded above",
+          "reason": "staged_qte=0.0 (stage 0); not placed in the [0,1] score slot because staged_qte is unbounded above, so passed is false (EvalPort Rule 6); see metadata.frontieror.stage_id",
           "metadata": {
             "frontieror": {
               "stage_id": 0,
@@ -117,7 +117,7 @@
           "type": "custom",
           "score": null,
           "passed": false,
-          "reason": "staged_qte=0.0 (stage 0); not placed in the [0,1] score slot because staged_qte is unbounded above",
+          "reason": "staged_qte=0.0 (stage 0); not placed in the [0,1] score slot because staged_qte is unbounded above, so passed is false (EvalPort Rule 6); see metadata.frontieror.stage_id",
           "metadata": {
             "frontieror": {
               "stage_id": 0,
@@ -204,8 +204,8 @@
           "grader_id": "gr_frontieror_staged_qte",
           "type": "custom",
           "score": null,
-          "passed": true,
-          "reason": "staged_qte=1.99064 (stage 2); not placed in the [0,1] score slot because staged_qte is unbounded above",
+          "passed": false,
+          "reason": "staged_qte=1.99064 (stage 2); not placed in the [0,1] score slot because staged_qte is unbounded above, so passed is false (EvalPort Rule 6); see metadata.frontieror.stage_id",
           "metadata": {
             "frontieror": {
               "stage_id": 2,
@@ -289,8 +289,8 @@
           "grader_id": "gr_frontieror_staged_qte",
           "type": "custom",
           "score": null,
-          "passed": true,
-          "reason": "staged_qte=1.998403 (stage 2); not placed in the [0,1] score slot because staged_qte is unbounded above",
+          "passed": false,
+          "reason": "staged_qte=1.998403 (stage 2); not placed in the [0,1] score slot because staged_qte is unbounded above, so passed is false (EvalPort Rule 6); see metadata.frontieror.stage_id",
           "metadata": {
             "frontieror": {
               "stage_id": 2,
@@ -365,8 +365,8 @@
         "avg_score": 1.0
       },
       "gr_frontieror_staged_qte": {
-        "passed": 2,
-        "failed": 2
+        "passed": 0,
+        "failed": 0
       },
       "gr_frontieror_binary_qte": {
         "passed": 2,
