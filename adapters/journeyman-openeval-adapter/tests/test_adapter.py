@@ -275,7 +275,8 @@ def test_invalid_cell_produces_no_grader_results_and_is_not_a_silent_pass():
     r = result_set["results"][0]
     assert r["grader_results"] == []
     assert r["passed"] is False
-    assert r["error"]["type"] == "invalid_cell"
+    assert r["error"]["type"] == "runner_error"  # EvalPort's closed error.type enum
+    assert r["metadata"]["journeyman"]["error_kind"] == "invalid_cell"
     assert "TimeoutError" in r["error"]["message"]
     assert validate_result_set(result_set).valid
 

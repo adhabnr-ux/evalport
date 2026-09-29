@@ -346,7 +346,8 @@ def cells_to_result_set(
     rather than inventing evidence journeyman itself says doesn't exist.
 
     An invalid cell (`cell["invalid"]` true) produces a `Result` with no
-    `grader_results` and `error.type = "invalid_cell"`, matching
+    `grader_results`, `error.type = "runner_error"` (EvalPort's closed enum)
+    and `metadata.journeyman.error_kind = "invalid_cell"`, matching
     journeyman's own exclusion of invalid cells from every axis score --
     never a silent pass.
 
@@ -387,11 +388,14 @@ def cells_to_result_set(
                 "test_case_id": cell_id,
                 "passed": False,
                 "grader_results": [],
+                # error.type is a closed enum in resultset.json (timeout |
+                # provider_error | runner_error); journeyman's own "invalid
+                # cell" kind is kept in metadata.journeyman.error_kind.
                 "error": {
-                    "type": "invalid_cell",
+                    "type": "runner_error",
                     "message": cell.get("invalid_reason") or "cell marked invalid by journeyman",
                 },
-                "metadata": {"journeyman": {"invalid": True}},
+                "metadata": {"journeyman": {"invalid": True, "error_kind": "invalid_cell"}},
             })
             continue
 

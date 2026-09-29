@@ -383,7 +383,13 @@ class TestRunToOpenEval:
         tc4_result = next(r for r in pmr_a["results"] if r["test_case_id"] == "tc4")
         assert tc4_result["passed"] is False
         assert tc4_result["grader_results"] == []
+        # error.type is a closed enum in resultset.json (timeout | provider_error
+        # | runner_error); Cannonade's own status is kept in metadata.
         assert tc4_result["error"] == {
+            "type": "runner_error",
+            "message": "timeout while executing code",
+        }
+        assert tc4_result["metadata"]["cannonade"]["error"] == {
             "type": "cannonade_status_failed",
             "detail": "timeout while executing code",
         }
