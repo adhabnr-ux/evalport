@@ -1,0 +1,41 @@
+{
+  "spec_version": "1.0",
+  "object": {
+    "formal_statement": "2 + 2 = 4",
+    "formalization": {
+      "verified": false,
+      "source_query": "2 + 2 = 4",
+      "translator": "math"
+    }
+  },
+  "context": {
+    "interpretation": {
+      "theory": "math verification"
+    },
+    "proof": {
+      "verifier": "math",
+      "verifier_version": "7.2.1",
+      "outcome_treatment": "unknown/timeout/error resolve to UNVERIFIABLE or BLOCKED"
+    },
+    "evidence": {
+      "evidence": {
+        "status": "BLOCKED",
+        "agent_message": "Verification blocked — proof artifact missing",
+        "developer_fields": {
+          "constraint_id": "trust_gate.mandatory_attestation_missing",
+          "missing": "attestation_token",
+          "policy": "mandatory",
+          "verdict_status": "VERIFIED",
+          "verdict_proof_ref": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "proof_ref": null,
+        "is_authoritative": false
+      },
+      "proof_ref": null
+    },
+    "decision": {
+      "admission": "DENY"
+    }
+  },
+  "verdict": "BLOCKED"
+}

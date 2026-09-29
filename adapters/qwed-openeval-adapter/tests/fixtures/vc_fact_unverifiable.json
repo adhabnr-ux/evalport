@@ -1,0 +1,37 @@
+{
+  "spec_version": "1.0",
+  "object": {
+    "formal_statement": "The Eiffel Tower was completed in 1889.",
+    "formalization": {
+      "verified": false,
+      "source_query": "The Eiffel Tower was completed in 1889.",
+      "translator": "fact"
+    }
+  },
+  "context": {
+    "interpretation": {
+      "theory": "fact verification"
+    },
+    "proof": {
+      "verifier": "fact",
+      "verifier_version": "7.2.1",
+      "outcome_treatment": "unknown/timeout/error resolve to UNVERIFIABLE or BLOCKED"
+    },
+    "evidence": {
+      "evidence": {
+        "status": "UNVERIFIABLE",
+        "agent_message": "No retrievable evidence supports or refutes the claim.",
+        "developer_fields": {
+          "constraint_id": "fact.insufficient_evidence"
+        },
+        "proof_ref": null,
+        "is_authoritative": false
+      },
+      "proof_ref": null
+    },
+    "decision": {
+      "admission": "DENY"
+    }
+  },
+  "verdict": "UNVERIFIABLE"
+}

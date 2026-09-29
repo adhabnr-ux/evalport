@@ -1,0 +1,28 @@
+{
+  "spec_version": "1.0",
+  "object": {
+    "formal_statement": "import os\nos.system(user_input)"
+  },
+  "context": {
+    "interpretation": {
+      "language": "python",
+      "policy_version": "code-security-v1"
+    },
+    "proof": {
+      "verifier": "code",
+      "verifier_version": "7.2.1"
+    },
+    "evidence": {
+      "evidence": {
+        "agent_message": "Proven unsafe: unsanitized shell exec via os.system.",
+        "finding": "os.system",
+        "line": 2
+      },
+      "proof_ref": "sha256:0b30db3e49571f91de61af7167fed21e4f06008aa1d2ac8903f90b3bc7c5865f"
+    },
+    "decision": {
+      "admission": "DENY"
+    }
+  },
+  "verdict": "VERIFIED"
+}
