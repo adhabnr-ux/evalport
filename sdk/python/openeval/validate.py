@@ -17,6 +17,15 @@ SEMVER_RE = re.compile(
 
 def _err(p,m,c): return {"path":p,"message":m,"code":c}
 
+def _nest(parent,child_path):
+    """Join a parent path with a child error path that already starts with '$'.
+
+    Avoids malformed paths like '$.test_cases[0].$.input' (issue #69).
+    """
+    if child_path.startswith("$"):
+        return parent + child_path[1:]
+    return parent + "." + child_path
+
 def validate_test_case(tc):
     errors=[]
     if not isinstance(tc,dict): return ValidationResult(False,[_err("$","Must be object","TYPE_ERROR")])
@@ -33,7 +42,7 @@ def validate_test_case(tc):
             elif isinstance(g,dict):
                 gv=validate_grader(g)
                 if not gv.valid:
-                    for e in gv.errors: errors.append(_err(f"$.graders[{i}].{e['path']}",e["message"],e["code"]))
+                    for e in gv.errors: errors.append(_err(_nest(f"$.graders[{i}]",e["path"]),e["message"],e["code"]))
             else: errors.append(_err(f"$.graders[{i}]","must be string or object","TYPE_ERROR"))
     return ValidationResult(not errors,errors)
 
@@ -94,7 +103,7 @@ def validate_suite(s):
         for i,tc in enumerate(tcs):
             tv=validate_test_case(tc)
             if not tv.valid:
-                for e in tv.errors: errors.append(_err(f"$.test_cases[{i}].{e['path']}",e["message"],e["code"]))
+                for e in tv.errors: errors.append(_err(_nest(f"$.test_cases[{i}]",e["path"]),e["message"],e["code"]))
             tid=tc.get("id") if isinstance(tc,dict) else None
             if isinstance(tid,str):
                 if tid in ids: errors.append(_err(f"$.test_cases[{i}].id",f"dup:{tid}","DUPLICATE_ID"))
@@ -105,7 +114,7 @@ def validate_suite(s):
             for i,g in enumerate(grs):
                 gv=validate_grader(g)
                 if not gv.valid:
-                    for e in gv.errors: errors.append(_err(f"$.graders[{i}].{e['path']}",e["message"],e["code"]))
+                    for e in gv.errors: errors.append(_err(_nest(f"$.graders[{i}]",e["path"]),e["message"],e["code"]))
                 gid=g.get("id") if isinstance(g,dict) else None
                 if isinstance(gid,str):
                     if gid in gids: errors.append(_err(f"$.graders[{i}].id",f"dup:{gid}","DUPLICATE_ID"))
