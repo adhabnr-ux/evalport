@@ -397,8 +397,10 @@ def test_metrics_none_give_score_null():
         assert g["score"] is None
         assert g["metadata"]["daimax"]["skip_reason"] == "metric_not_computed"
         assert "breakdown" not in g["metadata"]["daimax"]
-        # threshold None: passed is the native generation_success (True here)
-        assert g["passed"] is True
+        # threshold None: the native generation_success (True here) is kept in
+        # metadata, but a null score MUST have passed false (EvalPort Rule 6).
+        assert g["passed"] is False
+        assert g["metadata"]["daimax"]["native_passed"] is True
     assert validate_result_set(rs).valid
 
 
