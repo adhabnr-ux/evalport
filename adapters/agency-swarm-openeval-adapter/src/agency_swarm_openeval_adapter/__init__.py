@@ -222,14 +222,18 @@ def default_exact_match_grader(test_case: Dict[str, Any], result: Any) -> Option
     actual_str = _coerce_output_to_str(getattr(result, "final_output", None))
     expected_str = expected if isinstance(expected, str) else _coerce_output_to_str(expected)
     matched = actual_str == expected_str
-    return {
+    grader_result: Dict[str, Any] = {
         "grader_id": f"{test_case.get('id', '')}__exact_match",
         "type": "exact_match",
         "score": 1.0 if matched else 0.0,
         "passed": matched,
-        "reason": None if matched else "final_output did not match expected_output",
         "metadata": {"expected": expected_str, "actual": actual_str},
     }
+    # GraderResult.reason is an optional *string* in resultset.json -- omit it
+    # rather than emit null (which the schema and the reference validators reject).
+    if not matched:
+        grader_result["reason"] = "final_output did not match expected_output"
+    return grader_result
 
 
 def build_test_suite(
@@ -300,16 +304,21 @@ def build_test_suite(
             openeval_tc["tags"] = tc["tags"]
         openeval_test_cases.append(openeval_tc)
 
-    return {
+    suite: Dict[str, Any] = {
         "version": OPENEVAL_VERSION,
         "id": suite_id,
-        "name": name,
-        "description": description,
         "test_cases": openeval_test_cases,
         "graders": graders,
         "config": {},
         "metadata": {"openeval": {"source": "agency-swarm"}},
     }
+    # name/description are optional *strings* in suite.json -- omit them when not
+    # given rather than emit null (which the schema and the reference validators reject).
+    if name is not None:
+        suite["name"] = name
+    if description is not None:
+        suite["description"] = description
+    return suite
 
 
 def suite_to_test_cases(suite: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -353,12 +362,21 @@ def result_to_openeval(
     if exception is not None:
         # The call itself failed -- build the most honest Result possible
         # from just the exception, rather than fabricating grader output.
+        # error.type is a closed enum in resultset.json (timeout |
+        # provider_error | runner_error): an exception raised out of
+        # get_response() is a runner_error, and the Python exception class
+        # name is kept in metadata rather than put in error.type.
         return {
             "test_case_id": test_case_id,
             "passed": False,
             "grader_results": [],
-            "error": {"type": type(exception).__name__, "detail": str(exception)},
-            "metadata": {"agency_swarm": {"recipient_agent": test_case.get("recipient_agent")}},
+            "error": {"type": "runner_error", "message": str(exception)},
+            "metadata": {
+                "agency_swarm": {
+                    "recipient_agent": test_case.get("recipient_agent"),
+                    "exception_type": type(exception).__name__,
+                }
+            },
         }
 
     if result is None:
