@@ -303,7 +303,15 @@ def trial_to_result(
 
     error = None
     if metrics.get("exception_info"):
-        error = {"type": "agent_exception", "detail": metrics["exception_info"]}
+        # error.type is a closed enum in resultset.json (timeout |
+        # provider_error | runner_error) and error.message a string; the raw
+        # exception_info is kept verbatim in metadata.nasde.exception_info.
+        info = metrics["exception_info"]
+        if isinstance(info, dict) and (info.get("type") or info.get("message")):
+            message = ": ".join(str(info[k]) for k in ("type", "message") if info.get(k))
+        else:
+            message = info if isinstance(info, str) else json.dumps(info, default=str)
+        error = {"type": "runner_error", "message": message}
 
     nasde_meta: Dict[str, Any] = {
         "passed_basis": passed_basis,
@@ -318,6 +326,8 @@ def trial_to_result(
         "single_eval": metrics.get("single_eval"),
         "economics": {field: metrics.get(field) for field in _ECONOMICS_FIELDS},
     }
+    if metrics.get("exception_info"):
+        nasde_meta["exception_info"] = metrics["exception_info"]
     if dominant is not None:
         nasde_meta["dominant_cluster"] = {
             "evaluator_model": dominant.get("evaluator_model"),
@@ -345,11 +355,18 @@ def trial_to_result(
         "test_case_id": metrics.get("task_name") or metrics.get("trial_name") or trial_dir.name,
         "passed": overall_passed,
         "grader_results": grader_results,
-        "actual_output": _resolve_actual_output(trial_dir, dominant),
-        "duration_ms": duration_ms,
-        "completed_at": metrics.get("finished_at") or None,
         "metadata": {"nasde": nasde_meta},
     }
+    # Optional fields are omitted when unknown rather than emitted as null:
+    # actual_output (string), duration_ms (integer) and completed_at
+    # (date-time) are not nullable in resultset.json.
+    actual_output = _resolve_actual_output(trial_dir, dominant)
+    if actual_output is not None:
+        result["actual_output"] = actual_output
+    if duration_ms is not None:
+        result["duration_ms"] = duration_ms
+    if metrics.get("finished_at"):
+        result["completed_at"] = metrics["finished_at"]
     if error is not None:
         result["error"] = error
     return result
@@ -486,9 +503,7 @@ def from_openeval(result_set: Dict[str, Any]) -> List[Dict[str, Any]]:
                 "token_usage": economics.get("token_usage"),
                 "cost_usd": economics.get("cost_usd"),
                 "pricing_as_of": economics.get("pricing_as_of"),
-                "exception_info": (result.get("error") or {}).get("detail")
-                if result.get("error")
-                else None,
+                "exception_info": nasde_meta.get("exception_info"),
             }
         )
     return out

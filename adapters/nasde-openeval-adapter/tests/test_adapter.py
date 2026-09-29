@@ -185,9 +185,13 @@ class TestTrialToResult:
         result = trial_to_result(trial_dir)
         assert result["passed"] is False
         assert result["metadata"]["nasde"]["passed_basis"] == "no_signal_available"
+        # error.type is EvalPort's closed enum; the raw exception_info is kept.
         assert result["error"] == {
-            "type": "agent_exception",
-            "detail": {"type": "TimeoutError", "message": "agent exceeded time budget"},
+            "type": "runner_error",
+            "message": "TimeoutError: agent exceeded time budget",
+        }
+        assert result["metadata"]["nasde"]["exception_info"] == {
+            "type": "TimeoutError", "message": "agent exceeded time budget",
         }
         assert result["grader_results"] == []
 

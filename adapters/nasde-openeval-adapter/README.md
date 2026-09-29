@@ -100,7 +100,10 @@ Each `<job>__<trial>/` directory becomes one EvalPort `Result`:
   `assessment_eval_<N>.json` free-text `summary`, when one exists.
 - `duration_ms` — `metrics.json`'s `duration_sec * 1000`.
 - `error` — set from `metrics.json`'s `exception_info` when the agent run
-  itself failed (no assessment is possible in that case).
+  itself failed (no assessment is possible in that case), as
+  `{"type": "runner_error", "message": "<type>: <message>"}` (`error.type` is a
+  closed enum in EvalPort); the raw `exception_info` is kept verbatim in
+  `Result.metadata["nasde"]["exception_info"]`.
 
 `ResultSet.suite_id` is nasde's `source` field (the benchmark/challenge-set
 identifier); `ResultSet.run_id` defaults to the shared `<job>` name parsed
