@@ -286,8 +286,21 @@ class TestResultToOpenEval:
         r = result_to_openeval({"id": "tc1", "recipient_agent": "CEO"}, exception=ValueError("boom"))
         assert r["passed"] is False
         assert r["grader_results"] == []
-        assert r["error"] == {"type": "ValueError", "detail": "boom"}
+        assert r["error"] == {"type": "runner_error", "message": "boom"}
+        assert r["metadata"]["agency_swarm"]["exception_type"] == "ValueError"
         assert "actual_output" not in r
+
+    def test_exception_only_result_set_is_valid(self):
+        # error.type is a closed enum in resultset.json; the exception class
+        # name must not leak into it (the validator rejects e.g. "RuntimeError").
+        result_set = build_result_set(
+            [{"test_case": {"id": "tc1", "recipient_agent": "CEO"}, "exception": RuntimeError("boom")}],
+            suite_id="s",
+            run_id="r1",
+            started_at="2026-01-01T00:00:00Z",
+        )
+        validation = validate_result_set(result_set)
+        assert validation.valid, validation.errors
 
     def test_requires_result_or_exception(self):
         with pytest.raises(ValueError, match="requires either"):

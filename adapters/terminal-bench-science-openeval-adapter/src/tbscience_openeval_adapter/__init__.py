@@ -235,15 +235,19 @@ def to_openeval(task_toml: Dict[str, Any], instruction_md: str) -> Dict[str, Any
     test_case = task_to_testcase(task_toml, instruction_md)
     task_name = task_toml.get("task", {}).get("name", "tbscience_task")
     suite_id = f"tbscience_{task_name.replace('/', '_')}"
-    return {
+    suite: Dict[str, Any] = {
         "version": OPENEVAL_VERSION,
         "id": suite_id,
         "name": f"TB-Science: {task_name}",
-        "description": task_toml.get("task", {}).get("description"),
         "test_cases": [test_case],
         "graders": [_VERIFIER_GRADER],
         "metadata": {"openeval": {"source": "terminal-bench-science"}},
     }
+    # description is an optional string in suite.json: omitted, never null.
+    description = task_toml.get("task", {}).get("description")
+    if isinstance(description, str):
+        suite["description"] = description
+    return suite
 
 
 def to_openeval_result_set(

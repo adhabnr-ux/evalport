@@ -279,8 +279,9 @@ def suite_to_openeval(suite: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "version": OPENEVAL_VERSION,
         "id": suite.get("id", ""),
-        "name": suite.get("name"),
-        "description": suite.get("description"),
+        # name/description are optional strings in suite.json: omitted, not null.
+        **({"name": suite["name"]} if isinstance(suite.get("name"), str) else {}),
+        **({"description": suite["description"]} if isinstance(suite.get("description"), str) else {}),
         "test_cases": test_cases,
         "graders": all_graders,
         "config": {k: v for k, v in {"defaultRunConfig": suite.get("defaultRunConfig")}.items() if v is not None},
@@ -301,6 +302,28 @@ def _model_ref_label(model_ref: Dict[str, Any]) -> str:
     return f"{source}:{identifier}"
 
 
+def _without_none(d: Dict[str, Any]) -> Dict[str, Any]:
+    """Drop None-valued keys. Every optional EvalPort field this adapter sets
+    (completed_at, actual_output, duration_ms, reason, summary, ...) is typed
+    non-nullable in the JSON Schemas, so an unknown value is omitted rather
+    than emitted as null (which the reference validators reject)."""
+    return {k: v for k, v in d.items() if v is not None}
+
+
+def _error(kind: str, status: Any, detail: Any) -> Dict[str, Any]:
+    """An EvalPort `Result.error`. `error.type` is a closed enum in
+    resultset.json (timeout | provider_error | runner_error); Cannonade's own
+    status/kind is kept in `Result.metadata["cannonade"]["error"]` instead of
+    being put in `error.type`, where it made the document schema-invalid."""
+    if isinstance(detail, str) and detail:
+        message = detail
+    elif detail is not None:
+        message = json.dumps(detail, default=str)
+    else:
+        message = f"cannonade {kind}: {status}"
+    return {"type": "timeout" if status == "timeout" else "runner_error", "message": message}
+
+
 def _case_run_to_result(case_run: Dict[str, Any]) -> Dict[str, Any]:
     test_case_id = case_run.get("testCaseId", "")
     result = case_run.get("result")
@@ -309,14 +332,18 @@ def _case_run_to_result(case_run: Dict[str, Any]) -> Dict[str, Any]:
         # The run never produced a TestCaseResult (e.g. cancelled/failed
         # before completion) -- build the most honest Result we can from
         # just the TestCaseRun's own status, rather than fabricating one.
-        return {
+        status = case_run.get("status", "unknown")
+        return _without_none({
             "test_case_id": test_case_id,
             "passed": False,
             "grader_results": [],
             "completed_at": case_run.get("completedAt"),
-            "error": {"type": f"cannonade_status_{case_run.get('status', 'unknown')}", "detail": case_run.get("error")},
-            "metadata": {"cannonade": {"status": case_run.get("status")}},
-        }
+            "error": _error("status", status, case_run.get("error")),
+            "metadata": {"cannonade": {
+                "status": case_run.get("status"),
+                "error": {"type": f"cannonade_status_{status}", "detail": case_run.get("error")},
+            }},
+        })
 
     grader_results: List[Dict[str, Any]] = []
     for idx, er in enumerate(result.get("evalResults", []) or []):
@@ -329,35 +356,50 @@ def _case_run_to_result(case_run: Dict[str, Any]) -> Dict[str, Any]:
             gr_metadata["judge_usage"] = er["judgeUsage"]
         if er.get("error"):
             gr_metadata["error"] = er["error"]
-        grader_results.append(
-            {
-                "grader_id": _grader_id(test_case_id, idx, er_type),
-                "type": grader_type,
-                "score": clipped,
-                "passed": bool(er.get("passed", False)),
-                "reason": er.get("details"),
-                "metadata": gr_metadata,
-            }
-        )
+        passed = bool(er.get("passed", False))
+        if clipped is None and passed:
+            # EvalPort Validation Rule 6: a null score ("not verified") MUST
+            # have passed: false. Keep Cannonade's own verdict in metadata.
+            gr_metadata["native_passed"] = True
+            passed = False
+        gr: Dict[str, Any] = {
+            "grader_id": _grader_id(test_case_id, idx, er_type),
+            "type": grader_type,
+            "score": clipped,
+            "passed": passed,
+            "metadata": gr_metadata,
+        }
+        if er.get("details") is not None:
+            gr["reason"] = er["details"] if isinstance(er["details"], str) else json.dumps(er["details"], default=str)
+        grader_results.append(gr)
 
     metrics = result.get("metrics", {}) or {}
-    return {
-        "test_case_id": test_case_id,
-        "passed": bool(result.get("passed", False)),
-        "grader_results": grader_results,
-        "actual_output": result.get("output"),
-        "duration_ms": metrics.get("durationMs"),
-        "completed_at": case_run.get("completedAt"),
-        "metadata": {
-            "cannonade": {
-                "status": case_run.get("status"),
-                "reasoning": result.get("reasoning"),
-                "metrics": metrics,
-                "result_error": result.get("error"),
-            }
-        },
-        **({"error": {"type": "cannonade_result_error", "detail": result["error"]}} if result.get("error") else {}),
+    output = result.get("output")
+    duration = metrics.get("durationMs")
+    passed = bool(result.get("passed", False))
+    cannonade_meta: Dict[str, Any] = {
+        "status": case_run.get("status"),
+        "reasoning": result.get("reasoning"),
+        "metrics": metrics,
+        "result_error": result.get("error"),
     }
+    if passed and grader_results and all(g["score"] is None for g in grader_results):
+        # SPEC Aggregation Extension: a Result whose graders are all
+        # null-scored MUST be reported passed: false.
+        cannonade_meta["native_passed"] = True
+        passed = False
+    return _without_none({
+        "test_case_id": test_case_id,
+        "passed": passed,
+        "grader_results": grader_results,
+        # actual_output is a string in resultset.json; a structured output is
+        # serialized rather than emitted as a JSON object/array.
+        "actual_output": output if output is None or isinstance(output, str) else json.dumps(output, default=str),
+        "duration_ms": int(round(duration)) if isinstance(duration, (int, float)) and not isinstance(duration, bool) and duration >= 0 else None,
+        "completed_at": case_run.get("completedAt"),
+        "metadata": {"cannonade": cannonade_meta},
+        "error": _error("result_error", case_run.get("status"), result["error"]) if result.get("error") else None,
+    })
 
 
 def run_to_openeval(run: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -384,7 +426,7 @@ def run_to_openeval(run: Dict[str, Any]) -> List[Dict[str, Any]]:
         started_at = pmr.get("startedAt") or run.get("startedAt") or run.get("createdAt") or ""
         completed_at = pmr.get("completedAt") or run.get("completedAt")
 
-        result_sets.append(
+        result_sets.append(_without_none(
             {
                 "version": OPENEVAL_VERSION,
                 "suite_id": suite_id,
@@ -408,7 +450,10 @@ def run_to_openeval(run: Dict[str, Any]) -> List[Dict[str, Any]]:
                         "test_case_id": "cannonade_no_case_runs",
                         "passed": False,
                         "grader_results": [],
-                        "error": {"type": f"cannonade_status_{pmr.get('status', 'unknown')}", "detail": pmr.get("error")},
+                        "error": _error("status", pmr.get("status", "unknown"), pmr.get("error")),
+                        "metadata": {"cannonade": {"error": {
+                            "type": f"cannonade_status_{pmr.get('status', 'unknown')}", "detail": pmr.get("error"),
+                        }}},
                     }
                 ],
                 "summary": pmr.get("aggregate"),
@@ -426,7 +471,7 @@ def run_to_openeval(run: Dict[str, Any]) -> List[Dict[str, Any]]:
                     },
                 },
             }
-        )
+        ))
     return result_sets
 
 

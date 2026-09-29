@@ -1,5 +1,5 @@
-import { test, expect } from "vitest";
-import { validateSuite, validateGrader, validateTestCase, validateResultSet, validateDocument } from "../src/validate";
+import { test, expect, describe } from "vitest";
+import { validateSuite, validateGrader, validateTestCase, validateResultSet, validateDocument, isRfc3339DateTime } from "../src/validate";
 
 // --- suite ---
 
@@ -720,4 +720,372 @@ test("validateDocument dispatches by type", () => {
   expect(validateDocument({id:"g1",type:"exact_match"}, "grader").valid).toBe(true);
   expect(validateDocument({id:"tc1",input:"hi",graders:["g1"]}, "testcase").valid).toBe(true);
   expect(() => validateDocument({}, "bogus" as unknown as "suite").valid).toThrow();
+});
+
+// --- Validator fidelity: optional-field types, RFC 3339 timestamps, Rule 6 ---
+// The hand-rolled validator used to accept documents spec/schemas/*.json rejects:
+// an optional field of the wrong type (e.g. Result.actual_output as a list --
+// found by ChelseaKR in ChelseaKR/gauntlet#76), a date-only or offset-less
+// started_at/completed_at, and a null-scored GraderResult with passed: true.
+// Mirrors sdk/python/tests/test_validate.py case-for-case.
+
+function fidRs(): any {
+  return {
+    version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-15T10:30:00Z",
+    results: [{
+      test_case_id: "tc1", passed: true,
+      grader_results: [{ grader_id: "g1", type: "exact_match", score: 1.0, passed: true }],
+    }],
+  };
+}
+
+function setPath(doc: any, path: (string | number)[], value: unknown): any {
+  let cur = doc;
+  for (const k of path.slice(0, -1)) cur = cur[k];
+  cur[path[path.length - 1]] = value;
+  return doc;
+}
+
+const R0: (string | number)[] = ["results", 0];
+const GR0: (string | number)[] = ["results", 0, "grader_results", 0];
+
+// [name, path to set, value, expected error path, expected code]
+const RESULTSET_REJECT_CASES: [string, (string | number)[], unknown, string, string][] = [
+  ["suite_version not string", ["suite_version"], 1, "$.suite_version", "TYPE_ERROR"],
+  ["completed_at date-only", ["completed_at"], "2026-01-15", "$.completed_at", "INVALID_DATE_TIME"],
+  ["completed_at not string", ["completed_at"], 1700000000, "$.completed_at", "TYPE_ERROR"],
+  ["provider not object", ["provider"], "gpt-4o", "$.provider", "TYPE_ERROR"],
+  ["provider null", ["provider"], null, "$.provider", "TYPE_ERROR"],
+  ["provider.model not string", ["provider"], { model: 4 }, "$.provider.model", "TYPE_ERROR"],
+  ["provider.api_base not string", ["provider"], { api_base: ["x"] }, "$.provider.api_base", "TYPE_ERROR"],
+  ["provider.temperature string", ["provider"], { temperature: "0.1" }, "$.provider.temperature", "TYPE_ERROR"],
+  ["provider.temperature bool", ["provider"], { temperature: true }, "$.provider.temperature", "TYPE_ERROR"],
+  ["provider.max_tokens fractional", ["provider"], { max_tokens: 1.5 }, "$.provider.max_tokens", "TYPE_ERROR"],
+  ["provider.max_tokens bool", ["provider"], { max_tokens: true }, "$.provider.max_tokens", "TYPE_ERROR"],
+  ["provider.extra not object", ["provider"], { extra: [] }, "$.provider.extra", "TYPE_ERROR"],
+  ["runner not object", ["runner"], [], "$.runner", "TYPE_ERROR"],
+  ["runner.name not string", ["runner"], { name: 1 }, "$.runner.name", "TYPE_ERROR"],
+  ["runner.version not string", ["runner"], { version: 1.0 }, "$.runner.version", "TYPE_ERROR"],
+  ["summary not object", ["summary"], [], "$.summary", "TYPE_ERROR"],
+  ["summary.total negative", ["summary"], { total: -1 }, "$.summary.total", "OUT_OF_RANGE"],
+  ["summary.total bool", ["summary"], { total: true }, "$.summary.total", "TYPE_ERROR"],
+  ["summary.passed fractional", ["summary"], { passed: 0.5 }, "$.summary.passed", "TYPE_ERROR"],
+  ["summary.failed string", ["summary"], { failed: "0" }, "$.summary.failed", "TYPE_ERROR"],
+  ["summary.skipped negative", ["summary"], { skipped: -2 }, "$.summary.skipped", "OUT_OF_RANGE"],
+  ["summary.pass_rate above 1", ["summary"], { pass_rate: 1.5 }, "$.summary.pass_rate", "OUT_OF_RANGE"],
+  ["summary.avg_score string", ["summary"], { avg_score: "0.5" }, "$.summary.avg_score", "TYPE_ERROR"],
+  ["summary.duration_ms fractional", ["summary"], { duration_ms: 1.5 }, "$.summary.duration_ms", "TYPE_ERROR"],
+  ["summary.by_grader not object", ["summary"], { by_grader: [] }, "$.summary.by_grader", "TYPE_ERROR"],
+  ["summary.by_grader entry not object", ["summary"], { by_grader: { g1: 3 } }, "$.summary.by_grader.g1", "TYPE_ERROR"],
+  ["summary.by_grader.passed fractional", ["summary"], { by_grader: { g1: { passed: 1.5 } } }, "$.summary.by_grader.g1.passed", "TYPE_ERROR"],
+  ["summary.by_grader.failed bool", ["summary"], { by_grader: { g1: { failed: false } } }, "$.summary.by_grader.g1.failed", "TYPE_ERROR"],
+  ["summary.by_grader.avg_score string", ["summary"], { by_grader: { g1: { avg_score: "x" } } }, "$.summary.by_grader.g1.avg_score", "TYPE_ERROR"],
+  ["metadata not object", ["metadata"], [], "$.metadata", "TYPE_ERROR"],
+  ["metadata null", ["metadata"], null, "$.metadata", "TYPE_ERROR"],
+  ["isolation null", ["isolation"], null, "$.isolation", "TYPE_ERROR"],
+  ["group null", ["group"], null, "$.group", "TYPE_ERROR"],
+  ["started_at date-only", ["started_at"], "2026-01-15", "$.started_at", "INVALID_DATE_TIME"],
+  ["started_at no offset", ["started_at"], "2026-01-15T10:30:00", "$.started_at", "INVALID_DATE_TIME"],
+  ["started_at no seconds", ["started_at"], "2026-01-15T10:30Z", "$.started_at", "INVALID_DATE_TIME"],
+  ["started_at space separator", ["started_at"], "2026-01-15 10:30:00Z", "$.started_at", "INVALID_DATE_TIME"],
+  ["started_at offset without colon", ["started_at"], "2026-01-15T10:30:00+0530", "$.started_at", "INVALID_DATE_TIME"],
+  ["started_at impossible day", ["started_at"], "2026-02-30T10:30:00Z", "$.started_at", "INVALID_DATE_TIME"],
+  ["started_at month 13", ["started_at"], "2026-13-01T10:30:00Z", "$.started_at", "INVALID_DATE_TIME"],
+  ["started_at hour 24", ["started_at"], "2026-01-15T24:00:00Z", "$.started_at", "INVALID_DATE_TIME"],
+  ["started_at epoch string", ["started_at"], "1700000000", "$.started_at", "INVALID_DATE_TIME"],
+  // Result
+  ["actual_output list (ChelseaKR/gauntlet#76)", [...R0, "actual_output"], ["a", "b"], "$.results[0].actual_output", "TYPE_ERROR"],
+  ["actual_output object", [...R0, "actual_output"], { text: "a" }, "$.results[0].actual_output", "TYPE_ERROR"],
+  ["actual_output null", [...R0, "actual_output"], null, "$.results[0].actual_output", "TYPE_ERROR"],
+  ["test_case_id empty", [...R0, "test_case_id"], "", "$.results[0].test_case_id", "REQUIRED"],
+  ["duration_ms fractional", [...R0, "duration_ms"], 1.5, "$.results[0].duration_ms", "TYPE_ERROR"],
+  ["duration_ms negative", [...R0, "duration_ms"], -1, "$.results[0].duration_ms", "OUT_OF_RANGE"],
+  ["duration_ms bool", [...R0, "duration_ms"], true, "$.results[0].duration_ms", "TYPE_ERROR"],
+  ["result completed_at offset-less", [...R0, "completed_at"], "2026-01-15T10:30:05", "$.results[0].completed_at", "INVALID_DATE_TIME"],
+  ["error not object", [...R0, "error"], "boom", "$.results[0].error", "TYPE_ERROR"],
+  ["error.type not in enum", [...R0, "error"], { type: "crash" }, "$.results[0].error.type", "INVALID_VALUE"],
+  ["error.message not string", [...R0, "error"], { message: 1 }, "$.results[0].error.message", "TYPE_ERROR"],
+  ["error.code fractional", [...R0, "error"], { code: 1.5 }, "$.results[0].error.code", "TYPE_ERROR"],
+  ["error.code bool", [...R0, "error"], { code: true }, "$.results[0].error.code", "TYPE_ERROR"],
+  ["error.retryable string", [...R0, "error"], { retryable: "yes" }, "$.results[0].error.retryable", "TYPE_ERROR"],
+  ["result metadata not object", [...R0, "metadata"], "trace", "$.results[0].metadata", "TYPE_ERROR"],
+  ["attempt null", [...R0, "attempt"], null, "$.results[0].attempt", "OUT_OF_RANGE"],
+  // GraderResult
+  ["grader_id empty", [...GR0, "grader_id"], "", "$.results[0].grader_results[0].grader_id", "REQUIRED"],
+  ["reason not string", [...GR0, "reason"], 1, "$.results[0].grader_results[0].reason", "TYPE_ERROR"],
+  ["grader metadata not object", [...GR0, "metadata"], [], "$.results[0].grader_results[0].metadata", "TYPE_ERROR"],
+];
+
+describe("resultset optional-field rejections", () => {
+  for (const [name, path, value, errPath, code] of RESULTSET_REJECT_CASES) {
+    test(name, () => {
+      const r = validateResultSet(setPath(fidRs(), path, value));
+      expect(r.valid).toBe(false);
+      expect(r.errors.some(e => e.path === errPath && e.code === code), JSON.stringify(r.errors)).toBe(true);
+    });
+  }
+});
+
+test("GraderResult with no score key is REQUIRED, not treated as null", () => {
+  const doc = fidRs();
+  delete doc.results[0].grader_results[0].score;
+  doc.results[0].grader_results[0].passed = false;
+  doc.results[0].passed = false;
+  const r = validateResultSet(doc);
+  expect(r.errors.some(e => e.path === "$.results[0].grader_results[0].score" && e.code === "REQUIRED")).toBe(true);
+});
+
+test("Rule 6: null score with passed true is rejected (NULL_SCORE_PASSED)", () => {
+  const doc = fidRs();
+  doc.results[0].grader_results.push({ grader_id: "g2", type: "human", score: null, passed: true });
+  const r = validateResultSet(doc);
+  expect(r.valid).toBe(false);
+  expect(r.errors.map(e => e.code)).toEqual(["NULL_SCORE_PASSED"]);
+  expect(r.errors[0].path).toBe("$.results[0].grader_results[1].passed");
+});
+
+test("Rule 6: all null-scored Result with passed true is rejected (UNSCORED_RESULT_PASSED)", () => {
+  const doc = fidRs();
+  doc.results[0].grader_results = [
+    { grader_id: "g1", type: "human", score: null, passed: false },
+    { grader_id: "g2", type: "llm_judge", score: null, passed: false },
+  ];
+  const r = validateResultSet(doc);
+  expect(r.valid).toBe(false);
+  expect(r.errors.map(e => [e.path, e.code])).toEqual([["$.results[0].passed", "UNSCORED_RESULT_PASSED"]]);
+});
+
+test("Rule 6: all null-scored Result with passed false is valid", () => {
+  const doc = fidRs();
+  doc.results[0].passed = false;
+  doc.results[0].grader_results = [{ grader_id: "g1", type: "human", score: null, passed: false }];
+  expect(validateResultSet(doc).valid).toBe(true);
+});
+
+test("Rule 6: mixed null and scored graders can still pass", () => {
+  // Null-scored graders are excluded from aggregation, so a Result can pass on
+  // its scored graders alone -- only the ALL-null case must be passed: false.
+  const doc = fidRs();
+  doc.results[0].grader_results.push({ grader_id: "g2", type: "human", score: null, passed: false });
+  expect(validateResultSet(doc).valid).toBe(true);
+});
+
+test("Rule 6: empty grader_results is not 'all null-scored'", () => {
+  const doc = fidRs();
+  doc.results[0].grader_results = [];
+  expect(validateResultSet(doc).valid).toBe(true);
+});
+
+test("ResultSet with every optional field well-typed is valid", () => {
+  const doc = fidRs();
+  Object.assign(doc, {
+    $schema: "https://evalport.org/schema/resultset.json",
+    suite_version: "1.0.0",
+    completed_at: "2026-01-15T10:31:45.123+05:30",
+    provider: { model: "gpt-4o", api_base: "https://api.example.com", temperature: 0, max_tokens: 256, extra: { seed: 1 } },
+    runner: { name: "evalport-cli", version: "1.3.1" },
+    summary: { total: 1, passed: 1, failed: 0, skipped: 0, pass_rate: 1, avg_score: 1.0, duration_ms: 1200,
+      by_grader: { g1: { passed: 1, failed: 0, avg_score: 1.0 } } },
+    metadata: { "openeval.partial": false },
+  });
+  Object.assign(doc.results[0], {
+    actual_output: "Paris", duration_ms: 1200, completed_at: "2026-01-15t10:31:44z",
+    error: { type: "provider_error", message: "rate limited", code: 429, retryable: true },
+    metadata: { trace_id: "abc" },
+  });
+  Object.assign(doc.results[0].grader_results[0], { reason: "exact", metadata: { k: "v" } });
+  const r = validateResultSet(doc);
+  expect(r.errors).toEqual([]);
+  expect(r.valid).toBe(true);
+});
+
+test("error.code may be a string or an integer", () => {
+  for (const code of ["RATE_LIMIT", 429]) {
+    expect(validateResultSet(setPath(fidRs(), [...R0, "error"], { type: "timeout", code })).valid).toBe(true);
+  }
+});
+
+test("undefined-valued optional keys count as absent (JSON.stringify drops them)", () => {
+  const doc = fidRs();
+  doc.provider = undefined;
+  doc.results[0].actual_output = undefined;
+  expect(validateResultSet(doc).valid).toBe(true);
+});
+
+const RFC3339_ACCEPT = [
+  "2026-01-15T10:30:00Z", "2026-01-15T10:30:00+05:30", "2026-01-15T10:30:00-08:00",
+  "2026-01-15t10:30:00z", "2026-01-15T10:30:00.123456Z", "2024-02-29T00:00:00Z",
+  "2026-01-15T10:30:00.5+00:00", "2016-12-31T23:59:60Z",
+];
+const RFC3339_REJECT = [
+  "2026-01-15", "2026-01-15T10:30:00", "2026-01-15T10:30Z", "2026-01-15 10:30:00Z",
+  "2026-01-15T10:30:00+0530", "2026-01-15T10:30:00+05", "2025-02-29T00:00:00Z", "2026-04-31T00:00:00Z",
+  "2026-00-10T00:00:00Z", "2026-01-00T00:00:00Z", "2026-01-15T10:60:00Z", "2026-01-15T10:30:61Z",
+  "2026-01-15T10:30:00.Z", "2026-01-15T10:30:00Z\n", "20260115T103000Z", "", "now",
+];
+
+describe("RFC 3339 date-time", () => {
+  for (const v of RFC3339_ACCEPT) {
+    test(`accepts ${JSON.stringify(v)}`, () => {
+      expect(isRfc3339DateTime(v)).toBe(true);
+      expect(validateResultSet(setPath(fidRs(), ["started_at"], v)).valid).toBe(true);
+    });
+  }
+  for (const v of RFC3339_REJECT) {
+    test(`rejects ${JSON.stringify(v)}`, () => {
+      expect(isRfc3339DateTime(v)).toBe(false);
+      const r = validateResultSet(setPath(fidRs(), ["started_at"], v));
+      expect(r.errors.some(e => e.path === "$.started_at" && e.code === "INVALID_DATE_TIME")).toBe(true);
+    });
+  }
+  test("Date.prototype.toISOString() output is valid", () => {
+    expect(isRfc3339DateTime(new Date().toISOString())).toBe(true);
+  });
+});
+
+// TestCase / Grader / Suite optional fields
+
+const TC_BASE = { id: "tc1", input: "hi", graders: ["g1"] };
+const TESTCASE_REJECT_CASES: [string, unknown, string, string][] = [
+  ["expected_output", 1, "$.expected_output", "TYPE_ERROR"],
+  ["expected_output", null, "$.expected_output", "TYPE_ERROR"],
+  ["context", "doc", "$.context", "TYPE_ERROR"],
+  ["context", ["ok", 2], "$.context", "TYPE_ERROR"],
+  ["retrieval_context", [null], "$.retrieval_context", "TYPE_ERROR"],
+  ["tools_called", "search", "$.tools_called", "TYPE_ERROR"],
+  ["expected_tools", [{ name: "search" }], "$.expected_tools", "TYPE_ERROR"],
+  ["metadata", [], "$.metadata", "TYPE_ERROR"],
+  ["tags", "smoke", "$.tags", "TYPE_ERROR"],
+  ["provider", "gpt-4o", "$.provider", "TYPE_ERROR"],
+  ["provider", { max_tokens: 0 }, "$.provider.max_tokens", "OUT_OF_RANGE"],
+  ["provider", { api_key_env: 1 }, "$.provider.api_key_env", "TYPE_ERROR"],
+  ["provider", { temperature: "hot" }, "$.provider.temperature", "TYPE_ERROR"],
+  ["params", [], "$.params", "TYPE_ERROR"],
+  ["timeout_ms", 0, "$.timeout_ms", "OUT_OF_RANGE"],
+  ["timeout_ms", 1.5, "$.timeout_ms", "TYPE_ERROR"],
+  ["weight", -1, "$.weight", "OUT_OF_RANGE"],
+  ["weight", true, "$.weight", "TYPE_ERROR"],
+];
+
+describe("testcase optional-field rejections", () => {
+  for (const [key, value, errPath, code] of TESTCASE_REJECT_CASES) {
+    test(`${key}=${JSON.stringify(value)}`, () => {
+      const r = validateTestCase({ ...TC_BASE, [key]: value });
+      expect(r.valid).toBe(false);
+      expect(r.errors.some(e => e.path === errPath && e.code === code), JSON.stringify(r.errors)).toBe(true);
+    });
+  }
+});
+
+test("testcase with every optional field well-typed is valid", () => {
+  const r = validateTestCase({
+    ...TC_BASE, expected_output: "Paris", context: ["a"], retrieval_context: ["b"],
+    tools_called: ["search"], expected_tools: ["search"], metadata: { k: 1 }, tags: ["smoke"],
+    provider: { model: "gpt-4o", api_base: "x", api_key_env: "OPENAI_API_KEY", temperature: 0.2, max_tokens: 1, extra: {} },
+    params: { top_p: 1 }, timeout_ms: 1, weight: 0,
+  });
+  expect(r.errors).toEqual([]);
+});
+
+const GRADER_REJECT_CASES: [Record<string, unknown>, string, string][] = [
+  [{ id: "g", type: "exact_match", params: [] }, "$.params", "TYPE_ERROR"],
+  [{ id: "g", type: "custom", params: ["x"] }, "$.params", "TYPE_ERROR"],
+  [{ id: "g", type: "exact_match", weight: -0.5 }, "$.weight", "OUT_OF_RANGE"],
+  [{ id: "g", type: "exact_match", weight: "1" }, "$.weight", "TYPE_ERROR"],
+  [{ id: "g", type: "exact_match", description: 1 }, "$.description", "TYPE_ERROR"],
+  [{ id: "g", type: "contains", params: { substring: "a", ignore_case: "yes" } }, "$.params.ignore_case", "TYPE_ERROR"],
+  [{ id: "g", type: "regex", params: { pattern: "a", flags: 1 } }, "$.params.flags", "TYPE_ERROR"],
+  [{ id: "g", type: "semantic_similarity", params: { threshold: true } }, "$.params.threshold", "OUT_OF_RANGE"],
+  [{ id: "g", type: "semantic_similarity", params: { threshold: 0.8, model: 1 } }, "$.params.model", "TYPE_ERROR"],
+  [{ id: "g", type: "semantic_similarity", params: { threshold: 0.8, provider: 1 } }, "$.params.provider", "TYPE_ERROR"],
+  [{ id: "g", type: "llm_judge", params: { model: "m", prompt: "{output}", temperature: 3 } }, "$.params.temperature", "OUT_OF_RANGE"],
+  [{ id: "g", type: "llm_judge", params: { model: "m", prompt: "{output}", schema: "x" } }, "$.params.schema", "TYPE_ERROR"],
+  [{ id: "g", type: "llm_judge", params: { model: "m", prompt: "{output}", provider: 1 } }, "$.params.provider", "TYPE_ERROR"],
+  [{ id: "g", type: "json_schema", params: { schema: {}, strict: "true" } }, "$.params.strict", "TYPE_ERROR"],
+  [{ id: "g", type: "json_path", params: { path: "$.a", expected: "1", operator: "like" } }, "$.params.operator", "INVALID_VALUE"],
+  [{ id: "g", type: "code", params: { language: "python", source: "x", timeout_ms: 50 } }, "$.params.timeout_ms", "OUT_OF_RANGE"],
+];
+
+describe("grader optional-field rejections", () => {
+  for (const [doc, errPath, code] of GRADER_REJECT_CASES) {
+    test(`${doc.type}:${errPath}`, () => {
+      const r = validateGrader(doc);
+      expect(r.valid).toBe(false);
+      expect(r.errors.some(e => e.path === errPath && e.code === code), JSON.stringify(r.errors)).toBe(true);
+    });
+  }
+});
+
+test("grader with non-object params still reports missing handler", () => {
+  const r = validateGrader({ id: "g", type: "custom", params: ["x"] });
+  expect(new Set(r.errors.map(e => `${e.path}|${e.code}`))).toEqual(new Set(["$.params|TYPE_ERROR", "$.params.handler|REQUIRED"]));
+});
+
+test("grader optional params well-typed are valid", () => {
+  for (const g of [
+    { id: "g", type: "contains", params: { substring: "a", ignore_case: true }, weight: 2, description: "d" },
+    { id: "g", type: "regex", params: { pattern: "a", flags: "i" } },
+    { id: "g", type: "semantic_similarity", params: { threshold: 0.8, model: "m", provider: "p" } },
+    { id: "g", type: "llm_judge", params: { model: "m", prompt: "{output}", provider: "p", temperature: 2, schema: {} } },
+    { id: "g", type: "json_schema", params: { schema: {}, strict: false } },
+    { id: "g", type: "json_path", params: { path: "$.a", expected: "1", operator: "gte" } },
+    { id: "g", type: "code", params: { language: "python", source: "x", timeout_ms: 100 } },
+  ]) {
+    expect(validateGrader(g).errors, JSON.stringify(g)).toEqual([]);
+  }
+});
+
+const SUITE_BASE = { version: "1.0.0", id: "s", graders: [{ id: "g1", type: "exact_match" }], test_cases: [TC_BASE] };
+const SUITE_REJECT_CASES: [string, unknown, string, string][] = [
+  ["name", 1, "$.name", "TYPE_ERROR"],
+  ["description", ["x"], "$.description", "TYPE_ERROR"],
+  ["graders", { g1: {} }, "$.graders", "TYPE_ERROR"],
+  ["test_cases_file", 1, "$.test_cases_file", "TYPE_ERROR"],
+  ["metadata", "x", "$.metadata", "TYPE_ERROR"],
+  ["tags", [1], "$.tags", "TYPE_ERROR"],
+  ["config", [], "$.config", "TYPE_ERROR"],
+  ["config", { parallel: 0 }, "$.config.parallel", "OUT_OF_RANGE"],
+  ["config", { provider: [] }, "$.config.provider", "TYPE_ERROR"],
+  ["config", { provider: { max_tokens: 0 } }, "$.config.provider.max_tokens", "OUT_OF_RANGE"],
+  ["config", { defaults: { timeout_ms: 0 } }, "$.config.defaults.timeout_ms", "OUT_OF_RANGE"],
+  ["config", { defaults: { weight: -1 } }, "$.config.defaults.weight", "OUT_OF_RANGE"],
+  ["config", { retry: { max_attempts: 0 } }, "$.config.retry.max_attempts", "OUT_OF_RANGE"],
+  ["config", { retry: { backoff_ms: 10 } }, "$.config.retry.backoff_ms", "OUT_OF_RANGE"],
+  ["$schema", 1, "$.$schema", "TYPE_ERROR"],
+];
+
+describe("suite optional-field rejections", () => {
+  for (const [key, value, errPath, code] of SUITE_REJECT_CASES) {
+    test(`${key}=${JSON.stringify(value)}`, () => {
+      const r = validateSuite({ ...SUITE_BASE, [key]: value });
+      expect(r.valid).toBe(false);
+      expect(r.errors.some(e => e.path === errPath && e.code === code), JSON.stringify(r.errors)).toBe(true);
+    });
+  }
+});
+
+test("suite nested test case optional-field rejection is reported", () => {
+  // Nested errors keep validateSuite's existing "$.test_cases[i]." + "$.<field>" prefixing.
+  const r = validateSuite({ ...SUITE_BASE, test_cases: [{ ...TC_BASE, tags: "smoke" }] });
+  expect(r.errors.map(e => [e.path, e.code])).toEqual([["$.test_cases[0].$.tags", "TYPE_ERROR"]]);
+});
+
+test("suite test_cases of the wrong type is rejected even with test_cases_file", () => {
+  const r = validateSuite({ version: "1.0.0", id: "s", test_cases_file: "cases.jsonl", test_cases: "cases.jsonl" });
+  expect(r.errors.some(e => e.path === "$.test_cases" && e.code === "TYPE_ERROR")).toBe(true);
+});
+
+test("suite graders are validated when test cases come from test_cases_file", () => {
+  const r = validateSuite({ version: "1.0.0", id: "s", test_cases_file: "cases.jsonl", graders: [{ id: "g1", type: "custom" }] });
+  expect(r.errors.some(e => e.path === "$.graders[0].$.params.handler")).toBe(true);
+});
+
+test("suite with every optional field well-typed is valid", () => {
+  const r = validateSuite({
+    ...SUITE_BASE, $schema: "https://evalport.org/schema/suite.json", name: "n", description: "d",
+    metadata: { k: 1 }, tags: ["a"],
+    config: { provider: { model: "m", max_tokens: 10 }, defaults: { timeout_ms: 1000, weight: 1 },
+      parallel: 4, retry: { max_attempts: 3, backoff_ms: 100 } },
+  });
+  expect(r.errors).toEqual([]);
 });

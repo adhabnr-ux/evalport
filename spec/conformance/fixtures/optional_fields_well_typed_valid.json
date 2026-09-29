@@ -1,0 +1,77 @@
+{
+  "description": "Every optional ResultSet, Result and GraderResult field that spec/schemas/resultset.json types, present and correctly typed: suite_version, completed_at (with a +05:30 offset and fractional seconds), provider (model/api_base/temperature/max_tokens/extra), runner, summary (including by_grader), metadata; Result.actual_output, duration_ms, completed_at (lowercase t/z, which RFC 3339 section 5.6 permits), error (type/message/code/retryable) and metadata; GraderResult.reason and metadata. The reference validators type-check each of these fields when present, and a conformance implementation MUST ACCEPT this document.",
+  "type": "resultset",
+  "expect": {
+    "valid": true
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_conformance",
+    "run_id": "run_conformance_001",
+    "started_at": "2026-09-29T00:00:00Z",
+    "suite_version": "1.0.0",
+    "completed_at": "2026-09-29T05:30:02.250+05:30",
+    "provider": {
+      "model": "gpt-4o",
+      "api_base": "https://api.openai.com/v1",
+      "temperature": 0.0,
+      "max_tokens": 256,
+      "extra": {
+        "seed": 7
+      }
+    },
+    "runner": {
+      "name": "evalport-cli",
+      "version": "1.3.1"
+    },
+    "summary": {
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "pass_rate": 0.0,
+      "avg_score": 0.0,
+      "duration_ms": 1200,
+      "by_grader": {
+        "gr_exact": {
+          "passed": 0,
+          "failed": 1,
+          "avg_score": 0.0
+        }
+      }
+    },
+    "metadata": {
+      "com.example.pipeline": "nightly"
+    },
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "actual_output": "Paris",
+        "passed": false,
+        "duration_ms": 1200,
+        "completed_at": "2026-09-29t00:00:01z",
+        "error": {
+          "type": "provider_error",
+          "message": "rate limited on retry",
+          "code": 429,
+          "retryable": true
+        },
+        "metadata": {
+          "trace_id": "trace_abc123"
+        },
+        "grader_results": [
+          {
+            "grader_id": "gr_exact",
+            "type": "exact_match",
+            "score": 0.0,
+            "passed": false,
+            "reason": "Expected 'Paris.', got 'Paris'",
+            "metadata": {
+              "normalized": false
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

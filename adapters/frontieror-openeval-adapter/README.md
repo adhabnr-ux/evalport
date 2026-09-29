@@ -108,7 +108,7 @@ with three graders. Each one says what it measures.
 | Grader | `score` | `passed` | What it is |
 |---|---|---|---|
 | `gr_frontieror_quality_only` (`frontieror:quality_only`) | `min(1, max(0, 1-g))`, or null when `g` is undefined | `max(0,g) <= b` | A normalized quality-only score. **Not staged_qte.** |
-| `gr_frontieror_staged_qte` (`frontieror:staged_qte`) | always null | `stage_id == 2` | FrontierOR's score, unchanged, in `metadata.frontieror.staged_qte` |
+| `gr_frontieror_staged_qte` (`frontieror:staged_qte`) | always null | always false (Rule 6); the stage reached is `metadata.frontieror.stage_id` | FrontierOR's score, unchanged, in `metadata.frontieror.staged_qte` |
 | `gr_frontieror_binary_qte` (`frontieror:beat_gurobi_1`) | 1.0 or 0.0 | same | The paper's binary QTE |
 
 The maintainer made two points in the issue. This is how each one is handled.
@@ -142,7 +142,14 @@ debug field FrontierOR produces (`stage_id`, `quality_part`, `speed_part`,
 `signed_gap`, `beat_amount`, `matched`, `beat_gurobi`) are stored unchanged,
 together with `contract_version` and `scorer_source`. The grader's `reason`
 says why the slot is null, so a generic consumer that treats null as "skipped"
-can read the explanation.
+can read the explanation. Because the score is null, the grader's `passed` is
+always `false`: EvalPort Validation Rule 6 says a null score means "not
+verified" and MUST carry `passed: false`, and the reference validators reject
+`score: null` with `passed: true` (`NULL_SCORE_PASSED`). Whether a result
+reached stage 2 is `metadata.frontieror.stage_id`, and
+`summary.by_grader.gr_frontieror_staged_qte` counts 0 passed / 0 failed
+(null-scored results are excluded; the per-stage counts are in
+`metadata.frontieror.aggregates.stage_counts`).
 
 **`Result.passed`** is the paper's binary QTE (`beat_gurobi_1` in
 `scripts/compute_benchmark_main_metrics.py`). A cell passes when it is
@@ -152,7 +159,7 @@ paper's proven-zero-optimum table and its tiny-instance gate. The binary
 check uses the one-shot CSV `gap` (`compute_gap`, denominator `abs(r)`),
 while the other two graders use the contract's `D`-scaled gap, because that
 is what each FrontierOR metric uses. The two differ only when `abs(r) < 0.001`.
-A result can have quality-only and staged_qte passed but `Result.passed` false.
+A result can have quality-only passed and staged_qte at stage 2 but `Result.passed` false.
 For example, `bierwirth2017:tiny` matched Gurobi but was slower. The paper
 averages binary QTE only over `large_*` cells. Tiny results get the same
 per-cell rule, marked `in_paper_beat_gurobi_1_grid: false`.

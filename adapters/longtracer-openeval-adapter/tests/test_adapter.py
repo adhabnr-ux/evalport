@@ -340,7 +340,8 @@ def test_runner_version_uses_importlib_metadata_not_a_real_import():
     rs = to_openeval(vr)
 
     assert rs["runner"]["name"] == "longtracer"
-    assert rs["runner"]["version"] is None
+    # Unknown version is omitted, not null (runner.version is a string).
+    assert "version" not in rs["runner"]
     assert "longtracer" not in sys.modules
 
 

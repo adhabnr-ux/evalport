@@ -1,0 +1,31 @@
+{
+  "description": "Result.completed_at (the per-result merge tiebreaker for resumed/partial runs, Discussion #10) is an RFC 3339 date-time. An offset-less local time such as \"2026-09-29T00:00:05\" (what Python's datetime.isoformat() produces for a naive datetime) has no defined instant, so two partial ResultSets written on machines in different time zones could not be merged reliably. RFC 3339 requires the offset. A conformance implementation MUST REJECT this document (reference validators: INVALID_DATE_TIME).",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.results[0].completed_at"
+    ]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_conformance",
+    "run_id": "run_conformance_001",
+    "started_at": "2026-09-29T00:00:00Z",
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "completed_at": "2026-09-29T00:00:05",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_exact",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      }
+    ]
+  }
+}

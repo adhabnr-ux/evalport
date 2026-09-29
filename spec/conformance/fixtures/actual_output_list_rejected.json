@@ -1,0 +1,34 @@
+{
+  "description": "Result.actual_output is typed as a string in spec/schemas/resultset.json. A producer that emits a multi-turn transcript or a list of chunks as a JSON array here (instead of joining it into one string, or putting the structured form in metadata) produces a document the JSON Schema rejects -- and both reference validators used to accept it anyway, because they only type-checked required fields. Found by ChelseaKR in ChelseaKR/gauntlet PR #76. A conformance implementation MUST REJECT this document.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.results[0].actual_output"
+    ]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_conformance",
+    "run_id": "run_conformance_001",
+    "started_at": "2026-09-29T00:00:00Z",
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "actual_output": [
+          "The capital of France",
+          "is Paris."
+        ],
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_contains",
+            "type": "contains",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      }
+    ]
+  }
+}

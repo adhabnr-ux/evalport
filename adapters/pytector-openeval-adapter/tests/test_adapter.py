@@ -235,9 +235,9 @@ class TestGuardDecisionToResult:
 
         assert result["passed"] is False
         assert result["grader_results"] == []
-        assert result["error"]["type"] == "detector_error"
+        assert result["error"]["type"] == "provider_error"  # EvalPort's closed enum
         assert "Groq API error" in result["error"]["message"]
-        assert result["error"]["backend"] == "groq"
+        assert result["metadata"]["pytector"]["backend"] == "groq"
         assert result["metadata"]["pytector"]["api_error"] is True
 
     def test_missing_reasons_falls_back_to_generated_reason(self):

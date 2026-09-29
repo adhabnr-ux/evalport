@@ -196,7 +196,6 @@ def to_openeval(
             "type": "custom",
             "score": score,
             "passed": passed,
-            "reason": explanation,
             "metadata": {
                 "gen_category": gen_category,
                 "fail_category": fail_category,
@@ -204,6 +203,11 @@ def to_openeval(
                 "confidence": confidence,
             },
         }
+
+        if explanation is not None:
+            # reason is an optional string in resultset.json: omitted, not null,
+            # when humanbound recorded no explanation (typical for a pass).
+            grader_result["reason"] = explanation
 
         result: Dict[str, Any] = {
             "test_case_id": str(thread_id),
@@ -216,8 +220,11 @@ def to_openeval(
             result["duration_ms"] = duration_ms
 
         if verdict == "error":
+            # error.type is a closed enum in resultset.json (timeout |
+            # provider_error | runner_error). A judge failure is still told
+            # apart by the grader's metadata.fail_category == "judge_error".
             result["error"] = {
-                "type": "judge_error" if fail_category == _JUDGE_ERROR_CATEGORY else "runner_error",
+                "type": "runner_error",
                 "message": explanation or fail_category or "humanbound reported result=error with no explanation",
             }
 

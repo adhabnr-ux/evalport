@@ -1,0 +1,37 @@
+{
+  "description": "Validation Rule 6: \"Skipped or not-yet-executed graders [...] MUST be represented with score: null and passed: false. score: null means 'not verified'\". A GraderResult with score: null and passed: true claims a verdict the grader never produced. The raw JSON Schema types score and passed independently and does not encode this cross-field rule, so it accepts this document; the reference validators reject it (NULL_SCORE_PASSED), the same way they enforce other cross-field rules such as SELF_PARENT and DUPLICATE_ATTEMPT. A conformance implementation MUST perform this check itself. Derived from a real case: frontieror-openeval-adapter emitted its unbounded staged_qte grader as score: null with passed: stage_id == 2.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.results[0].grader_results[1].passed"
+    ]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_conformance",
+    "run_id": "run_conformance_001",
+    "started_at": "2026-09-29T00:00:00Z",
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_exact",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          },
+          {
+            "grader_id": "gr_unbounded",
+            "type": "custom",
+            "score": null,
+            "passed": true,
+            "reason": "native score 1.99 is outside [0,1]"
+          }
+        ]
+      }
+    ]
+  }
+}

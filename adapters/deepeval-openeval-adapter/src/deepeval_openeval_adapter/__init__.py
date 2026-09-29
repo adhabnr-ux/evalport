@@ -554,6 +554,11 @@ def test_results_to_openeval(
                 value = _get(md, field)
                 if value is not None:
                     gr_metadata[field] = value
+            if score is None and gr["passed"]:
+                # EvalPort Validation Rule 6: a null score ("not verified")
+                # MUST have passed: false. DeepEval's own verdict is kept.
+                gr["passed"] = False
+                gr_metadata["native_success"] = True
             gr["metadata"] = gr_metadata
 
             grader_results.append(gr)
@@ -565,6 +570,11 @@ def test_results_to_openeval(
         )
 
         tr_metadata: Dict[str, Any] = {}
+        if result["passed"] and all(g["score"] is None for g in grader_results):
+            # SPEC Aggregation Extension: a Result whose graders are all
+            # null-scored has no basis for a verdict and MUST be passed: false.
+            result["passed"] = False
+            tr_metadata["native_success"] = True
         for field in ("index", "conversational", "multimodal"):
             value = _get(tr, field)
             if value is not None:

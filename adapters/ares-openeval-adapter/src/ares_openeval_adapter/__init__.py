@@ -201,13 +201,16 @@ def to_openeval_resultset(
         test_case_id = f"tc_{i}"
         result: Dict[str, Any] = {
             "test_case_id": test_case_id,
-            "actual_output": response.get("response") if isinstance(response.get("response"), str) else None,
             "metadata": {
                 "ares_label": _get(r, "label"),
                 "ares_prediction": prediction,
                 "attack_successful": attack_successful,
             },
         }
+        # actual_output is an optional string in resultset.json: omitted when
+        # the connector returned no text, never emitted as null.
+        if isinstance(response.get("response"), str):
+            result["actual_output"] = response["response"]
 
         if is_error:
             result["passed"] = False

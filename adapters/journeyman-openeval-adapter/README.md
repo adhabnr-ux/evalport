@@ -109,7 +109,8 @@ keeps its `GraderResult` (so nothing is silently dropped) but carries `score=Non
 `metadata.excluded_from_axis_score=True`, matching journeyman's own exclusion of that cell from
 the axis's mean — recomputing the axis score from this adapter's output requires honoring that
 flag, not just averaging every non-null score. An invalid cell (`cell["invalid"]`) produces a
-`Result` with no `grader_results` and `error.type="invalid_cell"`, matching journeyman's own
+`Result` with no `grader_results`, `error.type="runner_error"` (`error.type` is a closed enum in
+EvalPort: `timeout`/`provider_error`/`runner_error`) and `metadata.journeyman.error_kind="invalid_cell"`, matching journeyman's own
 exclusion of invalid cells from every axis score — never a silent pass.
 
 ## Testing

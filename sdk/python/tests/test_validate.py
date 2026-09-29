@@ -601,3 +601,347 @@ def test_group_three_level_nesting_matches_mlflow_grandparent_parent_child_shape
         cur = by_group_id[cur["group"]["parent_group_id"]]
         chain.append(cur["group"]["group_id"])
     assert chain == ["trial-003", "sweep-lr-grid", "campaign-2026-09-08"]
+
+# --- Validator fidelity: optional-field types, RFC 3339 timestamps, Rule 6 ---
+# The hand-rolled validator used to accept documents spec/schemas/*.json rejects:
+# an optional field of the wrong type (e.g. Result.actual_output as a list --
+# found by ChelseaKR in ChelseaKR/gauntlet#76), a date-only or offset-less
+# started_at/completed_at, and a null-scored GraderResult with passed: true.
+# Mirrored case-for-case in sdk/typescript/tests/validate.test.ts.
+
+import pytest
+from openeval.validate import is_rfc3339_date_time
+
+def _fid_rs():
+    return {
+        "version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-15T10:30:00Z",
+        "results": [{
+            "test_case_id": "tc1", "passed": True,
+            "grader_results": [{"grader_id": "g1", "type": "exact_match", "score": 1.0, "passed": True}],
+        }],
+    }
+
+def _set(doc, path, value):
+    # path like ("results", 0, "grader_results", 0, "reason")
+    cur = doc
+    for k in path[:-1]:
+        cur = cur[k]
+    cur[path[-1]] = value
+    return doc
+
+def _del(doc, path):
+    cur = doc
+    for k in path[:-1]:
+        cur = cur[k]
+    del cur[path[-1]]
+    return doc
+
+R0 = ("results", 0)
+GR0 = ("results", 0, "grader_results", 0)
+
+# (name, path to set, value, expected error path, expected code)
+RESULTSET_REJECT_CASES = [
+    ("suite_version not string", ("suite_version",), 1, "$.suite_version", "TYPE_ERROR"),
+    ("completed_at date-only", ("completed_at",), "2026-01-15", "$.completed_at", "INVALID_DATE_TIME"),
+    ("completed_at not string", ("completed_at",), 1700000000, "$.completed_at", "TYPE_ERROR"),
+    ("provider not object", ("provider",), "gpt-4o", "$.provider", "TYPE_ERROR"),
+    ("provider null", ("provider",), None, "$.provider", "TYPE_ERROR"),
+    ("provider.model not string", ("provider",), {"model": 4}, "$.provider.model", "TYPE_ERROR"),
+    ("provider.api_base not string", ("provider",), {"api_base": ["x"]}, "$.provider.api_base", "TYPE_ERROR"),
+    ("provider.temperature string", ("provider",), {"temperature": "0.1"}, "$.provider.temperature", "TYPE_ERROR"),
+    ("provider.temperature bool", ("provider",), {"temperature": True}, "$.provider.temperature", "TYPE_ERROR"),
+    ("provider.max_tokens fractional", ("provider",), {"max_tokens": 1.5}, "$.provider.max_tokens", "TYPE_ERROR"),
+    ("provider.max_tokens bool", ("provider",), {"max_tokens": True}, "$.provider.max_tokens", "TYPE_ERROR"),
+    ("provider.extra not object", ("provider",), {"extra": []}, "$.provider.extra", "TYPE_ERROR"),
+    ("runner not object", ("runner",), [], "$.runner", "TYPE_ERROR"),
+    ("runner.name not string", ("runner",), {"name": 1}, "$.runner.name", "TYPE_ERROR"),
+    ("runner.version not string", ("runner",), {"version": 1.0}, "$.runner.version", "TYPE_ERROR"),
+    ("summary not object", ("summary",), [], "$.summary", "TYPE_ERROR"),
+    ("summary.total negative", ("summary",), {"total": -1}, "$.summary.total", "OUT_OF_RANGE"),
+    ("summary.total bool", ("summary",), {"total": True}, "$.summary.total", "TYPE_ERROR"),
+    ("summary.passed fractional", ("summary",), {"passed": 0.5}, "$.summary.passed", "TYPE_ERROR"),
+    ("summary.failed string", ("summary",), {"failed": "0"}, "$.summary.failed", "TYPE_ERROR"),
+    ("summary.skipped negative", ("summary",), {"skipped": -2}, "$.summary.skipped", "OUT_OF_RANGE"),
+    ("summary.pass_rate above 1", ("summary",), {"pass_rate": 1.5}, "$.summary.pass_rate", "OUT_OF_RANGE"),
+    ("summary.avg_score string", ("summary",), {"avg_score": "0.5"}, "$.summary.avg_score", "TYPE_ERROR"),
+    ("summary.duration_ms fractional", ("summary",), {"duration_ms": 1.5}, "$.summary.duration_ms", "TYPE_ERROR"),
+    ("summary.by_grader not object", ("summary",), {"by_grader": []}, "$.summary.by_grader", "TYPE_ERROR"),
+    ("summary.by_grader entry not object", ("summary",), {"by_grader": {"g1": 3}}, "$.summary.by_grader.g1", "TYPE_ERROR"),
+    ("summary.by_grader.passed fractional", ("summary",), {"by_grader": {"g1": {"passed": 1.5}}}, "$.summary.by_grader.g1.passed", "TYPE_ERROR"),
+    ("summary.by_grader.failed bool", ("summary",), {"by_grader": {"g1": {"failed": False}}}, "$.summary.by_grader.g1.failed", "TYPE_ERROR"),
+    ("summary.by_grader.avg_score string", ("summary",), {"by_grader": {"g1": {"avg_score": "x"}}}, "$.summary.by_grader.g1.avg_score", "TYPE_ERROR"),
+    ("metadata not object", ("metadata",), [], "$.metadata", "TYPE_ERROR"),
+    ("metadata null", ("metadata",), None, "$.metadata", "TYPE_ERROR"),
+    ("isolation null", ("isolation",), None, "$.isolation", "TYPE_ERROR"),
+    ("group null", ("group",), None, "$.group", "TYPE_ERROR"),
+    ("started_at date-only", ("started_at",), "2026-01-15", "$.started_at", "INVALID_DATE_TIME"),
+    ("started_at no offset", ("started_at",), "2026-01-15T10:30:00", "$.started_at", "INVALID_DATE_TIME"),
+    ("started_at no seconds", ("started_at",), "2026-01-15T10:30Z", "$.started_at", "INVALID_DATE_TIME"),
+    ("started_at space separator", ("started_at",), "2026-01-15 10:30:00Z", "$.started_at", "INVALID_DATE_TIME"),
+    ("started_at offset without colon", ("started_at",), "2026-01-15T10:30:00+0530", "$.started_at", "INVALID_DATE_TIME"),
+    ("started_at impossible day", ("started_at",), "2026-02-30T10:30:00Z", "$.started_at", "INVALID_DATE_TIME"),
+    ("started_at month 13", ("started_at",), "2026-13-01T10:30:00Z", "$.started_at", "INVALID_DATE_TIME"),
+    ("started_at hour 24", ("started_at",), "2026-01-15T24:00:00Z", "$.started_at", "INVALID_DATE_TIME"),
+    ("started_at epoch string", ("started_at",), "1700000000", "$.started_at", "INVALID_DATE_TIME"),
+    # Result
+    ("actual_output list (ChelseaKR/gauntlet#76)", R0 + ("actual_output",), ["a", "b"], "$.results[0].actual_output", "TYPE_ERROR"),
+    ("actual_output object", R0 + ("actual_output",), {"text": "a"}, "$.results[0].actual_output", "TYPE_ERROR"),
+    ("actual_output null", R0 + ("actual_output",), None, "$.results[0].actual_output", "TYPE_ERROR"),
+    ("test_case_id empty", R0 + ("test_case_id",), "", "$.results[0].test_case_id", "REQUIRED"),
+    ("duration_ms fractional", R0 + ("duration_ms",), 1.5, "$.results[0].duration_ms", "TYPE_ERROR"),
+    ("duration_ms negative", R0 + ("duration_ms",), -1, "$.results[0].duration_ms", "OUT_OF_RANGE"),
+    ("duration_ms bool", R0 + ("duration_ms",), True, "$.results[0].duration_ms", "TYPE_ERROR"),
+    ("result completed_at offset-less", R0 + ("completed_at",), "2026-01-15T10:30:05", "$.results[0].completed_at", "INVALID_DATE_TIME"),
+    ("error not object", R0 + ("error",), "boom", "$.results[0].error", "TYPE_ERROR"),
+    ("error.type not in enum", R0 + ("error",), {"type": "crash"}, "$.results[0].error.type", "INVALID_VALUE"),
+    ("error.message not string", R0 + ("error",), {"message": 1}, "$.results[0].error.message", "TYPE_ERROR"),
+    ("error.code fractional", R0 + ("error",), {"code": 1.5}, "$.results[0].error.code", "TYPE_ERROR"),
+    ("error.code bool", R0 + ("error",), {"code": True}, "$.results[0].error.code", "TYPE_ERROR"),
+    ("error.retryable string", R0 + ("error",), {"retryable": "yes"}, "$.results[0].error.retryable", "TYPE_ERROR"),
+    ("result metadata not object", R0 + ("metadata",), "trace", "$.results[0].metadata", "TYPE_ERROR"),
+    ("attempt null", R0 + ("attempt",), None, "$.results[0].attempt", "OUT_OF_RANGE"),
+    # GraderResult
+    ("grader_id empty", GR0 + ("grader_id",), "", "$.results[0].grader_results[0].grader_id", "REQUIRED"),
+    ("reason not string", GR0 + ("reason",), 1, "$.results[0].grader_results[0].reason", "TYPE_ERROR"),
+    ("grader metadata not object", GR0 + ("metadata",), [], "$.results[0].grader_results[0].metadata", "TYPE_ERROR"),
+]
+
+@pytest.mark.parametrize("name,path,value,err_path,code", RESULTSET_REJECT_CASES, ids=[c[0] for c in RESULTSET_REJECT_CASES])
+def test_resultset_optional_field_rejections(name, path, value, err_path, code):
+    doc = _set(_fid_rs(), path, value)
+    r = validate_result_set(doc)
+    assert not r.valid, name
+    assert any(e["path"] == err_path and e["code"] == code for e in r.errors), r.errors
+
+def test_grader_result_missing_score_is_required_not_null():
+    # score is REQUIRED; an absent key used to be read as null and accepted.
+    doc = _del(_fid_rs(), GR0 + ("score",))
+    _set(doc, GR0 + ("passed",), False)
+    _set(doc, R0 + ("passed",), False)
+    r = validate_result_set(doc)
+    assert any(e["path"] == "$.results[0].grader_results[0].score" and e["code"] == "REQUIRED" for e in r.errors), r.errors
+
+def test_rule6_null_score_with_passed_true_rejected():
+    doc = _fid_rs()
+    doc["results"][0]["grader_results"].append({"grader_id": "g2", "type": "human", "score": None, "passed": True})
+    r = validate_result_set(doc)
+    assert not r.valid
+    assert [e["code"] for e in r.errors] == ["NULL_SCORE_PASSED"]
+    assert r.errors[0]["path"] == "$.results[0].grader_results[1].passed"
+
+def test_rule6_all_null_scored_result_with_passed_true_rejected():
+    doc = _fid_rs()
+    doc["results"][0]["grader_results"] = [
+        {"grader_id": "g1", "type": "human", "score": None, "passed": False},
+        {"grader_id": "g2", "type": "llm_judge", "score": None, "passed": False},
+    ]
+    r = validate_result_set(doc)
+    assert not r.valid
+    assert [(e["path"], e["code"]) for e in r.errors] == [("$.results[0].passed", "UNSCORED_RESULT_PASSED")]
+
+def test_rule6_all_null_scored_result_with_passed_false_valid():
+    doc = _fid_rs()
+    doc["results"][0]["passed"] = False
+    doc["results"][0]["grader_results"] = [{"grader_id": "g1", "type": "human", "score": None, "passed": False}]
+    assert validate_result_set(doc).valid
+
+def test_rule6_mixed_null_and_scored_result_can_pass():
+    # Null-scored graders are excluded from aggregation, so a Result can pass on
+    # its scored graders alone -- only the ALL-null case must be passed: false.
+    doc = _fid_rs()
+    doc["results"][0]["grader_results"].append({"grader_id": "g2", "type": "human", "score": None, "passed": False})
+    assert validate_result_set(doc).valid
+
+def test_rule6_empty_grader_results_is_not_all_null():
+    # An empty grader_results list is not "all null-scored" (nothing to aggregate
+    # either way) and was valid before; keep it that way.
+    doc = _fid_rs()
+    doc["results"][0]["grader_results"] = []
+    assert validate_result_set(doc).valid
+
+def test_resultset_with_every_optional_field_well_typed_is_valid():
+    doc = _fid_rs()
+    doc.update({
+        "$schema": "https://evalport.org/schema/resultset.json",
+        "suite_version": "1.0.0",
+        "completed_at": "2026-01-15T10:31:45.123+05:30",
+        "provider": {"model": "gpt-4o", "api_base": "https://api.example.com", "temperature": 0, "max_tokens": 256, "extra": {"seed": 1}},
+        "runner": {"name": "evalport-cli", "version": "1.3.1"},
+        "summary": {"total": 1, "passed": 1, "failed": 0, "skipped": 0, "pass_rate": 1, "avg_score": 1.0, "duration_ms": 1200,
+                    "by_grader": {"g1": {"passed": 1, "failed": 0, "avg_score": 1.0}}},
+        "metadata": {"openeval.partial": False},
+    })
+    doc["results"][0].update({
+        "actual_output": "Paris", "duration_ms": 1200, "completed_at": "2026-01-15t10:31:44z",
+        "error": {"type": "provider_error", "message": "rate limited", "code": 429, "retryable": True},
+        "metadata": {"trace_id": "abc"},
+    })
+    doc["results"][0]["grader_results"][0].update({"reason": "exact", "metadata": {"k": "v"}})
+    r = validate_result_set(doc)
+    assert r.valid, r.errors
+
+def test_error_code_may_be_string_or_integer():
+    for code in ("RATE_LIMIT", 429):
+        doc = _set(_fid_rs(), R0 + ("error",), {"type": "timeout", "code": code})
+        assert validate_result_set(doc).valid, code
+
+def test_integral_float_counts_as_integer_like_json_schema():
+    # JSON Schema 2020-12 "integer" matches any number with a zero fractional
+    # part, so 1200.0 is a valid duration_ms (and JSON.parse makes it 1200 in TS).
+    doc = _set(_fid_rs(), R0 + ("duration_ms",), 1200.0)
+    assert validate_result_set(doc).valid
+
+@pytest.mark.parametrize("value", [
+    "2026-01-15T10:30:00Z", "2026-01-15T10:30:00+05:30", "2026-01-15T10:30:00-08:00",
+    "2026-01-15t10:30:00z", "2026-01-15T10:30:00.123456Z", "2024-02-29T00:00:00Z",
+    "2026-01-15T10:30:00.5+00:00", "2016-12-31T23:59:60Z",
+])
+def test_rfc3339_date_time_accepts(value):
+    assert is_rfc3339_date_time(value)
+    assert validate_result_set(_set(_fid_rs(), ("started_at",), value)).valid
+
+@pytest.mark.parametrize("value", [
+    "2026-01-15", "2026-01-15T10:30:00", "2026-01-15T10:30Z", "2026-01-15 10:30:00Z",
+    "2026-01-15T10:30:00+0530", "2026-01-15T10:30:00+05", "2025-02-29T00:00:00Z", "2026-04-31T00:00:00Z",
+    "2026-00-10T00:00:00Z", "2026-01-00T00:00:00Z", "2026-01-15T10:60:00Z", "2026-01-15T10:30:61Z",
+    "2026-01-15T10:30:00.Z", "2026-01-15T10:30:00Z\n", "20260115T103000Z", "", "now",
+])
+def test_rfc3339_date_time_rejects(value):
+    assert not is_rfc3339_date_time(value)
+    r = validate_result_set(_set(_fid_rs(), ("started_at",), value))
+    assert any(e["path"] == "$.started_at" and e["code"] == "INVALID_DATE_TIME" for e in r.errors)
+
+def test_python_isoformat_utc_timestamp_is_valid():
+    # What create_result_set() and most Python adapters emit.
+    from datetime import datetime, timezone
+    assert is_rfc3339_date_time(datetime.now(timezone.utc).isoformat())
+    assert is_rfc3339_date_time(datetime(2026, 1, 15, tzinfo=timezone.utc).isoformat())
+    # A naive datetime has no offset -- not RFC 3339.
+    assert not is_rfc3339_date_time(datetime(2026, 1, 15).isoformat())
+
+# TestCase / Grader / Suite optional fields
+
+TC_BASE = {"id": "tc1", "input": "hi", "graders": ["g1"]}
+TESTCASE_REJECT_CASES = [
+    ("expected_output", 1, "$.expected_output", "TYPE_ERROR"),
+    ("expected_output", None, "$.expected_output", "TYPE_ERROR"),
+    ("context", "doc", "$.context", "TYPE_ERROR"),
+    ("context", ["ok", 2], "$.context", "TYPE_ERROR"),
+    ("retrieval_context", [None], "$.retrieval_context", "TYPE_ERROR"),
+    ("tools_called", "search", "$.tools_called", "TYPE_ERROR"),
+    ("expected_tools", [{"name": "search"}], "$.expected_tools", "TYPE_ERROR"),
+    ("metadata", [], "$.metadata", "TYPE_ERROR"),
+    ("tags", "smoke", "$.tags", "TYPE_ERROR"),
+    ("provider", "gpt-4o", "$.provider", "TYPE_ERROR"),
+    ("provider", {"max_tokens": 0}, "$.provider.max_tokens", "OUT_OF_RANGE"),
+    ("provider", {"api_key_env": 1}, "$.provider.api_key_env", "TYPE_ERROR"),
+    ("provider", {"temperature": "hot"}, "$.provider.temperature", "TYPE_ERROR"),
+    ("params", [], "$.params", "TYPE_ERROR"),
+    ("timeout_ms", 0, "$.timeout_ms", "OUT_OF_RANGE"),
+    ("timeout_ms", 1.5, "$.timeout_ms", "TYPE_ERROR"),
+    ("weight", -1, "$.weight", "OUT_OF_RANGE"),
+    ("weight", True, "$.weight", "TYPE_ERROR"),
+]
+
+@pytest.mark.parametrize("key,value,err_path,code", TESTCASE_REJECT_CASES)
+def test_testcase_optional_field_rejections(key, value, err_path, code):
+    r = validate_test_case({**TC_BASE, key: value})
+    assert not r.valid
+    assert any(e["path"] == err_path and e["code"] == code for e in r.errors), r.errors
+
+def test_testcase_every_optional_field_well_typed_is_valid():
+    tc = {**TC_BASE, "expected_output": "Paris", "context": ["a"], "retrieval_context": ["b"],
+          "tools_called": ["search"], "expected_tools": ["search"], "metadata": {"k": 1}, "tags": ["smoke"],
+          "provider": {"model": "gpt-4o", "api_base": "x", "api_key_env": "OPENAI_API_KEY", "temperature": 0.2, "max_tokens": 1, "extra": {}},
+          "params": {"top_p": 1}, "timeout_ms": 1, "weight": 0}
+    r = validate_test_case(tc)
+    assert r.valid, r.errors
+
+GRADER_REJECT_CASES = [
+    ({"id": "g", "type": "exact_match", "params": []}, "$.params", "TYPE_ERROR"),
+    ({"id": "g", "type": "custom", "params": ["x"]}, "$.params", "TYPE_ERROR"),
+    ({"id": "g", "type": "exact_match", "weight": -0.5}, "$.weight", "OUT_OF_RANGE"),
+    ({"id": "g", "type": "exact_match", "weight": "1"}, "$.weight", "TYPE_ERROR"),
+    ({"id": "g", "type": "exact_match", "description": 1}, "$.description", "TYPE_ERROR"),
+    ({"id": "g", "type": "contains", "params": {"substring": "a", "ignore_case": "yes"}}, "$.params.ignore_case", "TYPE_ERROR"),
+    ({"id": "g", "type": "regex", "params": {"pattern": "a", "flags": 1}}, "$.params.flags", "TYPE_ERROR"),
+    ({"id": "g", "type": "semantic_similarity", "params": {"threshold": True}}, "$.params.threshold", "OUT_OF_RANGE"),
+    ({"id": "g", "type": "semantic_similarity", "params": {"threshold": 0.8, "model": 1}}, "$.params.model", "TYPE_ERROR"),
+    ({"id": "g", "type": "semantic_similarity", "params": {"threshold": 0.8, "provider": 1}}, "$.params.provider", "TYPE_ERROR"),
+    ({"id": "g", "type": "llm_judge", "params": {"model": "m", "prompt": "{output}", "temperature": 3}}, "$.params.temperature", "OUT_OF_RANGE"),
+    ({"id": "g", "type": "llm_judge", "params": {"model": "m", "prompt": "{output}", "schema": "x"}}, "$.params.schema", "TYPE_ERROR"),
+    ({"id": "g", "type": "llm_judge", "params": {"model": "m", "prompt": "{output}", "provider": 1}}, "$.params.provider", "TYPE_ERROR"),
+    ({"id": "g", "type": "json_schema", "params": {"schema": {}, "strict": "true"}}, "$.params.strict", "TYPE_ERROR"),
+    ({"id": "g", "type": "json_path", "params": {"path": "$.a", "expected": "1", "operator": "like"}}, "$.params.operator", "INVALID_VALUE"),
+    ({"id": "g", "type": "code", "params": {"language": "python", "source": "x", "timeout_ms": 50}}, "$.params.timeout_ms", "OUT_OF_RANGE"),
+]
+
+@pytest.mark.parametrize("doc,err_path,code", GRADER_REJECT_CASES, ids=[f"{c[0]['type']}:{c[1]}" for c in GRADER_REJECT_CASES])
+def test_grader_optional_field_rejections(doc, err_path, code):
+    r = validate_grader(doc)
+    assert not r.valid
+    assert any(e["path"] == err_path and e["code"] == code for e in r.errors), r.errors
+
+def test_grader_non_object_params_still_reports_missing_handler_without_crashing():
+    r = validate_grader({"id": "g", "type": "custom", "params": ["x"]})
+    assert {(e["path"], e["code"]) for e in r.errors} == {("$.params", "TYPE_ERROR"), ("$.params.handler", "REQUIRED")}
+
+def test_grader_optional_params_well_typed_are_valid():
+    for g in [
+        {"id": "g", "type": "contains", "params": {"substring": "a", "ignore_case": True}, "weight": 2, "description": "d"},
+        {"id": "g", "type": "regex", "params": {"pattern": "a", "flags": "i"}},
+        {"id": "g", "type": "semantic_similarity", "params": {"threshold": 0.8, "model": "m", "provider": "p"}},
+        {"id": "g", "type": "llm_judge", "params": {"model": "m", "prompt": "{output}", "provider": "p", "temperature": 2, "schema": {}}},
+        {"id": "g", "type": "json_schema", "params": {"schema": {}, "strict": False}},
+        {"id": "g", "type": "json_path", "params": {"path": "$.a", "expected": "1", "operator": "gte"}},
+        {"id": "g", "type": "code", "params": {"language": "python", "source": "x", "timeout_ms": 100}},
+    ]:
+        r = validate_grader(g)
+        assert r.valid, (g, r.errors)
+
+SUITE_BASE = {"version": "1.0.0", "id": "s", "graders": [{"id": "g1", "type": "exact_match"}], "test_cases": [TC_BASE]}
+SUITE_REJECT_CASES = [
+    ("name", 1, "$.name", "TYPE_ERROR"),
+    ("description", ["x"], "$.description", "TYPE_ERROR"),
+    ("graders", {"g1": {}}, "$.graders", "TYPE_ERROR"),
+    ("test_cases_file", 1, "$.test_cases_file", "TYPE_ERROR"),
+    ("metadata", "x", "$.metadata", "TYPE_ERROR"),
+    ("tags", [1], "$.tags", "TYPE_ERROR"),
+    ("config", [], "$.config", "TYPE_ERROR"),
+    ("config", {"parallel": 0}, "$.config.parallel", "OUT_OF_RANGE"),
+    ("config", {"provider": []}, "$.config.provider", "TYPE_ERROR"),
+    ("config", {"provider": {"max_tokens": 0}}, "$.config.provider.max_tokens", "OUT_OF_RANGE"),
+    ("config", {"defaults": {"timeout_ms": 0}}, "$.config.defaults.timeout_ms", "OUT_OF_RANGE"),
+    ("config", {"defaults": {"weight": -1}}, "$.config.defaults.weight", "OUT_OF_RANGE"),
+    ("config", {"retry": {"max_attempts": 0}}, "$.config.retry.max_attempts", "OUT_OF_RANGE"),
+    ("config", {"retry": {"backoff_ms": 10}}, "$.config.retry.backoff_ms", "OUT_OF_RANGE"),
+    ("$schema", 1, "$.$schema", "TYPE_ERROR"),
+]
+
+@pytest.mark.parametrize("key,value,err_path,code", SUITE_REJECT_CASES)
+def test_suite_optional_field_rejections(key, value, err_path, code):
+    r = validate_suite({**SUITE_BASE, key: value})
+    assert not r.valid
+    assert any(e["path"] == err_path and e["code"] == code for e in r.errors), r.errors
+
+def test_suite_nested_testcase_optional_field_rejection_is_reported():
+    # Nested errors keep validate_suite's existing "$.test_cases[i]." + "$.<field>" prefixing.
+    r = validate_suite({**SUITE_BASE, "test_cases": [{**TC_BASE, "tags": "smoke"}]})
+    assert not r.valid
+    assert [(e["path"], e["code"]) for e in r.errors] == [("$.test_cases[0].$.tags", "TYPE_ERROR")]
+
+def test_suite_test_cases_wrong_type_rejected_even_with_test_cases_file():
+    r = validate_suite({"version": "1.0.0", "id": "s", "test_cases_file": "cases.jsonl", "test_cases": "cases.jsonl"})
+    assert any(e["path"] == "$.test_cases" and e["code"] == "TYPE_ERROR" for e in r.errors), r.errors
+
+def test_suite_graders_validated_when_test_cases_come_from_file():
+    r = validate_suite({"version": "1.0.0", "id": "s", "test_cases_file": "cases.jsonl", "graders": [{"id": "g1", "type": "custom"}]})
+    assert any(e["path"] == "$.graders[0].$.params.handler" for e in r.errors), r.errors
+
+def test_suite_every_optional_field_well_typed_is_valid():
+    s = {**SUITE_BASE, "$schema": "https://evalport.org/schema/suite.json", "name": "n", "description": "d",
+         "metadata": {"k": 1}, "tags": ["a"],
+         "config": {"provider": {"model": "m", "max_tokens": 10}, "defaults": {"timeout_ms": 1000, "weight": 1},
+                    "parallel": 4, "retry": {"max_attempts": 3, "backoff_ms": 100}}}
+    r = validate_suite(s)
+    assert r.valid, r.errors

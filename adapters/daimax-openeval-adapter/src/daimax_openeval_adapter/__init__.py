@@ -54,7 +54,12 @@ maintainer's constraints from #9 are quoted there):
 - Scores and statuses are kept intact; ``passed`` comes from native booleans
   (``generation_success``, ``TestCaseResult.passed``) unless the caller opts
   into an explicit ``pass_threshold``, which is then recorded as an adapter
-  policy in metadata. There is no daimax-wide 70-point cutoff.
+  policy in metadata. There is no daimax-wide 70-point cutoff. The one
+  exception is EvalPort Validation Rule 6: a grader with ``score: null`` (metric
+  not computed, or a SKIPPED check) always has ``passed: false``, and a native
+  ``True`` is kept as ``metadata.daimax.native_passed``. ``Result.passed`` is
+  still the AND of the native verdicts, but false when every grader is
+  null-scored (EvalPort's Aggregation Extension).
 - ``P0``/``P1``/``P2`` -> ``3``/``2``/``1`` is recorded as
   ``metadata.daimax.priority_weight`` and documented as a project convention.
 """
@@ -328,6 +333,12 @@ def _synthetic_grader_result(
                 ),
             }
 
+    if score is None and passed:
+        # EvalPort Validation Rule 6: a null score ("not verified") MUST have
+        # passed: false. daimax's native verdict is kept, not discarded.
+        meta["native_passed"] = True
+        passed = False
+
     result: Dict[str, Any] = {
         "grader_id": grader_id,
         "type": _SYNTHETIC_TYPE,
@@ -372,6 +383,11 @@ def _e2e_grader_result(
     }
     if skipped:
         meta["skip_reason"] = "SKIPPED"
+        if passed:
+            # EvalPort Validation Rule 6: score null => passed false. The
+            # native TestCaseResult.passed is kept in metadata.
+            meta["native_passed"] = True
+            passed = False
     for key in ("report_path", "report_started_at", "report_generated_at", "verifications"):
         value = _get(tr, key)
         if value not in (None, "", 0, 0.0):
@@ -444,7 +460,7 @@ def run_to_openeval(
     ``composite_score >= pass_threshold``; the policy is then written to
     ``metadata.daimax.adapter_policy`` on the ResultSet and each Result, so no
     consumer can mistake it for a daimax-native cutoff. ``Result.passed`` is
-    always ``all(grader.passed)``.
+    ``all(native grader verdict)`` -- false when every grader is null-scored.
 
     ``test_cases`` optionally supplies daimax ``TestCase`` objects (or
     ``TestDesignOutput`` objects, or dicts) so each E2E grader result can be
@@ -552,7 +568,12 @@ def run_to_openeval(
         result: Dict[str, Any] = {
             "test_case_id": item_id,
             "grader_results": grader_results,
-            "passed": all(gr["passed"] for gr in grader_results),
+            # all(native grader.passed), as before -- a null-scored grader's
+            # native verdict lives in metadata.daimax.native_passed (Rule 6) --
+            # except that a Result whose graders are ALL null-scored is
+            # passed: false (SPEC Aggregation Extension).
+            "passed": any(gr["score"] is not None for gr in grader_results)
+            and all(gr["passed"] or gr["metadata"][_NS].get("native_passed", False) for gr in grader_results),
             "duration_ms": duration_ms,
             "metadata": {_NS: meta},
         }

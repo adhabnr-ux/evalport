@@ -154,20 +154,21 @@ def to_openeval(
         grader_results: List[Dict[str, Any]] = []
         for i, (row, kind, inferred) in enumerate(classified):
             passed = bool(row.get("passed"))
-            grader_results.append(
-                {
-                    "grader_id": f"assertion_{i}",
-                    "type": "llm_judge" if kind == "llm_judge" else "custom",
-                    "score": 1.0 if passed else 0.0,
-                    "passed": passed,
-                    "reason": row.get("evidence") or None,
-                    "metadata": {
-                        "text": row.get("text", ""),
-                        "kind": kind,
-                        "kind_inferred": inferred,
-                    },
-                }
-            )
+            gr: Dict[str, Any] = {
+                "grader_id": f"assertion_{i}",
+                "type": "llm_judge" if kind == "llm_judge" else "custom",
+                "score": 1.0 if passed else 0.0,
+                "passed": passed,
+                "metadata": {
+                    "text": row.get("text", ""),
+                    "kind": kind,
+                    "kind_inferred": inferred,
+                },
+            }
+            # GraderResult.reason is an optional string: omitted, never null.
+            if row.get("evidence"):
+                gr["reason"] = str(row["evidence"])
+            grader_results.append(gr)
 
         summary = grading.get("summary") or {}
         pass_rate = summary.get("pass_rate")

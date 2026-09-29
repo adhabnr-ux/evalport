@@ -2,12 +2,14 @@ import { test, expect, describe } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import Ajv2020 from "ajv/dist/2020";
+import addFormats from "ajv-formats";
 import {
   validateGrader,
   validateSuite,
   validateResultSet,
   validateTestCase,
   SEMVER_RE,
+  isRfc3339DateTime,
 } from "../src/validate";
 
 // Cross-validates the raw JSON Schema files (spec/schemas/*.json -- the source of
@@ -38,6 +40,10 @@ const suiteSchema = loadSchema("suite");
 const resultsetSchema = loadSchema("resultset");
 
 const ajv = new Ajv2020({ allErrors: true, strict: false });
+// resultset.json declares `format: "date-time"` on started_at/completed_at. Ajv
+// ignores unknown formats, so without ajv-formats that keyword is a no-op and the
+// date-time agreement cases below would be vacuous on the JSON Schema side.
+addFormats(ajv);
 // suite.json and testcase.json both $ref grader.json/testcase.json by their $id
 // URL, so all four schemas must be registered together for $ref resolution to
 // work fully offline (no network fetch of https://evalport.org/schema/*.json).
@@ -485,4 +491,316 @@ describe("resultset: group (Discussion #45, proposed) agrees", () => {
     expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(true);
     expect(validateResultSet(doc).valid, "hand-rolled").toBe(false);
   });
+});
+
+// ---------------------------------------------------------------------------
+// Validator fidelity: optional-field types, RFC 3339 date-times, and the Rule 6
+// null-score/passed rules. Before this section the hand-rolled validator
+// accepted every "reject" document below that the raw JSON Schema rejects --
+// e.g. Result.actual_output as a list (found by ChelseaKR in
+// ChelseaKR/gauntlet#76), a date-only started_at, or a string temperature.
+// Unknown-field (additionalProperties) handling is deliberately NOT covered
+// here -- that is a separate spec question. Mirrors
+// sdk/python/tests/test_schema_consistency.py case-for-case.
+// ---------------------------------------------------------------------------
+
+function fidelityRs(): any {
+  return {
+    version: "1.0.0",
+    suite_id: "s1",
+    run_id: "run1",
+    started_at: "2026-08-16T00:00:00Z",
+    results: [
+      {
+        test_case_id: "tc1",
+        grader_results: [{ grader_id: "g1", type: "exact_match", score: 0.9, passed: true }],
+        passed: true,
+      },
+    ],
+  };
+}
+
+function fidelitySuite(): any {
+  return {
+    version: "1.0.0",
+    id: "s1",
+    graders: [{ id: "g1", type: "exact_match" }],
+    test_cases: [{ id: "tc1", input: "hi", graders: ["g1"] }],
+  };
+}
+
+test("date-time format is actually asserted by the JSON Schema path", () => {
+  const doc = fidelityRs();
+  doc.started_at = "2026-08-16";
+  expect(resultsetValidate(doc) as boolean).toBe(false);
+});
+
+const r0 = (d: any) => d.results[0];
+const gr0 = (d: any) => d.results[0].grader_results[0];
+
+const RESULTSET_FIDELITY_CASES: [string, (d: any) => void, boolean][] = [
+  ["suite_version number", (d) => { d.suite_version = 1; }, false],
+  ["completed_at date-only", (d) => { d.completed_at = "2026-08-16"; }, false],
+  ["completed_at number", (d) => { d.completed_at = 1700000000; }, false],
+  ["provider string", (d) => { d.provider = "gpt-4o"; }, false],
+  ["provider null", (d) => { d.provider = null; }, false],
+  ["provider.model number", (d) => { d.provider = { model: 4 }; }, false],
+  ["provider.api_base list", (d) => { d.provider = { api_base: ["x"] }; }, false],
+  ["provider.temperature string", (d) => { d.provider = { temperature: "0.1" }; }, false],
+  ["provider.temperature bool", (d) => { d.provider = { temperature: true }; }, false],
+  ["provider.max_tokens fractional", (d) => { d.provider = { max_tokens: 1.5 }; }, false],
+  ["provider.max_tokens bool", (d) => { d.provider = { max_tokens: true }; }, false],
+  ["provider.extra list", (d) => { d.provider = { extra: [] }; }, false],
+  ["runner list", (d) => { d.runner = []; }, false],
+  ["runner.name number", (d) => { d.runner = { name: 1 }; }, false],
+  ["runner.version number", (d) => { d.runner = { version: 1.0 }; }, false],
+  ["summary list", (d) => { d.summary = []; }, false],
+  ["summary.total negative", (d) => { d.summary = { total: -1 }; }, false],
+  ["summary.total bool", (d) => { d.summary = { total: true }; }, false],
+  ["summary.passed fractional", (d) => { d.summary = { passed: 0.5 }; }, false],
+  ["summary.pass_rate above 1", (d) => { d.summary = { pass_rate: 1.5 }; }, false],
+  ["summary.avg_score string", (d) => { d.summary = { avg_score: "0.5" }; }, false],
+  ["summary.duration_ms negative", (d) => { d.summary = { duration_ms: -5 }; }, false],
+  ["summary.by_grader list", (d) => { d.summary = { by_grader: [] }; }, false],
+  ["summary.by_grader entry number", (d) => { d.summary = { by_grader: { g1: 3 } }; }, false],
+  ["summary.by_grader.passed fractional", (d) => { d.summary = { by_grader: { g1: { passed: 1.5 } } }; }, false],
+  ["summary.by_grader.avg_score string", (d) => { d.summary = { by_grader: { g1: { avg_score: "x" } } }; }, false],
+  ["metadata list", (d) => { d.metadata = []; }, false],
+  ["isolation null", (d) => { d.isolation = null; }, false],
+  ["group null", (d) => { d.group = null; }, false],
+  ["actual_output list (ChelseaKR/gauntlet#76)", (d) => { r0(d).actual_output = ["a", "b"]; }, false],
+  ["actual_output null", (d) => { r0(d).actual_output = null; }, false],
+  ["test_case_id empty", (d) => { r0(d).test_case_id = ""; }, false],
+  ["duration_ms fractional", (d) => { r0(d).duration_ms = 1.5; }, false],
+  ["duration_ms negative", (d) => { r0(d).duration_ms = -1; }, false],
+  ["duration_ms bool", (d) => { r0(d).duration_ms = true; }, false],
+  ["result completed_at offset-less", (d) => { r0(d).completed_at = "2026-08-16T00:00:05"; }, false],
+  ["error string", (d) => { r0(d).error = "boom"; }, false],
+  ["error.type not in enum", (d) => { r0(d).error = { type: "crash" }; }, false],
+  ["error.message number", (d) => { r0(d).error = { message: 1 }; }, false],
+  ["error.code fractional", (d) => { r0(d).error = { code: 1.5 }; }, false],
+  ["error.code bool", (d) => { r0(d).error = { code: true }; }, false],
+  ["error.retryable string", (d) => { r0(d).error = { retryable: "yes" }; }, false],
+  ["result metadata string", (d) => { r0(d).metadata = "trace"; }, false],
+  ["attempt null", (d) => { r0(d).attempt = null; }, false],
+  ["grader_id empty", (d) => { gr0(d).grader_id = ""; }, false],
+  ["score missing", (d) => { delete gr0(d).score; gr0(d).passed = false; r0(d).passed = false; }, false],
+  ["reason number", (d) => { gr0(d).reason = 1; }, false],
+  ["grader metadata list", (d) => { gr0(d).metadata = []; }, false],
+  // Valid documents must stay valid in both paths.
+  ["every optional field well-typed", (d) => {
+    Object.assign(d, {
+      $schema: "https://evalport.org/schema/resultset.json",
+      suite_version: "1.0.0",
+      completed_at: "2026-08-16T00:01:45.123+05:30",
+      provider: { model: "gpt-4o", api_base: "https://api.example.com", temperature: 0, max_tokens: 256, extra: { seed: 1 } },
+      runner: { name: "evalport-cli", version: "1.3.1" },
+      summary: { total: 1, passed: 1, failed: 0, skipped: 0, pass_rate: 1, avg_score: 0.9, duration_ms: 1200,
+        by_grader: { g1: { passed: 1, failed: 0, avg_score: 0.9 } } },
+      metadata: { "openeval.partial": false },
+    });
+    Object.assign(r0(d), {
+      actual_output: "Paris", duration_ms: 1200, completed_at: "2026-08-16t00:01:44z",
+      error: { type: "provider_error", message: "rate limited", code: 429, retryable: true },
+      metadata: { trace_id: "abc" },
+    });
+    Object.assign(gr0(d), { reason: "close enough", metadata: { k: "v" } });
+  }, true],
+  ["error.code string", (d) => { r0(d).error = { type: "timeout", code: "ETIMEDOUT" }; }, true],
+  ["integral float duration_ms", (d) => { r0(d).duration_ms = 1200.0; }, true],
+  ["negative temperature allowed (no schema minimum)", (d) => { d.provider = { temperature: -1 }; }, true],
+  ["mixed null and scored graders, passed", (d) => {
+    r0(d).grader_results.push({ grader_id: "g2", type: "human", score: null, passed: false });
+  }, true],
+  ["all null-scored, passed false", (d) => {
+    r0(d).passed = false;
+    r0(d).grader_results = [{ grader_id: "g1", type: "human", score: null, passed: false }];
+  }, true],
+];
+
+describe("resultset fidelity: JSON Schema and hand-rolled validator agree", () => {
+  for (const [name, mutate, expected] of RESULTSET_FIDELITY_CASES) {
+    test(name, () => {
+      const doc = fidelityRs();
+      mutate(doc);
+      const jsOk = resultsetValidate(doc) as boolean;
+      const hand = validateResultSet(doc);
+      expect(jsOk, "JSON Schema").toBe(expected);
+      expect(hand.valid, `hand-rolled: ${JSON.stringify(hand.errors)}`).toBe(expected);
+    });
+  }
+});
+
+// RFC 3339 date-time values on which the hand-rolled check, ajv-formats and
+// jsonschema's FORMAT_CHECKER (the Python twin of this test) all agree.
+// Deliberately excluded because the two JSON Schema format implementations
+// disagree with RFC 3339 / each other, not with this SDK:
+//   "2016-12-31T23:59:60Z" (leap second; RFC 3339 grammar allows it, rfc3339-validator doesn't)
+//   "2026-01-15T10:30:00Z\n" (rfc3339-validator's `$` matches before a trailing newline)
+//   "2026-01-15 10:30:00Z", "...+0530", "...+05" (ajv-formats accepts; RFC 3339 does not)
+const DATE_TIME_CASES: [string, boolean][] = [
+  ["2026-01-15T10:30:00Z", true],
+  ["2026-01-15T10:30:00+05:30", true],
+  ["2026-01-15T10:30:00-08:00", true],
+  ["2026-01-15t10:30:00z", true],
+  ["2026-01-15T10:30:00.123456Z", true],
+  ["2024-02-29T00:00:00Z", true],
+  ["2026-01-15T10:30:00.5+00:00", true],
+  ["2026-01-15", false],
+  ["2026-01-15T10:30:00", false],
+  ["2026-01-15T10:30:05", false],
+  ["2026-01-15T10:30Z", false],
+  ["2025-02-29T00:00:00Z", false],
+  ["2026-02-30T10:30:00Z", false],
+  ["2026-04-31T00:00:00Z", false],
+  ["2026-00-10T00:00:00Z", false],
+  ["2026-13-01T10:30:00Z", false],
+  ["2026-01-00T00:00:00Z", false],
+  ["2026-01-15T24:00:00Z", false],
+  ["2026-01-15T10:60:00Z", false],
+  ["2026-01-15T10:30:61Z", false],
+  ["2026-01-15T10:30:00.Z", false],
+  ["20260115T103000Z", false],
+  ["1700000000", false],
+  ["now", false],
+  ["", false],
+];
+
+describe("date-time: JSON Schema and hand-rolled validator agree", () => {
+  for (const where of ["started_at", "completed_at", "result.completed_at"]) {
+    for (const [value, expected] of DATE_TIME_CASES) {
+      test(`${where}=${JSON.stringify(value)}`, () => {
+        const doc = fidelityRs();
+        if (where === "result.completed_at") doc.results[0].completed_at = value;
+        else doc[where] = value;
+        expect(isRfc3339DateTime(value)).toBe(expected);
+        expect(resultsetValidate(doc) as boolean, "JSON Schema").toBe(expected);
+        expect(validateResultSet(doc).valid, "hand-rolled").toBe(expected);
+      });
+    }
+  }
+});
+
+test("null score with passed true: JSON Schema allows, hand-rolled rejects (Rule 6)", () => {
+  // SPEC.md Validation Rule 6: "Skipped or not-yet-executed graders [...] MUST
+  // be represented with `score: null` and `passed: false`." resultset.json
+  // types score and passed independently and does not encode this cross-field
+  // rule, so -- like SELF_PARENT and DUPLICATE_ATTEMPT -- it is enforced only
+  // by the hand-rolled validators (NULL_SCORE_PASSED).
+  const doc = fidelityRs();
+  doc.results[0].grader_results.push({ grader_id: "g2", type: "human", score: null, passed: true });
+  expect(resultsetValidate(doc) as boolean).toBe(true);
+  const r = validateResultSet(doc);
+  expect(r.valid).toBe(false);
+  expect(r.errors.map(e => e.code)).toEqual(["NULL_SCORE_PASSED"]);
+});
+
+test("all null-scored Result with passed true: JSON Schema allows, hand-rolled rejects", () => {
+  // SPEC.md Aggregation Extension: "A test case whose graders are *all*
+  // null-scored has no basis for a pass/fail verdict; runners MUST report such
+  // a case's `passed` as `false`". Hand-rolled only (UNSCORED_RESULT_PASSED).
+  const doc = fidelityRs();
+  doc.results[0].grader_results = [{ grader_id: "g1", type: "human", score: null, passed: false }];
+  doc.results[0].passed = true;
+  expect(resultsetValidate(doc) as boolean).toBe(true);
+  const r = validateResultSet(doc);
+  expect(r.valid).toBe(false);
+  expect(r.errors.map(e => e.code)).toEqual(["UNSCORED_RESULT_PASSED"]);
+});
+
+const TESTCASE_FIDELITY_CASES: [string, Record<string, unknown>, boolean][] = [
+  ["expected_output number", { expected_output: 1 }, false],
+  ["context string", { context: "doc" }, false],
+  ["context non-string item", { context: ["ok", 2] }, false],
+  ["retrieval_context null item", { retrieval_context: [null] }, false],
+  ["tools_called string", { tools_called: "search" }, false],
+  ["expected_tools object item", { expected_tools: [{ name: "search" }] }, false],
+  ["metadata list", { metadata: [] }, false],
+  ["tags string", { tags: "smoke" }, false],
+  ["provider string", { provider: "gpt-4o" }, false],
+  ["provider.max_tokens 0", { provider: { max_tokens: 0 } }, false],
+  ["provider.api_key_env number", { provider: { api_key_env: 1 } }, false],
+  ["params list", { params: [] }, false],
+  ["timeout_ms 0", { timeout_ms: 0 }, false],
+  ["weight negative", { weight: -1 }, false],
+  ["weight bool", { weight: true }, false],
+  ["every optional field well-typed", {
+    expected_output: "Paris", context: ["a"], retrieval_context: ["b"], tools_called: ["search"],
+    expected_tools: ["search"], metadata: { k: 1 }, tags: ["smoke"],
+    provider: { model: "gpt-4o", api_base: "x", api_key_env: "OPENAI_API_KEY", temperature: 0.2, max_tokens: 1, extra: {} },
+    params: { top_p: 1 }, timeout_ms: 1, weight: 0,
+  }, true],
+];
+
+describe("testcase fidelity: JSON Schema and hand-rolled validator agree", () => {
+  for (const [name, extra, expected] of TESTCASE_FIDELITY_CASES) {
+    test(name, () => {
+      const doc = { id: "tc1", input: "hi", graders: ["g1"], ...extra };
+      const hand = validateTestCase(doc);
+      expect(testcaseValidate(doc) as boolean, "JSON Schema").toBe(expected);
+      expect(hand.valid, `hand-rolled: ${JSON.stringify(hand.errors)}`).toBe(expected);
+    });
+  }
+});
+
+const GRADER_FIDELITY_CASES: [string, Record<string, unknown>, boolean][] = [
+  ["params list", { id: "g", type: "exact_match", params: [] }, false],
+  ["weight negative", { id: "g", type: "exact_match", weight: -0.5 }, false],
+  ["weight string", { id: "g", type: "exact_match", weight: "1" }, false],
+  ["description number", { id: "g", type: "exact_match", description: 1 }, false],
+  ["contains.ignore_case string", { id: "g", type: "contains", params: { substring: "a", ignore_case: "yes" } }, false],
+  ["regex.flags number", { id: "g", type: "regex", params: { pattern: "a", flags: 1 } }, false],
+  ["semantic_similarity.threshold bool", { id: "g", type: "semantic_similarity", params: { threshold: true } }, false],
+  ["semantic_similarity.model number", { id: "g", type: "semantic_similarity", params: { threshold: 0.8, model: 1 } }, false],
+  ["llm_judge.temperature above 2", { id: "g", type: "llm_judge", params: { model: "m", prompt: "{output}", temperature: 3 } }, false],
+  ["llm_judge.schema string", { id: "g", type: "llm_judge", params: { model: "m", prompt: "{output}", schema: "x" } }, false],
+  ["json_schema.strict string", { id: "g", type: "json_schema", params: { schema: {}, strict: "true" } }, false],
+  ["json_path.operator not in enum", { id: "g", type: "json_path", params: { path: "$.a", expected: "1", operator: "like" } }, false],
+  ["code.timeout_ms below 100", { id: "g", type: "code", params: { language: "python", source: "x", timeout_ms: 50 } }, false],
+  ["contains, all optional params well-typed", { id: "g", type: "contains", params: { substring: "a", ignore_case: true }, weight: 2, description: "d" }, true],
+  ["llm_judge, all optional params well-typed", { id: "g", type: "llm_judge", params: { model: "m", prompt: "{output}", provider: "p", temperature: 2, schema: {} } }, true],
+  ["json_path, operator in enum", { id: "g", type: "json_path", params: { path: "$.a", expected: "1", operator: "gte" } }, true],
+  ["code, timeout_ms at minimum", { id: "g", type: "code", params: { language: "python", source: "x", timeout_ms: 100 } }, true],
+];
+
+describe("grader fidelity: JSON Schema and hand-rolled validator agree", () => {
+  for (const [name, doc, expected] of GRADER_FIDELITY_CASES) {
+    test(name, () => {
+      const hand = validateGrader(doc);
+      expect(graderValidate(doc) as boolean, "JSON Schema").toBe(expected);
+      expect(hand.valid, `hand-rolled: ${JSON.stringify(hand.errors)}`).toBe(expected);
+    });
+  }
+});
+
+const SUITE_FIDELITY_CASES: [string, Record<string, unknown>, boolean][] = [
+  ["name number", { name: 1 }, false],
+  ["description list", { description: ["x"] }, false],
+  ["graders object", { graders: { g1: {} } }, false],
+  ["metadata string", { metadata: "x" }, false],
+  ["tags non-string item", { tags: [1] }, false],
+  ["config list", { config: [] }, false],
+  ["config.parallel 0", { config: { parallel: 0 } }, false],
+  ["config.provider.max_tokens 0", { config: { provider: { max_tokens: 0 } } }, false],
+  ["config.defaults.timeout_ms 0", { config: { defaults: { timeout_ms: 0 } } }, false],
+  ["config.defaults.weight negative", { config: { defaults: { weight: -1 } } }, false],
+  ["config.retry.max_attempts 0", { config: { retry: { max_attempts: 0 } } }, false],
+  ["config.retry.backoff_ms below 100", { config: { retry: { backoff_ms: 10 } } }, false],
+  ["nested test case tags string", { test_cases: [{ id: "tc1", input: "hi", graders: ["g1"], tags: "smoke" }] }, false],
+  ["every optional field well-typed", {
+    $schema: "https://evalport.org/schema/suite.json", name: "n", description: "d", metadata: { k: 1 }, tags: ["a"],
+    config: { provider: { model: "m", max_tokens: 10 }, defaults: { timeout_ms: 1000, weight: 1 },
+      parallel: 4, retry: { max_attempts: 3, backoff_ms: 100 } },
+  }, true],
+];
+
+describe("suite fidelity: JSON Schema and hand-rolled validator agree", () => {
+  for (const [name, extra, expected] of SUITE_FIDELITY_CASES) {
+    test(name, () => {
+      const doc = { ...fidelitySuite(), ...extra };
+      const hand = validateSuite(doc);
+      expect(suiteValidate(doc) as boolean, "JSON Schema").toBe(expected);
+      expect(hand.valid, `hand-rolled: ${JSON.stringify(hand.errors)}`).toBe(expected);
+    });
+  }
 });

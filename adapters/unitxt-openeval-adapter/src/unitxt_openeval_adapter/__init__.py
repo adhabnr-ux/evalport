@@ -31,6 +31,7 @@ dataset you build, and the scored results `evaluate()` produces):
 """
 from __future__ import annotations
 
+import json
 from typing import Any, Dict, Iterable, List, Optional
 
 try:
@@ -310,8 +311,15 @@ def evaluation_to_openeval(
             "test_case_id": f"tc_{i}",
             "passed": len(grader_results) > 0 and all(g["passed"] for g in grader_results),
             "grader_results": grader_results,
-            "actual_output": instance.get("prediction"),
         }
+        # actual_output is an optional string in resultset.json: omitted when
+        # absent, serialized when the prediction is not a string (a list of
+        # labels, a dict, a number) instead of emitted as a JSON array/object.
+        prediction = instance.get("prediction")
+        if isinstance(prediction, str):
+            result["actual_output"] = prediction
+        elif prediction is not None:
+            result["actual_output"] = json.dumps(prediction, default=str)
         task_data = instance.get("task_data")
         if task_data is not None:
             result["metadata"] = {"unitxt": {"task_data": task_data}}

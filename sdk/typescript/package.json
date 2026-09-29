@@ -39,6 +39,7 @@
   ],
   "devDependencies": {
     "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "typescript": "^5.6.0",
     "vitest": "^2.1.0"
   }

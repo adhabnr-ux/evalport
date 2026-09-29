@@ -65,8 +65,11 @@ evalport-validate = "openeval.cli:main"
 # spec/schemas/*.json (the portable JSON Schema source of truth) against this
 # package's zero-dependency hand-rolled validators to guard against the two
 # validation paths silently drifting apart. The core `openeval` package itself
-# has zero runtime dependencies.
-test = ["pytest", "jsonschema"]
+# has zero runtime dependencies. rfc3339-validator is what makes jsonschema's
+# FORMAT_CHECKER actually assert `format: "date-time"` (without it, jsonschema
+# silently skips that format), so the consistency tests can check the hand-rolled
+# RFC 3339 check against an independent implementation.
+test = ["pytest", "jsonschema", "rfc3339-validator"]
 
 [tool.setuptools.packages.find]
 where = ["."]
