@@ -1,6 +1,6 @@
 # EvalPort — Adoption Strategy (Updated September 27, 2026)
 
-## Status: Phase 3 — One Docs Listing, Three Merged Upstream PRs (Two by the EvalPort Maintainer, One Bot-Generated from an EvalPort Issue), One Pending, 65 Adapters in This Repo
+## Status: Phase 3 — One Docs Listing, Three Merged Upstream PRs (Two by the EvalPort Maintainer, One Bot-Generated from an EvalPort Issue), One Pending, 67 Adapters in This Repo
 
 Every upstream status below was re-checked live against the GitHub API on 2026-09-27: PR `state`/`merged`/`merged_at`, issue state, and whether the merged files are present on the upstream default branch. The 2026-09-16 snapshot this replaces had drifted. It said Inspect AI filed EvalPort under `Tooling` (it is now under "Frameworks"), credited the IBM/ares approval to a reviewer who reviewed only the predecessor PR, and did not say who authored each merged change.
 
@@ -27,9 +27,11 @@ Every upstream status below was re-checked live against the GitHub API on 2026-0
 - **openai/openai-python#3619** — OpenEval import/export helpers written by an independent contributor (@SparshGarg999). **Closed without merging on 2026-08-25** (`merged: false`, `merged_at: null`). The originating proposal, openai-python#3549 (filed by @adhabnr-ux), was closed as "not planned" the same day. CONTRIBUTORS.md used to describe this as built "directly into" openai-python; it never shipped.
 - **deepsense-ai/ragbits#989** — an `EvalPortDataLoader` written by ragbits maintainer @mikemikimike after a proposal in ragbits#986 (filed by @adhabnr-ux, still open). **Closed without merging on 2026-09-10.** `docs/community-integrations.md` used to list it as open and pending review.
 
-### Framework Adapters in This Repo: 65
+### Framework Adapters in This Repo: 67
 
-Installable packages under `adapters/` in this repo (65 directories on `main` as of 2026-09-27; up from 54 on 2026-09-16). Each has a `pyproject.toml` depending on `evalport-sdk`, `to_openeval()`/`from_openeval()`, and its own test suite, which CI's adapter job runs against the real validator. 62 were written by the EvalPort maintainer and 3 by external contributors (see CONTRIBUTORS.md). They are converters maintained by this project, built against each framework's public data shapes. They are not integrations shipped by, or adopted by, those frameworks.
+Installable packages under `adapters/` in this repo (67 directories on `main` as of 2026-09-29; 65 on 2026-09-27, up from 54 on 2026-09-16). Each has a `pyproject.toml` depending on `evalport-sdk`, `to_openeval()`/`from_openeval()`, and its own test suite, which CI's adapter job runs against the real validator. 64 were written by the EvalPort maintainer and 3 by external contributors (see CONTRIBUTORS.md). They are converters maintained by this project, built against each framework's public data shapes. They are not integrations shipped by, or adopted by, those frameworks.
+
+The two added since the 2026-09-27 snapshot, both built at the upstream maintainer's explicit request rather than unsolicited: [`agent-skills-eval-openeval-adapter`](adapters/agent-skills-eval-openeval-adapter/), following [darkrishabh/agent-skills-eval#34](https://github.com/darkrishabh/agent-skills-eval/issues/34#issuecomment-5888398803) (maintainer @darkrishabh: "A standalone adapter in EvalPort is the direction we'd prefer... No first-party export or dependency is planned at this stage"); and [`humanbound-openeval-adapter`](adapters/humanbound-openeval-adapter/), following [humanbound/humanbound#131](https://github.com/humanbound/humanbound/issues/131#issuecomment-5885427531) (maintainer @sotberd: "We'd prefer the standalone package in the EvalPort repo, as you suggested... Once it's published, share the link here and we'll be happy to review it for a mention in our docs"). Neither of these two claims has been independently re-verified against a fresh live GitHub check the way the rest of this document's 2026-09-27 snapshot was — both are read directly from the linked comments, not from an API re-check performed on 2026-09-29.
 
 ### Published Packages
 
