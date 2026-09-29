@@ -27,7 +27,7 @@
         "stage_1": "max(0, 1 - g) when max(0, g) > b",
         "stage_2": "(1 - g) + max(0, 1 - t/tau) when max(0, g) <= b",
         "score_slot": "null; raw value in metadata.frontieror.staged_qte",
-        "pass_rule": "stage_id == 2"
+        "pass_rule": "always false: score is null (not verified), and EvalPort Validation Rule 6 requires passed false with a null score. The stage reached is metadata.frontieror.stage_id."
       }
     },
     {
