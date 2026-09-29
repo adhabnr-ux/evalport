@@ -1,0 +1,17 @@
+{
+    "description": "A TestCase with an empty-string input is rejected because string input requires minLength 1.",
+    "type": "testcase",
+    "expect": {
+        "valid": false,
+        "error_paths": [
+            "$.input"
+        ]
+    },
+    "document": {
+        "id": "tc1",
+        "input": "",
+        "graders": [
+            "g1"
+        ]
+    }
+}

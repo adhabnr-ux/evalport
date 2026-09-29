@@ -23,6 +23,7 @@ def validate_test_case(tc):
     if not isinstance(tc.get("id"),str) or not tc["id"]: errors.append(_err("$.id","id required","REQUIRED"))
     inp=tc.get("input")
     if not isinstance(inp,str) and not (isinstance(inp,list) and all(isinstance(x,str) for x in inp)): errors.append(_err("$.input","input required","REQUIRED"))
+    elif isinstance(inp,str) and not inp: errors.append(_err("$.input","empty","MIN_LENGTH"))
     elif isinstance(inp,list) and not inp: errors.append(_err("$.input","empty","MIN_ITEMS"))
     gr=tc.get("graders")
     if not isinstance(gr,list) or not gr: errors.append(_err("$.graders","graders required","REQUIRED"))

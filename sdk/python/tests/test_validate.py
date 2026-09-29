@@ -14,6 +14,13 @@ def test_tc():
     assert validate_test_case({"id":"tc1","input":"hi","graders":["g1"]}).valid
     assert not validate_test_case({"id":"tc1","graders":["g1"]}).valid
 
+def test_empty_string_input_rejected():
+    result = validate_test_case({"id":"tc1","input":"","graders":["g1"]})
+    assert not result.valid
+    assert any(
+        e["path"] == "$.input" and e["code"] == "MIN_LENGTH"
+        for e in result.errors
+    )
 def test_rs():
     assert validate_result_set({"version":"1.0.0","suite_id":"s","run_id":"r","started_at":"2026-01-01T00:00:00Z","results":[{"test_case_id":"tc1","passed":True,"grader_results":[{"grader_id":"g1","type":"exact_match","score":1.0,"passed":True}]}]}).valid
 

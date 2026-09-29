@@ -138,6 +138,11 @@ test("valid test case", () => {
 test("missing input fails", () => {
   expect(validateTestCase({id:"tc1",graders:["g1"]}).valid).toBe(false);
 });
+test("empty string input fails MIN_LENGTH", () => {
+  const r = validateTestCase({id:"tc1",input:"",graders:["g1"]});
+  expect(r.valid).toBe(false);
+  expect(r.errors.some(e => e.path === "$.input" && e.code === "MIN_LENGTH")).toBe(true);
+});
 test("input may be a non-empty string list", () => {
   expect(validateTestCase({id:"tc1",input:["a","b"],graders:["g1"]}).valid).toBe(true);
   expect(validateTestCase({id:"tc1",input:[],graders:["g1"]}).valid).toBe(false);

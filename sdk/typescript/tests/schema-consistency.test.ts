@@ -2,7 +2,13 @@ import { test, expect, describe } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import Ajv2020 from "ajv/dist/2020";
-import { validateGrader, validateSuite, validateResultSet, SEMVER_RE } from "../src/validate";
+import {
+  validateGrader,
+  validateSuite,
+  validateResultSet,
+  validateTestCase,
+  SEMVER_RE,
+} from "../src/validate";
 
 // Cross-validates the raw JSON Schema files (spec/schemas/*.json -- the source of
 // truth that any JSON-Schema-based tool, not just this SDK, would validate against)
@@ -40,6 +46,7 @@ ajv.addSchema(graderSchema, graderSchema.$id);
 ajv.addSchema(suiteSchema, suiteSchema.$id);
 ajv.addSchema(resultsetSchema, resultsetSchema.$id);
 
+const testcaseValidate = ajv.getSchema(testcaseSchema.$id)!;
 const graderValidate = ajv.getSchema(graderSchema.$id)!;
 const suiteValidate = ajv.getSchema(suiteSchema.$id)!;
 const resultsetValidate = ajv.getSchema(resultsetSchema.$id)!;
@@ -55,6 +62,20 @@ describe("schema files are well-formed Draft 2020-12 schemas", () => {
       expect(() => ajv.compile(schema)).not.toThrow();
     });
   }
+});
+
+test("testcase empty-string input is rejected by both paths", () => {
+  const doc = { id: "tc1", input: "", graders: ["g1"] };
+
+  expect(testcaseValidate(doc) as boolean, "JSON Schema").toBe(false);
+
+  const result = validateTestCase(doc);
+  expect(result.valid, "hand-rolled").toBe(false);
+  expect(
+    result.errors.some(
+      e => e.path === "$.input" && e.code === "MIN_LENGTH"
+    )
+  ).toBe(true);
 });
 
 describe("grader: JSON Schema and hand-rolled validator agree", () => {

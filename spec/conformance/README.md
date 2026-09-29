@@ -63,6 +63,7 @@ Every fixture here has also been independently checked against the raw JSON Sche
 | `suite_duplicate_test_case_id_rejected.json` | Suite test-case ids are unique; this cross-item rule cannot be expressed in JSON Schema. |
 | `suite_duplicate_grader_id_rejected.json` | Suite-level grader ids are unique; this cross-item rule cannot be expressed in JSON Schema. |
 | `suite_dangling_grader_reference_rejected.json` | Test-case grader references resolve to a suite-level grader; referential integrity cannot be expressed in JSON Schema. |
+| `testcase_empty_string_input_rejected.json` | A TestCase with an empty-string `input` is rejected because string input requires `minLength: 1`. |
 
 This set is deliberately not exhaustive — it's the fixtures that came directly out of building 30 real framework adapters and encountering these exact edge cases in practice (see the `description` field on each fixture for which adapter surfaced it), plus the RFC conventions (#10, #11, and #45 — all landed; see `spec/SPEC.md`'s Grouped/Sibling ResultSets section for #45's history) it made sense to ship fixtures for at the same time their spec text landed. Contributions of new fixtures — especially ones derived from a *real* edge case you hit building or consuming an EvalPort document, not a hypothetical one — are welcome via the same RFC process as any other spec change (see `spec/SPEC.md`'s Governance section); a new fixture that isn't also a spec/behavior change doesn't need the full two-week comment period, just a PR.
 

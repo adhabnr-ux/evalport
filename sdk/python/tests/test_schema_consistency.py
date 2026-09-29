@@ -90,7 +90,17 @@ def _js_accepts(validator, doc):
 def test_schema_is_well_formed(schema):
     Draft202012Validator.check_schema(schema)
 
+def test_testcase_empty_string_input_rejected_by_both_paths():
+    doc = {"id": "tc1", "input": "", "graders": ["g1"]}
 
+    assert not _js_accepts(TESTCASE_VALIDATOR, doc)
+
+    result = validate_test_case(doc)
+    assert not result.valid
+    assert any(
+        e["path"] == "$.input" and e["code"] == "MIN_LENGTH"
+        for e in result.errors
+    )
 # ---------------------------------------------------------------------------
 # Grader: type openness + params.handler requirement for non-standard types
 # ---------------------------------------------------------------------------
