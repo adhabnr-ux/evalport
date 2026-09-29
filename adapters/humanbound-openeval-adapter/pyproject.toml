@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "humanbound-openeval-adapter"
+version = "0.1.0"
+description = "Convert humanbound's ExperimentResults/LogEntry/Insight adversarial-testing output to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.10"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["humanbound", "evalport", "openeval", "llm", "evaluation", "red-team", "ai-security"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/humanbound-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Upstream = "https://github.com/humanbound/humanbound"
+
+# Built at the upstream maintainer's explicit invitation:
+# https://github.com/humanbound/humanbound/issues/131#issuecomment-5885427531
+# ("We'd prefer the standalone package in the EvalPort repo... Once it's
+# published, share the link here.")
+#
+# Pinned against humanbound 2.12.0's public schema surface
+# (humanbound.schemas / humanbound_cli.engine.schemas: ExperimentResults,
+# Stats, Insight, ExperimentPosture, PostureDimension(s), ExecT, LogEntry,
+# Turn) and humanbound.runner.LocalRunner's on-disk result layout
+# (.humanbound/results/<experiment_id>/{meta.json,logs.jsonl}, read in
+# humanbound_cli/engine/local_runner.py). `humanbound` stays optional: it is
+# only needed to construct real pydantic model instances to pass in, or to
+# use `read_local_results()`'s default on-disk layout; every conversion
+# function here also accepts plain dicts with the same field names, so the
+# adapter's own tests run without it installed.
+[project.optional-dependencies]
+humanbound = ["humanbound>=2.0.0,<3"]
+test = ["pytest", "humanbound-openeval-adapter[humanbound]"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
