@@ -291,6 +291,22 @@ def to_openeval(
         if isinstance(r["metadata"].get("trust_score"), (int, float))
     ]
 
+    # runner.version and summary.avg_score are typed (string / number) and not
+    # nullable in resultset.json, so they are omitted rather than emitted as
+    # null when unknown (the reference validators reject null there).
+    summary: Dict[str, Any] = {
+        "total": total,
+        "passed": passed,
+        "failed": total - passed,
+        "pass_rate": (passed / total) if total else 0.0,
+    }
+    if trust_scores:
+        summary["avg_score"] = sum(trust_scores) / len(trust_scores)
+    runner: Dict[str, Any] = {"name": "longtracer"}
+    runner_version = _longtracer_version()
+    if runner_version is not None:
+        runner["version"] = runner_version
+
     return {
         "$schema": "https://evalport.org/schema/resultset.json",
         "version": OPENEVAL_VERSION,
@@ -298,14 +314,8 @@ def to_openeval(
         "run_id": run_id or "longtracer_run",
         "started_at": started_at or _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "results": evalport_results,
-        "summary": {
-            "total": total,
-            "passed": passed,
-            "failed": total - passed,
-            "pass_rate": (passed / total) if total else 0.0,
-            "avg_score": (sum(trust_scores) / len(trust_scores)) if trust_scores else None,
-        },
-        "runner": {"name": "longtracer", "version": _longtracer_version()},
+        "summary": summary,
+        "runner": runner,
         "metadata": {"openeval": {"source": "longtracer"}},
     }
 
