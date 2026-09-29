@@ -1,0 +1,30 @@
+{
+  "description": "ResultSet.started_at is declared format: date-time, i.e. an RFC 3339 date-time: full-date \"T\" full-time with seconds and a mandatory offset (Z or +hh:mm/-hh:mm). A date-only value like \"2026-09-29\" is valid ISO 8601 but is NOT an RFC 3339 date-time, so it cannot be ordered against other timestamps without guessing a time and a time zone. A conformance implementation MUST REJECT this document (reference validators: INVALID_DATE_TIME). Note that JSON Schema treats format as an annotation unless format assertion is enabled; a JSON-Schema-based implementation must enable it for date-time to agree with this fixture.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.started_at"
+    ]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_conformance",
+    "run_id": "run_conformance_001",
+    "started_at": "2026-09-29",
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_exact",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "description": "Extension Mechanism -> Aggregation Extension: \"A test case whose graders are *all* null-scored has no basis for a pass/fail verdict; runners MUST report such a case's passed as false\". Every GraderResult here is correctly null/false (e.g. a human review still pending), but Result.passed is true. The raw JSON Schema cannot express this cross-item rule and accepts the document; the reference validators reject it (UNSCORED_RESULT_PASSED). A conformance implementation MUST REJECT this document. The same Result with passed: false is valid (see null_score_not_scored_failure.json).",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.results[0].passed"
+    ]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_conformance",
+    "run_id": "run_conformance_001",
+    "started_at": "2026-09-29T00:00:00Z",
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_human_review",
+            "type": "human",
+            "score": null,
+            "passed": false,
+            "metadata": {
+              "skip_reason": "pending_review"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
