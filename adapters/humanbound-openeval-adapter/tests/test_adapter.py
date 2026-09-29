@@ -105,8 +105,12 @@ class TestToOpenevalDicts:
         rs = to_openeval(_experiment_results(), [log], suite_id="s1", run_id="r1")
         result = rs["results"][0]
         assert result["passed"] is False
-        assert result["error"] == {"type": "judge_error", "message": "model timed out"}
+        # error.type is EvalPort's closed enum; the judge-error category stays
+        # on the grader's metadata.
+        assert result["error"] == {"type": "runner_error", "message": "model timed out"}
+        assert result["grader_results"][0]["metadata"]["fail_category"] == "judge_error"
         assert result["grader_results"][0]["score"] is None
+        assert validate_result_set(rs).valid
 
     def test_runner_error_when_fail_category_not_judge_error(self):
         log = _log(result="error", fail_category="", explanation="")
@@ -129,6 +133,14 @@ class TestToOpenevalDicts:
     def test_zero_exec_t_omits_duration(self):
         rs = to_openeval(_experiment_results(), [_log(exec_t=0)], suite_id="s1", run_id="r1")
         assert "duration_ms" not in rs["results"][0]
+
+    def test_empty_explanation_omits_reason_not_null(self):
+        # reason is an optional string in resultset.json; a pass with no
+        # explanation must omit it rather than emit null.
+        rs = to_openeval(_experiment_results(), [_log(explanation="")], suite_id="s1", run_id="r1")
+        assert "reason" not in rs["results"][0]["grader_results"][0]
+        v = validate_result_set(rs)
+        assert v.valid, v.errors
 
     def test_log_meta_preserved(self):
         rs = to_openeval(_experiment_results(), [_log(meta={"provider": "openai"})],
@@ -209,7 +221,8 @@ class TestToOpenevalRealModels:
         log = LogEntry(thread_id="t1", result="error", fail_category=JUDGE_ERROR_CATEGORY,
                         explanation="could not be judged")
         rs = to_openeval(ExperimentResults(), [log], suite_id="s1", run_id="r1")
-        assert rs["results"][0]["error"]["type"] == "judge_error"
+        assert rs["results"][0]["error"]["type"] == "runner_error"
+        assert rs["results"][0]["grader_results"][0]["metadata"]["fail_category"] == JUDGE_ERROR_CATEGORY
 
     @requires_humanbound
     def test_default_experimentresults_with_one_log_still_produces_valid_resultset(self):
