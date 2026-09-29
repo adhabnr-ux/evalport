@@ -64,13 +64,17 @@ def _assertion_grader_result(assertion_result: Dict[str, Any]) -> Dict[str, Any]
     assertion = assertion_result.get("assertion") or {}
     kind = assertion.get("kind", "unknown")
     passed = bool(assertion_result.get("pass"))
-    return {
+    grader_result: Dict[str, Any] = {
         "grader_id": kind,
         "type": f"agenteval_{kind}",
         "score": 1.0 if passed else 0.0,
         "passed": passed,
-        "reason": assertion_result.get("detail"),
     }
+    # GraderResult.reason is an optional *string* -- omit it rather than emit
+    # null when AgentEval recorded no detail (null is schema-invalid).
+    if isinstance(assertion_result.get("detail"), str):
+        grader_result["reason"] = assertion_result["detail"]
+    return grader_result
 
 
 def _judge_grader_result(judge: Dict[str, Any]) -> Dict[str, Any]:
@@ -89,14 +93,25 @@ def _judge_grader_result(judge: Dict[str, Any]) -> Dict[str, Any]:
     """
     votes = judge.get("votes") or 0
     passing_votes = judge.get("passingVotes") or 0
-    return {
+    metadata: Dict[str, Any] = {"votes": votes, "passing_votes": passing_votes}
+    if votes:
+        score: Optional[float] = passing_votes / votes
+        passed = bool(judge.get("pass"))
+    else:
+        # EvalPort Validation Rule 6: a null score ("not verified") MUST have
+        # passed: false. Keep AgentEval's own verdict for 0 votes visible.
+        score, passed = None, False
+        metadata["native_pass"] = bool(judge.get("pass"))
+    grader_result: Dict[str, Any] = {
         "grader_id": "judge",
         "type": "agenteval_llm_judge",
-        "score": (passing_votes / votes) if votes else None,
-        "passed": bool(judge.get("pass")),
-        "reason": judge.get("detail"),
-        "metadata": {"votes": votes, "passing_votes": passing_votes},
+        "score": score,
+        "passed": passed,
+        "metadata": metadata,
     }
+    if isinstance(judge.get("detail"), str):
+        grader_result["reason"] = judge["detail"]
+    return grader_result
 
 
 def _result_for_run(scenario_id: str, attempt: int, run: Dict[str, Any]) -> Dict[str, Any]:
@@ -122,7 +137,8 @@ def _result_for_run(scenario_id: str, attempt: int, run: Dict[str, Any]) -> Dict
         "test_case_id": scenario_id,
         "attempt": attempt,
         "passed": bool(run.get("pass")),
-        "actual_output": trace.get("finalText", ""),
+        # actual_output is a string in resultset.json; a null finalText becomes "".
+        "actual_output": trace.get("finalText") if isinstance(trace.get("finalText"), str) else "",
         "grader_results": grader_results,
         "metadata": {
             "agenteval": {
