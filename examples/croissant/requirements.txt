@@ -1,0 +1,5 @@
+# Only needed to run the SHACL checks in test_croissant_tasks.py.
+# The exporter itself uses the standard library only.
+pyshacl==0.40.1
+rdflib==7.6.0
+pytest
