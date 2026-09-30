@@ -99,6 +99,7 @@ Validate an EvalPort document against its schema.
 ```bash
 evalport validate my-suite.json
 evalport validate my-suite.json --type=resultset
+evalport validate newer-run.json --type=resultset --allow-unknown  # accept unknown properties (proposed, #108)
 ```
 
 ### convert

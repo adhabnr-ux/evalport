@@ -41,6 +41,7 @@ same ref as the Action, so pinning the Action also pins the validator.
 |---|---|---|
 | `files` | `**/*.evalport.json` | Files, directories or glob patterns, separated by spaces or newlines, relative to the workspace. `**` recurses. Directories are searched recursively for `*.json`. Paths containing spaces are not supported. **If a pattern matches no files, the step fails.** |
 | `type` | `auto` | `auto` detects the type of each file: `results` means a result set, `test_cases`/`test_cases_file` a suite, `input` a test case, and `type`+`id` a grader. You can also set `suite`, `testcase`, `grader` or `resultset` to apply one type to every file. |
+| `allow-unknown` | `false` | **Proposed ([Discussion #108](https://github.com/adhabnr-ux/evalport/discussions/108)).** Validation is strict by default: a property the schema doesn't define, outside `metadata` (and `provider.extra`, `params`, `summary.by_grader` entries), is an `UNKNOWN_FIELD` error. `true` passes `--allow-unknown`, which accepts such properties. Use it only for documents produced against a newer minor spec version than the validator implements. |
 | `python-version` | `3.11` | Passed to `actions/setup-python`. The validator is installed into a private venv under `$RUNNER_TEMP`, so it doesn't affect your job's own Python packages. |
 | `sdk-version` | `local` | `local` installs `sdk/python` from the Action's own checkout (`${{ github.action_path }}`). `pypi` installs the latest `evalport-sdk` from PyPI. Any other value installs that exact PyPI version (`evalport-sdk==<value>`). See the caveat below. |
 
@@ -93,6 +94,8 @@ repos:
         # files: ^evals/.*\.json$
         # To force a document type instead of auto-detecting it:
         # args: [--type, resultset]
+        # To accept properties the schema doesn't define (proposed, #108):
+        # args: [--allow-unknown]
 ```
 
 pre-commit warns when `rev` is a branch name such as `main`, because a branch
@@ -137,6 +140,8 @@ checks three things:
 - `uses: ./` passes on `examples/*.json`.
 - `uses: ./` fails on a known-invalid conformance fixture and on a pattern
   that matches no files. Both steps use `continue-on-error`, and a later step
-  checks that their outcome was `failure`.
+  checks that their outcome was `failure`. It also fails on an unknown-field
+  fixture in strict mode and passes on the same file with
+  `allow-unknown: 'true'` (proposed, Discussion #108).
 - `pre-commit try-repo` passes on valid files and fails on the invalid
   fixture.

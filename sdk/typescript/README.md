@@ -43,13 +43,21 @@ const resultSet = createResultSet(suite, results, "run_001");
 
 ## API
 
-- `validateSuite(doc)` → `ValidationResult`
-- `validateTestCase(doc)` → `ValidationResult`
-- `validateGrader(doc)` → `ValidationResult`
-- `validateResultSet(doc)` → `ValidationResult`
+- `validateSuite(doc, opts?)` → `ValidationResult`
+- `validateTestCase(doc, opts?)` → `ValidationResult`
+- `validateGrader(doc, opts?)` → `ValidationResult`
+- `validateResultSet(doc, opts?)` → `ValidationResult`
+- `validateDocument(doc, type, opts?)` → `ValidationResult`
 - `fromPromptfoo(config)` → `EvalSuite`
 - `computeSummary(results)` → `Summary`
 - `createResultSet(suite, results, runId)` → `ResultSet`
+
+Validation is strict by default (**proposed** in
+[Discussion #108](https://github.com/adhabnr-ux/evalport/discussions/108)): a
+property the schema doesn't define is an `UNKNOWN_FIELD` error at its path,
+except inside `metadata` objects (and `provider.extra`, `params`,
+`summary.by_grader` entries), which stay open. Pass `{ allowUnknown: true }`
+when reading a document from a newer minor spec version.
 
 ## License
 
