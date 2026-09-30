@@ -5,7 +5,7 @@ Every change to the EvalPort spec starts as an RFC: a GitHub Discussion in the
 This page lists every RFC the project has run and where each one stands.
 The process itself is defined in [`spec/SPEC.md` → Governance](../../spec/SPEC.md#governance).
 
-**Three RFCs are open for comment right now.** You don't need to have contributed
+**Four RFCs are open for comment right now.** You don't need to have contributed
 before to comment on one.
 
 ## Index
@@ -20,6 +20,7 @@ date in the [`spec/SPEC.md` Change Log](../../spec/SPEC.md#change-log).
 | `Result.constraint_violations` | Should a hard constraint (e.g. an RBAC or governance violation) be a first-class part of a `Result`? It would fail the result outright but, unlike an `error` row, keep it in denominators, and it would not be averaged in like a grader score. | **Waiting on a real fixture.** The two-week comment period ran through 2026-09-23 and was deliberately left open. The RFC is waiting on a conformance fixture from a real AOBench RBAC hard-fail run, offered by AOBench's maintainer (@MSKazemi), whose framing the proposal is built on. | [#47](https://github.com/adhabnr-ux/evalport/discussions/47) | [#48](https://github.com/adhabnr-ux/evalport/pull/48) (draft, not for merge) |
 | `Result.verdict`: FAILED vs. UNVERIFIED | Should a `Result` be able to say "this reached a terminal state nobody could judge", as distinct from a graded failure (`passed: false`) and a harness failure (`error`)? Raised by @soul-sol. | **Open. Comment period 2026-09-27 to 2026-10-11.** | [#49](https://github.com/adhabnr-ux/evalport/discussions/49) | [#83](https://github.com/adhabnr-ux/evalport/pull/83) (draft, not for merge) |
 | `GraderResult.trials` / `successes` | Should a rate-based grader score carry its denominator, so 0 of 5 and 0 of 500 don't both serialize as `0.0`? And should it be optional, required for rate-based graders, or a `metadata` convention? Promoted from [issue #58](https://github.com/adhabnr-ux/evalport/issues/58), raised by @sattyamjjain. | **Open. Comment period 2026-09-27 to 2026-10-11.** | [#67](https://github.com/adhabnr-ux/evalport/discussions/67) | [#66](https://github.com/adhabnr-ux/evalport/pull/66) (draft, implements the optional-fields option only, not for merge) |
+| Unknown fields: strict validation, lenient consumption | The schemas close 16 objects with `additionalProperties: false`, the SDK validators accept unknown keys, and the spec says runners "MUST ignore unknown fields". Should validation be strict by default (new code `UNKNOWN_FIELD`) with an explicit opt-in for lenient consumption? Promoted from [issue #107](https://github.com/adhabnr-ux/evalport/issues/107), found by @ChelseaKR. | **Open. Comment period 2026-09-29 to 2026-10-13.** | [#108](https://github.com/adhabnr-ux/evalport/discussions/108) | [#110](https://github.com/adhabnr-ux/evalport/pull/110) (draft, not for merge) |
 
 ### Landed
 
@@ -76,7 +77,7 @@ authoritative:
    consensus.
 
 In practice, recent RFCs have also had a **draft reference-implementation PR** open during the comment
-period (#46, #48, #66, #83). It is marked as not for merge and exists so reviewers can test
+period (#46, #48, #66, #83, #110). It is marked as not for merge and exists so reviewers can test
 a concrete design. After consensus, the implementation is re-opened fresh against `main`,
 as #54 did for #46.
 
