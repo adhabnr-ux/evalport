@@ -44,14 +44,23 @@ an outside contributor.
   on 2026-09-02. The PR was opened by the project's automated triage bot in
   response to [PraisonAI#4275](https://github.com/MervinPraison/PraisonAI/issues/4275),
   and no human review is recorded.
-- **Its output does not currently validate.** The module uses its own field
-  names (`cases`, `case_id`, `evalport_version`, ...). As a result:
-  - `validate_suite()` fails.
-  - `validate_result_set()` fails.
-  - The raw JSON Schemas also reject it.
-- **Fix proposed:** a tested, dependency-free patch is in
-  [PraisonAI#5374](https://github.com/MervinPraison/PraisonAI/issues/5374).
-  Until that lands, do not describe this module as producing EvalPort output.
+- **The original output did not validate.** The module used its own field
+  names (`cases`, `case_id`, `evalport_version`, ...), so `validate_suite()`,
+  `validate_result_set()` and the raw JSON Schemas all rejected it.
+- **Fixed on `main`:**
+  [MervinPraison/PraisonAI#5375](https://github.com/MervinPraison/PraisonAI/pull/5375)
+  was opened by the same triage bot after our issue
+  [PraisonAI#5374](https://github.com/MervinPraison/PraisonAI/issues/5374), and
+  merged on 2026-09-30. We re-ran the merged code (`ae4b2802`) through
+  `evalport-sdk` and the raw schemas. Suites and ResultSets pass for packages
+  with criteria, criteria-less cases, zero and negative timeouts, out-of-range
+  scores (clamped, raw value kept), errored cases and trajectory records, and
+  every `grader_id` and `test_case_id` in a ResultSet exists in its Suite. We
+  have not checked whether a PyPI release contains the change yet.
+- **Known gap:** an empty `EvalPackage` (or a report with no results) exports a
+  Suite or ResultSet that the schemas reject, because `test_cases` and `results`
+  require at least one item (`MIN_ITEMS`). Reported in
+  [PraisonAI#5374](https://github.com/MervinPraison/PraisonAI/issues/5374#issuecomment-5916646468).
 
 ## Open upstream PRs
 
