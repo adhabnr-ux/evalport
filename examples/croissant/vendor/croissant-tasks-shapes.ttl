@@ -247,3 +247,4 @@ croissant:EvaluationTaskShape
     sh:maxCount 1 ;
     sh:message "croissant:evaluatedSolution must point to exactly one TaskSolution."
   ] .
+
