@@ -1,0 +1,35 @@
+name: Every Eval Ever example
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/every-eval-ever/**'
+      - 'examples/basic-suite.json'
+      - 'examples/results.json'
+      - 'sdk/python/**'
+      - '.github/workflows/every-eval-ever-example.yml'
+  pull_request:
+    paths:
+      - 'examples/every-eval-ever/**'
+      - 'examples/basic-suite.json'
+      - 'examples/results.json'
+      - 'sdk/python/**'
+      - '.github/workflows/every-eval-ever-example.yml'
+
+jobs:
+  every-eval-ever:
+    # examples/every-eval-ever/ -- EvalPort Suite + ResultSet -> one Every Eval Ever
+    # (EEE) schema 0.3.0 record, validated against the vendored eval.schema.json
+    # with jsonschema and, on Python >= 3.12, with EEE's own validator
+    # (every-eval-ever==0.3.0, including its semantic merge-gate checks).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install evalport-sdk and the validation toolchain
+        run: pip install -e sdk/python -r examples/every-eval-ever/requirements.txt
+      - name: Run the converter tests
+        run: python -m pytest -p no:cacheprovider examples/every-eval-ever -v

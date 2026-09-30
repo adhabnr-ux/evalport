@@ -1,0 +1,8 @@
+# jsonschema (+ its referencing dependency) validates the converter's output against the
+# vendored EEE schema. The converter itself uses the standard library only.
+jsonschema==4.26.0
+referencing==0.37.0
+pytest
+# EEE's own validator and pydantic models, for the extra checks in
+# TestOfficialValidator. It needs Python >= 3.12 (on older Pythons those tests skip).
+every-eval-ever==0.3.0; python_version >= "3.12"
