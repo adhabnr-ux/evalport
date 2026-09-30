@@ -115,11 +115,11 @@ when a Result carries more than one grader result.
 
 ## What round-trips, and what doesn't
 
-Per-query scores round-trip exactly. `ResultSet.summary.metadata.pyserini
+Per-query scores round-trip exactly. `ResultSet.metadata.pyserini
 .trec_eval_aggregate` preserves trec_eval's own `"all"` value per metric
 verbatim; `from_openeval()`'s own `"all"` key is instead the mean of the
 *extracted* per-query scores (EvalPort's schema doesn't require the
-original aggregate to survive a round trip) — prefer the summary field if
+original aggregate to survive a round trip) — prefer the metadata field if
 you need the exact original trec_eval aggregate back.
 
 ## Spec

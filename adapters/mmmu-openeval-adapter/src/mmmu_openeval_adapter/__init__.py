@@ -25,7 +25,8 @@ directly (not guessed) before writing this module:
   / ``"Overall"``, each ``{"num": int, "acc": float}``. ``result_to_openeval()``
   below converts that graded-run shape to an EvalPort ``ResultSet``, carrying
   ``judge_dict``'s per-item correctness into ``ResultSet.results`` and
-  ``printable_results`` straight into ``ResultSet.summary`` — the exact
+  ``printable_results`` straight into ``ResultSet.metadata["mmmu"]["printable_results"]``
+  (``ResultSet.summary`` only allows the spec's own keys) — the exact
   per-discipline breakdown that is the point of MMMU (broad expert-level
   knowledge spanning six disciplines: Art & Design, Business, Science, Health
   & Medicine, Humanities & Social Science, Tech & Engineering), not just one
@@ -328,8 +329,10 @@ def result_to_openeval(
     ``judge_dict`` (never re-derived — this module does not re-implement
     MMMU's ``eval_multi_choice``/``eval_open`` comparison logic, it only
     carries the real verdict through). ``printable_results`` is preserved
-    verbatim as ``ResultSet.summary``, so the per-discipline breakdown MMMU
-    is designed around survives the round trip untouched.
+    verbatim as ``ResultSet.metadata["mmmu"]["printable_results"]`` (not as
+    ``ResultSet.summary``, a closed object whose keys are the spec's own), so
+    the per-discipline breakdown MMMU is designed around survives the round
+    trip untouched.
     """
     if not exampels_to_eval:
         raise ValueError("exampels_to_eval is empty -- nothing to convert")
@@ -378,8 +381,7 @@ def result_to_openeval(
         "run_id": run_id,
         "started_at": started_at,
         "results": results,
-        "summary": dict(printable_results),
-        "metadata": {_RESERVED_METADATA_KEY: {"source": "mmmu"}},
+        "metadata": {_RESERVED_METADATA_KEY: {"source": "mmmu", "printable_results": dict(printable_results)}},
     }
     if completed_at is not None:
         result_set["completed_at"] = completed_at

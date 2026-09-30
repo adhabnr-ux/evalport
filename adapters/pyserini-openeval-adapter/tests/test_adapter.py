@@ -82,9 +82,12 @@ class TestSingleMetric:
         assert result_set["summary"]["failed"] == 1
         assert result_set["summary"]["pass_rate"] == pytest.approx(2 / 3)
 
-    def test_trec_eval_aggregate_preserved_in_summary_metadata(self, ndcg_per_query):
+    def test_trec_eval_aggregate_preserved_in_resultset_metadata(self, ndcg_per_query):
+        # ResultSet.metadata, not summary.metadata: `summary` is a closed
+        # object in resultset.json (Discussion #108).
         result_set = results_to_openeval(ndcg_per_query, metric="ndcg_cut_10", suite_id="s")
-        assert result_set["summary"]["metadata"]["pyserini"]["trec_eval_aggregate"] == {
+        assert "metadata" not in result_set["summary"]
+        assert result_set["metadata"]["pyserini"]["trec_eval_aggregate"] == {
             "ndcg_cut_10": 0.3247
         }
 
