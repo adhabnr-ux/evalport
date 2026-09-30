@@ -314,6 +314,9 @@ class TestSuiteToOpenEval:
         result = suite_to_openeval(_suite_fixture())
         assert result["version"] != "3"  # that's Cannonade's suite content version
         assert result["metadata"]["cannonade"]["suite_version"] == "3"
+        # defaultRunConfig rides in metadata: suite.json's `config` is closed.
+        assert result["metadata"]["cannonade"]["default_run_config"] == {"temperature": 0.2}
+        assert "config" not in result
 
     def test_tags_omitted_when_test_case_has_no_name(self):
         result = suite_to_openeval(_suite_fixture())
@@ -401,10 +404,20 @@ class TestRunToOpenEval:
         assert pmr_c["results"][0]["test_case_id"] == "cannonade_no_case_runs"
         assert pmr_c["results"][0]["passed"] is False
 
-    def test_aggregate_metrics_preserved_verbatim_as_summary(self):
+    def test_aggregate_metrics_preserved_verbatim_in_metadata(self):
+        # resultset.json's `summary` is a closed object (Discussion #108), so
+        # Cannonade's camelCase AggregateMetrics ride along in metadata.
         result_sets = run_to_openeval(_run_fixture())
         pmr_a = next(rs for rs in result_sets if rs["group"]["sequence"] == 0)
-        assert pmr_a["summary"] == {"passRate": 0.67, "avgScore": 0.72, "totalCostUsd": 0.02}
+        assert "summary" not in pmr_a
+        assert pmr_a["metadata"]["cannonade"]["aggregate"] == {"passRate": 0.67, "avgScore": 0.72, "totalCostUsd": 0.02}
+
+    def test_model_ref_preserved_in_metadata_and_model_id_in_provider(self):
+        result_sets = run_to_openeval(_run_fixture())
+        pmr_a, pmr_b = result_sets[0], result_sets[1]
+        assert pmr_a["provider"] == {"model": "gpt-4o"}
+        assert pmr_a["metadata"]["cannonade"]["model_ref"] == {"source": "openai", "modelKey": "gpt-4o"}
+        assert pmr_b["provider"] == {"model": "claude-sonnet-5"}
 
     def test_judge_usage_preserved_verbatim_in_grader_result_metadata(self):
         result_sets = run_to_openeval(_run_fixture())
@@ -441,6 +454,8 @@ class TestRunToOpenEval:
         run["modelRuns"][0]["modelRef"] = {"source": "custom"}
         result_sets = run_to_openeval(run)
         assert result_sets[0]["group"]["label"] == "custom:unknown"
+        assert "provider" not in result_sets[0]
+        assert validate_result_set(result_sets[0]).valid
 
 
 class TestToOpenEval:
