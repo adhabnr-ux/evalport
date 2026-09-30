@@ -53,12 +53,12 @@ with open("result_set.json", "w") as f:
 | `ScenarioResult.trace.finalText` / `.error` | `Result.actual_output` / `Result.error` |
 | `AssertionResult` (per-assertion pass/fail) | `GraderResult` with `type: "agenteval_<kind>"` — open, non-well-known (see below) |
 | `ScenarioResult.judge` (LLM-as-judge, self-consistency voting) | `GraderResult` with `grader_id: "judge"`, `type: "agenteval_llm_judge"`, `score` = vote fraction |
-| `ScenarioRunSummary.determinism` | `ResultSet.summary["scenarios"][scenario_id]["determinism"]` — preserved explicitly, not left implicit in the attempts |
+| `ScenarioRunSummary.determinism` | `ResultSet.metadata["agenteval"]["scenarios"][scenario_id]["determinism"]` — preserved explicitly, not left implicit in the attempts (`ResultSet.summary` only allows the spec's own keys) |
 
 Two changes from the original issue's sketch, both from maintainer review on agenteval#13:
 
 - **The judge outcome is included.** The original sketch's `grader_results` only covered `assertions`, dropping `perRun[].judge` entirely. `_judge_grader_result()` now maps it, using the self-consistency vote fraction (`passingVotes / votes`) as `score` — and `None`, not a fabricated `0.0`, when `votes` is `0` (AgentEval's own fail-closed case when a scenario declares a judge but no LLM client was supplied to the runner).
-- **Determinism is explicit, not implicit.** Rather than making a consumer recompute `passingRuns / totalRuns` by counting passing `attempt`s, `to_openeval()` writes every scenario's `determinism`, `total_runs`, `passing_runs`, and overall `pass` straight into `ResultSet.summary`.
+- **Determinism is explicit, not implicit.** Rather than making a consumer recompute `passingRuns / totalRuns` by counting passing `attempt`s, `to_openeval()` writes every scenario's `determinism`, `total_runs`, `passing_runs`, and overall `pass` straight into `ResultSet.metadata["agenteval"]["scenarios"]`.
 
 ## What doesn't round-trip (being upfront about it)
 

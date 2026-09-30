@@ -183,6 +183,9 @@ def test_to_openeval_resultset_connector_error():
     result = rs["results"][0]
     assert result["passed"] is False
     assert result["error"]["message"] == "rate limited"
+    # The raw ARES error payload rides in metadata: `error` is a closed object.
+    assert "detail" not in result["error"]
+    assert result["metadata"]["ares_error"] == ["429"]
     assert result["grader_results"][0]["score"] is None
 
 

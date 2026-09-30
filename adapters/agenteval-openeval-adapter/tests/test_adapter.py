@@ -124,10 +124,11 @@ def test_judge_with_zero_votes_scores_none_not_zero():
     assert judge_gr["passed"] is False
 
 
-def test_determinism_preserved_explicitly_in_summary():
+def test_determinism_preserved_explicitly_in_metadata():
     """Maintainer feedback on agenteval#13: determinism is 'the headline
     metric of this tool' and must be preserved in summary metadata, not
-    left implicit in the attempts."""
+    left implicit in the attempts. It lives in metadata.agenteval.scenarios:
+    resultset.json's `summary` is a closed object (Discussion #108)."""
     per_run = [
         _scenario_result("s1", True),
         _scenario_result("s1", True),
@@ -137,7 +138,8 @@ def test_determinism_preserved_explicitly_in_summary():
 
     rs = to_openeval(report)
 
-    s1_summary = rs["summary"]["scenarios"]["s1"]
+    assert "scenarios" not in rs["summary"]
+    s1_summary = rs["metadata"]["agenteval"]["scenarios"]["s1"]
     assert s1_summary["determinism"] == 2 / 3
     assert s1_summary["total_runs"] == 3
     assert s1_summary["passing_runs"] == 2

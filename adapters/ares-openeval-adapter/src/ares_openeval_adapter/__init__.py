@@ -216,8 +216,10 @@ def to_openeval_resultset(
             result["passed"] = False
             result["error"] = {
                 "message": response.get("error_message") or "ARES connector reported an error",
-                "detail": response.get("error"),
             }
+            # resultset.json's `error` object is closed (type/message/code/
+            # retryable), so ARES's raw error payload rides in metadata.
+            result["metadata"]["ares_error"] = response.get("error")
             result["grader_results"] = [
                 {
                     "grader_id": grader_id,
