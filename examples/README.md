@@ -1,12 +1,12 @@
 # Examples
 
-Sample EvalPort documents and runnable examples. Everything here is exercised in CI.
+Sample EvalPort documents and runnable examples. The runnable examples under `interop/`, `croissant/` and `every-eval-ever/` are exercised in CI.
 
 ## Sample documents
 
 - [`basic-suite.json`](basic-suite.json) and [`results.json`](results.json): the smallest valid Suite and ResultSet. The exporters below use them as their default inputs.
 - [`multi-turn.json`](multi-turn.json), [`rag-eval-suite.json`](rag-eval-suite.json), [`safety.json`](safety.json), [`agent-tools.json`](agent-tools.json): suites for other shapes of evaluation.
-- [`migrations/`](migrations/): the same suite as written for DeepEval and Promptfoo, converted to EvalPort.
+- [`migrations/`](migrations/): small sample inputs in DeepEval and Promptfoo format, for trying the converters.
 
 ## Runnable examples
 
