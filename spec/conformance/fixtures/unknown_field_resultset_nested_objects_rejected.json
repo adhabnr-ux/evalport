@@ -1,0 +1,64 @@
+{
+  "description": "PROPOSED (issue #107 / Discussion #108, not yet normative): Strict validation covers every closed object in resultset.json, not only the top level: an unknown key inside `provider`, `runner`, `summary`, `group` and `Result.error` is each rejected with UNKNOWN_FIELD. The `summary.scenarios` and `error.detail` shapes come from real adapters the Discussion #108 impact sweep found (agenteval-openeval-adapter and ares-openeval-adapter put that data there instead of under `metadata`). Provider parameters such as a seed belong in the open `provider.extra`.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.provider.seed",
+      "$.runner.commit",
+      "$.summary.scenarios",
+      "$.group.gruop_role",
+      "$.results[0].error.detail"
+    ]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_conformance",
+    "run_id": "run_conformance_002",
+    "started_at": "2026-09-29T00:00:00Z",
+    "provider": {
+      "model": "gpt-4o",
+      "seed": 7
+    },
+    "runner": {
+      "name": "example-runner",
+      "version": "1.0.0",
+      "commit": "abc123"
+    },
+    "summary": {
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "scenarios": {
+        "tc_001": {
+          "determinism": 0.5
+        }
+      }
+    },
+    "group": {
+      "group_id": "sweep-1",
+      "gruop_role": "baseline"
+    },
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "passed": false,
+        "error": {
+          "type": "provider_error",
+          "message": "rate limited",
+          "detail": [
+            "429"
+          ]
+        },
+        "grader_results": [
+          {
+            "grader_id": "gr_exact",
+            "type": "exact_match",
+            "score": null,
+            "passed": false
+          }
+        ]
+      }
+    ]
+  }
+}

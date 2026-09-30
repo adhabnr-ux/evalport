@@ -1,0 +1,63 @@
+{
+  "description": "PROPOSED (issue #107 / Discussion #108, not yet normative): Strict validation leaves the schema's open objects open: arbitrary keys under ResultSet/Result/GraderResult `metadata`, under `provider.extra`, and inside a `summary.by_grader` entry are all accepted. This is where the keys rejected by unknown_field_resultset_rejected.json and unknown_field_resultset_nested_objects_rejected.json belong.",
+  "type": "resultset",
+  "expect": {
+    "valid": true
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_conformance",
+    "run_id": "run_conformance_003",
+    "started_at": "2026-09-29T00:00:00Z",
+    "provider": {
+      "model": "gpt-4o",
+      "extra": {
+        "seed": 7,
+        "top_p": 0.9
+      }
+    },
+    "summary": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "by_grader": {
+        "gr_exact": {
+          "passed": 1,
+          "failed": 0,
+          "p95_latency_ms": 12
+        }
+      }
+    },
+    "metadata": {
+      "verdict": "pass",
+      "com.example.scenarios": {
+        "tc_001": {
+          "determinism": 1.0
+        }
+      }
+    },
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "passed": true,
+        "metadata": {
+          "extra_result_key": "x",
+          "error_detail": [
+            "429"
+          ]
+        },
+        "grader_results": [
+          {
+            "grader_id": "gr_exact",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true,
+            "metadata": {
+              "extra_gr_key": "y"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

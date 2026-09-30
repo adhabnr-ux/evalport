@@ -1,0 +1,29 @@
+{
+  "description": "PROPOSED (issue #107 / Discussion #108, not yet normative): A standalone TestCase with an unknown top-level key and an unknown key inside its (closed) `provider` object: both are rejected with UNKNOWN_FIELD. `metadata` and `params` on the same TestCase stay open.",
+  "type": "testcase",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.extra_tc_key",
+      "$.provider.seed"
+    ]
+  },
+  "document": {
+    "id": "tc_001",
+    "input": "What is 2+2?",
+    "graders": [
+      "gr_exact"
+    ],
+    "extra_tc_key": 1,
+    "provider": {
+      "model": "gpt-4o",
+      "seed": 7
+    },
+    "metadata": {
+      "anything": true
+    },
+    "params": {
+      "top_p": 1
+    }
+  }
+}
