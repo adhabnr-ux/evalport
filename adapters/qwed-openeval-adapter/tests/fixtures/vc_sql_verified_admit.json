@@ -1,0 +1,35 @@
+{
+  "spec_version": "1.0",
+  "object": {
+    "formal_statement": "SELECT id, total FROM orders WHERE customer_id = 42;",
+    "formalization": {
+      "verified": false,
+      "source_query": "Total of every order placed by customer 42",
+      "translator": "example-llm"
+    }
+  },
+  "context": {
+    "interpretation": {
+      "dialect": "sqlite",
+      "parser_version": "sqlglot"
+    },
+    "proof": {
+      "verifier": "sql",
+      "verifier_version": "7.2.1"
+    },
+    "evidence": {
+      "evidence": {
+        "agent_message": "Read-only SELECT; no injection pattern found.",
+        "tables": [
+          "orders"
+        ],
+        "statement_type": "SELECT"
+      },
+      "proof_ref": "sha256:8ccca23b7f2636ace783deb885be54d44dfdfecd757dd88ffe79109506fe1af2"
+    },
+    "decision": {
+      "admission": "ADMIT"
+    }
+  },
+  "verdict": "VERIFIED"
+}
