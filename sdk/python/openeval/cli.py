@@ -9,6 +9,7 @@ Usage::
 
     evalport-validate [--type auto|suite|testcase|grader|resultset]
                       [--format text|github|json] [--include GLOB]
+                      [--allow-unknown]
                       PATH_OR_GLOB [PATH_OR_GLOB ...]
 
 Each argument is a file, a directory (searched recursively for files whose
@@ -16,6 +17,11 @@ name matches ``--include``, default ``*.json``) or a glob pattern (``**``
 recurses). Exit status: 0 when every document is valid, 1 when any document
 is invalid or could not be read/parsed, 2 on a usage error (including an
 argument that matches no files).
+
+Validation is strict by default: a property the schema does not define,
+outside a ``metadata`` object, is an ``UNKNOWN_FIELD`` error (issue #107 /
+Discussion #108, PROPOSED). ``--allow-unknown`` turns only that check off, for
+consumers reading documents from a newer minor spec version.
 """
 from __future__ import annotations
 
@@ -118,7 +124,7 @@ def _file_error(message: str, code: str, line: Optional[int] = None) -> Dict[str
     return e
 
 
-def check_file(path: str, doc_type: str = "auto") -> Dict[str, Any]:
+def check_file(path: str, doc_type: str = "auto", allow_unknown: bool = False) -> Dict[str, Any]:
     """Validate one file. Never raises for bad input; problems become errors."""
     report: Dict[str, Any] = {"file": path, "type": None, "valid": False, "errors": []}
     try:
@@ -148,7 +154,7 @@ def check_file(path: str, doc_type: str = "auto") -> Dict[str, Any]:
             "UNKNOWN_TYPE"))
         return report
     report["type"] = t
-    result = validate_document(doc, t)
+    result = validate_document(doc, t, allow_unknown=allow_unknown)
     report["valid"] = bool(result.valid)
     report["errors"] = [dict(e) for e in result.errors]
     return report
@@ -210,6 +216,10 @@ def build_parser() -> argparse.ArgumentParser:
                    help="'text' (default), 'github' (workflow-command annotations), or 'json'")
     p.add_argument("--include", default="*.json", metavar="GLOB",
                    help="filename pattern used when searching directories (default: *.json)")
+    p.add_argument("--allow-unknown", action="store_true",
+                   help="accept properties the schema does not define (no UNKNOWN_FIELD errors); "
+                        "for reading documents from a newer minor spec version. Validation is "
+                        "strict by default, and strict mode is the one conformance claims use")
     return p
 
 
@@ -224,7 +234,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             else:
                 print(f"evalport-validate: {msg}", file=sys.stderr)
         return 2
-    reports = [check_file(f, args.doc_type) for f in files]
+    reports = [check_file(f, args.doc_type, args.allow_unknown) for f in files]
     print(render(reports, args.fmt))
     return 0 if all(r["valid"] for r in reports) else 1
 

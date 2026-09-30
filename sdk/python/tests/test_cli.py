@@ -29,6 +29,11 @@ def _unwrap(fixture_path, dest_dir):
     return out, fixture["type"], fixture["expect"]["valid"]
 
 
+def _allow_unknown(fixture_path):
+    # PROPOSED (Discussion #108): fixtures may declare mode "allow_unknown".
+    return json.loads(fixture_path.read_text()).get("mode", "strict") == "allow_unknown"
+
+
 def _run(argv, capsys):
     code = cli.main([str(a) for a in argv])
     out, err = capsys.readouterr()
@@ -51,7 +56,7 @@ def test_all_examples_valid_exit_0(capsys):
 @pytest.mark.parametrize("fixture_path", FIXTURE_PATHS, ids=lambda p: p.name)
 def test_conformance_fixture_auto_detect_and_verdict(fixture_path, tmp_path):
     doc_path, declared_type, expected_valid = _unwrap(fixture_path, tmp_path)
-    report = cli.check_file(str(doc_path))
+    report = cli.check_file(str(doc_path), allow_unknown=_allow_unknown(fixture_path))
     assert report["type"] == declared_type
     assert report["valid"] is expected_valid, report["errors"]
 
@@ -59,7 +64,8 @@ def test_conformance_fixture_auto_detect_and_verdict(fixture_path, tmp_path):
 @pytest.mark.parametrize("fixture_path", FIXTURE_PATHS, ids=lambda p: p.name)
 def test_conformance_fixture_exit_code(fixture_path, tmp_path, capsys):
     doc_path, declared_type, expected_valid = _unwrap(fixture_path, tmp_path)
-    code, _, _ = _run(["--type", declared_type, doc_path], capsys)
+    flags = ["--allow-unknown"] if _allow_unknown(fixture_path) else []
+    code, _, _ = _run(["--type", declared_type, *flags, doc_path], capsys)
     assert code == (0 if expected_valid else 1)
 
 
@@ -217,3 +223,32 @@ def test_console_script_declared():
     if not matches:
         pytest.skip("evalport-sdk not installed (run `pip install -e sdk/python`)")
     assert matches[0].value == "openeval.cli:main"
+
+
+# ---------------------------------------------------------------------------
+# --allow-unknown (issue #107 / Discussion #108, PROPOSED -- DO NOT MERGE).
+# ---------------------------------------------------------------------------
+
+def test_unknown_field_rejected_by_default_and_accepted_with_allow_unknown(tmp_path, capsys):
+    doc_path, _, _ = _unwrap(FIXTURES / "unknown_field_resultset_rejected.json", tmp_path)
+    code, out, _ = _run([doc_path], capsys)
+    assert code == 1
+    assert f"{doc_path}: invalid (resultset), 3 errors" in out
+    assert "  $.verdict: unknown field 'verdict' is not defined by the schema; put producer-specific data under metadata [UNKNOWN_FIELD]" in out
+    assert "  $.results[0].extra_result_key: " in out
+    assert "  $.results[0].grader_results[0].extra_gr_key: " in out
+    code, out, _ = _run(["--allow-unknown", doc_path], capsys)
+    assert code == 0, out
+    assert f"{doc_path}: valid (resultset)" in out
+
+
+def test_allow_unknown_still_reports_other_errors(tmp_path, capsys):
+    doc_path, _, _ = _unwrap(FIXTURES / "unknown_field_allow_unknown_still_type_checks_rejected.json", tmp_path)
+    code, out, _ = _run(["--allow-unknown", "--format", "json", doc_path], capsys)
+    assert code == 1
+    report = json.loads(out)["files"][0]
+    assert [(e["path"], e["code"]) for e in report["errors"]] == [("$.results[0].actual_output", "TYPE_ERROR")]
+
+
+def test_allow_unknown_flag_in_help():
+    assert "--allow-unknown" in cli.build_parser().format_help()

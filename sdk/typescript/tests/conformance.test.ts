@@ -7,6 +7,9 @@ import type { DocumentType } from "../src/types";
 interface ConformanceFixture {
   description: string;
   type: DocumentType;
+  // PROPOSED (Discussion #108): absent/"strict" = default strict validation,
+  // "allow_unknown" = lenient consumption (unknown properties accepted).
+  mode?: "strict" | "allow_unknown";
   expect: {
     valid: boolean;
     error_paths?: string[];
@@ -25,7 +28,9 @@ for (const name of fixtureNames) {
       fs.readFileSync(path.join(fixturesDir, name), "utf8")
     ) as ConformanceFixture;
 
-    const result = validateDocument(fixture.document, fixture.type);
+    const mode = fixture.mode ?? "strict";
+    expect(["strict", "allow_unknown"]).toContain(mode);
+    const result = validateDocument(fixture.document, fixture.type, { allowUnknown: mode === "allow_unknown" });
     expect(result.valid).toBe(fixture.expect.valid);
 
     if (fixture.expect.error_paths) {

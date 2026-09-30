@@ -5,6 +5,9 @@ Reference conformance-fixture runner for EvalPort (Discussion #9).
 Every file in fixtures/*.json is a self-contained, portable test case: a
 `type` (testcase | grader | suite | resultset), a `document` to validate, and
 an `expect.valid` boolean this repo's own Python SDK is checked against here.
+An optional `mode` (PROPOSED, Discussion #108) selects the validation mode:
+absent or "strict" is the default strict validation that conformance claims
+use; "allow_unknown" is lenient consumption (unknown properties accepted).
 The point of this suite is NOT "does the Python SDK pass" -- the Python SDK's
 own pytest suite (sdk/python/tests/) already covers that far more thoroughly.
 The point is that these fixtures are a portable, language-agnostic artifact:
@@ -38,6 +41,8 @@ from openeval.validate import (  # noqa: E402
     validate_test_case,
 )
 
+_MODES = {"strict": False, "allow_unknown": True}
+
 _VALIDATORS = {
     "testcase": validate_test_case,
     "grader": validate_grader,
@@ -69,7 +74,12 @@ def main() -> int:
             failures.append(f"{path.name}: unknown type '{doc_type}'")
             continue
 
-        result = validator(document)
+        mode = fixture.get("mode", "strict")
+        if mode not in _MODES:
+            failures.append(f"{path.name}: unknown mode '{mode}'")
+            continue
+
+        result = validator(document, allow_unknown=_MODES[mode])
         actual_valid = result.valid
 
         if actual_valid != expected_valid:
@@ -89,7 +99,8 @@ def main() -> int:
                 )
                 continue
 
-        print(f"[PASS] {path.name} -- {fixture['description'][:88]}")
+        tag = "" if mode == "strict" else f" [{mode}]"
+        print(f"[PASS] {path.name}{tag} -- {fixture['description'][:88]}")
 
     print()
     if failures:
