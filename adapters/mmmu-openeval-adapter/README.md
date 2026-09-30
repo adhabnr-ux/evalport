@@ -124,7 +124,9 @@ assert validate_result_set(result_set).valid
 `judge_dict`'s per-item `"Correct"`/`"Wrong"` verdicts become each
 `Result.passed` (carried through verbatim, never re-derived — this adapter
 does not reimplement MMMU's own `eval_multi_choice`/`eval_open` comparison).
-`printable_results` is preserved verbatim as `ResultSet.summary`, so the
+`printable_results` is preserved verbatim as
+`ResultSet.metadata["mmmu"]["printable_results"]` (`ResultSet.summary` only
+allows the spec's own keys), so the
 per-discipline breakdown that's central to what MMMU measures (broad
 expert-level knowledge across Art & Design, Business, Science, Health &
 Medicine, Humanities & Social Science, and Tech & Engineering) survives the

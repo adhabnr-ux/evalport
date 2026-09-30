@@ -180,10 +180,12 @@ def test_result_to_openeval_matches_main_eval_only_shape():
     assert wrong["grader_results"][0]["score"] == 0.0
     assert wrong["actual_output"] == "4.0, 4"
 
-    # printable_results survives verbatim as ResultSet.summary -- the
-    # per-discipline breakdown is the entire point of this adapter.
-    assert result_set["summary"] == printable_results
-    assert result_set["summary"]["Overall"]["acc"] == round(2 / 3, 3)
+    # printable_results survives verbatim in metadata -- the per-discipline
+    # breakdown is the entire point of this adapter. (Not ResultSet.summary:
+    # that object is closed to the spec's own keys, Discussion #108.)
+    assert "summary" not in result_set
+    assert result_set["metadata"]["mmmu"]["printable_results"] == printable_results
+    assert result_set["metadata"]["mmmu"]["printable_results"]["Overall"]["acc"] == round(2 / 3, 3)
 
 
 def test_result_to_openeval_validates_against_evalport_spec():

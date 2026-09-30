@@ -1,0 +1,36 @@
+{
+  "description": "PROPOSED (issue #107 / Discussion #108, not yet normative): Lenient consumption relaxes only the unknown-field check. A document with an unknown ResultSet-level key AND a list-typed `Result.actual_output` is still rejected under `mode: allow_unknown`, and the only reported problem is the TYPE_ERROR at $.results[0].actual_output (the case ChelseaKR found in ChelseaKR/gauntlet#76).",
+  "type": "resultset",
+  "mode": "allow_unknown",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.results[0].actual_output"
+    ]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_conformance",
+    "run_id": "run_conformance_004",
+    "started_at": "2026-09-29T00:00:00Z",
+    "verdict": "fail",
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "passed": false,
+        "actual_output": [
+          "turn 1",
+          "turn 2"
+        ],
+        "grader_results": [
+          {
+            "grader_id": "gr_exact",
+            "type": "exact_match",
+            "score": 0.0,
+            "passed": false
+          }
+        ]
+      }
+    ]
+  }
+}

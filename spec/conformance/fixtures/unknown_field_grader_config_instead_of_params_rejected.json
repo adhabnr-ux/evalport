@@ -1,0 +1,21 @@
+{
+  "description": "PROPOSED (issue #107 / Discussion #108, not yet normative): An `llm_judge` grader with a `config` key where `params` was meant. Grader objects are closed (grader.json additionalProperties: false) while `params` itself stays open, so the typo is rejected with UNKNOWN_FIELD at $.config. Derived from a real case: the llm_judge sketch in meta-llama/llama-cookbook#1072 used `config`, which only the raw JSON Schema caught.",
+  "type": "grader",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.config"
+    ]
+  },
+  "document": {
+    "id": "gr_judge",
+    "type": "llm_judge",
+    "params": {
+      "model": "gpt-4o",
+      "prompt": "Rate the answer: {output}"
+    },
+    "config": {
+      "temperature": 0
+    }
+  }
+}

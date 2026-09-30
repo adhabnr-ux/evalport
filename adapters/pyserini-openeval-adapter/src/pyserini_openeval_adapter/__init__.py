@@ -46,8 +46,8 @@ __version__ = "0.1.0"
 
 # The aggregate pseudo-query-id trec_eval always emits alongside real query
 # ids (see trec_eval.py: the "all" row from trec_eval's own stdout). Never a
-# real per-query result, so it becomes ResultSet.summary rather than a
-# Result entry.
+# real per-query result, so it becomes an aggregate (ResultSet.metadata.pyserini)
+# rather than a Result entry.
 _AGGREGATE_KEY = "all"
 
 
@@ -229,9 +229,6 @@ def results_to_openeval(
         for name, values in metric_dicts.items()
         if _AGGREGATE_KEY in values
     }
-    if aggregates:
-        summary["metadata"] = {"pyserini": {"trec_eval_aggregate": aggregates}}
-
     result_set: Dict[str, Any] = {
         "version": version,
         "suite_id": suite_id,
@@ -240,6 +237,10 @@ def results_to_openeval(
         "results": results_out,
         "summary": summary,
     }
+    # ResultSet.metadata, not summary.metadata: resultset.json closes
+    # `summary` to its own keys (Discussion #108); metadata is the open slot.
+    if aggregates:
+        result_set["metadata"] = {"pyserini": {"trec_eval_aggregate": aggregates}}
     if completed_at:
         result_set["completed_at"] = completed_at
     return result_set
@@ -266,7 +267,7 @@ def from_openeval(result_set: Dict[str, Any], metric: Optional[str] = None) -> D
         aggregate is recomputed as the mean of the extracted per-query
         scores (EvalPort's ResultSet doesn't require the original
         trec_eval-reported aggregate to be preserved verbatim; if it was,
-        prefer ``result_set["summary"]["metadata"]["pyserini"]
+        prefer ``result_set["metadata"]["pyserini"]
         ["trec_eval_aggregate"][metric]`` for the exact original value).
 
     Raises:

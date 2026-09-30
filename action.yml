@@ -18,6 +18,14 @@ inputs:
     description: Document type for every file -- auto (detect per file), suite, testcase, grader or resultset.
     required: false
     default: auto
+  allow-unknown:
+    description: >-
+      PROPOSED (Discussion #108). 'true' accepts properties the schema does not
+      define (no UNKNOWN_FIELD errors), for documents from a newer minor spec
+      version. Default 'false': strict validation, where only metadata objects
+      (and provider.extra, params, summary.by_grader entries) are open.
+    required: false
+    default: 'false'
   python-version:
     description: Python version passed to actions/setup-python.
     required: false
@@ -71,6 +79,7 @@ runs:
       env:
         FILES: ${{ inputs.files }}
         DOC_TYPE: ${{ inputs.type }}
+        ALLOW_UNKNOWN: ${{ inputs.allow-unknown }}
         EVALPORT_VALIDATE_BIN: ${{ steps.install.outputs.bin }}
       run: |
         set -euo pipefail
@@ -85,4 +94,10 @@ runs:
           echo "::error title=EvalPort::the 'files' input is empty"
           exit 2
         fi
-        "$EVALPORT_VALIDATE_BIN" --format github --type "$DOC_TYPE" "${patterns[@]}"
+        extra=()
+        case "$ALLOW_UNKNOWN" in
+          true|True|TRUE) extra+=(--allow-unknown) ;;
+          false|False|FALSE|'') ;;
+          *) echo "::error title=EvalPort::the 'allow-unknown' input must be 'true' or 'false', got '$ALLOW_UNKNOWN'"; exit 2 ;;
+        esac
+        "$EVALPORT_VALIDATE_BIN" --format github --type "$DOC_TYPE" "${extra[@]}" "${patterns[@]}"

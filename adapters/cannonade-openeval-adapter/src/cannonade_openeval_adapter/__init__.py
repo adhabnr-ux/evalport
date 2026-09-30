@@ -78,7 +78,9 @@ exposes `suite_to_openeval()` and `run_to_openeval()` explicitly, plus a
   `TestCaseResult.passed`) is carried through as-is rather than re-derived,
   so this adapter never second-guesses Cannonade's own pass/fail logic.
 - `AggregateMetrics` (Cannonade's own per-model summary) is preserved
-  verbatim as `ResultSet.summary` rather than recomputed.
+  verbatim as `ResultSet.metadata["cannonade"]["aggregate"]` rather than
+  recomputed, and `ModelRef` as `metadata["cannonade"]["model_ref"]`:
+  resultset.json closes `summary` and `provider` to the spec's own keys.
 - `JudgeUsage` (LLM-judge cost/token info, when a rubric/g_eval grader used
   one) is preserved verbatim in each `GraderResult.metadata["judge_usage"]`.
 - Cannonade's `TestSuite.version` (the suite CONTENT's own version, not a
@@ -284,13 +286,16 @@ def suite_to_openeval(suite: Dict[str, Any]) -> Dict[str, Any]:
         **({"description": suite["description"]} if isinstance(suite.get("description"), str) else {}),
         "test_cases": test_cases,
         "graders": all_graders,
-        "config": {k: v for k, v in {"defaultRunConfig": suite.get("defaultRunConfig")}.items() if v is not None},
+        # Cannonade's defaultRunConfig has no EvalPort `config` counterpart
+        # (suite.json's `config` is closed to provider/defaults/parallel/retry),
+        # so it rides along in metadata instead of as an unknown `config` key.
         "metadata": {
             "openeval": {"source": "cannonade"},
             "cannonade": {
                 "suite_version": suite.get("version"),
                 "created_at": suite.get("createdAt"),
                 "updated_at": suite.get("updatedAt"),
+                **({"default_run_config": suite["defaultRunConfig"]} if suite.get("defaultRunConfig") is not None else {}),
             },
         },
     }
@@ -426,6 +431,12 @@ def run_to_openeval(run: Dict[str, Any]) -> List[Dict[str, Any]]:
         started_at = pmr.get("startedAt") or run.get("startedAt") or run.get("createdAt") or ""
         completed_at = pmr.get("completedAt") or run.get("completedAt")
 
+        # resultset.json's `provider` and `summary` are closed objects, so
+        # Cannonade's own ModelRef ({source, modelKey|modelId}) and
+        # AggregateMetrics (camelCase passRate/avgScore/totalCostUsd) are kept
+        # verbatim under metadata.cannonade; `provider.model` carries only the
+        # model identifier, when there is one.
+        model_id = model_ref.get("modelKey") or model_ref.get("modelId")
         result_sets.append(_without_none(
             {
                 "version": OPENEVAL_VERSION,
@@ -433,7 +444,7 @@ def run_to_openeval(run: Dict[str, Any]) -> List[Dict[str, Any]]:
                 "run_id": f"{run_id_base}:{pmr.get('id', sequence)}",
                 "started_at": started_at,
                 "completed_at": completed_at,
-                "provider": dict(model_ref),
+                "provider": {"model": model_id} if isinstance(model_id, str) else None,
                 "runner": {"name": "cannonade", "version": model_ref.get("source", "unknown")},
                 "group": {
                     "group_id": run_id_base,
@@ -456,10 +467,11 @@ def run_to_openeval(run: Dict[str, Any]) -> List[Dict[str, Any]]:
                         }}},
                     }
                 ],
-                "summary": pmr.get("aggregate"),
                 "metadata": {
                     "openeval": {"source": "cannonade"},
                     "cannonade": {
+                        "model_ref": dict(model_ref),
+                        "aggregate": pmr.get("aggregate"),
                         "suite_name": run.get("suiteName"),
                         "auto_downloaded": pmr.get("autoDownloaded"),
                         "status": pmr.get("status"),

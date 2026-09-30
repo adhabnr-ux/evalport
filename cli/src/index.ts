@@ -1,10 +1,21 @@
 #!/usr/bin/env node
 import { validateSuite, validateResultSet, validateGrader, validateTestCase, fromPromptfoo, computeSummary } from "evalport-sdk";
+import type { ValidationResult } from "evalport-sdk";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { runCommand } from "./run/cli";
 
 const args = process.argv.slice(2);
 const cmd = args[0];
+
+// Issue #107 / Discussion #108 (PROPOSED): validation is strict by default, and
+// --allow-unknown opts into accepting properties the schema doesn't define.
+// Typed locally so this also compiles against an evalport-sdk release whose
+// validators take one argument (those ignore the options and accept unknown
+// properties anyway).
+type Validator = (doc: unknown, opts?: { allowUnknown?: boolean }) => ValidationResult;
+const VALIDATORS: Record<string, Validator> = {
+  suite: validateSuite, testcase: validateTestCase, grader: validateGrader, resultset: validateResultSet,
+};
 
 function loadJson(p: string): unknown {
   if (!existsSync(p)) { console.error("File not found: " + p); process.exit(1); }
@@ -13,11 +24,12 @@ function loadJson(p: string): unknown {
 
 if (cmd === "validate") {
   const file = args[1];
-  if (!file) { console.error("Usage: evalport validate <file> [--type=suite|testcase|grader|resultset]"); process.exit(1); }
+  if (!file) { console.error("Usage: evalport validate <file> [--type=suite|testcase|grader|resultset] [--allow-unknown]"); process.exit(1); }
   const doc = loadJson(file);
   const tf = args.find(a => a.startsWith("--type="));
   const type = tf ? tf.split("=")[1] : "suite";
-  const r = type==="testcase"?validateTestCase(doc):type==="grader"?validateGrader(doc):type==="resultset"?validateResultSet(doc):validateSuite(doc);
+  const allowUnknown = args.includes("--allow-unknown");
+  const r = (VALIDATORS[type] ?? validateSuite)(doc, { allowUnknown });
   if (r.valid) { console.log("Valid"); process.exit(0); }
   console.error("Invalid:");
   r.errors.forEach(e => console.error("  "+e.path+": "+e.message+" ["+e.code+"]"));
@@ -60,5 +72,5 @@ else if (cmd === "run") {
   runCommand(args.slice(1)).then((code) => process.exit(code));
 }
 else {
-  console.log("EvalPort CLI v1.0.0\n\nCommands:\n  run <suite.json> --provider <openai|anthropic> [options]   Run an eval suite against a real provider (see `evalport run --help`)\n  validate <file> [--type=suite|testcase|grader|resultset]  Validate an EvalPort document\n  convert <from> <to> <input> [output]                       Convert between formats\n  init [name]                                                 Create a starter eval suite\n  summary <resultset.json>                                    Print summary of a result set");
+  console.log("EvalPort CLI v1.0.0\n\nCommands:\n  run <suite.json> --provider <openai|anthropic> [options]   Run an eval suite against a real provider (see `evalport run --help`)\n  validate <file> [--type=suite|testcase|grader|resultset] [--allow-unknown]  Validate an EvalPort document (strict: unknown fields are errors unless --allow-unknown)\n  convert <from> <to> <input> [output]                       Convert between formats\n  init [name]                                                 Create a starter eval suite\n  summary <resultset.json>                                    Print summary of a result set");
 }

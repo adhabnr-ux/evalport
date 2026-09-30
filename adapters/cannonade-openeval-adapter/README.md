@@ -111,7 +111,12 @@ exposes `suite_to_openeval()` and `run_to_openeval()` explicitly, plus a
   re-derived**, so this adapter never second-guesses Cannonade's own
   pass/fail logic.
 - `AggregateMetrics` (Cannonade's own per-model summary) is preserved
-  verbatim as `ResultSet.summary` rather than recomputed.
+  verbatim as `ResultSet.metadata["cannonade"]["aggregate"]` rather than
+  recomputed. (It is not `ResultSet.summary`: that object only allows the
+  spec's own snake_case keys.) Likewise `ModelRef` is kept verbatim as
+  `metadata["cannonade"]["model_ref"]`, with its `modelKey`/`modelId` in
+  `provider.model`, and a suite's `defaultRunConfig` as
+  `metadata["cannonade"]["default_run_config"]`.
 - `JudgeUsage` (LLM-judge cost/token info, when a rubric/g_eval grader used
   one) is preserved verbatim in each `GraderResult.metadata["judge_usage"]`.
 - Cannonade's `TestSuite.version` (the suite CONTENT's own version, not a

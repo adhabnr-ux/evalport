@@ -24,6 +24,7 @@ evalport-validate examples/*.json                  # files or globs; ** recurses
 evalport-validate evals/ --include '*.evalport.json'  # directories are searched recursively
 evalport-validate --type resultset run.json        # skip auto-detection
 evalport-validate --format github '**/*.evalport.json'  # GitHub Actions annotations
+evalport-validate --allow-unknown newer-run.json    # accept unknown properties (proposed, #108)
 ```
 
 - `--type auto|suite|testcase|grader|resultset` (default `auto`): auto-detection
@@ -34,6 +35,9 @@ evalport-validate --format github '**/*.evalport.json'  # GitHub Actions annotat
   `::error file=<file>,title=EvalPort::<path>: <message> [<code>]` workflow
   command per error; `json` prints `{"valid": bool, "files": [...]}`.
 - `--include GLOB` (default `*.json`): filename filter used when a directory is given.
+- `--allow-unknown` (**proposed**, Discussion #108): accept properties the
+  schema doesn't define. Validation is strict by default, so without it such a
+  property is an `UNKNOWN_FIELD` error.
 - Exit status: `0` all valid; `1` any document invalid, unreadable, or not
   JSON (reported as `READ_ERROR` / `NOT_FOUND` / `INVALID_JSON`); `2` usage
   error, including a path or glob that matches no files.
@@ -116,11 +120,18 @@ result_set = create_result_set(suite, results, "run_001")
 ## API
 
 ### Validation
-- `validate_suite(doc)` → `ValidationResult`
-- `validate_test_case(doc)` → `ValidationResult`
-- `validate_grader(doc)` → `ValidationResult`
-- `validate_result_set(doc)` → `ValidationResult`
-- `validate_document(doc, type)` → `ValidationResult`
+- `validate_suite(doc, allow_unknown=False)` → `ValidationResult`
+- `validate_test_case(doc, allow_unknown=False)` → `ValidationResult`
+- `validate_grader(doc, allow_unknown=False)` → `ValidationResult`
+- `validate_result_set(doc, allow_unknown=False)` → `ValidationResult`
+- `validate_document(doc, type, allow_unknown=False)` → `ValidationResult`
+
+Validation is strict by default (**proposed** in
+[Discussion #108](https://github.com/adhabnr-ux/evalport/discussions/108)): a
+property the schema doesn't define is an `UNKNOWN_FIELD` error at its path,
+except inside `metadata` objects (and `provider.extra`, `params`,
+`summary.by_grader` entries), which stay open. Pass `allow_unknown=True` when
+reading a document from a newer minor spec version.
 
 ### Command line
 - `evalport-validate` console script → `openeval.cli:main(argv=None)` → exit code (`0`/`1`/`2`)

@@ -70,6 +70,30 @@ jobs:
             echo "::error::expected the action to fail on selftest/score-out-of-range.evalport.json, got '$OUTCOME'"
             exit 1
           fi
+      - name: Unwrap an unknown-field fixture (Discussion #108, proposed)
+        run: |
+          mkdir -p selftest-unknown
+          python3 -c "import json; json.dump(json.load(open('spec/conformance/fixtures/unknown_field_resultset_rejected.json'))['document'], open('selftest-unknown/unknown-field.evalport.json', 'w'), indent=2)"
+      - name: Validate an unknown field in strict mode (expected to fail)
+        id: unknownstrict
+        continue-on-error: true
+        uses: ./
+        with:
+          files: selftest-unknown/*.evalport.json
+      - name: Assert strict mode failed on the unknown field
+        env:
+          OUTCOME: ${{ steps.unknownstrict.outcome }}
+        run: |
+          echo "outcome=$OUTCOME"
+          if [ "$OUTCOME" != "failure" ]; then
+            echo "::error::expected strict validation to fail on selftest-unknown/unknown-field.evalport.json, got '$OUTCOME'"
+            exit 1
+          fi
+      - name: Validate the same document with allow-unknown (expected to pass)
+        uses: ./
+        with:
+          files: selftest-unknown/*.evalport.json
+          allow-unknown: 'true'
       - name: Pattern matching no files (expected to fail)
         id: nomatch
         continue-on-error: true

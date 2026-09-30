@@ -177,7 +177,8 @@ def to_openeval(
 
     Per-scenario `determinism` (passingRuns / totalRuns -- the headline
     metric this tool exists to produce) is preserved explicitly in
-    `summary["scenarios"][scenario_id]`, not left for a consumer to
+    `metadata["agenteval"]["scenarios"][scenario_id]` (not in `summary`,
+    which resultset.json closes to its own keys), not left for a consumer to
     reconstruct by counting passing attempts. This was maintainer feedback
     on the original proposal (agenteval#13): "worth preserving in summary
     metadata rather than leaving it implicit in the attempts."
@@ -228,10 +229,9 @@ def to_openeval(
             "passed": passing,
             "failed": failed,
             "pass_rate": pass_rate,
-            "scenarios": scenario_summaries,
         },
         "metadata": {
             "openeval": {"source": "agenteval"},
-            "agenteval": {"config": report.get("config") or {}},
+            "agenteval": {"config": report.get("config") or {}, "scenarios": scenario_summaries},
         },
     }

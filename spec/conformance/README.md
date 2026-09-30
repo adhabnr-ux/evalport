@@ -22,6 +22,7 @@ Before this existed, "EvalPort-compliant" was only enforced by the JSON Schema f
 
 - `type` says which of the four EvalPort document types `document` is.
 - `expect.valid` is whether a conforming validator should accept it.
+- `mode` (optional, **PROPOSED** in [Discussion #108](https://github.com/adhabnr-ux/evalport/discussions/108), not yet normative) selects the validation mode. Absent (or `"strict"`) means the default strict validation, which is the mode conformance claims use: a property the schema doesn't define on a closed (`additionalProperties: false`) object is rejected (`UNKNOWN_FIELD`). `"allow_unknown"` means lenient consumption, for a reader of a document from a newer minor version: unknown properties are accepted and every other rule still applies. An implementation without a lenient mode may skip fixtures that declare `"mode": "allow_unknown"`.
 - `expect.error_paths` (only present on invalid fixtures) lists JSON-Pointer-style paths that a validator's error output is expected to include, so an implementation with structured error reporting can check it flagged the *right* problem, not just *a* problem. This is advisory, not binding — a conformant validator only has to agree on `valid`/`invalid`; matching the exact error path is a nice-to-have this repo's own validators happen to support.
 
 A conformance implementation in any language: load every file in `fixtures/`, run your own validator on `document`, and assert your answer matches `expect.valid`. No dependency on this repo's code required.
@@ -36,7 +37,7 @@ python3 spec/conformance/run.py
 
 The TypeScript SDK runs the same portable fixtures as part of `cd sdk/typescript && npm test`, so additions are checked automatically by both reference validators.
 
-Every fixture here has also been independently checked against the raw JSON Schema files in `spec/schemas/` (via the same `Draft202012Validator` machinery `test_schema_consistency.py` uses) — not just the hand-rolled validator — so `expect.valid` reflects genuine agreement between both validation paths this project maintains, not just one of them.
+Every fixture here has also been independently checked against the raw JSON Schema files in `spec/schemas/` (via the same `Draft202012Validator` machinery `test_schema_consistency.py` uses) — not just the hand-rolled validator — so `expect.valid` reflects genuine agreement between both validation paths this project maintains, not just one of them. The documented exceptions are the hand-rolled-only cross-field rules (named in each such fixture's `description`) and the `"mode": "allow_unknown"` fixtures: the raw JSON Schema models strict validation only, so it rejects the two `allow_unknown` documents that are valid in lenient mode.
 
 ## What's covered so far
 
@@ -70,6 +71,15 @@ Every fixture here has also been independently checked against the raw JSON Sche
 | `optional_fields_well_typed_valid.json` | Every optional `ResultSet`/`Result`/`GraderResult` field the schema types, present and correctly typed (incl. lowercase `t`/`z` and a `+05:30` offset), is accepted. |
 | `null_score_passed_true_rejected.json` | Validation Rule 6: `score: null` MUST have `passed: false` (`NULL_SCORE_PASSED`) — a hand-rolled-only cross-field rule the raw JSON Schema does not encode. Surfaced by frontieror-openeval-adapter. |
 | `all_null_scored_result_passed_rejected.json` | Aggregation Extension: a `Result` whose `grader_results` are all null-scored MUST have `passed: false` (`UNSCORED_RESULT_PASSED`) — hand-rolled only. |
+| `unknown_field_resultset_rejected.json` | **PROPOSED (issue #107 / Discussion #108).** Strict validation: issue #107's reproduction (a ResultSet-level `verdict`, a Result-level and a GraderResult-level unknown key) is rejected with `UNKNOWN_FIELD` at each key's path. |
+| `unknown_field_resultset_allow_unknown_valid.json` | **PROPOSED (#108).** `mode: allow_unknown`: the same document is accepted by a lenient consumer. |
+| `unknown_field_resultset_nested_objects_rejected.json` | **PROPOSED (#108).** Unknown keys inside `provider`, `runner`, `summary`, `group` and `Result.error` are each rejected; `summary.scenarios` and `error.detail` come from real adapters the #108 impact sweep found. |
+| `unknown_field_metadata_stays_open_valid.json` | **PROPOSED (#108).** Strict mode leaves `metadata` (all three levels), `provider.extra` and `summary.by_grader` entries open. |
+| `unknown_field_suite_rejected.json` | **PROPOSED (#108).** A suite-level `threshold` (ChelseaKR/gauntlet#76) and unknown keys in `config`, `config.retry` and a TestCase are rejected. |
+| `unknown_field_suite_allow_unknown_valid.json` | **PROPOSED (#108).** `mode: allow_unknown`: the same suite is accepted. |
+| `unknown_field_grader_config_instead_of_params_rejected.json` | **PROPOSED (#108).** An `llm_judge` grader with `config` where `params` was meant (meta-llama/llama-cookbook#1072) is rejected at `$.config`. |
+| `unknown_field_testcase_rejected.json` | **PROPOSED (#108).** A TestCase's unknown top-level key and unknown `provider` key are rejected; its `metadata`/`params` stay open. |
+| `unknown_field_allow_unknown_still_type_checks_rejected.json` | **PROPOSED (#108).** `mode: allow_unknown` relaxes only the unknown-field check: a list-typed `actual_output` is still a `TYPE_ERROR`. |
 
 This set is deliberately not exhaustive — it's the fixtures that came directly out of building 30 real framework adapters and encountering these exact edge cases in practice (see the `description` field on each fixture for which adapter surfaced it), plus the RFC conventions (#10, #11, and #45 — all landed; see `spec/SPEC.md`'s Grouped/Sibling ResultSets section for #45's history) it made sense to ship fixtures for at the same time their spec text landed. Contributions of new fixtures — especially ones derived from a *real* edge case you hit building or consuming an EvalPort document, not a hypothetical one — are welcome via the same RFC process as any other spec change (see `spec/SPEC.md`'s Governance section); a new fixture that isn't also a spec/behavior change doesn't need the full two-week comment period, just a PR.
 

@@ -1,0 +1,45 @@
+{
+  "description": "PROPOSED (issue #107 / Discussion #108, not yet normative): Strict validation of a suite: a suite-level `threshold` (a real gap reported in ChelseaKR/gauntlet#76 -- suites have no threshold field), unknown keys in `config` and `config.retry`, and an unknown key on a TestCase are each rejected with UNKNOWN_FIELD. error_paths lists the suite-level paths only; the reference validators report the nested TestCase error with their existing \"$.test_cases[0].\" + \"$.<field>\" prefixing.",
+  "type": "suite",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.threshold",
+      "$.config.concurrency",
+      "$.config.retry.jitter"
+    ]
+  },
+  "document": {
+    "version": "1.0.0",
+    "id": "suite_conformance",
+    "threshold": 0.8,
+    "config": {
+      "parallel": 2,
+      "concurrency": 2,
+      "retry": {
+        "max_attempts": 2,
+        "jitter": true
+      }
+    },
+    "graders": [
+      {
+        "id": "gr_exact",
+        "type": "exact_match",
+        "params": {
+          "ignore_case": true
+        }
+      }
+    ],
+    "test_cases": [
+      {
+        "id": "tc_001",
+        "input": "What is 2+2?",
+        "expected_output": "4",
+        "graders": [
+          "gr_exact"
+        ],
+        "extra_tc_key": 1
+      }
+    ]
+  }
+}

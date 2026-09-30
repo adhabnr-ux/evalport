@@ -1,0 +1,35 @@
+{
+  "description": "PROPOSED (issue #107 / Discussion #108, not yet normative): Strict validation (the default, and the mode conformance claims use): a ResultSet-level `verdict`, a Result-level `extra_result_key` and a GraderResult-level `extra_gr_key` are properties resultset.json does not define on those closed (additionalProperties: false) objects, so each is rejected with UNKNOWN_FIELD at its own path. This is the exact document shape of issue #107's reproduction: the raw JSON Schema already rejected it while both reference validators accepted it. Producer-specific data belongs under `metadata`.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.verdict",
+      "$.results[0].extra_result_key",
+      "$.results[0].grader_results[0].extra_gr_key"
+    ]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_conformance",
+    "run_id": "run_conformance_001",
+    "started_at": "2026-09-29T00:00:00Z",
+    "verdict": "pass",
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "passed": true,
+        "extra_result_key": "x",
+        "grader_results": [
+          {
+            "grader_id": "gr_exact",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true,
+            "extra_gr_key": "y"
+          }
+        ]
+      }
+    ]
+  }
+}

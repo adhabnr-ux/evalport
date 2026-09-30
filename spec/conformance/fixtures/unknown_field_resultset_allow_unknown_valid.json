@@ -1,0 +1,31 @@
+{
+  "description": "PROPOSED (issue #107 / Discussion #108, not yet normative): Lenient consumption (`mode: allow_unknown`): the same document as unknown_field_resultset_rejected.json is accepted by a validator run with allow_unknown / allowUnknown / --allow-unknown, the opt-in for a consumer reading a document from a newer minor version it does not implement. Only the unknown-field check is relaxed. The raw JSON Schema models strict mode only and rejects this document; an implementation without a lenient mode may skip fixtures that declare `mode`.",
+  "type": "resultset",
+  "mode": "allow_unknown",
+  "expect": {
+    "valid": true
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_conformance",
+    "run_id": "run_conformance_001",
+    "started_at": "2026-09-29T00:00:00Z",
+    "verdict": "pass",
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "passed": true,
+        "extra_result_key": "x",
+        "grader_results": [
+          {
+            "grader_id": "gr_exact",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true,
+            "extra_gr_key": "y"
+          }
+        ]
+      }
+    ]
+  }
+}
