@@ -214,3 +214,19 @@ export interface ValidationResult {
   valid: boolean;
   errors: ValidationError[];
 }
+
+/**
+ * Options for validateSuite/validateTestCase/validateGrader/validateResultSet/
+ * validateDocument (issue #107 / Discussion #108, PROPOSED).
+ */
+export interface ValidateOptions {
+  /**
+   * Accept properties the schema does not define (no UNKNOWN_FIELD errors).
+   * Default false: validation is strict, and only `metadata` objects,
+   * `provider.extra`, `params` and `summary.by_grader` entries are open.
+   * Set this when CONSUMING a document whose `version` is a newer minor
+   * version than this SDK implements (SPEC.md -> Forward Compatibility);
+   * every other rule still applies.
+   */
+  allowUnknown?: boolean;
+}

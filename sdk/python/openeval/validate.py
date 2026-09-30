@@ -56,9 +56,9 @@ def _is_int(v): return (isinstance(v,int) and not isinstance(v,bool)) or (isinst
 # Optional-field type checks. Each spec entry is (key, kind[, min[, max]]) or
 # (key, "enum", allowed_values). A field is checked only when its key is PRESENT --
 # including an explicit null, which JSON Schema's `type` keyword rejects for every
-# field below (none of them is declared nullable). Unknown keys are deliberately NOT
-# policed here (see test_schema_consistency.py -- that's a separate spec question).
-# Mirrors sdk/typescript/src/validate.ts's checkOptional() rule-for-rule, including
+# field below (none of them is declared nullable). Unknown keys are policed
+# separately, by _check_unknown() below (Discussion #108). Mirrors
+# sdk/typescript/src/validate.ts's checkOptional() rule-for-rule, including
 # error codes and messages.
 def _check_optional(obj, base, fields, errors):
     for f in fields:
@@ -146,7 +146,53 @@ _RESULT_ERROR_FIELDS = [
 ]
 _GRADER_RESULT_FIELDS = [("reason","string"),("metadata","object")]
 
-def validate_test_case(tc):
+# ---------------------------------------------------------------------------
+# Unknown fields (issue #107 / Discussion #108, PROPOSED -- DO NOT MERGE).
+#
+# Validation is strict by default: every object that spec/schemas/*.json closes
+# with `additionalProperties: false` rejects a property the schema doesn't define,
+# with code UNKNOWN_FIELD at the offending key's path. Open objects stay open:
+# every `metadata`, `provider.extra`, grader/test-case `params`, and the entries of
+# `summary.by_grader` (none of them is closed in the schemas). `allow_unknown=True`
+# is the opt-in for a CONSUMER reading a document from a newer minor version
+# (SPEC.md -> Forward Compatibility); it skips only this check.
+#
+# The key sets are hardcoded because the package ships without spec/schemas/.
+# tests/test_schema_consistency_unknown_fields.py asserts each set equals the
+# `properties` of the schema object it mirrors, so the two cannot drift. Mirrors
+# ALLOWED_KEYS in sdk/typescript/src/validate.ts key-for-key.
+# ---------------------------------------------------------------------------
+_PROVIDER_KEYS = frozenset({"model","api_base","api_key_env","temperature","max_tokens","extra"})
+ALLOWED_KEYS = {
+    # testcase.json
+    "testcase": frozenset({"id","input","expected_output","context","retrieval_context","tools_called","expected_tools","graders","metadata","tags","provider","params","timeout_ms","weight"}),
+    "testcase.provider": _PROVIDER_KEYS,
+    # grader.json
+    "grader": frozenset({"id","type","params","weight","description"}),
+    # suite.json
+    "suite": frozenset({"$schema","version","id","name","description","graders","test_cases","test_cases_file","config","metadata","tags"}),
+    "suite.config": frozenset({"provider","defaults","parallel","retry"}),
+    "suite.config.provider": _PROVIDER_KEYS,
+    "suite.config.defaults": frozenset({"timeout_ms","weight"}),
+    "suite.config.retry": frozenset({"max_attempts","backoff_ms"}),
+    # resultset.json
+    "resultset": frozenset({"$schema","version","suite_id","suite_version","run_id","started_at","completed_at","provider","runner","summary","results","metadata","isolation","group"}),
+    "resultset.provider": frozenset({"model","api_base","temperature","max_tokens","extra"}),
+    "resultset.runner": frozenset({"name","version"}),
+    "resultset.group": frozenset({"group_id","parent_group_id","role","label","sequence"}),
+    "resultset.summary": frozenset({"total","passed","failed","skipped","pass_rate","avg_score","duration_ms","by_grader"}),
+    "resultset.result": frozenset({"test_case_id","actual_output","grader_results","passed","duration_ms","completed_at","error","metadata","attempt"}),
+    "resultset.result.error": frozenset({"type","message","code","retryable"}),
+    "resultset.grader_result": frozenset({"grader_id","type","score","passed","reason","metadata"}),
+}
+
+def _check_unknown(obj, base, allowed, errors, allow_unknown):
+    if allow_unknown: return
+    for k in obj:
+        if k not in allowed:
+            errors.append(_err(f"{base}.{k}",f"unknown field '{k}' is not defined by the schema; put producer-specific data under metadata","UNKNOWN_FIELD"))
+
+def validate_test_case(tc, allow_unknown=False):
     errors=[]
     if not isinstance(tc,dict): return ValidationResult(False,[_err("$","Must be object","TYPE_ERROR")])
     if not isinstance(tc.get("id"),str) or not tc["id"]: errors.append(_err("$.id","id required","REQUIRED"))
@@ -161,15 +207,17 @@ def validate_test_case(tc):
             if isinstance(g,str):
                 if not g: errors.append(_err(f"$.graders[{i}]","empty","EMPTY_STRING"))
             elif isinstance(g,dict):
-                gv=validate_grader(g)
+                gv=validate_grader(g,allow_unknown=allow_unknown)
                 if not gv.valid:
                     for e in gv.errors: errors.append(_err(f"$.graders[{i}].{e['path']}",e["message"],e["code"]))
             else: errors.append(_err(f"$.graders[{i}]","must be string or object","TYPE_ERROR"))
     _check_optional(tc,"$",_TESTCASE_FIELDS,errors)
     if isinstance(tc.get("provider"),dict): _check_optional(tc["provider"],"$.provider",_CONFIG_PROVIDER_FIELDS,errors)
+    _check_unknown(tc,"$",ALLOWED_KEYS["testcase"],errors,allow_unknown)
+    if isinstance(tc.get("provider"),dict): _check_unknown(tc["provider"],"$.provider",ALLOWED_KEYS["testcase.provider"],errors,allow_unknown)
     return ValidationResult(not errors,errors)
 
-def validate_grader(g):
+def validate_grader(g, allow_unknown=False):
     errors=[]
     if not isinstance(g,dict): return ValidationResult(False,[_err("$","Must be object","TYPE_ERROR")])
     if not isinstance(g.get("id"),str) or not g["id"]: errors.append(_err("$.id","id required","REQUIRED"))
@@ -189,6 +237,7 @@ def validate_grader(g):
             # instead of guessing. This is what lets an adapter use a descriptive type
             # (e.g. "trulens_feedback") instead of the generic "custom" bucket.
             for e in _vp("custom",p): errors.append(_err(f"$.params.{e['path']}",e["message"],e["code"]))
+    _check_unknown(g,"$",ALLOWED_KEYS["grader"],errors,allow_unknown)
     return ValidationResult(not errors,errors)
 
 def _vp(t,p):
@@ -222,7 +271,7 @@ def _vp(t,p):
     for x in opt: e.append(_err(x["path"][2:],x["message"],x["code"]))
     return e
 
-def validate_suite(s):
+def validate_suite(s, allow_unknown=False):
     errors=[]
     if not isinstance(s,dict): return ValidationResult(False,[_err("$","Must be object","TYPE_ERROR")])
     if not isinstance(s.get("version"),str) or not SEMVER_RE.match(s.get("version","")): errors.append(_err("$.version","semver","INVALID_VERSION"))
@@ -231,6 +280,7 @@ def validate_suite(s):
     if not isinstance(tcs,list) and not isinstance(s.get("test_cases_file"),str): errors.append(_err("$.test_cases","required","REQUIRED"))
     elif "test_cases" in s and not isinstance(tcs,list): errors.append(_err("$.test_cases","must be array","TYPE_ERROR"))
     _check_optional(s,"$",_SUITE_FIELDS,errors)
+    _check_unknown(s,"$",ALLOWED_KEYS["suite"],errors,allow_unknown)
     grs=s.get("graders",[])
     if not isinstance(grs,list): errors.append(_err("$.graders","must be array","TYPE_ERROR"))
     cfg=s.get("config")
@@ -239,13 +289,16 @@ def validate_suite(s):
         if isinstance(cfg.get("provider"),dict): _check_optional(cfg["provider"],"$.config.provider",_CONFIG_PROVIDER_FIELDS,errors)
         if isinstance(cfg.get("defaults"),dict): _check_optional(cfg["defaults"],"$.config.defaults",_SUITE_DEFAULTS_FIELDS,errors)
         if isinstance(cfg.get("retry"),dict): _check_optional(cfg["retry"],"$.config.retry",_SUITE_RETRY_FIELDS,errors)
+        _check_unknown(cfg,"$.config",ALLOWED_KEYS["suite.config"],errors,allow_unknown)
+        for sub in ("provider","defaults","retry"):
+            if isinstance(cfg.get(sub),dict): _check_unknown(cfg[sub],f"$.config.{sub}",ALLOWED_KEYS[f"suite.config.{sub}"],errors,allow_unknown)
     # Shared graders are validated whether test cases are inline or in
     # test_cases_file -- previously an invalid grader in a test_cases_file suite
     # was never looked at.
     gids=set()
     if isinstance(grs,list):
         for i,g in enumerate(grs):
-            gv=validate_grader(g)
+            gv=validate_grader(g,allow_unknown=allow_unknown)
             if not gv.valid:
                 for e in gv.errors: errors.append(_err(f"$.graders[{i}].{e['path']}",e["message"],e["code"]))
             gid=g.get("id") if isinstance(g,dict) else None
@@ -256,7 +309,7 @@ def validate_suite(s):
         if not tcs: errors.append(_err("$.test_cases","empty","MIN_ITEMS"))
         ids=set()
         for i,tc in enumerate(tcs):
-            tv=validate_test_case(tc)
+            tv=validate_test_case(tc,allow_unknown=allow_unknown)
             if not tv.valid:
                 for e in tv.errors: errors.append(_err(f"$.test_cases[{i}].{e['path']}",e["message"],e["code"]))
             tid=tc.get("id") if isinstance(tc,dict) else None
@@ -270,7 +323,7 @@ def validate_suite(s):
                         if isinstance(gr,str) and gr not in gids: errors.append(_err(f"$.test_cases[{i}].graders[{j}]",f"not found:{gr}","DANGLING_REFERENCE"))
     return ValidationResult(not errors,errors)
 
-def validate_result_set(r):
+def validate_result_set(r, allow_unknown=False):
     errors=[]
     if not isinstance(r,dict): return ValidationResult(False,[_err("$","Must be object","TYPE_ERROR")])
     if not isinstance(r.get("version"),str) or not SEMVER_RE.match(r.get("version","")): errors.append(_err("$.version","semver","INVALID_VERSION"))
@@ -281,11 +334,17 @@ def validate_result_set(r):
     if not isinstance(started_at,str): errors.append(_err("$.started_at","required","REQUIRED"))
     elif not is_rfc3339_date_time(started_at): errors.append(_err("$.started_at","must be an RFC 3339 date-time with seconds and an offset, e.g. 2026-01-15T10:30:00Z","INVALID_DATE_TIME"))
     _check_optional(r,"$",_RESULTSET_FIELDS,errors)
-    if isinstance(r.get("provider"),dict): _check_optional(r["provider"],"$.provider",_RESULTSET_PROVIDER_FIELDS,errors)
-    if isinstance(r.get("runner"),dict): _check_optional(r["runner"],"$.runner",_RUNNER_FIELDS,errors)
+    _check_unknown(r,"$",ALLOWED_KEYS["resultset"],errors,allow_unknown)
+    if isinstance(r.get("provider"),dict):
+        _check_optional(r["provider"],"$.provider",_RESULTSET_PROVIDER_FIELDS,errors)
+        _check_unknown(r["provider"],"$.provider",ALLOWED_KEYS["resultset.provider"],errors,allow_unknown)
+    if isinstance(r.get("runner"),dict):
+        _check_optional(r["runner"],"$.runner",_RUNNER_FIELDS,errors)
+        _check_unknown(r["runner"],"$.runner",ALLOWED_KEYS["resultset.runner"],errors,allow_unknown)
     summary=r.get("summary")
     if isinstance(summary,dict):
         _check_optional(summary,"$.summary",_SUMMARY_FIELDS,errors)
+        _check_unknown(summary,"$.summary",ALLOWED_KEYS["resultset.summary"],errors,allow_unknown)
         if isinstance(summary.get("by_grader"),dict):
             for gk,gv in summary["by_grader"].items():
                 if not isinstance(gv,dict): errors.append(_err(f"$.summary.by_grader.{gk}","must be object","TYPE_ERROR"))
@@ -311,6 +370,7 @@ def validate_result_set(r):
             if "sequence" in group:
                 seq=group["sequence"]
                 if not _is_int(seq) or seq<0: errors.append(_err("$.group.sequence","must be an integer >= 0","OUT_OF_RANGE"))
+            _check_unknown(group,"$.group",ALLOWED_KEYS["resultset.group"],errors,allow_unknown)
     rs=r.get("results")
     if not isinstance(rs,list) or not rs: errors.append(_err("$.results","required","REQUIRED"))
     else:
@@ -326,7 +386,10 @@ def validate_result_set(r):
             if not isinstance(x.get("test_case_id"),str) or not x["test_case_id"]: errors.append(_err(f"$.results[{i}].test_case_id","required","REQUIRED"))
             if not isinstance(x.get("passed"),bool): errors.append(_err(f"$.results[{i}].passed","required","REQUIRED"))
             _check_optional(x,f"$.results[{i}]",_RESULT_FIELDS,errors)
-            if isinstance(x.get("error"),dict): _check_optional(x["error"],f"$.results[{i}].error",_RESULT_ERROR_FIELDS,errors)
+            _check_unknown(x,f"$.results[{i}]",ALLOWED_KEYS["resultset.result"],errors,allow_unknown)
+            if isinstance(x.get("error"),dict):
+                _check_optional(x["error"],f"$.results[{i}].error",_RESULT_ERROR_FIELDS,errors)
+                _check_unknown(x["error"],f"$.results[{i}].error",ALLOWED_KEYS["resultset.result.error"],errors,allow_unknown)
             if "attempt" in x:
                 attempt=x["attempt"]
                 if not _is_int(attempt) or attempt<1:
@@ -367,6 +430,7 @@ def validate_result_set(r):
                     elif "score" in gr and gr["score"] is None and gr["passed"] is True:
                         errors.append(_err(f"$.results[{i}].grader_results[{j}].passed","a GraderResult with score null (not verified) MUST have passed false (SPEC Rule 6)","NULL_SCORE_PASSED"))
                     _check_optional(gr,f"$.results[{i}].grader_results[{j}]",_GRADER_RESULT_FIELDS,errors)
+                    _check_unknown(gr,f"$.results[{i}].grader_results[{j}]",ALLOWED_KEYS["resultset.grader_result"],errors,allow_unknown)
                 # SPEC.md Extension Mechanism -> Aggregation Extension: "A test case
                 # whose graders are *all* null-scored has no basis for a pass/fail
                 # verdict; runners MUST report such a case's `passed` as `false` [...]"
@@ -374,9 +438,9 @@ def validate_result_set(r):
                     errors.append(_err(f"$.results[{i}].passed","a Result whose grader_results are all null-scored MUST have passed false (SPEC Aggregation Extension / Rule 6)","UNSCORED_RESULT_PASSED"))
     return ValidationResult(not errors,errors)
 
-def validate_document(d,t):
-    if t=="testcase": return validate_test_case(d)
-    if t=="grader": return validate_grader(d)
-    if t=="suite": return validate_suite(d)
-    if t=="resultset": return validate_result_set(d)
+def validate_document(d,t,allow_unknown=False):
+    if t=="testcase": return validate_test_case(d,allow_unknown=allow_unknown)
+    if t=="grader": return validate_grader(d,allow_unknown=allow_unknown)
+    if t=="suite": return validate_suite(d,allow_unknown=allow_unknown)
+    if t=="resultset": return validate_result_set(d,allow_unknown=allow_unknown)
     raise ValueError(f"Unknown type: {t}")

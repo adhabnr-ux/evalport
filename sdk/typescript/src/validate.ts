@@ -1,4 +1,4 @@
-import type { ValidationError, ValidationResult, DocumentType, GraderType } from "./types";
+import type { ValidationError, ValidationResult, ValidateOptions, DocumentType, GraderType } from "./types";
 
 // Mirrors sdk/python/openeval/validate.py rule-for-rule so both SDKs agree on
 // what's valid. If you change a rule here, change it there too (and vice versa).
@@ -81,10 +81,10 @@ type FieldSpec =
 
 // Optional-field type checks. A field is checked only when its key is PRESENT --
 // including an explicit null, which JSON Schema's `type` keyword rejects for every
-// field below (none of them is declared nullable). Unknown keys are deliberately NOT
-// policed here (see tests/schema-consistency.test.ts -- that's a separate spec
-// question). Mirrors _check_optional() in sdk/python/openeval/validate.py
-// rule-for-rule, including error codes and messages.
+// field below (none of them is declared nullable). Unknown keys are policed
+// separately, by checkUnknown() below (Discussion #108). Mirrors
+// _check_optional() in sdk/python/openeval/validate.py rule-for-rule, including
+// error codes and messages.
 function checkOptional(obj: Record<string, unknown>, base: string, fields: readonly FieldSpec[], errors: ValidationError[]): void {
   for (const f of fields) {
     const [key, kind] = f;
@@ -185,7 +185,56 @@ const RESULT_ERROR_FIELDS: readonly FieldSpec[] = [
 ];
 const GRADER_RESULT_FIELDS: readonly FieldSpec[] = [["reason", "string"], ["metadata", "object"]];
 
-export function validateTestCase(tc: unknown): ValidationResult {
+// ---------------------------------------------------------------------------
+// Unknown fields (issue #107 / Discussion #108, PROPOSED -- DO NOT MERGE).
+//
+// Validation is strict by default: every object that spec/schemas/*.json closes
+// with `additionalProperties: false` rejects a property the schema doesn't define,
+// with code UNKNOWN_FIELD at the offending key's path. Open objects stay open:
+// every `metadata`, `provider.extra`, grader/test-case `params`, and the entries of
+// `summary.by_grader` (none of them is closed in the schemas). `{ allowUnknown: true }`
+// is the opt-in for a CONSUMER reading a document from a newer minor version
+// (SPEC.md -> Forward Compatibility); it skips only this check.
+//
+// The key sets are hardcoded because the package ships without spec/schemas/.
+// tests/schema-consistency-unknown-fields.test.ts asserts each set equals the
+// `properties` of the schema object it mirrors, so the two cannot drift. Mirrors
+// ALLOWED_KEYS in sdk/python/openeval/validate.py key-for-key.
+// ---------------------------------------------------------------------------
+const PROVIDER_KEYS = ["model", "api_base", "api_key_env", "temperature", "max_tokens", "extra"] as const;
+export const ALLOWED_KEYS: Readonly<Record<string, ReadonlySet<string>>> = {
+  // testcase.json
+  "testcase": new Set(["id", "input", "expected_output", "context", "retrieval_context", "tools_called", "expected_tools", "graders", "metadata", "tags", "provider", "params", "timeout_ms", "weight"]),
+  "testcase.provider": new Set(PROVIDER_KEYS),
+  // grader.json
+  "grader": new Set(["id", "type", "params", "weight", "description"]),
+  // suite.json
+  "suite": new Set(["$schema", "version", "id", "name", "description", "graders", "test_cases", "test_cases_file", "config", "metadata", "tags"]),
+  "suite.config": new Set(["provider", "defaults", "parallel", "retry"]),
+  "suite.config.provider": new Set(PROVIDER_KEYS),
+  "suite.config.defaults": new Set(["timeout_ms", "weight"]),
+  "suite.config.retry": new Set(["max_attempts", "backoff_ms"]),
+  // resultset.json
+  "resultset": new Set(["$schema", "version", "suite_id", "suite_version", "run_id", "started_at", "completed_at", "provider", "runner", "summary", "results", "metadata", "isolation", "group"]),
+  "resultset.provider": new Set(["model", "api_base", "temperature", "max_tokens", "extra"]),
+  "resultset.runner": new Set(["name", "version"]),
+  "resultset.group": new Set(["group_id", "parent_group_id", "role", "label", "sequence"]),
+  "resultset.summary": new Set(["total", "passed", "failed", "skipped", "pass_rate", "avg_score", "duration_ms", "by_grader"]),
+  "resultset.result": new Set(["test_case_id", "actual_output", "grader_results", "passed", "duration_ms", "completed_at", "error", "metadata", "attempt"]),
+  "resultset.result.error": new Set(["type", "message", "code", "retryable"]),
+  "resultset.grader_result": new Set(["grader_id", "type", "score", "passed", "reason", "metadata"]),
+};
+
+function checkUnknown(obj: Record<string, unknown>, base: string, allowed: ReadonlySet<string>, errors: ValidationError[], opts: ValidateOptions): void {
+  if (opts.allowUnknown) return;
+  for (const k of Object.keys(obj)) {
+    // `undefined` is not a JSON value; like has(), treat such a key as absent.
+    if (obj[k] === undefined) continue;
+    if (!allowed.has(k)) errors.push(err(`${base}.${k}`, `unknown field '${k}' is not defined by the schema; put producer-specific data under metadata`, "UNKNOWN_FIELD"));
+  }
+}
+
+export function validateTestCase(tc: unknown, opts: ValidateOptions = {}): ValidationResult {
   if (!isPlainObject(tc)) return ok([err("$", "Must be object", "TYPE_ERROR")]);
   const errors: ValidationError[] = [];
 
@@ -210,7 +259,7 @@ export function validateTestCase(tc: unknown): ValidationResult {
       if (typeof g === "string") {
         if (g.length === 0) errors.push(err(`$.graders[${i}]`, "empty", "EMPTY_STRING"));
       } else if (isPlainObject(g)) {
-        const gv = validateGrader(g);
+        const gv = validateGrader(g, opts);
         if (!gv.valid) gv.errors.forEach((e) => errors.push(err(`$.graders[${i}].${e.path}`, e.message, e.code)));
       } else {
         errors.push(err(`$.graders[${i}]`, "must be string or object", "TYPE_ERROR"));
@@ -220,11 +269,13 @@ export function validateTestCase(tc: unknown): ValidationResult {
 
   checkOptional(tc, "$", TESTCASE_FIELDS, errors);
   if (isPlainObject(tc.provider)) checkOptional(tc.provider, "$.provider", CONFIG_PROVIDER_FIELDS, errors);
+  checkUnknown(tc, "$", ALLOWED_KEYS["testcase"], errors, opts);
+  if (isPlainObject(tc.provider)) checkUnknown(tc.provider, "$.provider", ALLOWED_KEYS["testcase.provider"], errors, opts);
 
   return ok(errors);
 }
 
-export function validateGrader(g: unknown): ValidationResult {
+export function validateGrader(g: unknown, opts: ValidateOptions = {}): ValidationResult {
   if (!isPlainObject(g)) return ok([err("$", "Must be object", "TYPE_ERROR")]);
   const errors: ValidationError[] = [];
 
@@ -248,6 +299,7 @@ export function validateGrader(g: unknown): ValidationResult {
       validateParams("custom", params).forEach((e) => errors.push(err(`$.params.${e.path}`, e.message, e.code)));
     }
   }
+  checkUnknown(g, "$", ALLOWED_KEYS["grader"], errors, opts);
 
   return ok(errors);
 }
@@ -300,7 +352,7 @@ function validateParams(type: GraderType, p: Record<string, unknown>): Validatio
   return e;
 }
 
-export function validateSuite(s: unknown): ValidationResult {
+export function validateSuite(s: unknown, opts: ValidateOptions = {}): ValidationResult {
   if (!isPlainObject(s)) return ok([err("$", "Must be object", "TYPE_ERROR")]);
   const errors: ValidationError[] = [];
 
@@ -312,6 +364,7 @@ export function validateSuite(s: unknown): ValidationResult {
   if (!Array.isArray(tcs) && !hasTestCasesFile) errors.push(err("$.test_cases", "required", "REQUIRED"));
   else if (has(s, "test_cases") && !Array.isArray(tcs)) errors.push(err("$.test_cases", "must be array", "TYPE_ERROR"));
   checkOptional(s, "$", SUITE_FIELDS, errors);
+  checkUnknown(s, "$", ALLOWED_KEYS["suite"], errors, opts);
   const grs = has(s, "graders") ? s.graders : [];
   if (!Array.isArray(grs)) errors.push(err("$.graders", "must be array", "TYPE_ERROR"));
   const cfg = s.config;
@@ -320,6 +373,11 @@ export function validateSuite(s: unknown): ValidationResult {
     if (isPlainObject(cfg.provider)) checkOptional(cfg.provider, "$.config.provider", CONFIG_PROVIDER_FIELDS, errors);
     if (isPlainObject(cfg.defaults)) checkOptional(cfg.defaults, "$.config.defaults", SUITE_DEFAULTS_FIELDS, errors);
     if (isPlainObject(cfg.retry)) checkOptional(cfg.retry, "$.config.retry", SUITE_RETRY_FIELDS, errors);
+    checkUnknown(cfg, "$.config", ALLOWED_KEYS["suite.config"], errors, opts);
+    for (const sub of ["provider", "defaults", "retry"] as const) {
+      const v = cfg[sub];
+      if (isPlainObject(v)) checkUnknown(v, `$.config.${sub}`, ALLOWED_KEYS[`suite.config.${sub}`], errors, opts);
+    }
   }
 
   // Shared graders are validated whether test cases are inline or in
@@ -328,7 +386,7 @@ export function validateSuite(s: unknown): ValidationResult {
   const gids = new Set<string>();
   if (Array.isArray(grs)) {
     grs.forEach((g, i) => {
-      const gv = validateGrader(g);
+      const gv = validateGrader(g, opts);
       if (!gv.valid) gv.errors.forEach((e) => errors.push(err(`$.graders[${i}].${e.path}`, e.message, e.code)));
       const gid = isPlainObject(g) ? g.id : undefined;
       if (typeof gid === "string") {
@@ -343,7 +401,7 @@ export function validateSuite(s: unknown): ValidationResult {
 
     const ids = new Set<string>();
     tcs.forEach((tc, i) => {
-      const tv = validateTestCase(tc);
+      const tv = validateTestCase(tc, opts);
       if (!tv.valid) tv.errors.forEach((e) => errors.push(err(`$.test_cases[${i}].${e.path}`, e.message, e.code)));
       const tid = isPlainObject(tc) ? tc.id : undefined;
       if (typeof tid === "string") {
@@ -366,7 +424,7 @@ export function validateSuite(s: unknown): ValidationResult {
   return ok(errors);
 }
 
-export function validateResultSet(r: unknown): ValidationResult {
+export function validateResultSet(r: unknown, opts: ValidateOptions = {}): ValidationResult {
   if (!isPlainObject(r)) return ok([err("$", "Must be object", "TYPE_ERROR")]);
   const errors: ValidationError[] = [];
 
@@ -377,11 +435,19 @@ export function validateResultSet(r: unknown): ValidationResult {
   else if (!isRfc3339DateTime(r.started_at)) errors.push(err("$.started_at", DATE_TIME_MESSAGE, "INVALID_DATE_TIME"));
   const runId = r.run_id;
   checkOptional(r, "$", RESULTSET_FIELDS, errors);
-  if (isPlainObject(r.provider)) checkOptional(r.provider, "$.provider", RESULTSET_PROVIDER_FIELDS, errors);
-  if (isPlainObject(r.runner)) checkOptional(r.runner, "$.runner", RUNNER_FIELDS, errors);
+  checkUnknown(r, "$", ALLOWED_KEYS["resultset"], errors, opts);
+  if (isPlainObject(r.provider)) {
+    checkOptional(r.provider, "$.provider", RESULTSET_PROVIDER_FIELDS, errors);
+    checkUnknown(r.provider, "$.provider", ALLOWED_KEYS["resultset.provider"], errors, opts);
+  }
+  if (isPlainObject(r.runner)) {
+    checkOptional(r.runner, "$.runner", RUNNER_FIELDS, errors);
+    checkUnknown(r.runner, "$.runner", ALLOWED_KEYS["resultset.runner"], errors, opts);
+  }
   const summary = r.summary;
   if (isPlainObject(summary)) {
     checkOptional(summary, "$.summary", SUMMARY_FIELDS, errors);
+    checkUnknown(summary, "$.summary", ALLOWED_KEYS["resultset.summary"], errors, opts);
     if (isPlainObject(summary.by_grader)) {
       for (const [gk, gv] of Object.entries(summary.by_grader)) {
         if (!isPlainObject(gv)) errors.push(err(`$.summary.by_grader.${gk}`, "must be object", "TYPE_ERROR"));
@@ -398,10 +464,8 @@ export function validateResultSet(r: unknown): ValidationResult {
   // Discussion #45 / PR #54: optional group membership joining sibling
   // ResultSets (a sweep, a mutation-testing run, a multi-model comparison).
   // Absent by default -- a no-op for every ResultSet produced before this.
-  // Mirrors sdk/python/openeval/validate.py's validate_result_set rule-for-rule:
-  // like every other optional sub-object in this file, unknown keys inside
-  // `group` are NOT policed here (that's the raw JSON Schema's
-  // additionalProperties: false job -- see tests/schema-consistency.test.ts).
+  // Mirrors sdk/python/openeval/validate.py's validate_result_set rule-for-rule,
+  // including UNKNOWN_FIELD for a key inside `group` the schema doesn't define.
   if (has(r, "group")) {
     const group = r.group;
     if (!isPlainObject(group)) {
@@ -428,6 +492,7 @@ export function validateResultSet(r: unknown): ValidationResult {
           errors.push(err("$.group.sequence", "must be an integer >= 0", "OUT_OF_RANGE"));
         }
       }
+      checkUnknown(group, "$.group", ALLOWED_KEYS["resultset.group"], errors, opts);
     }
   }
 
@@ -447,7 +512,11 @@ export function validateResultSet(r: unknown): ValidationResult {
       if (!isNonEmptyString(x.test_case_id)) errors.push(err(`$.results[${i}].test_case_id`, "required", "REQUIRED"));
       if (typeof x.passed !== "boolean") errors.push(err(`$.results[${i}].passed`, "required", "REQUIRED"));
       checkOptional(x, `$.results[${i}]`, RESULT_FIELDS, errors);
-      if (isPlainObject(x.error)) checkOptional(x.error, `$.results[${i}].error`, RESULT_ERROR_FIELDS, errors);
+      checkUnknown(x, `$.results[${i}]`, ALLOWED_KEYS["resultset.result"], errors, opts);
+      if (isPlainObject(x.error)) {
+        checkOptional(x.error, `$.results[${i}].error`, RESULT_ERROR_FIELDS, errors);
+        checkUnknown(x.error, `$.results[${i}].error`, ALLOWED_KEYS["resultset.result.error"], errors, opts);
+      }
 
       if (has(x, "attempt")) {
         const attempt = x.attempt;
@@ -500,6 +569,7 @@ export function validateResultSet(r: unknown): ValidationResult {
             errors.push(err(`${p}.passed`, "a GraderResult with score null (not verified) MUST have passed false (SPEC Rule 6)", "NULL_SCORE_PASSED"));
           }
           checkOptional(gr, p, GRADER_RESULT_FIELDS, errors);
+          checkUnknown(gr, p, ALLOWED_KEYS["resultset.grader_result"], errors, opts);
         });
         // SPEC.md Extension Mechanism -> Aggregation Extension: "A test case
         // whose graders are *all* null-scored has no basis for a pass/fail
@@ -514,10 +584,10 @@ export function validateResultSet(r: unknown): ValidationResult {
   return ok(errors);
 }
 
-export function validateDocument(d: unknown, t: DocumentType): ValidationResult {
-  if (t === "testcase") return validateTestCase(d);
-  if (t === "grader") return validateGrader(d);
-  if (t === "suite") return validateSuite(d);
-  if (t === "resultset") return validateResultSet(d);
+export function validateDocument(d: unknown, t: DocumentType, opts: ValidateOptions = {}): ValidationResult {
+  if (t === "testcase") return validateTestCase(d, opts);
+  if (t === "grader") return validateGrader(d, opts);
+  if (t === "suite") return validateSuite(d, opts);
+  if (t === "resultset") return validateResultSet(d, opts);
   throw new Error(`Unknown type: ${t}`);
 }
