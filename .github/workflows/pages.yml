@@ -1,0 +1,70 @@
+name: Pages
+
+# Publishes the four EvalPort JSON Schemas (and the landing page) to GitHub
+# Pages at the same paths their $id / $schema URLs already use:
+#
+#   <site>/schema/{suite,testcase,grader,resultset}.json         (latest)
+#   <site>/schema/v1.0.0/{suite,testcase,grader,resultset}.json  (pinned form, see SPEC.md "Schema Evolution")
+#   <site>/index.html                                             (docs/landing-page.html)
+#
+# The site is built by scripts/build_pages_site.py, which also fails the build
+# if any https://evalport.org/schema/<file>.json URL referenced in the repo does
+# not map to a file in the built tree.
+#
+# One-time owner setup (see docs/schema-hosting.md):
+#   - Settings -> Pages -> Build and deployment -> Source: "GitHub Actions".
+#     Until that is done, actions/configure-pages fails and nothing deploys.
+#   - Custom domain: when publishing from a custom Actions workflow, GitHub
+#     does not use a CNAME file (any existing one is ignored). The custom
+#     domain is set in Settings -> Pages -> Custom domain instead, so this repo
+#     deliberately has no CNAME file. Without a custom domain the site is served
+#     at https://adhabnr-ux.github.io/evalport/ (so the schemas are at
+#     https://adhabnr-ux.github.io/evalport/schema/suite.json etc.).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'spec/schemas/**'
+      - 'docs/landing-page.html'
+      - 'scripts/build_pages_site.py'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; never cancel an in-progress production deploy.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Build site (schemas at their spec paths + landing page)
+        run: python scripts/build_pages_site.py --out _site
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
