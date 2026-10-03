@@ -8,7 +8,7 @@ The process itself is defined in [`spec/SPEC.md` → Governance](../../spec/SPEC
 **Five RFCs are open for comment right now.** You don't need to have contributed
 before to comment on one.
 
-Two of them, #47 and #49, touch what a `Result` says about its own outcome. [`outcome-model.md`](outcome-model.md) puts them side by side: five situations, how each is written on `main` today, and what each proposal would add.
+Two of them, #47 and #49, touch what a `Result` says about its own outcome. [`outcome-model.md`](outcome-model.md) puts them side by side: six situations, how each is written on `main` today, and what each proposal would add.
 
 ## Index
 
