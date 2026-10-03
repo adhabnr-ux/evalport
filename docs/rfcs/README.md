@@ -5,8 +5,10 @@ Every change to the EvalPort spec starts as an RFC: a GitHub Discussion in the
 This page lists every RFC the project has run and where each one stands.
 The process itself is defined in [`spec/SPEC.md` → Governance](../../spec/SPEC.md#governance).
 
-**Four RFCs are open for comment right now.** You don't need to have contributed
+**Five RFCs are open for comment right now.** You don't need to have contributed
 before to comment on one.
+
+Two of them, #47 and #49, touch what a `Result` says about its own outcome. [`outcome-model.md`](outcome-model.md) puts them side by side: five situations, how each is written on `main` today, and what each proposal would add.
 
 ## Index
 
@@ -21,6 +23,7 @@ date in the [`spec/SPEC.md` Change Log](../../spec/SPEC.md#change-log).
 | `Result.verdict`: FAILED vs. UNVERIFIED | Should a `Result` be able to say "this reached a terminal state nobody could judge", as distinct from a graded failure (`passed: false`) and a harness failure (`error`)? Raised by @soul-sol. | **Open. Comment period 2026-09-27 to 2026-10-11.** | [#49](https://github.com/adhabnr-ux/evalport/discussions/49) | [#83](https://github.com/adhabnr-ux/evalport/pull/83) (draft, not for merge) |
 | `GraderResult.trials` / `successes` | Should a rate-based grader score carry its denominator, so 0 of 5 and 0 of 500 don't both serialize as `0.0`? And should it be optional, required for rate-based graders, or a `metadata` convention? Promoted from [issue #58](https://github.com/adhabnr-ux/evalport/issues/58), raised by @sattyamjjain. | **Open. Comment period 2026-09-27 to 2026-10-11.** | [#67](https://github.com/adhabnr-ux/evalport/discussions/67) | [#66](https://github.com/adhabnr-ux/evalport/pull/66) (draft, implements the optional-fields option only, not for merge) |
 | Unknown fields: strict validation, lenient consumption | The schemas close 16 objects with `additionalProperties: false`, the SDK validators accept unknown keys, and the spec says runners "MUST ignore unknown fields". Should validation be strict by default (new code `UNKNOWN_FIELD`) with an explicit opt-in for lenient consumption? Promoted from [issue #107](https://github.com/adhabnr-ux/evalport/issues/107), found by @ChelseaKR. | **Open. Comment period 2026-09-29 to 2026-10-13.** | [#108](https://github.com/adhabnr-ux/evalport/discussions/108) | [#110](https://github.com/adhabnr-ux/evalport/pull/110) (draft, not for merge) |
+| Judge identity, declared vs. observed | A suite declares the judge it wants (`llm_judge` `params.model`, `prompt`), but a `GraderResult` has no typed place for the judge that actually answered. Should EvalPort define an unvalidated convention, `metadata.openeval.judge`, for a runner to self-report it, rather than a typed field? Raised by @jonathanngiroux-star (Proofspan) and @joslat (AgentEval). | **Open. Comment period 2026-10-03 to 2026-10-17.** | [#118](https://github.com/adhabnr-ux/evalport/discussions/118) | [#119](https://github.com/adhabnr-ux/evalport/pull/119) (draft, convention text and one fixture only, not for merge) |
 
 ### Landed
 
