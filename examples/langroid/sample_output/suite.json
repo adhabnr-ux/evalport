@@ -1,0 +1,136 @@
+{
+  "$schema": "https://evalport.org/schema/suite.json",
+  "version": "1.0.0",
+  "id": "suite_langroid_task_states",
+  "name": "Langroid Task terminal states",
+  "description": "Eight Langroid Task configurations, each asked the same question. They differ in how the Task ends, not in the question.",
+  "graders": [
+    {
+      "id": "gr_exact",
+      "type": "exact_match",
+      "params": {
+        "ignore_case": true
+      }
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "done_correct",
+      "input": "What is 2+2?",
+      "expected_output": "4",
+      "graders": [
+        "gr_exact"
+      ],
+      "metadata": {
+        "langroid": {
+          "scenario": "The agent answers 'DONE 4'.",
+          "expected_status": "DONE"
+        }
+      }
+    },
+    {
+      "id": "done_wrong",
+      "input": "What is 2+2?",
+      "expected_output": "4",
+      "graders": [
+        "gr_exact"
+      ],
+      "metadata": {
+        "langroid": {
+          "scenario": "The agent answers 'DONE 5': it finished, and it is wrong.",
+          "expected_status": "DONE"
+        }
+      }
+    },
+    {
+      "id": "fixed_turns",
+      "input": "What is 2+2?",
+      "expected_output": "4",
+      "graders": [
+        "gr_exact"
+      ],
+      "metadata": {
+        "langroid": {
+          "scenario": "run(turns=2): the caller asks for exactly two turns; the last message is '4'.",
+          "expected_status": "FIXED_TURNS"
+        }
+      }
+    },
+    {
+      "id": "stalled",
+      "input": "What is 2+2?",
+      "expected_output": "4",
+      "graders": [
+        "gr_exact"
+      ],
+      "metadata": {
+        "langroid": {
+          "scenario": "The agent keeps saying 'thinking...' and never says DONE; Langroid gives up after 5 stalled steps.",
+          "expected_status": "STALLED"
+        }
+      }
+    },
+    {
+      "id": "max_turns",
+      "input": "What is 2+2?",
+      "expected_output": "4",
+      "graders": [
+        "gr_exact"
+      ],
+      "metadata": {
+        "langroid": {
+          "scenario": "As 'stalled', but the global max_turns limit (3) is reached first.",
+          "expected_status": "MAX_TURNS"
+        }
+      }
+    },
+    {
+      "id": "timeout",
+      "input": "What is 2+2?",
+      "expected_output": "4",
+      "graders": [
+        "gr_exact"
+      ],
+      "metadata": {
+        "langroid": {
+          "scenario": "Each LLM call takes 0.4 s and run(max_time=0.3) is set.",
+          "expected_status": "TIMEOUT"
+        }
+      }
+    },
+    {
+      "id": "killed",
+      "input": "What is 2+2?",
+      "expected_output": "4",
+      "graders": [
+        "gr_exact"
+      ],
+      "metadata": {
+        "langroid": {
+          "scenario": "The agent calls task.kill() on its own task after producing 'partial work'.",
+          "expected_status": "KILL"
+        }
+      }
+    },
+    {
+      "id": "agent_raises",
+      "input": "What is 2+2?",
+      "expected_output": "4",
+      "graders": [
+        "gr_exact"
+      ],
+      "metadata": {
+        "langroid": {
+          "scenario": "The LLM call raises RuntimeError('provider down'); Task.run propagates it.",
+          "expected_status": "EXCEPTION"
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "langroid": {
+      "version": "0.68.4",
+      "llm": "langroid MockLM (no network, no API key)"
+    }
+  }
+}

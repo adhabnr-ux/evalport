@@ -1,0 +1,36 @@
+name: Langroid example
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/langroid/**'
+      - 'sdk/python/**'
+      - '.github/workflows/langroid-example.yml'
+  pull_request:
+    paths:
+      - 'examples/langroid/**'
+      - 'sdk/python/**'
+      - '.github/workflows/langroid-example.yml'
+
+jobs:
+  langroid:
+    # examples/langroid/ -- runs the real langroid.Task machinery (MockLM, no network or
+    # API key), records the status each Task ends in, and writes EvalPort documents that
+    # are validated with the repo's own SDK. The Result.verdict (Discussion #49) tests
+    # need a PR #83 checkout and are skipped here on purpose.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install evalport-sdk and langroid
+        run: pip install -e sdk/python -r examples/langroid/requirements.txt
+      - name: Run the example tests
+        run: python -m pytest -p no:cacheprovider examples/langroid -v
+      - name: Regenerate the sample output and check it is unchanged
+        run: |
+          python examples/langroid/langroid_to_evalport.py --out-dir "$RUNNER_TEMP/lg" --deterministic
+          diff -u examples/langroid/sample_output/suite.json "$RUNNER_TEMP/lg/suite.json"
+          diff -u examples/langroid/sample_output/results.json "$RUNNER_TEMP/lg/results.json"
