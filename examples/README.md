@@ -1,6 +1,6 @@
 # Examples
 
-Sample EvalPort documents and runnable examples. The runnable examples under `interop/`, `croissant/`, `every-eval-ever/` and `langroid/` are exercised in CI.
+Sample EvalPort documents and runnable examples. The runnable examples under `interop/`, `croissant/`, `every-eval-ever/`, `langroid/` and `errored-graders/` are exercised in CI.
 
 ## Sample documents
 
@@ -16,5 +16,6 @@ Sample EvalPort documents and runnable examples. The runnable examples under `in
 | [`croissant/`](croissant/) | One-way export of a Suite + ResultSet to MLCommons Croissant Tasks JSON-LD, validated with SHACL. | Maintained here, CI-tested. Not reviewed by MLCommons. |
 | [`every-eval-ever/`](every-eval-ever/) | One-way export of a Suite + ResultSet to one [Every Eval Ever](https://github.com/evaleval/every_eval_ever) 0.3.0 aggregate record, validated against the unmodified upstream schema and, on Python 3.12+, EEE's own validator. | Unsolicited prototype, CI-tested. Not reviewed or accepted by the Every Eval Ever maintainers. |
 | [`langroid/`](langroid/) | Runs the real Langroid `Task` machinery (LLM mocked) and records the status each task ends in, including the ones where `Task.run()` returns `None`. Writes them as EvalPort results, with `score: null` for runs whose outcome was not established. | Unsolicited example, CI-tested. Not an official Langroid integration; not reviewed by the Langroid maintainers. |
+| [`errored-graders/`](errored-graders/) | Runs the real DeepEval 4.2.8 and Inspect AI 0.3.276 evaluation code with a grader that raises (canned model, no network), writes EvalPort documents under two aggregation policies, and compares what Rule 6, the spec's default aggregation and the proposed `Result.verdict` (Discussion #49) can say about a row where only some graders produced a score. | Unsolicited example, CI-tested. Not reviewed by DeepEval or Inspect AI. The errors are constructed. |
 
 The two exporters are lossy by construction. Each README has a "What is lost" section and says how `score: null` ("not verified", SPEC Validation Rule 6) is handled: nulls are left out of means and rates, never counted as failures.

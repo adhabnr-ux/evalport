@@ -1,0 +1,35 @@
+name: Errored-graders example
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/errored-graders/**'
+      - 'sdk/python/**'
+      - '.github/workflows/errored-graders-example.yml'
+  pull_request:
+    paths:
+      - 'examples/errored-graders/**'
+      - 'sdk/python/**'
+      - '.github/workflows/errored-graders-example.yml'
+
+jobs:
+  errored-graders:
+    # examples/errored-graders/ -- runs the real DeepEval and Inspect AI evaluation code with a
+    # canned model and a grader that raises (no network or API key), asserts what each framework
+    # does, and writes EvalPort documents validated with the repo's own SDK. The Result.verdict
+    # (Discussion #49) tests need a PR #83 checkout and are skipped here on purpose.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install evalport-sdk, DeepEval and Inspect AI
+        run: pip install -e sdk/python -r examples/errored-graders/requirements.txt
+      - name: Run the example tests
+        run: python -m pytest -p no:cacheprovider examples/errored-graders -v
+      - name: Regenerate the sample output and check it is unchanged
+        run: |
+          python examples/errored-graders/errored_graders_to_evalport.py --out-dir "$RUNNER_TEMP/eg" --deterministic
+          diff -ru examples/errored-graders/sample_output "$RUNNER_TEMP/eg"
