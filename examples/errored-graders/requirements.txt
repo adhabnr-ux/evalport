@@ -1,0 +1,6 @@
+# The real DeepEval and Inspect AI packages. The example runs their evaluation code with a
+# canned model and graders that raise (no network, no API key). Every behavior asserted in the
+# tests was observed with exactly these versions; a different version may behave differently.
+deepeval==4.2.8
+inspect-ai==0.3.276
+pytest

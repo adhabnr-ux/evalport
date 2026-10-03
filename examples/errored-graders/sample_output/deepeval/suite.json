@@ -1,0 +1,67 @@
+{
+  "$schema": "https://evalport.org/schema/suite.json",
+  "version": "1.0.0",
+  "id": "suite_errored_graders_deepeval",
+  "name": "Errored graders in deepeval",
+  "description": "Four rows graded by two exact_match graders. The second grader (flaky) stands in for an LLM judge that could not be reached: it raises on q2, q3 and q4, and the first grader (exact) also raises on q4. The comparison itself is the same in both.",
+  "graders": [
+    {
+      "id": "gr_exact",
+      "type": "exact_match",
+      "params": {
+        "ignore_case": true
+      }
+    },
+    {
+      "id": "gr_flaky",
+      "type": "exact_match",
+      "params": {
+        "ignore_case": true
+      }
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "q1",
+      "input": "What is 2+2?",
+      "expected_output": "4",
+      "graders": [
+        "gr_exact",
+        "gr_flaky"
+      ]
+    },
+    {
+      "id": "q2",
+      "input": "What is 2+2?",
+      "expected_output": "4",
+      "graders": [
+        "gr_exact",
+        "gr_flaky"
+      ]
+    },
+    {
+      "id": "q3",
+      "input": "What is 2+2?",
+      "expected_output": "4",
+      "graders": [
+        "gr_exact",
+        "gr_flaky"
+      ]
+    },
+    {
+      "id": "q4",
+      "input": "What is 2+2?",
+      "expected_output": "4",
+      "graders": [
+        "gr_exact",
+        "gr_flaky"
+      ]
+    }
+  ],
+  "metadata": {
+    "deepeval": {
+      "version": "4.2.8",
+      "llm": "none (canned outputs, no network)"
+    }
+  }
+}

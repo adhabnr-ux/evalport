@@ -1,0 +1,166 @@
+{
+  "$schema": "https://evalport.org/schema/resultset.json",
+  "version": "1.0.0",
+  "suite_id": "suite_errored_graders_deepeval",
+  "run_id": "run_errored_graders_deepeval_spec_default",
+  "started_at": "2026-10-03T00:00:00Z",
+  "runner": {
+    "name": "errored-graders-example",
+    "version": "4.2.8"
+  },
+  "results": [
+    {
+      "test_case_id": "q1",
+      "actual_output": "4",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": 1.0,
+          "passed": true
+        },
+        {
+          "grader_id": "gr_flaky",
+          "type": "exact_match",
+          "score": 1.0,
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "metadata": {
+        "deepeval": {
+          "native_row_success": true
+        }
+      }
+    },
+    {
+      "test_case_id": "q2",
+      "actual_output": "4",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": 1.0,
+          "passed": true
+        },
+        {
+          "grader_id": "gr_flaky",
+          "type": "exact_match",
+          "score": null,
+          "passed": false,
+          "reason": "RuntimeError: flaky grader unreachable",
+          "metadata": {
+            "deepeval": {
+              "produced_score": false
+            }
+          }
+        }
+      ],
+      "passed": true,
+      "metadata": {
+        "deepeval": {
+          "native_row_success": false
+        }
+      }
+    },
+    {
+      "test_case_id": "q3",
+      "actual_output": "5",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": 0.0,
+          "passed": false,
+          "reason": "Expected 4, got 5"
+        },
+        {
+          "grader_id": "gr_flaky",
+          "type": "exact_match",
+          "score": null,
+          "passed": false,
+          "reason": "RuntimeError: flaky grader unreachable",
+          "metadata": {
+            "deepeval": {
+              "produced_score": false
+            }
+          }
+        }
+      ],
+      "passed": false,
+      "metadata": {
+        "deepeval": {
+          "native_row_success": false
+        }
+      }
+    },
+    {
+      "test_case_id": "q4",
+      "actual_output": "4",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": null,
+          "passed": false,
+          "reason": "RuntimeError: exact grader unreachable",
+          "metadata": {
+            "deepeval": {
+              "produced_score": false
+            }
+          }
+        },
+        {
+          "grader_id": "gr_flaky",
+          "type": "exact_match",
+          "score": null,
+          "passed": false,
+          "reason": "RuntimeError: flaky grader unreachable",
+          "metadata": {
+            "deepeval": {
+              "produced_score": false
+            }
+          }
+        }
+      ],
+      "passed": false,
+      "metadata": {
+        "openeval": {
+          "aggregation_status": "unscored"
+        },
+        "deepeval": {
+          "native_row_success": false
+        }
+      }
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "passed": 2,
+    "failed": 1,
+    "skipped": 1,
+    "pass_rate": 0.5,
+    "avg_score": 0.75,
+    "by_grader": {
+      "gr_exact": {
+        "passed": 2,
+        "failed": 1,
+        "avg_score": 0.6667
+      },
+      "gr_flaky": {
+        "passed": 1,
+        "failed": 0,
+        "avg_score": 1.0
+      }
+    }
+  },
+  "metadata": {
+    "deepeval": {
+      "version": "4.2.8",
+      "policy": "spec-default",
+      "run_level": {
+        "ignore_errors": true
+      }
+    }
+  }
+}
