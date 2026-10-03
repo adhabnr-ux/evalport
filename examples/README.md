@@ -1,6 +1,6 @@
 # Examples
 
-Sample EvalPort documents and runnable examples. The runnable examples under `interop/`, `croissant/` and `every-eval-ever/` are exercised in CI.
+Sample EvalPort documents and runnable examples. The runnable examples under `interop/`, `croissant/`, `every-eval-ever/` and `langroid/` are exercised in CI.
 
 ## Sample documents
 
@@ -15,5 +15,6 @@ Sample EvalPort documents and runnable examples. The runnable examples under `in
 | [`interop/`](interop/) | Moves eval data between the real DeepEval, DSPy and Haystack packages through EvalPort and checks, field by field, what survives. | Maintained here, CI-tested. |
 | [`croissant/`](croissant/) | One-way export of a Suite + ResultSet to MLCommons Croissant Tasks JSON-LD, validated with SHACL. | Maintained here, CI-tested. Not reviewed by MLCommons. |
 | [`every-eval-ever/`](every-eval-ever/) | One-way export of a Suite + ResultSet to one [Every Eval Ever](https://github.com/evaleval/every_eval_ever) 0.3.0 aggregate record, validated against the unmodified upstream schema and, on Python 3.12+, EEE's own validator. | Unsolicited prototype, CI-tested. Not reviewed or accepted by the Every Eval Ever maintainers. |
+| [`langroid/`](langroid/) | Runs the real Langroid `Task` machinery (LLM mocked) and records the status each task ends in, including the ones where `Task.run()` returns `None`. Writes them as EvalPort results, with `score: null` for runs whose outcome was not established. | Unsolicited example, CI-tested. Not an official Langroid integration; not reviewed by the Langroid maintainers. |
 
 The two exporters are lossy by construction. Each README has a "What is lost" section and says how `score: null` ("not verified", SPEC Validation Rule 6) is handled: nulls are left out of means and rates, never counted as failures.
