@@ -1,0 +1,177 @@
+{
+  "$schema": "https://evalport.org/schema/resultset.json",
+  "version": "1.0.0",
+  "suite_id": "suite_errored_graders_inspect_ai",
+  "run_id": "run_errored_graders_inspect_ai_spec_default",
+  "started_at": "2026-10-03T00:00:00Z",
+  "runner": {
+    "name": "errored-graders-example",
+    "version": "0.3.276"
+  },
+  "results": [
+    {
+      "test_case_id": "q1",
+      "actual_output": "4",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": 1.0,
+          "passed": true
+        },
+        {
+          "grader_id": "gr_flaky",
+          "type": "exact_match",
+          "score": 1.0,
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "test_case_id": "q2",
+      "actual_output": "4",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": 1.0,
+          "passed": true
+        },
+        {
+          "grader_id": "gr_flaky",
+          "type": "exact_match",
+          "score": null,
+          "passed": false,
+          "reason": "grader produced no score",
+          "metadata": {
+            "inspect_ai": {
+              "produced_score": false
+            }
+          }
+        }
+      ],
+      "passed": true,
+      "error": {
+        "type": "runner_error",
+        "message": "RuntimeError('flaky grader unreachable')",
+        "retryable": false
+      }
+    },
+    {
+      "test_case_id": "q3",
+      "actual_output": "5",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": 0.0,
+          "passed": false,
+          "reason": "Expected 4, got 5"
+        },
+        {
+          "grader_id": "gr_flaky",
+          "type": "exact_match",
+          "score": null,
+          "passed": false,
+          "reason": "grader produced no score",
+          "metadata": {
+            "inspect_ai": {
+              "produced_score": false
+            }
+          }
+        }
+      ],
+      "passed": false,
+      "error": {
+        "type": "runner_error",
+        "message": "RuntimeError('flaky grader unreachable')",
+        "retryable": false
+      }
+    },
+    {
+      "test_case_id": "q4",
+      "actual_output": "4",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": null,
+          "passed": false,
+          "reason": "grader produced no score",
+          "metadata": {
+            "inspect_ai": {
+              "produced_score": false
+            }
+          }
+        },
+        {
+          "grader_id": "gr_flaky",
+          "type": "exact_match",
+          "score": null,
+          "passed": false,
+          "reason": "grader produced no score",
+          "metadata": {
+            "inspect_ai": {
+              "produced_score": false
+            }
+          }
+        }
+      ],
+      "passed": false,
+      "error": {
+        "type": "runner_error",
+        "message": "RuntimeError('exact grader unreachable')",
+        "retryable": false
+      },
+      "metadata": {
+        "openeval": {
+          "aggregation_status": "unscored"
+        }
+      }
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "passed": 2,
+    "failed": 1,
+    "skipped": 1,
+    "pass_rate": 0.5,
+    "avg_score": 0.75,
+    "by_grader": {
+      "gr_exact": {
+        "passed": 2,
+        "failed": 1,
+        "avg_score": 0.6667
+      },
+      "gr_flaky": {
+        "passed": 1,
+        "failed": 0,
+        "avg_score": 1.0
+      }
+    }
+  },
+  "metadata": {
+    "inspect_ai": {
+      "version": "0.3.276",
+      "policy": "spec-default",
+      "run_level": {
+        "status": "success",
+        "total_samples": 4,
+        "completed_samples": 1,
+        "scores": {
+          "exact": {
+            "accuracy": 0.6666666666666666
+          },
+          "flaky": {
+            "accuracy": 1.0
+          }
+        },
+        "scorer_order": [
+          "exact",
+          "flaky"
+        ]
+      }
+    }
+  }
+}
