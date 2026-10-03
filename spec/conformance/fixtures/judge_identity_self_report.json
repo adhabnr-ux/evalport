@@ -1,0 +1,59 @@
+{
+  "description": "PROPOSED (Discussion #118), not yet finalized. A runner executing llm_judge graders self-reports the judge identity it actually observed under metadata.openeval.judge on each GraderResult, as distinct from the model the suite requested in the grader's params.model. The first grader records a pinned model with a fingerprint and says how the fingerprint was computed; the second records that the temperature was inherited from the provider default rather than set. The first grader's fingerprint shape follows Proofspan's published docs (<model>@sha256:<hash of the provider model-card body>); the hash here is a placeholder, not a real digest, and this document was not produced by a run of Proofspan. Every key is optional and none is validated, so a conforming validator MUST ACCEPT this document; both validation paths do.",
+  "type": "resultset",
+  "expect": {
+    "valid": true
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_judge_identity",
+    "run_id": "run_judge_identity_001",
+    "started_at": "2026-10-03T12:00:00Z",
+    "results": [
+      {
+        "test_case_id": "tc_001",
+        "actual_output": "Paris is the capital of France.",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_faithfulness",
+            "type": "llm_judge",
+            "score": 0.9,
+            "passed": true,
+            "metadata": {
+              "openeval": {
+                "judge": {
+                  "model": "z-ai/glm-5.3",
+                  "provider": "integrate.api.nvidia.com",
+                  "fingerprint": "z-ai/glm-5.3@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+                  "fingerprint_method": "sha256 of the GET /v1/models/<id> response body",
+                  "temperature": 0,
+                  "temperature_source": "explicit",
+                  "prompt_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                  "prompt_basis": "template",
+                  "observed_at": "2026-10-03T12:00:03Z"
+                }
+              }
+            }
+          },
+          {
+            "grader_id": "gr_tone",
+            "type": "llm_judge",
+            "score": 1.0,
+            "passed": true,
+            "metadata": {
+              "openeval": {
+                "judge": {
+                  "model": "gpt-4o-2024-08-06",
+                  "provider": "api.openai.com",
+                  "temperature_source": "provider_default",
+                  "observed_at": "2026-10-03T12:00:04Z"
+                }
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
