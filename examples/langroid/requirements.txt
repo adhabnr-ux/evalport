@@ -1,0 +1,5 @@
+# The real Langroid package. The example runs its Task machinery with Langroid's own
+# MockLM (no network, no API key). The status codes asserted in the tests were observed
+# with this exact version; a different version may end a scenario in a different status.
+langroid==0.68.4
+pytest

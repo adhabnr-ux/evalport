@@ -1,0 +1,215 @@
+{
+  "$schema": "https://evalport.org/schema/resultset.json",
+  "version": "1.0.0",
+  "suite_id": "suite_langroid_task_states",
+  "run_id": "run_langroid_001",
+  "started_at": "2026-10-03T00:00:00Z",
+  "runner": {
+    "name": "langroid-example",
+    "version": "0.68.4"
+  },
+  "results": [
+    {
+      "test_case_id": "done_correct",
+      "actual_output": "4",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": 1,
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "metadata": {
+        "langroid": {
+          "status": "DONE",
+          "run_returned_none": false
+        }
+      }
+    },
+    {
+      "test_case_id": "done_wrong",
+      "actual_output": "5",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": 0,
+          "passed": false,
+          "reason": "Expected 4"
+        }
+      ],
+      "passed": false,
+      "metadata": {
+        "langroid": {
+          "status": "DONE",
+          "run_returned_none": false
+        }
+      }
+    },
+    {
+      "test_case_id": "fixed_turns",
+      "actual_output": "4",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": 1,
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "metadata": {
+        "langroid": {
+          "status": "FIXED_TURNS",
+          "run_returned_none": false
+        }
+      }
+    },
+    {
+      "test_case_id": "stalled",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": null,
+          "passed": false,
+          "reason": "not verified: Langroid ended the task as StatusCode.STALLED and Task.run() returned None (no result)"
+        }
+      ],
+      "passed": false,
+      "metadata": {
+        "langroid": {
+          "status": "STALLED",
+          "run_returned_none": true
+        },
+        "openeval": {
+          "aggregation_status": "unscored"
+        }
+      }
+    },
+    {
+      "test_case_id": "max_turns",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": null,
+          "passed": false,
+          "reason": "not verified: Langroid ended the task as StatusCode.MAX_TURNS and Task.run() returned None (no result)"
+        }
+      ],
+      "passed": false,
+      "metadata": {
+        "langroid": {
+          "status": "MAX_TURNS",
+          "run_returned_none": true
+        },
+        "openeval": {
+          "aggregation_status": "unscored"
+        }
+      }
+    },
+    {
+      "test_case_id": "timeout",
+      "actual_output": "still thinking",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": null,
+          "passed": false,
+          "reason": "not verified: Langroid ended the task as StatusCode.TIMEOUT, not as a finished task; the partial output is not treated as an answer"
+        }
+      ],
+      "passed": false,
+      "error": {
+        "type": "timeout",
+        "message": "Langroid StatusCode.TIMEOUT: run(max_time) elapsed",
+        "retryable": false
+      },
+      "metadata": {
+        "langroid": {
+          "status": "TIMEOUT",
+          "run_returned_none": false
+        },
+        "openeval": {
+          "aggregation_status": "unscored"
+        }
+      }
+    },
+    {
+      "test_case_id": "killed",
+      "actual_output": "partial work",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": null,
+          "passed": false,
+          "reason": "not verified: Langroid ended the task as StatusCode.KILL, not as a finished task; the partial output is not treated as an answer"
+        }
+      ],
+      "passed": false,
+      "metadata": {
+        "langroid": {
+          "status": "KILL",
+          "run_returned_none": false
+        },
+        "openeval": {
+          "aggregation_status": "unscored"
+        }
+      }
+    },
+    {
+      "test_case_id": "agent_raises",
+      "grader_results": [
+        {
+          "grader_id": "gr_exact",
+          "type": "exact_match",
+          "score": null,
+          "passed": false,
+          "reason": "not verified: Task.run raised RuntimeError: provider down"
+        }
+      ],
+      "passed": false,
+      "error": {
+        "type": "runner_error",
+        "message": "RuntimeError: provider down",
+        "retryable": false
+      },
+      "metadata": {
+        "langroid": {
+          "status": "EXCEPTION",
+          "run_returned_none": false
+        },
+        "openeval": {
+          "aggregation_status": "unscored"
+        }
+      }
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "passed": 2,
+    "failed": 1,
+    "skipped": 5,
+    "pass_rate": 0.25,
+    "avg_score": 0.6667,
+    "by_grader": {
+      "gr_exact": {
+        "passed": 2,
+        "failed": 1,
+        "avg_score": 0.6667
+      }
+    }
+  },
+  "metadata": {
+    "langroid": {
+      "version": "0.68.4",
+      "llm": "langroid MockLM (no network, no API key)",
+      "policy": "status-aware"
+    }
+  }
+}
