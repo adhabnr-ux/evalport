@@ -265,6 +265,77 @@ class TestDocuments:
 
 
 # --------------------------------------------------------------------------------------
+# The metadata-convention alternative to Result.verdict ("partial"; NOT in the spec)
+# --------------------------------------------------------------------------------------
+class TestPartialMarkerConvention:
+    """Discussion #49 names one competing option to a ``verdict`` field: extend
+    ``metadata.openeval.aggregation_status`` with ``"partial"``. These tests say what that
+    convention can and cannot do on the same rows, with the validator on ``main``."""
+
+    def test_marker_is_written_only_on_mixed_rows_and_only_when_asked(self, obs):
+        plain = by_id(m.build_documents(obs)[1])
+        marked = by_id(m.build_documents(obs, mark_partial=True)[1])
+        status = lambda r: r.get("metadata", {}).get("openeval", {}).get("aggregation_status")  # noqa: E731
+        assert {cid: status(r) for cid, r in plain.items()} == {"q1": None, "q2": None, "q3": None, "q4": "unscored"}
+        assert {cid: status(r) for cid, r in marked.items()} == {"q1": None, "q2": "partial", "q3": "partial", "q4": "unscored"}
+
+    @pytest.mark.parametrize("policy", m.POLICIES)
+    def test_marked_documents_validate_on_main(self, obs, policy):
+        """No schema or validator change is needed: the key is free-form metadata."""
+        suite, rs = m.build_documents(obs, policy=policy, mark_partial=True)
+        assert validate_suite(suite).valid
+        v = validate_result_set(rs)
+        assert v.valid, v.errors
+
+    def test_marker_only_changes_metadata(self, obs):
+        plain = m.build_documents(obs, deterministic=True)[1]
+        marked = m.build_documents(obs, deterministic=True, mark_partial=True)[1]
+        strip = lambda rs: [{k: v for k, v in r.items() if k != "metadata"} for r in rs["results"]]  # noqa: E731
+        assert strip(plain) == strip(marked)
+        assert plain["summary"] == marked["summary"]
+
+    def test_with_the_spec_default_aggregation_the_convention_recovers_the_true_situation(self, obs):
+        """The result that matters: on these rows, ``partial`` + Rule 6's ``unscored`` lets a
+        consumer reach the same classification ``verdict`` would give, without a new field."""
+        rs = m.build_documents(obs, policy="spec-default", mark_partial=True)[1]
+        got = {cid: m.convention_class(r) for cid, r in by_id(rs).items()}
+        want = {r.case_id: m.true_situation(r) for r in obs.rows}
+        assert got == want == {"q1": "passed", "q2": "unverified", "q3": "failed", "q4": "unverified"}
+
+    def test_but_the_reading_depends_on_an_aggregation_policy_the_document_does_not_declare(self, obs):
+        """Under fail-closed, the mixed row is ``passed: false`` + ``partial``, which the convention
+        must read as a verified failure; the row is in fact unverified. Nothing in the document
+        says which policy produced ``passed`` (fail-closed is not an ``openeval.aggregation``
+        strategy), so a consumer cannot know which reading applies. ``verdict`` is asserted by
+        the producer and does not have this problem."""
+        rs = m.build_documents(obs, policy="fail-closed", mark_partial=True)[1]
+        q2 = by_id(rs)["q2"]
+        assert q2["passed"] is False and q2["metadata"]["openeval"]["aggregation_status"] == "partial"
+        assert m.convention_class(q2) == "failed"
+        assert m.true_situation(next(r for r in obs.rows if r.case_id == "q2")) == "unverified"
+
+    def test_without_the_marker_the_convention_reads_like_rule6(self, obs):
+        rs = m.build_documents(obs, policy="spec-default")[1]
+        assert m.convention_class(by_id(rs)["q2"]) == "passed"   # the mixed row is invisible again
+
+    def test_the_marked_mixed_row_still_has_passed_true(self, obs):
+        """What the convention cannot do: the unverified row keeps ``passed: true``, so a consumer
+        that reads only ``passed`` (every consumer today) counts it as a pass. #49 would forbid
+        exactly this combination (``unverified`` requires ``passed: false``)."""
+        rs = m.build_documents(obs, policy="spec-default", mark_partial=True)[1]
+        assert by_id(rs)["q2"]["passed"] is True and m.convention_class(by_id(rs)["q2"]) == "unverified"
+
+    def test_cli_mark_partial_flag(self, tmp_path, capsys):
+        assert m.main(["--out-dir", str(tmp_path), "--framework", "deepeval", "--mark-partial", "--deterministic"]) == 0
+        out = capsys.readouterr().out
+        assert "mark_partial=True" in out and "unverified / failed" in out
+        rs = json.loads((tmp_path / "deepeval" / "results.json").read_text())
+        assert rs["metadata"]["deepeval"]["partial_marker"].startswith("metadata.openeval.aggregation_status")
+        assert by_id(rs)["q2"]["metadata"]["openeval"]["aggregation_status"] == "partial"
+        assert validate_result_set(rs).valid
+
+
+# --------------------------------------------------------------------------------------
 # Sample output must not go stale
 # --------------------------------------------------------------------------------------
 class TestSampleOutput:
@@ -345,6 +416,15 @@ class TestProposedVerdictRfc49Branch:
         rs = m.build_documents(inspect_obs, policy="fail-closed", proposed_verdict=True)[1]
         for cid in ("q2", "q4"):
             assert by_id(rs)[cid]["error"]["type"] == "runner_error" and by_id(rs)[cid]["verdict"] == "unverified"
+
+    def test_partial_marker_and_verdict_can_coexist_under_fail_closed(self, deepeval_obs):
+        """The two mechanisms are not exclusive: a producer can write both. #83 ignores the
+        metadata key, and the marker does not change ``passed``, so the fail-closed document is
+        still accepted and the spec-default one is still rejected on the mixed row."""
+        ok = m.build_documents(deepeval_obs, policy="fail-closed", proposed_verdict=True, mark_partial=True)[1]
+        assert self.validate(ok) == {"valid": True, "codes": []}
+        bad = m.build_documents(deepeval_obs, policy="spec-default", proposed_verdict=True, mark_partial=True)[1]
+        assert self.validate(bad) == {"valid": False, "codes": ["VERDICT_PASSED_MISMATCH"]}
 
 
 # --------------------------------------------------------------------------------------

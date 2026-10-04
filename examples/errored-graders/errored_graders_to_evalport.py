@@ -21,6 +21,16 @@ Policies (``--policy``)
     validator accepts this (the TypeScript one was not run), but SPEC.md's prose does not
     describe it: no ``openeval.aggregation`` strategy means "any missing grader fails the row".
 
+The metadata-convention alternative (``--mark-partial``)
+
+    The competing option to a ``Result.verdict`` field, named in Discussion #49, is a
+    ``metadata`` convention with no schema change: extend the existing
+    ``metadata.openeval.aggregation_status`` (``"unscored"`` = every grader null, Rule 6) with a
+    second value, ``"partial"`` = some but not all graders null. ``--mark-partial`` writes it,
+    and ``convention_class`` is what a consumer that knows the convention can conclude from a
+    Result. Both the field and the marker are in this module so the two can be compared on the
+    same rows. ``"partial"`` is NOT in the spec either.
+
 Not an official DeepEval or Inspect AI integration; nothing here has been proposed to, or
 reviewed by, either project.
 """
@@ -96,6 +106,44 @@ def verdict_for(row: Row) -> str:
     return true_situation(row)
 
 
+def aggregation_status(row: Row, mark_partial: bool) -> Optional[str]:
+    """``metadata.openeval.aggregation_status`` for a row.
+
+    ``"unscored"`` is the spec's own value (every grader null, Rule 6). ``"partial"`` is the
+    proposed extension of that key for a row in which some, but not all, graders are null; it
+    is written only with ``mark_partial`` and is NOT in the spec.
+    """
+    nulls = sum(1 for g in row.graders if g.score is None)
+    if nulls == len(row.graders):
+        return "unscored"
+    if nulls and mark_partial:
+        return "partial"
+    return None
+
+
+def convention_class(result: Dict[str, Any]) -> str:
+    """What a consumer that knows the ``"partial"`` convention can conclude from a Result.
+
+    It reads ``aggregation_status`` and ``passed`` and nothing else, and it assumes the producer
+    used the spec's default aggregation (``passed`` = AND of the scored graders), because that
+    is the only reading under which ``partial`` + ``passed: true`` means "nothing failed, but
+    not everything was measured":
+
+    * ``unscored``                      -> ``unverified``
+    * ``partial`` and ``passed: true``  -> ``unverified`` (the scored graders passed; the rest is unknown)
+    * ``partial`` and ``passed: false`` -> ``failed`` (a scored grader failed, so the AND cannot be rescued)
+    * no marker                         -> ``passed`` / ``failed`` from ``passed``
+
+    The same labels as ``true_situation`` / ``verdict_for``, so the three can be compared.
+    """
+    status = result.get("metadata", {}).get("openeval", {}).get("aggregation_status")
+    if status == "unscored":
+        return "unverified"
+    if status == "partial":
+        return "unverified" if result["passed"] else "failed"
+    return "passed" if result["passed"] else "failed"
+
+
 # --------------------------------------------------------------------------------------
 # Documents
 # --------------------------------------------------------------------------------------
@@ -140,7 +188,7 @@ def _grader_result(framework: str, g, expected: str, actual: str) -> Dict[str, A
     return gr
 
 
-def build_result(row: Row, policy: str, proposed_verdict: bool) -> Dict[str, Any]:
+def build_result(row: Row, policy: str, proposed_verdict: bool, mark_partial: bool = False) -> Dict[str, Any]:
     case = next(c for c in CASES if c["id"] == row.case_id)
     result: Dict[str, Any] = {
         "test_case_id": row.case_id,
@@ -149,8 +197,9 @@ def build_result(row: Row, policy: str, proposed_verdict: bool) -> Dict[str, Any
         "passed": result_passed(row, policy),
     }
     meta: Dict[str, Any] = {}
-    if all(g.score is None for g in row.graders):
-        meta["openeval"] = {"aggregation_status": "unscored"}
+    status = aggregation_status(row, mark_partial)
+    if status is not None:
+        meta["openeval"] = {"aggregation_status": status}
     fw_meta: Dict[str, Any] = {}
     if row.native_row_success is not None:
         fw_meta["native_row_success"] = row.native_row_success
@@ -204,12 +253,19 @@ def _now() -> str:
 
 
 def build_documents(
-    obs: Observation, *, policy: str = "spec-default", proposed_verdict: bool = False, deterministic: bool = False
+    obs: Observation,
+    *,
+    policy: str = "spec-default",
+    proposed_verdict: bool = False,
+    deterministic: bool = False,
+    mark_partial: bool = False,
 ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     if policy not in POLICIES:
         raise ValueError(f"policy must be one of {POLICIES}, got {policy!r}")
-    results = [build_result(r, policy, proposed_verdict) for r in obs.rows]
+    results = [build_result(r, policy, proposed_verdict, mark_partial) for r in obs.rows]
     fw_meta: Dict[str, Any] = {"version": obs.version, "policy": policy, "run_level": obs.run_level}
+    if mark_partial:
+        fw_meta["partial_marker"] = "metadata.openeval.aggregation_status: \"partial\" on rows with some null graders (not in the spec)"
     doc: Dict[str, Any] = {
         "$schema": "https://evalport.org/schema/resultset.json",
         "version": SPEC_VERSION,
@@ -227,19 +283,26 @@ def build_documents(
 
 
 def comparison_table(obs: Observation) -> str:
-    """One line per row: native, then both writings, each with Rule 6's reading and the verdict."""
+    """One line per row: native, both writings, Rule 6's reading, the ``partial`` convention's
+    reading of each writing, and the verdict."""
     spec = {r["test_case_id"]: r for r in build_documents(obs, policy="spec-default")[1]["results"]}
     closed = {r["test_case_id"]: r for r in build_documents(obs, policy="fail-closed")[1]["results"]}
-    header = f"{'row':<4} {'graders (exact, flaky)':<26} {'native':<8} {'spec-default':<14} {'fail-closed':<14} {'Rule 6 reads (spec-default)':<28} verdict would say"
+    spec_p = {r["test_case_id"]: r for r in build_documents(obs, policy="spec-default", mark_partial=True)[1]["results"]}
+    closed_p = {r["test_case_id"]: r for r in build_documents(obs, policy="fail-closed", mark_partial=True)[1]["results"]}
+    header = (
+        f"{'row':<4} {'graders (exact, flaky)':<26} {'native':<8} {'spec-default':<14} {'fail-closed':<14} "
+        f"{'Rule 6 reads (spec-default)':<28} {'partial marker reads (spec / closed)':<38} verdict would say"
+    )
     lines = [header, "-" * len(header)]
     for row in obs.rows:
         gs = ", ".join("null" if g.score is None else f"{g.score:g}" for g in row.graders)
         native = {True: "passed", False: "failed", None: "(none)"}[row.native_row_success]
+        marker = f"{convention_class(spec_p[row.case_id])} / {convention_class(closed_p[row.case_id])}"
         lines.append(
             f"{row.case_id:<4} {gs:<26} {native:<8} "
             f"{'passed' if spec[row.case_id]['passed'] else 'failed':<14} "
             f"{'passed' if closed[row.case_id]['passed'] else 'failed':<14} "
-            f"{rule6_class(spec[row.case_id]):<28} {verdict_for(row)}"
+            f"{rule6_class(spec[row.case_id]):<28} {marker:<38} {verdict_for(row)}"
         )
     return "\n".join(lines)
 
@@ -251,6 +314,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument("--policy", choices=POLICIES, default="spec-default")
     p.add_argument("--proposed-verdict", action="store_true",
                    help="add Result.verdict as proposed in EvalPort Discussion #49 (NOT in the spec)")
+    p.add_argument("--mark-partial", action="store_true",
+                   help='write metadata.openeval.aggregation_status: "partial" on rows with some null graders '
+                        "(the metadata-convention alternative to Result.verdict; NOT in the spec)")
     p.add_argument("--deterministic", action="store_true",
                    help="fixed started_at and no completed_at (for sample_output/ and diffs)")
     args = p.parse_args(argv)
@@ -261,7 +327,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     for name in names:
         obs = FRAMEWORKS[name]()
         suite, rs = build_documents(obs, policy=args.policy, proposed_verdict=args.proposed_verdict,
-                                    deterministic=args.deterministic)
+                                    deterministic=args.deterministic, mark_partial=args.mark_partial)
         for label, doc, fn in (("suite", suite, validate_suite), ("results", rs, validate_result_set)):
             v = fn(doc)
             if not v.valid:
@@ -272,7 +338,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         (out / "suite.json").write_text(json.dumps(suite, indent=2) + "\n")
         (out / "results.json").write_text(json.dumps(rs, indent=2) + "\n")
         s = rs["summary"]
-        print(f"== {name} {obs.version}   policy={args.policy}")
+        print(f"== {name} {obs.version}   policy={args.policy}   mark_partial={args.mark_partial}")
         print(comparison_table(obs))
         print(f"summary: total={s['total']} passed={s['passed']} failed={s['failed']} "
               f"skipped={s['skipped']} pass_rate={s['pass_rate']}")

@@ -108,11 +108,47 @@ Against, or at least not shown:
 
 - The errors are constructed (see the note at the top), and one grader that sometimes cannot run
   is not the same as measured judge-failure rates.
-- A `verdict` field is not the only way to say it. A metadata convention, for example a second
-  `aggregation_status` value for "some graders unscored", would also let a producer mark q2 without
-  a schema change. This example does not test that alternative.
+- A `verdict` field is not the only way to say it. A metadata convention, a second
+  `aggregation_status` value for "some graders unscored", also lets a producer mark q2 without a
+  schema change. `--mark-partial` tests that alternative; see the next section.
 - Inspect AI's logs do not say which scorer raised, so a converter cannot always attribute the error
   to a grader; it can only see which graders have no score.
+
+## The alternative: a `"partial"` marker in metadata (`--mark-partial`)
+
+Discussion #49 names its own competing option: no new field, just Rule 6 per grader plus a
+`metadata.openeval.*` key. The spec already has `metadata.openeval.aggregation_status: "unscored"`
+for an all-null row. `--mark-partial` extends it with `"partial"` on a row where some, but not all,
+graders are null. **`"partial"` is not in the spec either.** `convention_class()` is what a consumer
+that knows the convention can conclude from `passed` + `aggregation_status` alone.
+
+| row | graders | `spec-default` + marker | convention reads | `fail-closed` + marker | convention reads | in fact |
+|---|---|---|---|---|---|---|
+| q1 | 1, 1 | `passed: true` | passed | `passed: true` | passed | passed |
+| q2 | 1, null | `passed: true`, `partial` | **unverified** | `passed: false`, `partial` | **failed** | unverified |
+| q3 | 0, null | `passed: false`, `partial` | failed | `passed: false`, `partial` | failed | failed |
+| q4 | null, null | `passed: false`, `unscored` | unverified | `passed: false`, `unscored` | unverified | unverified |
+
+What the marker shows (all asserted in `TestPartialMarkerConvention`):
+
+- **It works, on these rows, with no schema or validator change.** With the spec's default
+  aggregation the convention recovers exactly the classification `verdict` would give on all four
+  rows. Both SDK validators on `main` accept the marked documents (the Python one in the tests, the
+  TypeScript one run by hand on the same files), and the marker changes nothing but `metadata`.
+- **Its reading depends on an aggregation policy the document does not declare.** Under
+  `fail-closed`, q2 is `passed: false` + `partial`, which the convention has to read as a verified
+  failure. Nothing in the document says which policy produced `passed` (`fail-closed` is not an
+  `openeval.aggregation` strategy), so a consumer cannot know which reading applies. A
+  producer-asserted `verdict` does not have this problem; it is the one thing the field buys that the
+  convention cannot.
+- **The unverified row keeps `passed: true`.** Every consumer that reads only `passed` (all of them,
+  today) counts q2 as a pass. #49 forbids exactly that combination, which is why its validator rejects
+  the `spec-default` writing (point 1 above). The marker and the field are not exclusive: a producer can
+  write both, and the opt-in #83 tests check that the marked `fail-closed` document is still accepted.
+- **Not shown here:** a row where a grader is null because nothing was sought (AgentEval's
+  `NotApplicable`, e.g. no ground truth to compare against) would also be marked `partial` + `passed:
+  true` and read as unverified, although the framework calls it a pass. The convention would need
+  the per-grader reason too, and so would `verdict`. See the AgentEval adapter's q5 for that row.
 
 What the PR #83 validator does with these documents (opt-in tests, below), which the RFC text does not address:
 
@@ -139,8 +175,9 @@ pip install -e ../../sdk/python -r requirements.txt        # from this directory
 python errored_graders_to_evalport.py --out-dir out         # out/<framework>/suite.json, results.json
 python errored_graders_to_evalport.py --out-dir out --policy fail-closed
 python errored_graders_to_evalport.py --out-dir out --proposed-verdict --policy fail-closed
+python errored_graders_to_evalport.py --out-dir out --mark-partial   # the metadata-convention alternative
 python observe.py                                           # just the raw observations
-python -m pytest -p no:cacheprovider .                      # 58 tests; 64 with the RFC #49 branch
+python -m pytest -p no:cacheprovider .                      # 75 tests; 82 with the RFC #49 branch
 ```
 
 `--deterministic` fixes `started_at` and omits `completed_at`; the checked-in
