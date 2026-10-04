@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>EvalPort.AgentEval.Tests</RootNamespace>
+    <!-- Where this repository's JSON Schemas live, relative to this project. -->
+    <EvalPortSchemaDir>$(MSBuildThisFileDirectory)../../../../schema/</EvalPortSchemaDir>
+    <EvalPortExamplesDir>$(MSBuildThisFileDirectory)../../../../examples/</EvalPortExamplesDir>
+    <EvalPortSampleOutputDir>$(MSBuildThisFileDirectory)../../sample_output/</EvalPortSampleOutputDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>EvalPortSchemaDir</_Parameter1>
+      <_Parameter2>$(EvalPortSchemaDir)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>EvalPortExamplesDir</_Parameter1>
+      <_Parameter2>$(EvalPortExamplesDir)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>EvalPortSampleOutputDir</_Parameter1>
+      <_Parameter2>$(EvalPortSampleOutputDir)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <!-- Same version AgentEval 0.42.0-beta depends on, so the test project does not bump a transitive dependency. -->
+    <PackageReference Include="JsonSchema.Net" Version="7.3.4" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/EvalPort.AgentEval/EvalPort.AgentEval.csproj" />
+    <ProjectReference Include="../../samples/EvalPort.AgentEval.Samples/EvalPort.AgentEval.Samples.csproj" />
+  </ItemGroup>
+
+</Project>

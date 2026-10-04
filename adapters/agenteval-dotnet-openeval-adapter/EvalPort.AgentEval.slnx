@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/EvalPort.AgentEval.Samples/EvalPort.AgentEval.Samples.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/EvalPort.AgentEval/EvalPort.AgentEval.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/EvalPort.AgentEval.Tests/EvalPort.AgentEval.Tests.csproj" />
+  </Folder>
+</Solution>
