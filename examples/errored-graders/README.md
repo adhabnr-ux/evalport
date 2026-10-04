@@ -154,3 +154,6 @@ EVALPORT_RFC49_CHECKOUT=$PWD/../rfc49-checkout python -m pytest -p no:cacheprovi
 
 The framework behaviors above were observed with the pinned versions; the first test class fails
 if a newer release changes them, which is the signal to re-check this page.
+
+The same four-row shape was later run through AgentEval (.NET) with its real `CompositeEval`; see
+[`adapters/agenteval-dotnet-openeval-adapter/`](../../adapters/agenteval-dotnet-openeval-adapter/#what-agenteval-does-when-one-of-two-graders-cannot-measure-a-case).

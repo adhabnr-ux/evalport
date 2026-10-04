@@ -1,5 +1,7 @@
 # agenteval-openeval-adapter
 
+> **Two different projects are called AgentEval.** This package is for [lokesh75-kank/agenteval](https://github.com/lokesh75-kank/agenteval) (TypeScript, determinism sampling). For [AgentEvalHQ/AgentEval](https://github.com/AgentEvalHQ/AgentEval), the .NET toolkit, see [`agenteval-dotnet-openeval-adapter`](../agenteval-dotnet-openeval-adapter/) (`EvalPort.AgentEval`).
+
 Export [AgentEval](https://github.com/lokesh75-kank/agenteval) determinism-sampling reports to [EvalPort](https://github.com/adhabnr-ux/evalport)'s `ResultSet` interchange format — the open standard for portable LLM evaluation results.
 
 This follows from [agenteval#13](https://github.com/lokesh75-kank/agenteval/issues/13), where maintainer [@lokesh75-kank](https://github.com/lokesh75-kank) confirmed the mapping against AgentEval's actual types and said: *"You're welcome to build the adapter against the public `agenteval-core` API; it's MIT and the `SuiteReport`/`ScenarioRunSummary` shapes are stable within 0.3.x."*

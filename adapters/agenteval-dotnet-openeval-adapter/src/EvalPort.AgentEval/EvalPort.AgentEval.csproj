@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <RootNamespace>EvalPort.AgentEval</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+    <PackageId>EvalPort.AgentEval</PackageId>
+    <Authors>Sahi Adharva Katukojula</Authors>
+    <Description>Write AgentEval (AgentEvalHQ/AgentEval, .NET) evaluation results as EvalPort ResultSet documents, and load EvalPort Suite files as AgentEval datasets. Implements AgentEval's IResultExporter and IDatasetLoader; carries MeasurementState (NotApplicable / NotMeasured) as EvalPort Validation Rule 6 null scores.</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/adhabnr-ux/evalport/tree/main/adapters/agenteval-dotnet-openeval-adapter</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/adhabnr-ux/evalport</RepositoryUrl>
+    <PackageTags>evalport;openeval;agenteval;evaluation;llm;agents;interchange</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The only published AgentEval package; AgentEval.Abstractions and AgentEval.Core are embedded in it.
+         Microsoft.Extensions.DependencyInjection.Abstractions arrives transitively through it. -->
+    <PackageReference Include="AgentEval" Version="0.42.0-beta" />
+  </ItemGroup>
+
+</Project>
