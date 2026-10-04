@@ -1,0 +1,152 @@
+{
+  "$schema": "https://evalport.org/schema/suite.json",
+  "version": "1.0.0",
+  "id": "suite_agenteval_errored_graders",
+  "name": "Errored graders in AgentEval",
+  "description": "Seven cases graded by a CompositeEval of an exact-answer AtomicCodeEval and an AtomicLlmEval whose judge is a canned chat client. The judge replies with no JSON on q2-q4 (AgentEval's \"error\" label), throws on q6 (the exception escapes the composite), and is skipped on q7; exact is skipped on q4 and inapplicable on q5. Variant: judge_optional.",
+  "graders": [
+    {
+      "id": "exact",
+      "type": "agenteval_atomic_code",
+      "params": {
+        "handler": "exact"
+      },
+      "description": "Exact answer (quality v1.0.0)"
+    },
+    {
+      "id": "judge",
+      "type": "agenteval_atomic_llm",
+      "params": {
+        "handler": "judge"
+      },
+      "description": "LLM judge (quality v1.0.0)"
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "q1",
+      "input": "What is 2+2? (q1)",
+      "expected_output": "4",
+      "graders": [
+        "exact",
+        "judge"
+      ],
+      "metadata": {
+        "agenteval": {
+          "metadata": {
+            "judge_behavior": "Pass",
+            "exact_behavior": "Run"
+          }
+        }
+      }
+    },
+    {
+      "id": "q2",
+      "input": "What is 2+2? (q2)",
+      "expected_output": "4",
+      "graders": [
+        "exact",
+        "judge"
+      ],
+      "metadata": {
+        "agenteval": {
+          "metadata": {
+            "judge_behavior": "Garbage",
+            "exact_behavior": "Run"
+          }
+        }
+      }
+    },
+    {
+      "id": "q3",
+      "input": "What is 2+2? (q3)",
+      "expected_output": "4",
+      "graders": [
+        "exact",
+        "judge"
+      ],
+      "metadata": {
+        "agenteval": {
+          "metadata": {
+            "judge_behavior": "Garbage",
+            "exact_behavior": "Run"
+          }
+        }
+      }
+    },
+    {
+      "id": "q4",
+      "input": "What is 2+2? (q4)",
+      "expected_output": "4",
+      "graders": [
+        "exact",
+        "judge"
+      ],
+      "metadata": {
+        "agenteval": {
+          "metadata": {
+            "judge_behavior": "Garbage",
+            "exact_behavior": "Skip"
+          }
+        }
+      }
+    },
+    {
+      "id": "q5",
+      "input": "What is 2+2? (q5)",
+      "graders": [
+        "exact",
+        "judge"
+      ],
+      "metadata": {
+        "agenteval": {
+          "metadata": {
+            "judge_behavior": "Pass",
+            "exact_behavior": "Run"
+          }
+        }
+      }
+    },
+    {
+      "id": "q6",
+      "input": "What is 2+2? (q6)",
+      "expected_output": "4",
+      "graders": [
+        "exact",
+        "judge"
+      ],
+      "metadata": {
+        "agenteval": {
+          "metadata": {
+            "judge_behavior": "Throw",
+            "exact_behavior": "Run"
+          }
+        }
+      }
+    },
+    {
+      "id": "q7",
+      "input": "What is 2+2? (q7)",
+      "expected_output": "4",
+      "graders": [
+        "exact",
+        "judge"
+      ],
+      "metadata": {
+        "agenteval": {
+          "metadata": {
+            "judge_behavior": "Skipped",
+            "exact_behavior": "Run"
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "agenteval": {
+      "version": "0.42.0-beta",
+      "exporter": "EvalPort.AgentEval",
+      "exporter_version": "0.1.0-beta"
+    }
+  }
+}

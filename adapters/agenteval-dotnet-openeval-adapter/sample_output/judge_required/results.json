@@ -1,0 +1,796 @@
+{
+  "$schema": "https://evalport.org/schema/resultset.json",
+  "version": "1.0.0",
+  "suite_id": "suite_agenteval_errored_graders",
+  "run_id": "run_agenteval_errored_graders_judge_required",
+  "started_at": "2026-10-04T00:00:00Z",
+  "runner": {
+    "name": "AgentEval",
+    "version": "0.42.0-beta"
+  },
+  "results": [
+    {
+      "test_case_id": "q1",
+      "actual_output": "4",
+      "grader_results": [
+        {
+          "grader_id": "exact",
+          "type": "agenteval_atomic_code",
+          "score": 1,
+          "passed": true,
+          "metadata": {
+            "agenteval": {
+              "name": "Exact answer",
+              "category": "quality",
+              "version": "1.0.0",
+              "label": "pass",
+              "severity": "none",
+              "measurement": "measured",
+              "value": 1,
+              "evaluated_at": "2026-10-04T00:00:00Z",
+              "provenance": {
+                "type": "atomic-code",
+                "estimated_cost": 0,
+                "cache_hit": false
+              }
+            }
+          }
+        },
+        {
+          "grader_id": "judge",
+          "type": "agenteval_atomic_llm",
+          "score": 1,
+          "passed": true,
+          "reason": "The answer is correct.",
+          "metadata": {
+            "agenteval": {
+              "name": "LLM judge",
+              "category": "quality",
+              "version": "1.0.0",
+              "label": "pass",
+              "severity": "none",
+              "measurement": "measured",
+              "value": 1,
+              "threshold": 0.7,
+              "evaluated_at": "2026-10-04T00:00:00Z",
+              "provenance": {
+                "type": "atomic-llm",
+                "judge_model": "canned-judge",
+                "prompt_id": "agenteval.judge.default-system.v1",
+                "prompt_hash": "ec5f9a4be9894eb7",
+                "estimated_cost": 0,
+                "cache_hit": false
+              },
+              "dimensions": {
+                "answers the question correctly": 1
+              },
+              "evidence": [
+                {
+                  "source": "criterion",
+                  "reference": "answers the question correctly",
+                  "message": "4 is right"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "passed": true,
+      "metadata": {
+        "agenteval": {
+          "verdicts": [
+            {
+              "key": "answer_quality",
+              "label": "pass",
+              "passed": true,
+              "severity": "none",
+              "measurement": "measured",
+              "value": 1,
+              "provenance_type": "composite",
+              "aggregation_strategy": "WeightedSum",
+              "components": [
+                {
+                  "key": "exact",
+                  "label": "pass",
+                  "passed": true,
+                  "severity": "none",
+                  "measurement": "measured",
+                  "value": 1
+                },
+                {
+                  "key": "judge",
+                  "label": "pass",
+                  "passed": true,
+                  "severity": "none",
+                  "measurement": "measured",
+                  "value": 1,
+                  "threshold": 0.7,
+                  "summary": "The answer is correct."
+                }
+              ]
+            }
+          ],
+          "census": {
+            "measured": 2,
+            "not_applicable": 0,
+            "not_measured": 0
+          }
+        }
+      }
+    },
+    {
+      "test_case_id": "q2",
+      "actual_output": "4",
+      "grader_results": [
+        {
+          "grader_id": "exact",
+          "type": "agenteval_atomic_code",
+          "score": 1,
+          "passed": true,
+          "metadata": {
+            "agenteval": {
+              "name": "Exact answer",
+              "category": "quality",
+              "version": "1.0.0",
+              "label": "pass",
+              "severity": "none",
+              "measurement": "measured",
+              "value": 1,
+              "evaluated_at": "2026-10-04T00:00:00Z",
+              "provenance": {
+                "type": "atomic-code",
+                "estimated_cost": 0,
+                "cache_hit": false
+              }
+            }
+          }
+        },
+        {
+          "grader_id": "judge",
+          "type": "agenteval_atomic_llm",
+          "score": null,
+          "passed": false,
+          "reason": "Failed to parse evaluation result",
+          "metadata": {
+            "agenteval": {
+              "name": "LLM judge",
+              "category": "quality",
+              "version": "1.0.0",
+              "label": "error",
+              "severity": "none",
+              "measurement": "notMeasured",
+              "value": 0,
+              "threshold": 0.7,
+              "evaluated_at": "2026-10-04T00:00:00Z",
+              "provenance": {
+                "type": "atomic-llm",
+                "judge_model": "canned-judge",
+                "prompt_id": "agenteval.judge.default-system.v1",
+                "prompt_hash": "ec5f9a4be9894eb7",
+                "estimated_cost": 0,
+                "cache_hit": false
+              },
+              "evidence": [
+                {
+                  "source": "evaluation-error",
+                  "reference": "judge",
+                  "message": "Failed to parse evaluation result"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "passed": false,
+      "metadata": {
+        "agenteval": {
+          "verdicts": [
+            {
+              "key": "answer_quality",
+              "label": "error",
+              "passed": false,
+              "severity": "none",
+              "measurement": "notMeasured",
+              "value": 1,
+              "summary": "A required component errored, so no pass/fail verdict is reported. Measured 1 of 2 component(s); 1 produced no measurement (0 skipped or not measured, 0 inapplicable, 1 errored).",
+              "provenance_type": "composite",
+              "aggregation_strategy": "WeightedSum",
+              "components": [
+                {
+                  "key": "exact",
+                  "label": "pass",
+                  "passed": true,
+                  "severity": "none",
+                  "measurement": "measured",
+                  "value": 1
+                },
+                {
+                  "key": "judge",
+                  "label": "error",
+                  "passed": false,
+                  "severity": "none",
+                  "measurement": "notMeasured",
+                  "value": 0,
+                  "threshold": 0.7,
+                  "summary": "Failed to parse evaluation result"
+                }
+              ]
+            }
+          ],
+          "census": {
+            "measured": 1,
+            "not_applicable": 0,
+            "not_measured": 1
+          }
+        }
+      }
+    },
+    {
+      "test_case_id": "q3",
+      "actual_output": "5",
+      "grader_results": [
+        {
+          "grader_id": "exact",
+          "type": "agenteval_atomic_code",
+          "score": 0,
+          "passed": false,
+          "metadata": {
+            "agenteval": {
+              "name": "Exact answer",
+              "category": "quality",
+              "version": "1.0.0",
+              "label": "fail",
+              "severity": "high",
+              "measurement": "measured",
+              "value": 0,
+              "evaluated_at": "2026-10-04T00:00:00Z",
+              "provenance": {
+                "type": "atomic-code",
+                "estimated_cost": 0,
+                "cache_hit": false
+              }
+            }
+          }
+        },
+        {
+          "grader_id": "judge",
+          "type": "agenteval_atomic_llm",
+          "score": null,
+          "passed": false,
+          "reason": "Failed to parse evaluation result",
+          "metadata": {
+            "agenteval": {
+              "name": "LLM judge",
+              "category": "quality",
+              "version": "1.0.0",
+              "label": "error",
+              "severity": "none",
+              "measurement": "notMeasured",
+              "value": 0,
+              "threshold": 0.7,
+              "evaluated_at": "2026-10-04T00:00:00Z",
+              "provenance": {
+                "type": "atomic-llm",
+                "judge_model": "canned-judge",
+                "prompt_id": "agenteval.judge.default-system.v1",
+                "prompt_hash": "ec5f9a4be9894eb7",
+                "estimated_cost": 0,
+                "cache_hit": false
+              },
+              "evidence": [
+                {
+                  "source": "evaluation-error",
+                  "reference": "judge",
+                  "message": "Failed to parse evaluation result"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "passed": false,
+      "metadata": {
+        "agenteval": {
+          "verdicts": [
+            {
+              "key": "answer_quality",
+              "label": "error",
+              "passed": false,
+              "severity": "high",
+              "measurement": "notMeasured",
+              "value": 0,
+              "summary": "A required component errored, so no pass/fail verdict is reported. Measured 1 of 2 component(s); 1 produced no measurement (0 skipped or not measured, 0 inapplicable, 1 errored).",
+              "provenance_type": "composite",
+              "aggregation_strategy": "WeightedSum",
+              "components": [
+                {
+                  "key": "exact",
+                  "label": "fail",
+                  "passed": false,
+                  "severity": "high",
+                  "measurement": "measured",
+                  "value": 0
+                },
+                {
+                  "key": "judge",
+                  "label": "error",
+                  "passed": false,
+                  "severity": "none",
+                  "measurement": "notMeasured",
+                  "value": 0,
+                  "threshold": 0.7,
+                  "summary": "Failed to parse evaluation result"
+                }
+              ]
+            }
+          ],
+          "census": {
+            "measured": 1,
+            "not_applicable": 0,
+            "not_measured": 1
+          }
+        }
+      }
+    },
+    {
+      "test_case_id": "q4",
+      "actual_output": "4",
+      "grader_results": [
+        {
+          "grader_id": "exact",
+          "type": "agenteval_eval",
+          "score": null,
+          "passed": false,
+          "reason": "exact grader disabled for this case",
+          "metadata": {
+            "agenteval": {
+              "name": "Exact answer",
+              "category": "quality",
+              "version": "1.0.0",
+              "label": "skipped",
+              "severity": "none",
+              "measurement": "notMeasured",
+              "value": 0,
+              "evaluated_at": "2026-10-04T00:00:00Z",
+              "provenance": {
+                "type": "skipped",
+                "estimated_cost": 0,
+                "cache_hit": false
+              },
+              "recommendations": [
+                "exact grader disabled for this case"
+              ]
+            }
+          }
+        },
+        {
+          "grader_id": "judge",
+          "type": "agenteval_atomic_llm",
+          "score": null,
+          "passed": false,
+          "reason": "Failed to parse evaluation result",
+          "metadata": {
+            "agenteval": {
+              "name": "LLM judge",
+              "category": "quality",
+              "version": "1.0.0",
+              "label": "error",
+              "severity": "none",
+              "measurement": "notMeasured",
+              "value": 0,
+              "threshold": 0.7,
+              "evaluated_at": "2026-10-04T00:00:00Z",
+              "provenance": {
+                "type": "atomic-llm",
+                "judge_model": "canned-judge",
+                "prompt_id": "agenteval.judge.default-system.v1",
+                "prompt_hash": "ec5f9a4be9894eb7",
+                "estimated_cost": 0,
+                "cache_hit": false
+              },
+              "evidence": [
+                {
+                  "source": "evaluation-error",
+                  "reference": "judge",
+                  "message": "Failed to parse evaluation result"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "passed": false,
+      "metadata": {
+        "openeval": {
+          "aggregation_status": "unscored"
+        },
+        "agenteval": {
+          "verdicts": [
+            {
+              "key": "answer_quality",
+              "label": "error",
+              "passed": false,
+              "severity": "none",
+              "measurement": "notMeasured",
+              "value": 0,
+              "provenance_type": "composite",
+              "aggregation_strategy": "WeightedSum",
+              "components": [
+                {
+                  "key": "exact",
+                  "label": "skipped",
+                  "passed": false,
+                  "severity": "none",
+                  "measurement": "notMeasured",
+                  "value": 0,
+                  "summary": "exact grader disabled for this case"
+                },
+                {
+                  "key": "judge",
+                  "label": "error",
+                  "passed": false,
+                  "severity": "none",
+                  "measurement": "notMeasured",
+                  "value": 0,
+                  "threshold": 0.7,
+                  "summary": "Failed to parse evaluation result"
+                }
+              ]
+            }
+          ],
+          "census": {
+            "measured": 0,
+            "not_applicable": 0,
+            "not_measured": 2
+          }
+        }
+      }
+    },
+    {
+      "test_case_id": "q5",
+      "actual_output": "4",
+      "grader_results": [
+        {
+          "grader_id": "exact",
+          "type": "agenteval_atomic_code",
+          "score": null,
+          "passed": false,
+          "reason": "no ground truth supplied for this case",
+          "metadata": {
+            "agenteval": {
+              "name": "Exact answer",
+              "category": "quality",
+              "version": "1.0.0",
+              "label": "inapplicable",
+              "severity": "none",
+              "measurement": "notApplicable",
+              "value": 0,
+              "evaluated_at": "2026-10-04T00:00:00Z",
+              "provenance": {
+                "type": "atomic-code",
+                "estimated_cost": 0,
+                "cache_hit": false
+              },
+              "recommendations": [
+                "no ground truth supplied for this case"
+              ]
+            }
+          }
+        },
+        {
+          "grader_id": "judge",
+          "type": "agenteval_atomic_llm",
+          "score": 1,
+          "passed": true,
+          "reason": "The answer is correct.",
+          "metadata": {
+            "agenteval": {
+              "name": "LLM judge",
+              "category": "quality",
+              "version": "1.0.0",
+              "label": "pass",
+              "severity": "none",
+              "measurement": "measured",
+              "value": 1,
+              "threshold": 0.7,
+              "evaluated_at": "2026-10-04T00:00:00Z",
+              "provenance": {
+                "type": "atomic-llm",
+                "judge_model": "canned-judge",
+                "prompt_id": "agenteval.judge.default-system.v1",
+                "prompt_hash": "ec5f9a4be9894eb7",
+                "estimated_cost": 0,
+                "cache_hit": false
+              },
+              "dimensions": {
+                "answers the question correctly": 1
+              },
+              "evidence": [
+                {
+                  "source": "criterion",
+                  "reference": "answers the question correctly",
+                  "message": "4 is right"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "passed": true,
+      "metadata": {
+        "agenteval": {
+          "verdicts": [
+            {
+              "key": "answer_quality",
+              "label": "pass",
+              "passed": true,
+              "severity": "none",
+              "measurement": "measured",
+              "value": 1,
+              "summary": "Measured 1 of 2 component(s); 1 left out of the score (0 skipped or not measured, 1 inapplicable, 0 errored), so this verdict covers only the measured part.",
+              "provenance_type": "composite",
+              "aggregation_strategy": "WeightedSum",
+              "components": [
+                {
+                  "key": "exact",
+                  "label": "inapplicable",
+                  "passed": false,
+                  "severity": "none",
+                  "measurement": "notApplicable",
+                  "value": 0,
+                  "summary": "no ground truth supplied for this case"
+                },
+                {
+                  "key": "judge",
+                  "label": "pass",
+                  "passed": true,
+                  "severity": "none",
+                  "measurement": "measured",
+                  "value": 1,
+                  "threshold": 0.7,
+                  "summary": "The answer is correct."
+                }
+              ]
+            }
+          ],
+          "census": {
+            "measured": 1,
+            "not_applicable": 1,
+            "not_measured": 0
+          }
+        }
+      }
+    },
+    {
+      "test_case_id": "q6",
+      "actual_output": "4",
+      "grader_results": [
+        {
+          "grader_id": "exact",
+          "type": "agenteval_eval",
+          "score": null,
+          "passed": false,
+          "reason": "not run: the case errored before grading",
+          "metadata": {
+            "agenteval": {
+              "name": "Exact answer",
+              "category": "quality",
+              "version": "1.0.0",
+              "label": "skipped",
+              "severity": "none",
+              "measurement": "notMeasured",
+              "value": 0,
+              "evaluated_at": "2026-10-04T00:00:00Z",
+              "provenance": {
+                "type": "skipped",
+                "estimated_cost": 0,
+                "cache_hit": false
+              },
+              "recommendations": [
+                "not run: the case errored before grading"
+              ]
+            }
+          }
+        },
+        {
+          "grader_id": "judge",
+          "type": "agenteval_eval",
+          "score": null,
+          "passed": false,
+          "reason": "not run: the case errored before grading",
+          "metadata": {
+            "agenteval": {
+              "name": "LLM judge",
+              "category": "quality",
+              "version": "1.0.0",
+              "label": "skipped",
+              "severity": "none",
+              "measurement": "notMeasured",
+              "value": 0,
+              "evaluated_at": "2026-10-04T00:00:00Z",
+              "provenance": {
+                "type": "skipped",
+                "estimated_cost": 0,
+                "cache_hit": false
+              },
+              "recommendations": [
+                "not run: the case errored before grading"
+              ]
+            }
+          }
+        }
+      ],
+      "passed": false,
+      "error": {
+        "type": "runner_error",
+        "message": "judge endpoint unreachable",
+        "retryable": false
+      },
+      "metadata": {
+        "openeval": {
+          "aggregation_status": "unscored"
+        },
+        "agenteval": {
+          "verdicts": [
+            {
+              "key": "exact",
+              "label": "skipped",
+              "passed": false,
+              "severity": "none",
+              "measurement": "notMeasured",
+              "value": 0,
+              "summary": "not run: the case errored before grading"
+            },
+            {
+              "key": "judge",
+              "label": "skipped",
+              "passed": false,
+              "severity": "none",
+              "measurement": "notMeasured",
+              "value": 0,
+              "summary": "not run: the case errored before grading"
+            }
+          ],
+          "census": {
+            "measured": 0,
+            "not_applicable": 0,
+            "not_measured": 2
+          },
+          "error_type": "System.InvalidOperationException"
+        }
+      }
+    },
+    {
+      "test_case_id": "q7",
+      "actual_output": "4",
+      "grader_results": [
+        {
+          "grader_id": "exact",
+          "type": "agenteval_atomic_code",
+          "score": 1,
+          "passed": true,
+          "metadata": {
+            "agenteval": {
+              "name": "Exact answer",
+              "category": "quality",
+              "version": "1.0.0",
+              "label": "pass",
+              "severity": "none",
+              "measurement": "measured",
+              "value": 1,
+              "evaluated_at": "2026-10-04T00:00:00Z",
+              "provenance": {
+                "type": "atomic-code",
+                "estimated_cost": 0,
+                "cache_hit": false
+              }
+            }
+          }
+        },
+        {
+          "grader_id": "judge",
+          "type": "agenteval_eval",
+          "score": null,
+          "passed": false,
+          "reason": "judge skipped by budget filter",
+          "metadata": {
+            "agenteval": {
+              "name": "LLM judge",
+              "category": "quality",
+              "version": "1.0.0",
+              "label": "skipped",
+              "severity": "none",
+              "measurement": "notMeasured",
+              "value": 0,
+              "evaluated_at": "2026-10-04T00:00:00Z",
+              "provenance": {
+                "type": "skipped",
+                "estimated_cost": 0,
+                "cache_hit": false
+              },
+              "recommendations": [
+                "judge skipped by budget filter"
+              ]
+            }
+          }
+        }
+      ],
+      "passed": true,
+      "metadata": {
+        "agenteval": {
+          "verdicts": [
+            {
+              "key": "answer_quality",
+              "label": "pass",
+              "passed": true,
+              "severity": "none",
+              "measurement": "measured",
+              "value": 1,
+              "summary": "Measured 1 of 2 component(s); 1 left out of the score (1 skipped or not measured, 0 inapplicable, 0 errored), so this verdict covers only the measured part.",
+              "provenance_type": "composite",
+              "aggregation_strategy": "WeightedSum",
+              "components": [
+                {
+                  "key": "exact",
+                  "label": "pass",
+                  "passed": true,
+                  "severity": "none",
+                  "measurement": "measured",
+                  "value": 1
+                },
+                {
+                  "key": "judge",
+                  "label": "skipped",
+                  "passed": false,
+                  "severity": "none",
+                  "measurement": "notMeasured",
+                  "value": 0,
+                  "summary": "judge skipped by budget filter"
+                }
+              ]
+            }
+          ],
+          "census": {
+            "measured": 1,
+            "not_applicable": 0,
+            "not_measured": 1
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "total": 7,
+    "passed": 3,
+    "failed": 2,
+    "skipped": 2,
+    "pass_rate": 0.4286,
+    "avg_score": 0.8333,
+    "by_grader": {
+      "exact": {
+        "passed": 3,
+        "failed": 1,
+        "avg_score": 0.75
+      },
+      "judge": {
+        "passed": 2,
+        "failed": 0,
+        "avg_score": 1
+      }
+    }
+  },
+  "metadata": {
+    "agenteval": {
+      "version": "0.42.0-beta",
+      "exporter": "EvalPort.AgentEval",
+      "exporter_version": "0.1.0-beta",
+      "passed_semantics": "Result.passed is AgentEval's own verdict (AND of Score.Passed over the case's top-level results); null-scored graders are not re-aggregated by this exporter",
+      "run": {
+        "variant": "judge_required",
+        "judge_required": true,
+        "aggregation": "WeightedSum, threshold null (severity-driven verdict), MinimumMeasuredShare 0.5",
+        "llm": "none (FakeChatClient with canned replies, no network)"
+      }
+    }
+  }
+}
