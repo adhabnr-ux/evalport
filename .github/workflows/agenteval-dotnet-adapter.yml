@@ -1,0 +1,92 @@
+name: AgentEval (.NET) adapter
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'adapters/agenteval-dotnet-openeval-adapter/**'
+      - 'schema/**'
+      - 'sdk/python/**'
+      - '.github/workflows/agenteval-dotnet-adapter.yml'
+  pull_request:
+    paths:
+      - 'adapters/agenteval-dotnet-openeval-adapter/**'
+      - 'schema/**'
+      - 'sdk/python/**'
+      - '.github/workflows/agenteval-dotnet-adapter.yml'
+
+defaults:
+  run:
+    working-directory: adapters/agenteval-dotnet-openeval-adapter
+
+jobs:
+  agenteval-dotnet:
+    # adapters/agenteval-dotnet-openeval-adapter -- EvalPort.AgentEval, a .NET package implementing AgentEval's
+    # IResultExporter and IDatasetLoader against the published AgentEval 0.42.0-beta NuGet. The tests drive
+    # AgentEval's real CompositeEval / AtomicLlmEval with a canned chat client (no network or API key), validate
+    # every document against schema/*.json, and compare the regenerated sample_output/ byte for byte. The
+    # Python steps then run this repo's SDK validator over the same files, and the Result.verdict (Discussion #49)
+    # variant against the PR #83 reference validator.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: adapters/agenteval-dotnet-openeval-adapter/global.json
+      - name: Restore, build and test (xunit, 67 tests)
+        run: dotnet test --configuration Release
+      - name: Regenerate the sample output and check it is unchanged
+        run: |
+          dotnet run --configuration Release --project samples/EvalPort.AgentEval.Samples -- --out-dir "$RUNNER_TEMP/ae" --deterministic --quiet
+          dotnet run --configuration Release --no-build --project samples/EvalPort.AgentEval.Samples -- --out-dir "$RUNNER_TEMP/ae" --deterministic --proposed-verdict --quiet
+          diff -ru sample_output "$RUNNER_TEMP/ae"
+      - name: Pack (not published)
+        run: dotnet pack src/EvalPort.AgentEval --configuration Release -o "$RUNNER_TEMP/pkg"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install evalport-sdk from this checkout
+        working-directory: .
+        run: pip install -e sdk/python
+      - name: Validate sample_output with the Python SDK on this branch
+        run: |
+          python - <<'EOF'
+          import glob, json, os, sys
+          from openeval.validate import validate_result_set, validate_suite
+          failed = False
+          for d in sorted(glob.glob("sample_output/**/", recursive=True)):
+              if not os.path.exists(os.path.join(d, "suite.json")):
+                  continue
+              vs = validate_suite(json.load(open(os.path.join(d, "suite.json"))))
+              vr = validate_result_set(json.load(open(os.path.join(d, "results.json"))))
+              print(d, "suite", vs.valid, "results", vr.valid, [e.code for e in vs.errors + vr.errors])
+              failed |= not (vs.valid and vr.valid)
+          sys.exit(1 if failed else 0)
+          EOF
+      - name: Validate the proposed-verdict output with the PR #83 reference validator
+        working-directory: .
+        run: |
+          git fetch --no-tags origin pull/83/head:rfc49
+          git worktree add "$RUNNER_TEMP/rfc49" rfc49
+          PYTHONPATH="$RUNNER_TEMP/rfc49/sdk/python" python - <<'EOF'
+          import copy, glob, json, os, sys
+          import openeval.validate as validate
+          from openeval.validate import validate_result_set
+          # Make sure the #83 validator is the one that loaded, not the one installed from this branch.
+          assert "VERDICT_PASSED_MISMATCH" in open(validate.__file__).read(), validate.__file__
+          def codes(v): return sorted({(e["code"] if isinstance(e, dict) else e.code) for e in v.errors})
+          base = "adapters/agenteval-dotnet-openeval-adapter/sample_output/proposed-verdict/"
+          ok = True
+          for d in sorted(glob.glob(base + "*/")):
+              r = json.load(open(os.path.join(d, "results.json")))
+              v = validate_result_set(r)
+              print(d, "valid:", v.valid, codes(v)); ok &= v.valid
+              rows = {x["test_case_id"]: i for i, x in enumerate(r["results"])}
+              # q1 passed:true -> unverified must be VERDICT_PASSED_MISMATCH; q6 (error row) -> failed must be VERDICT_ERROR_CONFLICT
+              bad = copy.deepcopy(r); bad["results"][rows["q1"]]["verdict"] = "unverified"
+              c = codes(validate_result_set(bad)); print("  q1->unverified:", c); ok &= c == ["VERDICT_PASSED_MISMATCH"]
+              bad = copy.deepcopy(r); bad["results"][rows["q6"]]["verdict"] = "failed"
+              c = codes(validate_result_set(bad)); print("  q6->failed:", c); ok &= c == ["VERDICT_ERROR_CONFLICT"]
+          sys.exit(0 if ok else 1)
+          EOF
