@@ -56,7 +56,7 @@ From Rule 6 on `main`, and the two reference branches:
 |---|---|---|
 | Not verified, no `error` | [`examples/langroid/`](../../examples/langroid/): Langroid's `STALLED`, `MAX_TURNS` and `KILL` statuses (real runtime, mocked LLM). | Not a measurement of how often real agents stall. |
 | Not verified, with `error` | Same example: `TIMEOUT` (`error.type: "timeout"`). Also #49's conformance fixtures from a real `agent-watch` stall line. | |
-| Partly verified (some graders scored, one did not) | [`examples/errored-graders/`](../../examples/errored-graders/): real DeepEval 4.2.8 and Inspect AI 0.3.276 runs with a grader that raises. DeepEval marks the row failed; Inspect AI keeps the scores that were produced and records the error on the sample. Judgeval 1.3.3 was read, not run. | The errors are constructed (no LLM, canned outputs), so the proportions mean nothing about real judges. |
+| Partly verified (some graders scored, one did not) | [`examples/errored-graders/`](../../examples/errored-graders/): real DeepEval 4.2.8 and Inspect AI 0.3.276 runs with a grader that raises. DeepEval marks the row failed; Inspect AI keeps the scores that were produced and records the error on the sample. Judgeval 1.3.3 was read, not run. [`adapters/agenteval-dotnet-openeval-adapter/`](../../adapters/agenteval-dotnet-openeval-adapter/): real AgentEval 0.42.0-beta `CompositeEval` runs with a judge whose canned reply has no JSON. AgentEval's verdict depends on whether the errored component was declared `Required`: required gives an `error` label (no verdict, `passed: false`), optional gives `pass` with a note saying 1 of 2 components was measured. A judge whose transport throws takes the whole case down instead (no result). | The errors are constructed (no LLM, canned outputs), so the proportions mean nothing about real judges. |
 | Hard constraint | Discussion #47's worked example. **Waiting** on a fixture generated from a real AOBench run, which AOBench's maintainer offered to contribute. | No real-output fixture yet. |
 | Verified failure vs. not verified, side by side | `examples/langroid/`: the same eight runs written both ways. The pass rate is identical (0.25); the failure count is 1 vs. 6 and `avg_score` is 0.667 vs. 0.25. | Constructed runs, so the proportions mean nothing. |
 
@@ -70,6 +70,8 @@ has no real-run example of the scored-but-unverified case yet, which is the evid
 RFC is still missing.
 
 A second finding points the other way. In the `examples/errored-graders/` runs, a row where one grader scored a pass and another produced no score is exactly that case: under the spec's default aggregation it is `passed: true`, under DeepEval's own behavior it is `false` (pass rate 0.5 vs 0.25 on the same four rows, both documents valid), and Rule 6 has no name for it. It is still the author's own constructed example, so it does not meet the landing bar proposed on the Discussion, and a metadata convention could mark the row too. It also shows that the underlying question is aggregation, which exists with or without a `verdict` field.
+
+A third framework splits the difference. AgentEval (`adapters/agenteval-dotnet-openeval-adapter/`, real runs) makes the same mixed row `pass` when the unmeasured component was optional and `error` (no verdict) when it was required, declared per component on the eval definition, and writes how much of the verdict was measured into the result either way. Its result-level `error` label is a verdict value EvalPort does not have: on the EvalPort side it can only be `passed: false`, which a reader must take as "verified failing" when any grader scored. The package writes that label under `metadata.agenteval`, which is the convention alternative to #49 in practice. Still the author's own example, built against the published package after the maintainer named the extension points; not reviewed by AgentEval.
 
 ## Open questions this page does not settle
 
@@ -85,7 +87,7 @@ A second finding points the other way. In the `examples/errored-graders/` runs, 
 4. Should `verdict` be all-or-none within a `ResultSet`, rather than a SHOULD?
 5. Does a rate-based grader need an unverified-trials count next to `trials` / `successes`
    ([Discussion #67](https://github.com/adhabnr-ux/evalport/discussions/67))?
-6. For a Result where some graders scored and one produced none, should `Result.passed` default to the AND of the scored graders (the spec's text) or to `false` (DeepEval's behavior)? #49's rule that `unverified` requires `passed: false` assumes the latter without saying so.
+6. For a Result where some graders scored and one produced none, should `Result.passed` default to the AND of the scored graders (the spec's text) or to `false` (DeepEval's behavior)? #49's rule that `unverified` requires `passed: false` assumes the latter without saying so. AgentEval's answer is "whichever the suite declared for that grader" (`Required` per component), which neither the spec's aggregation extension nor #49 can express.
 
 And one about process: the maintainer's proposal on the Discussion is that #49 lands only
 with an independent implementer's fixture or statement of need; without one, extend the
