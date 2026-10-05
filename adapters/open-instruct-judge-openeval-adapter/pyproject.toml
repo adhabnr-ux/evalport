@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "open-instruct-judge-openeval-adapter"
+version = "0.1.0"
+description = "Convert allenai/open-instruct LLM-judge score/rationale output (judge_utils.py) to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["open-instruct", "evalport", "openeval", "llm", "evaluation", "judge", "allenai"]
+classifiers = [
+"License :: OSI Approved :: Apache Software License",
+"Programming Language :: Python :: 3",
+"Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/open-instruct-judge-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Upstream = "https://github.com/allenai/open-instruct/blob/main/open_instruct/judge_utils.py"
+Discussion = "https://github.com/allenai/open-instruct/issues/1922"
+
+[project.optional-dependencies]
+# Deliberately no named `open-instruct` extra, unlike most other adapters in this
+# repo (see adapters/autogen-openeval-adapter/pyproject.toml for the other
+# documented exception). open_instruct's own __init__.py pulls in vllm /
+# deepspeed / flash-attn / torch -- a full training+inference stack this
+# adapter has no reason to require just to reshape already-judged records
+# after the fact.
+#
+# This adapter never imports open_instruct. `_extract_score()` in
+# src/open_instruct_judge_openeval_adapter/__init__.py is a self-contained,
+# pure-stdlib reimplementation of judge_utils.py's
+# extract_json_score_with_fallback() / extract_score_web_instruct(), pinned
+# to commit 677512ff387914b083a444db2c7a05ca995c114c (the version read and
+# reviewed in https://github.com/allenai/open-instruct/issues/1922) so this
+# package runs in CI with nothing installed but evalport-sdk, and so a future
+# upstream change to that parsing logic has a known commit to diff against
+# rather than silently drifting out of sync.
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

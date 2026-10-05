@@ -232,6 +232,7 @@ See [`cli/README.md`](cli/README.md) for the full flag reference.
 | humanbound | [humanbound-openeval-adapter](adapters/humanbound-openeval-adapter/) |
 | FrontierOR | [frontieror-openeval-adapter](adapters/frontieror-openeval-adapter/) |
 | QWED | [qwed-openeval-adapter](adapters/qwed-openeval-adapter/) |
+| open-instruct (judge score/rationale output) | [open-instruct-judge-openeval-adapter](adapters/open-instruct-judge-openeval-adapter/) |
 
 ## Documentation
 
