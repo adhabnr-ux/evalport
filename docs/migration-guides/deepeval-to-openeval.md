@@ -25,7 +25,7 @@ DeepEval uses Python classes (`LLMTestCase`, metric objects) for evaluation. Eva
 ### Python
 
 ```python
-from openeval.convert import from_deepeval
+from openeval.converters_deepeval import from_deepeval
 import json
 
 de = json.load(open("deepeval_export.json"))
