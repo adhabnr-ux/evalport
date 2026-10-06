@@ -597,6 +597,45 @@ Instead, a runner executing an `llm_judge` grader MAY self-report which mitigati
 
 The value is a free-text, `+`-joined set of mitigation names — not a schema-enforced enum, since the mitigations worth naming will grow over time and standardizing the name set itself is a separate, smaller question from whether self-reporting is useful at all. This needs no schema change (`GraderResult.metadata` already permits arbitrary keys) and mirrors a pattern that already independently emerged across several shipped adapters for the analogous problem of an opaque judge internals: `giskard-openeval-adapter` and `llamaindex-openeval-adapter` both document, rather than fabricate, a judge's actual prompt/model when the source framework doesn't expose one directly. `openeval.judge_hardening` is the same "state honestly what you know, don't assert what you don't" shape, applied specifically to injection-hardening claims. A runner that claims a mitigation without applying it is simply lying in its own metadata — self-report is not a substitute for a runner actually being hardened, only a way to make that fact inspectable after the run. `spec/conformance/fixtures/judge_hardening_self_report.json` confirms the *convention itself* validates cleanly (a `GraderResult` carrying this key is spec-valid); it does not and cannot verify that a runner's claimed mitigation actually held under a real injection attempt, since that's runtime grading behavior, not document structure — see `spec/conformance/README.md`'s "What this doesn't cover (yet)" for that gap.
 
+### Judge Identity Self-Report (`metadata.openeval.judge`) — PROPOSED, not yet finalized
+
+> **Status:** this section documents the convention under discussion in [Discussion #118](https://github.com/adhabnr-ux/evalport/discussions/118) ("RFC: judge identity, declared vs. observed"), which is in its two-week comment period per this project's Governance section. The text and the conformance fixture exist on a reference-implementation branch/PR referenced from that Discussion, **not on `main`**. This subsection will be rewritten in the past tense if and when the RFC concludes and actually merges.
+
+A suite declares the judge it wants: an `llm_judge` grader's `params.model` and `params.prompt` (required), and `provider`, `temperature`, `schema` (optional). A `GraderResult` has no typed field for the judge that actually answered, and the two can differ (an alias resolving to another snapshot, a changed served model, an endpoint swap, an inherited sampling default). The proposal is a convention on `GraderResult.metadata`, in the same shape as `openeval.judge_hardening` above: a runner executing an `llm_judge` grader MAY self-report the identity it observed.
+
+```json
+{
+  "metadata": {
+    "openeval": {
+      "judge": {
+        "model": "z-ai/glm-5.3",
+        "provider": "integrate.api.nvidia.com",
+        "fingerprint": "z-ai/glm-5.3@sha256:<hash>",
+        "fingerprint_method": "sha256 of the GET /v1/models/<id> response body",
+        "temperature": 0,
+        "temperature_source": "explicit",
+        "prompt_sha256": "<hash>",
+        "prompt_basis": "template",
+        "observed_at": "2026-10-03T12:00:03Z"
+      }
+    }
+  }
+}
+```
+
+Every key is optional and none is validated:
+
+- `model` (string): the model identifier the serving side reported, as opposed to the suite's requested `params.model`.
+- `provider` (string): the provider or endpoint host the call went to.
+- `fingerprint` (string) and `fingerprint_method` (string): an opaque producer-defined identity digest and free text saying how it was computed. A fingerprint is interpretable by another tool only through `fingerprint_method`, and two fingerprints are comparable only when their methods match.
+- `temperature` (number) and `temperature_source` (`"explicit"` or `"provider_default"`): the sampling temperature actually sent, and whether the producer set it or inherited it.
+- `prompt_sha256` (string) and `prompt_basis` (`"template"` or `"rendered"`): a SHA-256 of the judge prompt, and which form was hashed.
+- `observed_at` (string): an RFC 3339 time of the call.
+
+**What this does not do.** It defines no refusal rule: declining to compare results that carry no judge identity is consumer policy, not a property of the format. It makes no determinism claim: a fingerprint says which model was served, not that a verdict is repeatable. It standardizes no fingerprint algorithm. It says nothing about non-LLM graders. It needs no schema change (`GraderResult.metadata` already permits arbitrary keys) and no validator rule; `spec/conformance/fixtures/judge_identity_self_report.json` confirms only that a `GraderResult` carrying these keys is spec-valid. The nested `"openeval": { "judge": { ... } }` form is used because the SDK converters and the conformance fixtures write reserved keys that way; whether the dotted spelling used elsewhere in this document is also canonical is an open question in the Discussion.
+
+**Open questions for the comment period.** (1) Is `fingerprint` plus `fingerprint_method` the right pair, or should there be no fingerprint key until two tools agree on one? (2) Should `temperature_source` exist? (3) Should the keys be allowed on a `GraderResult` whose `score` is `null` (a judge that was attempted and failed)? (4) Nested or dotted key spelling, for this key and every other `openeval.*` key? (5) Is a convention enough, or does a real case need a typed field and a validator rule?
+
 ### Suite/ResultSet Signing (`spec/tools/verify_signature.py`)
 
 Resolves [Discussion #8](https://github.com/adhabnr-ux/evalport/discussions/8) ("Suite/result signing for integrity verification"), deferred from `spec/CRITIQUE.md` item #9 ("out of scope for v1, ... a v1.1 or v2.0 feature"). The problem: nothing about the EvalPort document format itself lets a consumer detect that a publicly-hosted suite (the running example throughout that discussion, and throughout this section, is `benchmarks/`) was silently modified after publication — `metadata.source` is an unverified string, and Git history provides an audit trail only for someone who trusts the specific clone they're looking at.
@@ -1383,6 +1422,7 @@ A framework-specific grader. The `handler` identifies the implementation. Unreco
 | `openeval.aggregation_status` | Result | Set by a runner to `"unscored"` when every `GraderResult` for a test case has `score: null`, so downstream reporting doesn't conflate "no grader produced a verdict" with "a grader ran and failed." See Validation Rule 6. |
 | `openeval.partial` | ResultSet | `true` if this `ResultSet` covers only part of its suite (e.g. an interrupted run). See Extension Mechanism → Resumable Runs & Partial ResultSets. |
 | `openeval.judge_hardening` | GraderResult | Free-text, `+`-joined self-report of which prompt-injection mitigations a runner actually applied to an `llm_judge` grader (e.g. `"structured_output+delimited"`). See Extension Mechanism → Judge Hardening Self-Report and Security Considerations → Prompt Injection in Graders. |
+| `openeval.judge` | GraderResult | **PROPOSED, [Discussion #118](https://github.com/adhabnr-ux/evalport/discussions/118), not yet finalized.** Optional object a runner MAY set on an `llm_judge` `GraderResult` to self-report the judge identity it observed (`model`, `provider`, `fingerprint`, `fingerprint_method`, `temperature`, `temperature_source`, `prompt_sha256`, `prompt_basis`, `observed_at`), as distinct from the grader's requested `params.model`. All keys optional, none validated. See Extension Mechanism → Judge Identity Self-Report. |
 
 ---
 
