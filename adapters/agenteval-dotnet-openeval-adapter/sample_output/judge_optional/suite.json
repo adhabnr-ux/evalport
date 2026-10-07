@@ -144,9 +144,9 @@
   ],
   "metadata": {
     "agenteval": {
-      "version": "0.42.0-beta",
+      "version": "0.43.0-beta",
       "exporter": "EvalPort.AgentEval",
-      "exporter_version": "0.1.0-beta"
+      "exporter_version": "0.1.1-beta"
     }
   }
 }
