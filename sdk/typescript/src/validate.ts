@@ -366,6 +366,55 @@ export function validateSuite(s: unknown): ValidationResult {
   return ok(errors);
 }
 
+// ---------------------------------------------------------------------------
+// PROPOSED, Discussion #49 (alternative B: declared aggregation), NOT on main.
+// A Result whose graders are partly null-scored (some "not verified", some scored)
+// reads differently under different aggregation policies, and a ResultSet
+// validator never sees the suite. This alternative makes the policy part of the
+// document instead of adding a Result.verdict field: the declaration may sit on
+// the Result (metadata.openeval.aggregation, dotted or nested) or on the
+// ResultSet's own metadata as the run default. Mirrors
+// sdk/python/openeval/validate.py rule-for-rule.
+// ---------------------------------------------------------------------------
+export const AGGREGATION_STRATEGIES = ["all", "any", "majority", "weighted", "strict", "producer"] as const;
+export const AGGREGATION_STATUSES = ["unscored", "partial"] as const;
+
+/** `metadata["openeval.<key>"]` or `metadata.openeval[<key>]`: both spellings appear in the spec and the SDKs. */
+function openevalKey(meta: unknown, key: string): { present: boolean; value: unknown; suffix: string } {
+  if (!isPlainObject(meta)) return { present: false, value: undefined, suffix: "" };
+  const dotted = "openeval." + key;
+  if (has(meta, dotted)) return { present: true, value: meta[dotted], suffix: "['" + dotted + "']" };
+  const oe = meta.openeval;
+  if (isPlainObject(oe) && has(oe, key)) return { present: true, value: oe[key], suffix: ".openeval." + key };
+  return { present: false, value: undefined, suffix: "" };
+}
+
+/** Shape of a declared openeval.aggregation object (PROPOSED). */
+function checkAggregation(agg: unknown, path: string, errors: ValidationError[]): void {
+  if (!isPlainObject(agg)) { errors.push(err(path, "must be object", "TYPE_ERROR")); return; }
+  const st = agg.strategy;
+  if (typeof st !== "string" || !(AGGREGATION_STRATEGIES as readonly string[]).includes(st)) {
+    errors.push(err(`${path}.strategy`, `must be one of: ${AGGREGATION_STRATEGIES.join(", ")}`, "INVALID_VALUE"));
+  }
+  if (has(agg, "threshold")) {
+    const th = agg.threshold;
+    if (!isNum(th) || th < 0 || th > 1) errors.push(err(`${path}.threshold`, "must be in [0,1]", "OUT_OF_RANGE"));
+  } else if (st === "weighted") {
+    errors.push(err(`${path}.threshold`, "required for strategy weighted", "REQUIRED"));
+  }
+}
+
+/** (null_scored, number_scored) over well-formed GraderResults. */
+function scoreCensus(grs: unknown[]): { nulls: number; nums: number } {
+  let nulls = 0, nums = 0;
+  for (const g of grs) {
+    if (!isPlainObject(g)) continue;
+    if (has(g, "score") && g.score === null) nulls++;
+    else if (isNum(g.score)) nums++;
+  }
+  return { nulls, nums };
+}
+
 export function validateResultSet(r: unknown): ValidationResult {
   if (!isPlainObject(r)) return ok([err("$", "Must be object", "TYPE_ERROR")]);
   const errors: ValidationError[] = [];
@@ -389,6 +438,10 @@ export function validateResultSet(r: unknown): ValidationResult {
       }
     }
   }
+  // PROPOSED (Discussion #49, alt B): a run-level aggregation declaration on the
+  // ResultSet's own metadata is validated here and used as the default below.
+  const rsDecl = openevalKey(r.metadata, "aggregation");
+  if (rsDecl.present) checkAggregation(rsDecl.value, `$.metadata${rsDecl.suffix}`, errors);
   // isolation / group / group.* / attempt below: like every other optional field,
   // an explicit null is a type error (resultset.json declares none of them nullable).
   if (has(r, "isolation") && typeof r.isolation !== "string") {
@@ -506,6 +559,29 @@ export function validateResultSet(r: unknown): ValidationResult {
         // verdict; runners MUST report such a case's `passed` as `false` [...]"
         if (grs.length > 0 && x.passed === true && grs.every((gr) => isPlainObject(gr) && has(gr, "score") && gr.score === null)) {
           errors.push(err(`$.results[${i}].passed`, "a Result whose grader_results are all null-scored MUST have passed false (SPEC Aggregation Extension / Rule 6)", "UNSCORED_RESULT_PASSED"));
+        }
+        // PROPOSED (Discussion #49, alt B: declared aggregation), NOT on main.
+        const { nulls, nums } = scoreCensus(grs);
+        const mixed = nulls > 0 && nums > 0;
+        const resDecl = openevalKey(x.metadata, "aggregation");
+        if (resDecl.present) checkAggregation(resDecl.value, `$.results[${i}].metadata${resDecl.suffix}`, errors);
+        if (mixed && !resDecl.present && !rsDecl.present) {
+          errors.push(err(`$.results[${i}].metadata`,
+            "a Result with some null-scored and some scored graders MUST declare how passed was derived: " +
+            "openeval.aggregation on the Result or on the ResultSet (PROPOSED, Discussion #49 alt B)",
+            "PARTIAL_RESULT_UNDECLARED"));
+        }
+        const st = openevalKey(x.metadata, "aggregation_status");
+        if (st.present) {
+          const spath = `$.results[${i}].metadata${st.suffix}`;
+          const status = st.value;
+          if (typeof status !== "string" || !(AGGREGATION_STATUSES as readonly string[]).includes(status)) {
+            errors.push(err(spath, `must be one of: ${AGGREGATION_STATUSES.join(", ")}`, "INVALID_VALUE"));
+          } else if (status === "unscored" && nums > 0) {
+            errors.push(err(spath, "unscored means every grader has score null, but this Result has a scored grader", "AGGREGATION_STATUS_MISMATCH"));
+          } else if (status === "partial" && !mixed) {
+            errors.push(err(spath, "partial means some but not all graders have score null", "AGGREGATION_STATUS_MISMATCH"));
+          }
         }
       }
     });
