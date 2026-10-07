@@ -1,0 +1,42 @@
+{
+  "description": "PROPOSED (Discussion #49, alternative B: declared aggregation), NOT in the spec on main. `openeval.aggregation_status: \"partial\"` means some but not all graders have score null, so it is rejected on a fully scored Result (AGGREGATION_STATUS_MISMATCH); likewise Rule 6's `unscored` is rejected when any grader scored. The JSON Schema encodes both as if/then rules on Result (`statusPartial` -> `mixedScoredResult`, `statusUnscored` -> every score null). The marker was proposed in Discussion #49 and tested in examples/errored-graders (`--mark-partial`); this fixture pins down that it cannot be set on the wrong row.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.results[0].metadata.openeval.aggregation_status"
+    ]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_errored_graders_deepeval",
+    "run_id": "run_conformance_001",
+    "started_at": "2026-10-03T00:00:00Z",
+    "results": [
+      {
+        "test_case_id": "q1",
+        "actual_output": "4",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_exact",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          },
+          {
+            "grader_id": "gr_flaky",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ],
+        "metadata": {
+          "openeval": {
+            "aggregation_status": "partial"
+          }
+        }
+      }
+    ]
+  }
+}
