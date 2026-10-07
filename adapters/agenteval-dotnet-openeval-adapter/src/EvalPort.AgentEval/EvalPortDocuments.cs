@@ -79,8 +79,9 @@ public sealed record EvalPortRun
 /// <para>
 /// <c>Result.passed</c> is AgentEval's own verdict: the AND of <c>Score.Passed</c> over the case's
 /// top-level results. For a composite that is <c>CompositeEval</c>'s label (<c>"pass"</c> only), which
-/// is <c>false</c> whenever a <c>Required</c> component errored, when nothing was measured, or when a
-/// pass rested on fewer than <c>MinimumMeasuredShare</c> of the components (<c>"warn"</c>). This package
+/// is <c>false</c> whenever a <c>Required</c> component errored or (since AgentEval 0.43) did not run,
+/// when nothing was measured, or when a pass rested on fewer than <c>MinimumMeasuredShare</c> of the
+/// components (<c>"warn"</c>). This package
 /// does not re-aggregate the leaves; the spec's default <c>all</c> strategy and AgentEval's verdict
 /// can disagree on a row with an unmeasured leaf, and the disagreement is recorded, not resolved
 /// (see <c>metadata.agenteval.verdicts</c> and the README).
@@ -281,19 +282,23 @@ public static class EvalPortDocuments
 
     /// <summary>
     /// The <c>Result.verdict</c> this package would write under Discussion #49, derived from AgentEval's
-    /// labels: <c>"passed"</c> when every top-level result is <c>"pass"</c>; <c>"failed"</c> when any is
-    /// <c>"fail"</c> or <c>"warn"</c> (AgentEval calls <c>"warn"</c> a soft fail); otherwise
-    /// <c>"unverified"</c> (<c>"error"</c>, <c>"skipped"</c>, <c>"inapplicable"</c>, a run error, or no results).
+    /// labels and measurement state: <c>"passed"</c> when every top-level result is <c>"pass"</c>;
+    /// <c>"failed"</c> when any is <c>"fail"</c>, or <c>"warn"</c> with a measurement (AgentEval calls a
+    /// measured <c>"warn"</c> a soft fail); otherwise <c>"unverified"</c>. Since AgentEval 0.43.0-beta a
+    /// composite that holds back a pass because a required component was not measured is <c>"warn"</c>
+    /// with <c>measurement: notMeasured</c> (<see cref="EvalScoreExtensions.CensusBucket"/>); that is an
+    /// outcome that was not established, so it is <c>"unverified"</c>, not <c>"failed"</c>. The other
+    /// unverified cases: <c>"error"</c>, <c>"skipped"</c>, <c>"inapplicable"</c>, a run error, or no results.
     /// </summary>
     public static string ProposedVerdict(EvalPortCaseRun caseRun)
     {
         ArgumentNullException.ThrowIfNull(caseRun);
         if (caseRun.Error is not null || caseRun.Results.Count == 0)
             return "unverified";
-        var labels = caseRun.Results.Select(r => r.Score.Label).ToList();
-        if (labels.Any(l => l is "fail" or "warn"))
+        var scores = caseRun.Results.Select(r => r.Score).ToList();
+        if (scores.Any(s => s.Label == "fail" || (s.Label == "warn" && s.CensusBucket() == MeasurementState.Measured)))
             return "failed";
-        if (labels.All(l => l == "pass"))
+        if (scores.All(s => s.Label == "pass"))
             return "passed";
         return "unverified";
     }
