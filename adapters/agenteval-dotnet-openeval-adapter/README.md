@@ -130,6 +130,18 @@ something did not run: `unverified`). And the `DependencyInjectionTests` pin tha
 does not build the exporter/loader registries still holds in 0.43; the maintainer confirmed it and the
 AgentEval docs now say which call builds which registry.
 
+Also in 0.43, per the maintainer's #203 follow-up and the CHANGELOG, **not exercised by this package's
+sample** (which only drives `CompositeEval` / `AtomicLlmEval`), so recorded here rather than tested:
+`EvalComponent.OnFailure` (`Averaged`, the old default, `Warn`, `Fail`, `FailUnlessPass`), which lets a
+composite read `warn` or `fail` while its score is above threshold (the label is the verdict, not
+`score.value`; the mapping already treats it that way); `MultiJudgeWrapper` and
+`AdjudicatedMultiJudgeWrapper` now respect each judge's `Required`; `EvalScore.Label` is stored
+lower-case; the flat `IMetric` results gained `MetricResult.Measured` / `MetricResult.NotMeasured`, and
+`TestResultSummary.MetricsNotMeasured` (name → reason) carries them in the flat report, which
+`EvalPortResultExporter` does not yet read; a required component's `error` is no longer always the
+verdict (see q3 above); and through the MAF bridges a not-measured metric fails its item, because MAF has
+no third state. The exporter's handling of `MetricsNotMeasured` is the next thing to add.
+
 What this says, and does not say, about EvalPort:
 
 - **q2 is the row Rule 6 cannot name.** One grader scored a pass and the other produced nothing.
