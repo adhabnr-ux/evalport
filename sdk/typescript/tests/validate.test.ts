@@ -838,10 +838,15 @@ test("GraderResult with no score key is REQUIRED, not treated as null", () => {
 test("Rule 6: null score with passed true is rejected (NULL_SCORE_PASSED)", () => {
   const doc = fidRs();
   doc.results[0].grader_results.push({ grader_id: "g2", type: "human", score: null, passed: true });
-  const r = validateResultSet(doc);
+  let r = validateResultSet(doc);
   expect(r.valid).toBe(false);
-  expect(r.errors.map(e => e.code)).toEqual(["NULL_SCORE_PASSED"]);
+  // The row is also mixed (one scored, one null) and undeclared, so alt B adds
+  // PARTIAL_RESULT_UNDECLARED. Declaring the run's aggregation leaves only Rule 6.
+  expect(r.errors.map(e => e.code)).toEqual(["NULL_SCORE_PASSED", "PARTIAL_RESULT_UNDECLARED"]);
   expect(r.errors[0].path).toBe("$.results[0].grader_results[1].passed");
+  doc.metadata = { openeval: { aggregation: { strategy: "all" } } };
+  r = validateResultSet(doc);
+  expect(r.errors.map(e => e.code)).toEqual(["NULL_SCORE_PASSED"]);
 });
 
 test("Rule 6: all null-scored Result with passed true is rejected (UNSCORED_RESULT_PASSED)", () => {
@@ -862,12 +867,104 @@ test("Rule 6: all null-scored Result with passed false is valid", () => {
   expect(validateResultSet(doc).valid).toBe(true);
 });
 
-test("Rule 6: mixed null and scored graders can still pass", () => {
-  // Null-scored graders are excluded from aggregation, so a Result can pass on
-  // its scored graders alone -- only the ALL-null case must be passed: false.
+test("Rule 6: mixed null and scored graders can still pass, when the aggregation is declared", () => {
+  // Null-scored graders are excluded from the default aggregation, so a Result
+  // can pass on its scored graders alone -- only the ALL-null case must be
+  // passed: false. PROPOSED (Discussion #49, alt B): a partly-scored row must say
+  // which aggregation produced `passed`, on the Result or on the ResultSet, in
+  // either spelling of the reserved key.
   const doc = fidRs();
   doc.results[0].grader_results.push({ grader_id: "g2", type: "human", score: null, passed: false });
-  expect(validateResultSet(doc).valid).toBe(true);
+  const r = validateResultSet(doc);
+  expect(r.valid).toBe(false);
+  expect(r.errors.map(e => [e.path, e.code])).toEqual([["$.results[0].metadata", "PARTIAL_RESULT_UNDECLARED"]]);
+  for (const decl of [{ "openeval.aggregation": { strategy: "all" } }, { openeval: { aggregation: { strategy: "all" } } }]) {
+    const onResult = structuredClone(doc); onResult.results[0].metadata = decl;
+    expect(validateResultSet(onResult).valid).toBe(true);
+    const onRun = structuredClone(doc); onRun.metadata = decl;
+    expect(validateResultSet(onRun).valid).toBe(true);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// PROPOSED (Discussion #49, alt B: declared aggregation). NOT on main.
+// Mirrors sdk/python/tests/test_validate.py's test_altb_* case-for-case.
+// ---------------------------------------------------------------------------
+
+function mixedRs(declOn?: "result" | "run", decl?: unknown, passed = true): any {
+  const doc = fidRs();
+  doc.results[0].passed = passed;
+  doc.results[0].grader_results = [
+    { grader_id: "g1", type: "exact_match", score: 1.0, passed: true },
+    { grader_id: "g2", type: "llm_judge", score: null, passed: false },
+  ];
+  if (declOn === "result") doc.results[0].metadata = { openeval: { aggregation: decl } };
+  if (declOn === "run") doc.metadata = { openeval: { aggregation: decl } };
+  return doc;
+}
+const codes = (doc: unknown) => validateResultSet(doc).errors.map(e => [e.path, e.code]);
+
+describe("alt B (PROPOSED): declared aggregation", () => {
+  for (const strategy of ["all", "any", "majority", "strict", "producer"]) {
+    test(`every strategy declares a mixed row: ${strategy}`, () => {
+      expect(validateResultSet(mixedRs("result", { strategy })).valid).toBe(true);
+      expect(validateResultSet(mixedRs("run", { strategy })).valid).toBe(true);
+    });
+  }
+
+  test("weighted needs a threshold", () => {
+    expect(codes(mixedRs("result", { strategy: "weighted" }))).toEqual([["$.results[0].metadata.openeval.aggregation.threshold", "REQUIRED"]]);
+    expect(validateResultSet(mixedRs("result", { strategy: "weighted", threshold: 0.7 })).valid).toBe(true);
+    expect(codes(mixedRs("run", { strategy: "weighted", threshold: 1.5 }))).toEqual([["$.metadata.openeval.aggregation.threshold", "OUT_OF_RANGE"]]);
+  });
+
+  test("unknown strategy and non-object declaration are rejected", () => {
+    expect(codes(mixedRs("run", { strategy: "fail-closed" }))).toEqual([["$.metadata.openeval.aggregation.strategy", "INVALID_VALUE"]]);
+    expect(codes(mixedRs("result", "all"))).toEqual([["$.results[0].metadata.openeval.aggregation", "TYPE_ERROR"]]);
+  });
+
+  test("a mixed row with passed false also needs a declaration", () => {
+    // strict's `false` on a mixed row means "not verified", all's means "verified
+    // failing"; a reader cannot tell which without the declaration.
+    expect(codes(mixedRs(undefined, undefined, false))).toEqual([["$.results[0].metadata", "PARTIAL_RESULT_UNDECLARED"]]);
+    expect(validateResultSet(mixedRs("run", { strategy: "strict" }, false)).valid).toBe(true);
+  });
+
+  test("unmixed rows need no declaration", () => {
+    const doc = fidRs(); // one scored grader
+    expect(validateResultSet(doc).valid).toBe(true);
+    doc.results[0].passed = false;
+    doc.results[0].grader_results = [{ grader_id: "g1", type: "human", score: null, passed: false }];
+    expect(validateResultSet(doc).valid).toBe(true); // all null (Rule 6), not mixed
+    doc.results[0].grader_results = [];
+    expect(validateResultSet(doc).valid).toBe(true);
+  });
+
+  test("a Result-level declaration alone satisfies the rule", () => {
+    const doc = mixedRs("result", { strategy: "producer" });
+    expect(doc.metadata).toBeUndefined();
+    expect(validateResultSet(doc).valid).toBe(true);
+  });
+
+  test("aggregation_status values and consistency", () => {
+    const doc = mixedRs("run", { strategy: "all" });
+    doc.results[0].metadata = { openeval: { aggregation_status: "partial" } };
+    expect(validateResultSet(doc).valid).toBe(true);
+    doc.results[0].metadata = { "openeval.aggregation_status": "partial" };
+    expect(validateResultSet(doc).valid).toBe(true); // dotted spelling of the reserved key
+    doc.results[0].metadata = { openeval: { aggregation_status: "unscored" } };
+    expect(codes(doc)).toEqual([["$.results[0].metadata.openeval.aggregation_status", "AGGREGATION_STATUS_MISMATCH"]]);
+    doc.results[0].metadata = { openeval: { aggregation_status: "pending" } };
+    expect(codes(doc)).toEqual([["$.results[0].metadata.openeval.aggregation_status", "INVALID_VALUE"]]);
+    // "partial" on a fully scored row is a mismatch too
+    const full = fidRs(); full.results[0].metadata = { openeval: { aggregation_status: "partial" } };
+    expect(codes(full)).toEqual([["$.results[0].metadata.openeval.aggregation_status", "AGGREGATION_STATUS_MISMATCH"]]);
+    // the existing "unscored" marker on an all-null row stays valid
+    const unscored = fidRs(); unscored.results[0].passed = false;
+    unscored.results[0].grader_results = [{ grader_id: "g1", type: "human", score: null, passed: false }];
+    unscored.results[0].metadata = { openeval: { aggregation_status: "unscored" } };
+    expect(validateResultSet(unscored).valid).toBe(true);
+  });
 });
 
 test("Rule 6: empty grader_results is not 'all null-scored'", () => {
