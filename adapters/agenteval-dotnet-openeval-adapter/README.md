@@ -2,12 +2,16 @@
 
 > **Status: standalone package, not an upstream integration.** This lives in the EvalPort repository
 > and depends on the published [`AgentEval`](https://www.nuget.org/packages/AgentEval) NuGet package
-> (0.42.0-beta). It was built after AgentEval's maintainer, in
+> (0.43.0-beta). It was built after AgentEval's maintainer, in
 > [AgentEvalHQ/AgentEval#203](https://github.com/AgentEvalHQ/AgentEval/issues/203), named
 > `IResultExporter` and `IDatasetLoader` as the intended extension points and suggested "a small
 > package on your side (for example `EvalPort.AgentEval`) implementing both interfaces", with an offer to
-> link and review it. As of this writing it has not been reviewed by AgentEval's maintainers, is not
-> linked from AgentEval's docs, and is not on NuGet.
+> link and review it. He reviewed the 0.1.0-beta version end to end on 2026-10-04 (source, tests, sample
+> and CI) and found one real problem, the `test_cases_file` confinement fixed in 0.1.1-beta; the three
+> observations this package made about AgentEval led to AgentEval 0.43.0-beta's verdict changes
+> ([AgentEvalHQ/AgentEval#279](https://github.com/AgentEvalHQ/AgentEval/pull/279), see
+> "What changed between 0.42 and 0.43" below). It is not on NuGet; the maintainer has offered to link a
+> tagged release from AgentEval's `docs/export.md` as a third-party package.
 >
 > **Two different projects are called AgentEval.** This package is for
 > [AgentEvalHQ/AgentEval](https://github.com/AgentEvalHQ/AgentEval), the .NET toolkit for Microsoft
@@ -21,7 +25,7 @@
 |---|---|---|---|
 | `EvalPortDocuments.Build(EvalPortRun)` | `EvalResult` trees (`CompositeEval`, `AtomicLlmEval`, `AtomicCodeEval`, …) | AgentEval → EvalPort `Suite` + `ResultSet` | **The result model.** `MeasurementState`, the `skipped` / `error` / `inapplicable` labels, composite verdicts with their aggregation strategy, judge provenance. |
 | `EvalPortResultExporter` (`IResultExporter`, format name `evalport`) | `EvaluationReport` | AgentEval → EvalPort `ResultSet` | What the flat report has: per test a 0–100 score, `Passed`, `Skipped`, an error string, assertions, metric scores. **No measurement state** (see below). |
-| `EvalPortDatasetLoader` (`IDatasetLoader`, format name `evalport`, extension `.evalport.json`) | `DatasetTestCase` | EvalPort `Suite` → AgentEval | `id`, `input` (multi-turn joined, turns kept), `expected_output`, `context`, `expected_tools`, `tags`, `metadata`; the case's resolved graders as data. |
+| `EvalPortDatasetLoader` (`IDatasetLoader`, format name `evalport`, extension `.evalport.json`) | `DatasetTestCase` | EvalPort `Suite` → AgentEval | `id`, `input` (multi-turn joined, turns kept), `expected_output`, `context`, `expected_tools`, `tags`, `metadata`; the case's resolved graders as data. A `test_cases_file` is followed only inside the suite's own directory (no absolute paths, no `..`, no links leading out), since suites can come from other people and those lines become model inputs. |
 | `services.AddEvalPortAgentEval()` | DI | | Registers both; `AddAgentEvalDataLoaders()` puts them in `IExporterRegistry` and `IDatasetLoaderFactory`. |
 
 ```csharp
@@ -29,7 +33,7 @@ using AgentEval.DependencyInjection;
 using EvalPort.AgentEval;
 
 services.AddEvalPortAgentEval();
-services.AddAgentEvalDataLoaders();   // not AddAgentEval(): in 0.42.0-beta only this one builds the registries
+services.AddAgentEvalDataLoaders();   // not AddAgentEval(): only this one (or AddAgentEvalAll()) builds the registries
 
 var exporter = provider.GetRequiredService<IExporterRegistry>().GetRequired("evalport");
 await exporter.ExportAsync(report, File.Create("run.evalport.json"));
@@ -94,16 +98,37 @@ and the first test class fails if a newer AgentEval changes it.
 | Case | `exact` | `judge` | Composite, judge **required** | Composite, judge **optional** |
 |---|---|---|---|---|
 | q1 | pass | pass | `pass` | `pass` |
-| q2 | pass | **error** (no JSON from the judge, twice) | **`error`**, passed false | **`pass`**, passed true, note "Measured 1 of 2" |
-| q3 | fail | error | `error`, passed false (the measured failure is not the verdict) | `fail` |
-| q4 | skipped | error | `error` (nothing measured, one errored) | `error` |
+| q2 | pass | **error** (no JSON from the judge, twice) | **`error`**, passed false ("a required component errored, so no pass/fail verdict is reported") | **`pass`**, passed true, note "Measured 1 of 2" |
+| q3 | fail | error | **`fail`** ("a required part produced no verdict, but a high failure the measured parts show decides it") | `fail` |
+| q4 | skipped | error | `error` (nothing measured, a required component errored) | `skipped` (nothing measured; the errored component is optional, so it decides nothing) |
 | q5 | inapplicable (no ground truth) | pass | `pass` | `pass` |
 | q6 | — | chat client **throws** | the exception leaves `EvaluateAsync`; no result | same |
-| q7 | pass | skipped | `pass` (a required but *skipped* component does not block the verdict; only `error` does) | `pass` |
+| q7 | pass | skipped | **`warn`**, passed false, `measurement: notMeasured` ("required component(s) that did not run … a pass cannot rest on them") | `pass`, note "Measured 1 of 2" |
 
-Summary over the seven rows: **3 / 2 / 2 passed / failed / skipped, pass rate 0.4286** with the judge
+Summary over the seven rows: **2 / 3 / 2 passed / failed / skipped, pass rate 0.2857** with the judge
 required; **4 / 1 / 2, pass rate 0.5714** with it optional. Same leaves, both documents valid, the
 difference is one flag on the eval definition.
+
+### What changed between 0.42 and 0.43
+
+The first version of this package pinned 0.42.0-beta and reported three things to AgentEval's maintainer
+in #203. AgentEval 0.43.0-beta (released 2026-10-06; its CHANGELOG entry "A required component that did
+not run no longer lets a composite pass" cites #203) changed the framework, and the same seven cases
+now read differently. The first test class pins the new behavior and keeps the old expectations in
+comments.
+
+| Case | 0.42.0-beta | 0.43.0-beta | Why (from the maintainer's #203 follow-up and the 0.43 CHANGELOG) |
+|---|---|---|---|
+| q7, judge required | `pass` | `warn`, `measurement: notMeasured` | A required component that returned `skipped` no longer lets the composite pass. The composite's own score is marked not measured, so `CountsTowardAggregate()` is false for it; a parent reads that, not the label. |
+| q3, judge required | `error` | `fail` | A required component's `error` is the verdict *unless* the composite would fail even if the errored parts had passed; a measured failure at `high` severity is such a case, so the established failure is reported instead of being hidden behind the error. |
+| q4, judge optional | `error` | `skipped` | An optional component that errors no longer decides the verdict; with nothing measured, the composite is `skipped`. |
+| q2, both | unchanged | unchanged | Required → `error`; optional → `pass` with the measured share noted. |
+
+Two consequences for this package. `ProposedVerdict` now distinguishes a measured `warn` (a soft fail,
+`failed`) from a `warn` whose `CensusBucket()` is `NotMeasured` (the pass was held back because
+something did not run: `unverified`). And the `DependencyInjectionTests` pin that `AddAgentEval()` alone
+does not build the exporter/loader registries still holds in 0.43; the maintainer confirmed it and the
+AgentEval docs now say which call builds which registry.
 
 What this says, and does not say, about EvalPort:
 
@@ -115,12 +140,19 @@ What this says, and does not say, about EvalPort:
   depends on whether that grader was required", declared per component, and either way it writes
   *how much of the verdict was measured* into the result. EvalPort has no slot for either fact; this
   package puts both in `metadata.agenteval`.
-- **AgentEval has an "error" verdict at the result level, which EvalPort does not.** q2/q3/q4 with the
-  judge required are `passed: false` on the EvalPort side, which a reader of `main` must take as
-  "verified failing" when any grader scored (q3) or as "not verified" only when every grader is null
-  (q4). AgentEval's own word for all three is `error`: no verdict. That is a case for a result-level
-  "not established" marker ([Discussion #49](https://github.com/adhabnr-ux/evalport/discussions/49)),
-  and for the alternative it has to beat, a `metadata` convention, which is what this package does.
+- **AgentEval has "no verdict" at the result level, which EvalPort does not.** q2 and q4 with the
+  judge required (`error`) and q7 (`warn` + `notMeasured`) are all `passed: false` on the EvalPort
+  side, which a reader of `main` must take as "verified failing" when any grader scored (q2, q7) or
+  as "not verified" only when every grader is null (q4). AgentEval's own reading of all three is that
+  no pass/fail verdict was established. That is a case for a result-level "not established" marker
+  ([Discussion #49](https://github.com/adhabnr-ux/evalport/discussions/49)), and for the alternative it
+  has to beat, a `metadata` convention, which is what this package does.
+- **An established failure is reported even when a required judge errored (0.43).** q3 with the judge
+  required is `fail`, not `error`: the exact-match failure decides. On the EvalPort side that row is
+  `passed: false` with one scored failing grader, which Rule 6 reads correctly as "verified failing".
+  This is a framework choosing "the measured failure wins over the error". The errored part is a
+  component, not the whole run, so it is not literally #83's `error` + `failed` case, but it is the
+  same question answered the other way, and a concrete input to #49's open question on it.
 - **Two kinds of "judge unreachable".** A judge that answers with no usable JSON becomes a grader-level
   `error` label and the composite still returns; a judge whose transport throws takes the whole case
   down (q6), so the only EvalPort representation is `Result.error` (`runner_error`) with nothing graded.
@@ -158,16 +190,17 @@ built-in); `FormatName` is `evalport` and `FileExtension` is `.evalport.json`.
 Both are opt-in through `EvalPortExportOptions` and **neither is in the spec**.
 
 - `EmitProposedVerdict` adds `Result.verdict` ([#49](https://github.com/adhabnr-ux/evalport/discussions/49),
-  reference PR #83): `passed` when every top-level label is `pass`, `failed` for `fail` or `warn`
-  (AgentEval calls `warn` a soft fail), otherwise `unverified`. The JSON Schema on `main` rejects the
-  field (`additionalProperties: false` on `Result`; the tests assert exactly seven such errors), while
-  both SDK validators on `main` accept it, which is the gap
-  [#108](https://github.com/adhabnr-ux/evalport/discussions/108) is about. Checked against the #83
-  validator: the documents validate; flipping q2 (judge optional, `passed: true`) to `unverified` gives
-  `VERDICT_PASSED_MISMATCH`, so the proposal cannot mark that partly-measured pass; `failed` on q6 gives
-  `VERDICT_ERROR_CONFLICT`; `failed` on q3 (judge required) is accepted by #83 although AgentEval's own
-  label is `error`, so the mapping writes `unverified` there and drops a measured failure, by the
-  framework's choice.
+  reference PR #83): `passed` when every top-level label is `pass`; `failed` for `fail`, or for a `warn`
+  that was measured (AgentEval calls that a soft fail); `unverified` for `error`, `skipped`,
+  `inapplicable`, a `warn` whose measurement is `notMeasured` (0.43's "pass held back"), a run error or
+  no results. The JSON Schema on `main` rejects the field (`additionalProperties: false` on `Result`;
+  the tests assert exactly seven such errors), while both SDK validators on `main` accept it, which is
+  the gap [#108](https://github.com/adhabnr-ux/evalport/discussions/108) is about. Checked against the
+  #83 validator: the documents validate; flipping q2 (judge optional, `passed: true`) to `unverified`
+  gives `VERDICT_PASSED_MISMATCH`, so the proposal cannot mark that partly-measured pass; `failed` on
+  q6 gives `VERDICT_ERROR_CONFLICT`; q7 (judge required) is `unverified` with `passed: false`, which #83
+  accepts, and it is the first row in this repository where a framework's own result-level state maps
+  onto `unverified` without this package inventing anything.
 - `EmitProposedJudgeIdentity` adds `metadata.openeval.judge.model` and `observed_at` on graders whose
   provenance names a judge model ([#118](https://github.com/adhabnr-ux/evalport/discussions/118),
   reference PR #119). Only `model` is written, because AgentEval records the judge it was configured
@@ -190,10 +223,10 @@ loader turns no EvalPort grader into an AgentEval metric: a suite's graders arri
 
 ```bash
 # .NET 10 SDK (global.json: 10.0.100, rollForward latestFeature)
-dotnet test                                                            # 67 tests
+dotnet test                                                            # 68 tests
 dotnet run --project samples/EvalPort.AgentEval.Samples -- --out-dir sample_output --deterministic
 dotnet run --project samples/EvalPort.AgentEval.Samples -- --out-dir sample_output --deterministic --proposed-verdict
-dotnet pack src/EvalPort.AgentEval -c Release                          # EvalPort.AgentEval.0.1.0-beta.nupkg (not published)
+dotnet pack src/EvalPort.AgentEval -c Release                          # EvalPort.AgentEval.0.1.1-beta.nupkg (not published)
 ```
 
 The tests validate every document against this repository's `schema/*.json` with JsonSchema.Net 7.3.4
@@ -206,8 +239,17 @@ runs the Python SDK validator over `sample_output/`, and the #83 branch's valida
 
 Direction from [@joslat](https://github.com/joslat) (AgentEval's maintainer) on
 [AgentEvalHQ/AgentEval#203](https://github.com/AgentEvalHQ/AgentEval/issues/203): the three things a
-flat export loses (measurement state, composite trees, provenance), the two extension points, and the
-package name. Built by Sahi; not affiliated with AgentEval.
+flat export loses (measurement state, composite trees, provenance), the two extension points, the
+package name, and the review of 0.1.0-beta that found the `test_cases_file` problem. Built by Sahi; not
+affiliated with AgentEval.
+
+## Changelog
+
+- **0.1.1-beta** (2026-10-07): AgentEval 0.43.0-beta; `test_cases_file` confined to the suite's
+  directory (review finding, #203); `ProposedVerdict` reads `warn` + `notMeasured` as `unverified`;
+  sample output regenerated (q3 required `error` → `fail`, q4 optional `error` → `skipped`, q7 required
+  `pass` → `warn`).
+- **0.1.0-beta** (2026-10-04): first version, against AgentEval 0.42.0-beta.
 
 ## License
 

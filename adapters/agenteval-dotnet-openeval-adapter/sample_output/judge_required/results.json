@@ -6,7 +6,7 @@
   "started_at": "2026-10-04T00:00:00Z",
   "runner": {
     "name": "AgentEval",
-    "version": "0.42.0-beta"
+    "version": "0.43.0-beta"
   },
   "results": [
     {
@@ -294,12 +294,12 @@
           "verdicts": [
             {
               "key": "answer_quality",
-              "label": "error",
+              "label": "fail",
               "passed": false,
               "severity": "high",
-              "measurement": "notMeasured",
+              "measurement": "measured",
               "value": 0,
-              "summary": "A required component errored, so no pass/fail verdict is reported. Measured 1 of 2 component(s); 1 produced no measurement (0 skipped or not measured, 0 inapplicable, 1 errored).",
+              "summary": "A required part produced no verdict, but a high failure the measured parts show decides it: fail. Decided by severity: exact (fail, high). A required component errored and produced no measurement (0 skipped or not measured, 0 inapplicable, 1 errored); the measured failure above decides the verdict regardless.",
               "provenance_type": "composite",
               "aggregation_strategy": "WeightedSum",
               "components": [
@@ -715,18 +715,18 @@
           }
         }
       ],
-      "passed": true,
+      "passed": false,
       "metadata": {
         "agenteval": {
           "verdicts": [
             {
               "key": "answer_quality",
-              "label": "pass",
-              "passed": true,
+              "label": "warn",
+              "passed": false,
               "severity": "none",
-              "measurement": "measured",
+              "measurement": "notMeasured",
               "value": 1,
-              "summary": "Measured 1 of 2 component(s); 1 left out of the score (1 skipped or not measured, 0 inapplicable, 0 errored), so this verdict covers only the measured part.",
+              "summary": "Required component(s) that did not run or could not attest their own pass: judge. A pass cannot rest on them, so the verdict is warn. Measured 1 of 2 component(s); 1 left out of the score (1 skipped or not measured, 0 inapplicable, 0 errored).",
               "provenance_type": "composite",
               "aggregation_strategy": "WeightedSum",
               "components": [
@@ -761,10 +761,10 @@
   ],
   "summary": {
     "total": 7,
-    "passed": 3,
-    "failed": 2,
+    "passed": 2,
+    "failed": 3,
     "skipped": 2,
-    "pass_rate": 0.4286,
+    "pass_rate": 0.2857,
     "avg_score": 0.8333,
     "by_grader": {
       "exact": {
@@ -781,9 +781,9 @@
   },
   "metadata": {
     "agenteval": {
-      "version": "0.42.0-beta",
+      "version": "0.43.0-beta",
       "exporter": "EvalPort.AgentEval",
-      "exporter_version": "0.1.0-beta",
+      "exporter_version": "0.1.1-beta",
       "passed_semantics": "Result.passed is AgentEval's own verdict (AND of Score.Passed over the case's top-level results); null-scored graders are not re-aggregated by this exporter",
       "run": {
         "variant": "judge_required",

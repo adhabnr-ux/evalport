@@ -7,10 +7,12 @@ using EvalPort.AgentEval.Samples;
 namespace EvalPort.AgentEval.Tests;
 
 /// <summary>
-/// What AgentEval 0.42.0-beta itself does when one of two graders cannot measure a case. These tests
+/// What AgentEval 0.43.0-beta itself does when one of two graders cannot measure a case. These tests
 /// run the real <c>CompositeEval</c>, <c>AtomicLlmEval</c> and <c>ChatClientEvaluator</c>; only the chat
 /// client is canned. If a newer AgentEval changes any of this, these fail first, which is the signal to
-/// re-read the README.
+/// re-read the README. That already happened once: 0.42.0-beta → 0.43.0-beta (AgentEvalHQ/AgentEval#279,
+/// which cites this package's report in #203) flipped three of them; the old expectations are kept in
+/// comments so the change stays visible.
 /// </summary>
 public class RealAgentEvalBehaviorTests
 {
@@ -29,7 +31,7 @@ public class RealAgentEvalBehaviorTests
     [Fact]
     public void AgentEval_PackageVersion_IsThePinnedOne()
     {
-        Assert.Equal("0.42.0-beta", EvalPortJson.AgentEvalVersion);
+        Assert.Equal("0.43.0-beta", EvalPortJson.AgentEvalVersion);
     }
 
     [Fact]
@@ -74,13 +76,19 @@ public class RealAgentEvalBehaviorTests
     }
 
     [Fact]
-    public async Task RequiredJudgeErrored_OtherGraderFailed_CompositeIsError_TheFailureIsNotTheVerdict()
+    public async Task RequiredJudgeErrored_OtherGraderFailed_CompositeIsFail_TheMeasuredFailureDecides()
     {
+        // 0.42.0-beta: "error" (the required judge's error was the verdict and the measured failure was
+        // not reported). 0.43.0-beta: a required component's error is the verdict unless the composite
+        // would fail even if the errored parts had passed; a measured high-severity failure is such a case.
         var q3 = await Case(judgeRequired: true, "q3");
         Assert.Equal("fail", Leaf(q3.Result!, "exact").Score.Label);
         Assert.Equal("high", Leaf(q3.Result!, "exact").Score.Severity);
-        Assert.Equal("error", q3.Result!.Score.Label);
+        Assert.Equal("error", Leaf(q3.Result!, "judge").Score.Label);
+        Assert.Equal("fail", q3.Result!.Score.Label);
         Assert.False(q3.Result.Score.Passed);
+        Assert.Equal(MeasurementState.Measured, q3.Result.Score.CensusBucket());
+        Assert.Contains("Decided by severity", q3.Result.Details.Summary);
     }
 
     [Fact]
@@ -92,16 +100,20 @@ public class RealAgentEvalBehaviorTests
     }
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task NothingMeasured_OneErrored_CompositeIsError(bool judgeRequired)
+    [InlineData(true, "error")]
+    [InlineData(false, "skipped")]
+    public async Task NothingMeasured_OneErrored_CompositeHasNoVerdict(bool judgeRequired, string expectedLabel)
     {
+        // 0.42.0-beta: "error" in both variants. 0.43.0-beta: an optional component's error no longer
+        // decides anything, so with nothing measured the optional variant is "skipped" instead. Either
+        // way there is no pass/fail verdict and nothing was measured.
         var q4 = await Case(judgeRequired, "q4");
         Assert.Equal("skipped", Leaf(q4.Result!, "exact").Score.Label);
         Assert.Equal("error", Leaf(q4.Result!, "judge").Score.Label);
-        Assert.Equal("error", q4.Result!.Score.Label);
+        Assert.Equal(expectedLabel, q4.Result!.Score.Label);
         Assert.False(q4.Result.Score.Passed);
         Assert.Equal(0.0, q4.Result.Score.Value);
+        Assert.Equal(MeasurementState.NotMeasured, q4.Result.Score.CensusBucket());
     }
 
     [Theory]
@@ -129,18 +141,31 @@ public class RealAgentEvalBehaviorTests
         Assert.Equal("judge endpoint unreachable", q6.Error!.Message);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task SkippedJudge_EvenWhenRequired_CompositeIsPass(bool judgeRequired)
+    [Fact]
+    public async Task SkippedRequiredJudge_HoldsBackThePass_AsWarnNotMeasured()
     {
-        // Only a required component with the "error" label blocks the verdict; a required component
-        // that returned EvalResult.Skipped does not. One of two measured is exactly MinimumMeasuredShare
-        // (0.5), which is not below it, so the pass is not downgraded to "warn".
-        var q7 = await Case(judgeRequired, "q7");
+        // 0.42.0-beta: "pass" (only a required component with the "error" label blocked the verdict; a
+        // required one that returned EvalResult.Skipped did not). This package reported that in
+        // AgentEvalHQ/AgentEval#203; 0.43.0-beta holds the pass back as "warn" and marks the composite's
+        // own score notMeasured, which is what a parent (and this package) reads rather than the label.
+        var q7 = await Case(judgeRequired: true, "q7");
         var judge = Leaf(q7.Result!, "judge");
         Assert.Equal("skipped", judge.Score.Label);
         Assert.Equal("skipped", judge.Provenance.Type);
+        Assert.Equal("warn", q7.Result!.Score.Label);
+        Assert.False(q7.Result.Score.Passed);
+        Assert.Equal(MeasurementState.NotMeasured, q7.Result.Score.CensusBucket());
+        Assert.False(q7.Result.Score.CountsTowardAggregate());
+        Assert.Contains("did not run", q7.Result.Details.Summary);
+    }
+
+    [Fact]
+    public async Task SkippedOptionalJudge_CompositeIsPass_AndSaysHowMuchWasMeasured()
+    {
+        // One of two measured is exactly MinimumMeasuredShare (0.5), which is not below it, so the pass is
+        // not downgraded to "warn".
+        var q7 = await Case(judgeRequired: false, "q7");
+        Assert.Equal("skipped", Leaf(q7.Result!, "judge").Score.Label);
         Assert.Equal("pass", q7.Result!.Score.Label);
         Assert.True(q7.Result.Score.Passed);
         Assert.Contains("Measured 1 of 2", q7.Result.Details.Summary);

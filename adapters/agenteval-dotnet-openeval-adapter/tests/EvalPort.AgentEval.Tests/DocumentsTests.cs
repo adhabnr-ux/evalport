@@ -125,10 +125,11 @@ public class DocumentsTests
         var (_, required, _) = await s_required.Value;
         var (_, optional, _) = await s_optional.Value;
         Assert.Equal(7, (int)required["summary"]!["total"]!);
-        Assert.Equal(3, (int)required["summary"]!["passed"]!);
-        Assert.Equal(2, (int)required["summary"]!["failed"]!);
+        // 0.43.0-beta: q7 (required judge skipped) is "warn", so the required run has one pass fewer than 0.42.0-beta had.
+        Assert.Equal(2, (int)required["summary"]!["passed"]!);
+        Assert.Equal(3, (int)required["summary"]!["failed"]!);
         Assert.Equal(2, (int)required["summary"]!["skipped"]!);
-        Assert.Equal(0.4286, required["summary"]!["pass_rate"]!.GetValue<double>());
+        Assert.Equal(0.2857, required["summary"]!["pass_rate"]!.GetValue<double>());
         Assert.Equal(4, (int)optional["summary"]!["passed"]!);
         Assert.Equal(1, (int)optional["summary"]!["failed"]!);
         Assert.Equal(0.5714, optional["summary"]!["pass_rate"]!.GetValue<double>());
@@ -224,11 +225,11 @@ public class DocumentsTests
         string V(JsonObject rs, string id) => (string)Result(rs, id)["verdict"]!;
         Assert.Equal("passed", V(required, "q1"));
         Assert.Equal("unverified", V(required, "q2")); // composite "error": no verdict, passed false
-        Assert.Equal("unverified", V(required, "q3")); // a measured failure, but AgentEval's own label is "error"
+        Assert.Equal("failed", V(required, "q3"));     // 0.43.0-beta: the measured failure is the verdict even though the judge errored
         Assert.Equal("unverified", V(required, "q4"));
         Assert.Equal("passed", V(required, "q5"));
         Assert.Equal("unverified", V(required, "q6"));
-        Assert.Equal("passed", V(required, "q7"));
+        Assert.Equal("unverified", V(required, "q7")); // 0.43.0-beta: "warn" with measurement notMeasured (a required judge did not run)
 
         Assert.Equal("passed", V(optional, "q2")); // passed: true with a null-scored grader
         Assert.Equal("failed", V(optional, "q3"));

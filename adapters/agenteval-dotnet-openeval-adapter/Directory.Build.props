@@ -8,7 +8,7 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <!-- Prerelease, because the only published AgentEval package is prerelease (NU5104). Fixed, and without the
          source revision, so the exporter_version the sample generator writes is byte-stable across commits. -->
-    <Version>0.1.0-beta</Version>
+    <Version>0.1.1-beta</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 </Project>
