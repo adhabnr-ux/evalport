@@ -621,7 +621,14 @@ def run_to_openeval(
         "started_at": ts["iso"],
         "results": results,
         "summary": summary,
-        "metadata": {_NS: run_meta},
+        "metadata": {
+            _NS: run_meta,
+            # PROPOSED (evalport Discussion #49, alternative B), NOT in the spec on main: a Result with
+            # some null-scored and some scored graders must declare how its passed was derived.
+            # `producer`: Result.passed is any(scored) and all(passed or native_passed), which is neither the spec default `all` nor `strict`.
+            # On main the key is free-form metadata and nothing reads it.
+            "openeval": {"aggregation": {"strategy": "producer"}},
+        },
     }
     generator = _get(run, "generator_name")
     if generator:
