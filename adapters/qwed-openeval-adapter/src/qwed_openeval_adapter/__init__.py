@@ -400,7 +400,12 @@ def to_openeval(
                     ADMISSION_GRADER_ID: "the result is admissible (ADMIT)",
                     "result": "VERIFIED and ADMIT",
                 },
-            }
+            },
+            # PROPOSED (evalport Discussion #49, alternative B), NOT in the spec on main: a Result with
+            # some null-scored and some scored graders must declare how its passed was derived.
+            # `strict`: Result.passed is VERIFIED and ADMIT, i.e. all(grader.passed); an UNVERIFIABLE/BLOCKED verdict (score null) fails the row.
+            # On main the key is free-form metadata and nothing reads it.
+            "openeval": {"aggregation": {"strategy": "strict"}},
         },
     }
     if completed_at:
