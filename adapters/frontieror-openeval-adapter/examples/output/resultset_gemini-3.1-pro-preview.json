@@ -410,6 +410,11 @@
       "non_public_results_omitted": 0,
       "upstream_contract_version_checked": "staged-qte-v1",
       "dataset_revision": "SmartOR/FrontierOR@9f5cd5436f7f4e013dfa81aebea77a1cc98628b8"
+    },
+    "openeval": {
+      "aggregation": {
+        "strategy": "producer"
+      }
     }
   },
   "completed_at": "2026-09-29T18:34:03Z",
