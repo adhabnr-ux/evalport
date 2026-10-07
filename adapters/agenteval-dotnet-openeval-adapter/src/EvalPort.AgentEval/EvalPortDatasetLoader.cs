@@ -26,8 +26,9 @@ namespace EvalPort.AgentEval;
 /// unset, because the suite does not state them.
 /// </para>
 /// <para>
-/// <c>test_cases_file</c> (a JSONL file of <c>TestCase</c> documents next to the suite) is followed.
-/// The loader checks the fields it needs and nothing else; it is not a validator. Validate with the
+/// <c>test_cases_file</c> (a JSONL file of <c>TestCase</c> documents next to the suite) is followed, and
+/// is confined to the suite's directory: an absolute path, a <c>..</c> escape or a link that leads outside
+/// is rejected (see <see cref="ResolveTestCasesFile"/>). The loader checks the fields it needs and nothing else; it is not a validator. Validate with the
 /// EvalPort SDKs.
 /// </para>
 /// </remarks>
@@ -79,11 +80,59 @@ public sealed class EvalPortDatasetLoader : IDatasetLoader
 
         if (suite["test_cases"] is null && suite["test_cases_file"] is JsonValue fileNode && fileNode.TryGetValue<string>(out var relative))
         {
-            var casesPath = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(path)) ?? ".", relative);
+            var casesPath = ResolveTestCasesFile(path, relative);
             suite["test_cases"] = await ReadJsonLinesAsync(casesPath, ct).ConfigureAwait(false);
         }
 
         return FromSuite(suite);
+    }
+
+    /// <summary>
+    /// Resolve a suite's <c>test_cases_file</c> and confine it to the suite's own directory (or a
+    /// subdirectory of it). Suites can come from other people, and the lines of that file become model
+    /// inputs, so an absolute path, a <c>..</c> escape, or a link whose target lies outside the suite's
+    /// directory is rejected with <see cref="InvalidDataException"/>. Spec: the file is "next to the suite".
+    /// </summary>
+    public static string ResolveTestCasesFile(string suitePath, string testCasesFile)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(suitePath);
+        if (string.IsNullOrWhiteSpace(testCasesFile))
+            throw new InvalidDataException("test_cases_file is empty.");
+        if (Path.IsPathRooted(testCasesFile))
+            throw new InvalidDataException($"test_cases_file must be a relative path inside the suite's directory, got an absolute path: {testCasesFile}");
+
+        var suiteDir = Path.GetDirectoryName(Path.GetFullPath(suitePath)) ?? Directory.GetCurrentDirectory();
+        var casesPath = Path.GetFullPath(Path.Combine(suiteDir, testCasesFile));
+        if (!IsInside(suiteDir, casesPath))
+            throw new InvalidDataException($"test_cases_file must stay inside the suite's directory ({suiteDir}); {testCasesFile} resolves to {casesPath}");
+
+        // A link (the file itself, or any directory on the way to it) must not point outside either.
+        var realCases = RealPath(casesPath);
+        if (!IsInside(RealPath(suiteDir), realCases))
+            throw new InvalidDataException($"test_cases_file {testCasesFile} is a link to {realCases}, outside the suite's directory ({suiteDir})");
+        return casesPath;
+    }
+
+    /// <summary>Resolve every link on the way to <paramref name="fullPath"/>; components that do not exist are kept as written.</summary>
+    private static string RealPath(string fullPath)
+    {
+        var root = Path.GetPathRoot(fullPath) ?? string.Empty;
+        var current = root;
+        foreach (var part in fullPath[root.Length..].Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            current = Path.Combine(current, part);
+            FileSystemInfo info = Directory.Exists(current) ? new DirectoryInfo(current) : new FileInfo(current);
+            if (info.Exists && info.LinkTarget is not null)
+                current = info.ResolveLinkTarget(returnFinalTarget: true)?.FullName ?? current;
+        }
+        return current;
+    }
+
+    private static bool IsInside(string directory, string fullPath)
+    {
+        var root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(directory)) + Path.DirectorySeparatorChar;
+        var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        return fullPath.StartsWith(root, comparison);
     }
 
     /// <inheritdoc/>

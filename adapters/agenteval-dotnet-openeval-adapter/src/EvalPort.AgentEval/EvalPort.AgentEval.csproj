@@ -22,7 +22,7 @@
   <ItemGroup>
     <!-- The only published AgentEval package; AgentEval.Abstractions and AgentEval.Core are embedded in it.
          Microsoft.Extensions.DependencyInjection.Abstractions arrives transitively through it. -->
-    <PackageReference Include="AgentEval" Version="0.42.0-beta" />
+    <PackageReference Include="AgentEval" Version="0.43.0-beta" />
   </ItemGroup>
 
 </Project>
