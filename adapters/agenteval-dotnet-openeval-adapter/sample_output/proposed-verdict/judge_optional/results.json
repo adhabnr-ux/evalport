@@ -6,7 +6,7 @@
   "started_at": "2026-10-04T00:00:00Z",
   "runner": {
     "name": "AgentEval",
-    "version": "0.42.0-beta"
+    "version": "0.43.0-beta"
   },
   "results": [
     {
@@ -302,7 +302,7 @@
               "severity": "high",
               "measurement": "measured",
               "value": 0,
-              "summary": "Measured 1 of 2 component(s); 1 left out of the score (0 skipped or not measured, 0 inapplicable, 1 errored), so this verdict covers only the measured part.",
+              "summary": "Decided by severity: exact (fail, high). Measured 1 of 2 component(s); 1 left out of the score (0 skipped or not measured, 0 inapplicable, 1 errored), so this verdict covers only the measured part.",
               "provenance_type": "composite",
               "aggregation_strategy": "WeightedSum",
               "components": [
@@ -412,12 +412,12 @@
           "verdicts": [
             {
               "key": "answer_quality",
-              "label": "error",
+              "label": "skipped",
               "passed": false,
               "severity": "none",
               "measurement": "notMeasured",
               "value": 0,
-              "summary": "No component produced a measurement (1 errored, 1 skipped, 0 inapplicable); no verdict is reported.",
+              "summary": "No component produced a measurement (1 errored, 1 skipped, 0 inapplicable); no verdict is reported. The errored component(s) are optional, so they are not the verdict: the required ones did not run.",
               "provenance_type": "composite",
               "aggregation_strategy": "WeightedSum",
               "components": [
@@ -789,9 +789,9 @@
   },
   "metadata": {
     "agenteval": {
-      "version": "0.42.0-beta",
+      "version": "0.43.0-beta",
       "exporter": "EvalPort.AgentEval",
-      "exporter_version": "0.1.0-beta",
+      "exporter_version": "0.1.1-beta",
       "passed_semantics": "Result.passed is AgentEval's own verdict (AND of Score.Passed over the case's top-level results); null-scored graders are not re-aggregated by this exporter",
       "proposed_verdict": "Discussion #49 (not in the spec)",
       "run": {
