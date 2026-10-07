@@ -22,7 +22,7 @@ defaults:
 jobs:
   agenteval-dotnet:
     # adapters/agenteval-dotnet-openeval-adapter -- EvalPort.AgentEval, a .NET package implementing AgentEval's
-    # IResultExporter and IDatasetLoader against the published AgentEval 0.42.0-beta NuGet. The tests drive
+    # IResultExporter and IDatasetLoader against the published AgentEval 0.43.0-beta NuGet. The tests drive
     # AgentEval's real CompositeEval / AtomicLlmEval with a canned chat client (no network or API key), validate
     # every document against schema/*.json, and compare the regenerated sample_output/ byte for byte. The
     # Python steps then run this repo's SDK validator over the same files, and the Result.verdict (Discussion #49)
@@ -33,7 +33,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: adapters/agenteval-dotnet-openeval-adapter/global.json
-      - name: Restore, build and test (xunit, 67 tests)
+      - name: Restore, build and test (xunit, 68 tests)
         run: dotnet test --configuration Release
       - name: Regenerate the sample output and check it is unchanged
         run: |
