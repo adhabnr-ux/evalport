@@ -159,7 +159,13 @@ public sealed class EvalPortResultExporter : IResultExporter
         }
         if (report.Metadata is { Count: > 0 })
             ae["report_metadata"] = EvalPortJson.ToObject(report.Metadata);
-        rs["metadata"] = new JsonObject { [EvalPortJson.MetadataKey] = ae };
+        rs["metadata"] = new JsonObject
+        {
+            [EvalPortJson.MetadataKey] = ae,
+            // PROPOSED (evalport Discussion #49, alternative B), NOT in the spec on main; see
+            // EvalPortDocuments.ToResultSet for why `producer` is the honest declaration here.
+            ["openeval"] = new JsonObject { ["aggregation"] = new JsonObject { ["strategy"] = "producer" } },
+        };
         return rs;
     }
 
