@@ -115,6 +115,10 @@ def make_run(cases, graders=("g",), suite_id="s", types=None):
         "run_id": "run_x",
         "started_at": "2026-01-15T10:00:00Z",
         "results": results,
+        # PROPOSED (Discussion #49, alternative B), NOT in the spec on main: a row with
+        # some null-scored and some scored graders must declare how `passed` was derived.
+        # The AND of the non-null graders above is the spec's default, `all`.
+        "metadata": {"openeval": {"aggregation": {"strategy": "all"}}},
     }
     return suite, result_set
 
