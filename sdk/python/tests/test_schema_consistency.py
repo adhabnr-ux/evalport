@@ -645,8 +645,44 @@ RESULTSET_FIDELITY_CASES = [
     ("error.code string", lambda d: _r0(d).update(error={"type": "timeout", "code": "ETIMEDOUT"}), True),
     ("integral float duration_ms", lambda d: _r0(d).update(duration_ms=1200.0), True),
     ("negative temperature allowed (no schema minimum)", lambda d: d.update(provider={"temperature": -1}), True),
-    ("mixed null and scored graders, passed", lambda d: _r0(d)["grader_results"].append(
-        {"grader_id": "g2", "type": "human", "score": None, "passed": False}), True),
+    # PROPOSED (Discussion #49, alt B): a partly-scored row must declare its
+    # aggregation (PARTIAL_RESULT_UNDECLARED); both validators enforce it.
+    ("mixed null and scored graders, passed, undeclared", lambda d: _r0(d)["grader_results"].append(
+        {"grader_id": "g2", "type": "human", "score": None, "passed": False}), False),
+    ("mixed null and scored graders, passed, declared on the Result (dotted)", lambda d: (
+        _r0(d)["grader_results"].append({"grader_id": "g2", "type": "human", "score": None, "passed": False}),
+        _r0(d).update(metadata={"openeval.aggregation": {"strategy": "all"}})), True),
+    ("mixed null and scored graders, passed, declared on the ResultSet (nested)", lambda d: (
+        _r0(d)["grader_results"].append({"grader_id": "g2", "type": "human", "score": None, "passed": False}),
+        d.update(metadata={"openeval": {"aggregation": {"strategy": "strict"}}})), True),
+    ("mixed null and scored graders, passed false, undeclared", lambda d: (
+        _r0(d).update(passed=False),
+        _r0(d)["grader_results"].append({"grader_id": "g2", "type": "human", "score": None, "passed": False})), False),
+    ("declared aggregation with unknown strategy", lambda d: (
+        _r0(d)["grader_results"].append({"grader_id": "g2", "type": "human", "score": None, "passed": False}),
+        d.update(metadata={"openeval": {"aggregation": {"strategy": "fail-closed"}}})), False),
+    ("declared weighted aggregation without threshold", lambda d: (
+        _r0(d)["grader_results"].append({"grader_id": "g2", "type": "human", "score": None, "passed": False}),
+        _r0(d).update(metadata={"openeval.aggregation": {"strategy": "weighted"}})), False),
+    ("declared weighted aggregation with threshold", lambda d: (
+        _r0(d)["grader_results"].append({"grader_id": "g2", "type": "human", "score": None, "passed": False}),
+        _r0(d).update(metadata={"openeval.aggregation": {"strategy": "weighted", "threshold": 0.5}})), True),
+    ("declared aggregation threshold out of range", lambda d: d.update(
+        metadata={"openeval": {"aggregation": {"strategy": "all", "threshold": 2}}}), False),
+    ("declared aggregation not an object", lambda d: d.update(metadata={"openeval.aggregation": "all"}), False),
+    ("aggregation_status partial on a mixed, declared row", lambda d: (
+        _r0(d)["grader_results"].append({"grader_id": "g2", "type": "human", "score": None, "passed": False}),
+        d.update(metadata={"openeval": {"aggregation": {"strategy": "all"}}}),
+        _r0(d).update(metadata={"openeval": {"aggregation_status": "partial"}})), True),
+    ("aggregation_status partial on a fully scored row", lambda d: _r0(d).update(
+        metadata={"openeval.aggregation_status": "partial"}), False),
+    ("aggregation_status unscored on a scored row", lambda d: _r0(d).update(
+        metadata={"openeval": {"aggregation_status": "unscored"}}), False),
+    ("aggregation_status unknown value", lambda d: _r0(d).update(
+        metadata={"openeval": {"aggregation_status": "pending"}}), False),
+    ("aggregation_status unscored on an all-null row", lambda d: _r0(d).update(
+        passed=False, grader_results=[{"grader_id": "g1", "type": "human", "score": None, "passed": False}],
+        metadata={"openeval": {"aggregation_status": "unscored"}}), True),
     ("all null-scored, passed false", lambda d: (
         _r0(d).update(passed=False, grader_results=[{"grader_id": "g1", "type": "human", "score": None, "passed": False}])), True),
 ]
@@ -718,12 +754,59 @@ def test_null_score_passed_true_json_schema_allows_hand_rolled_rejects():
     # types score and passed independently and does not encode this cross-field
     # rule, so -- like SELF_PARENT and DUPLICATE_ATTEMPT above -- it is enforced
     # only by the hand-rolled validators (NULL_SCORE_PASSED).
+    # PROPOSED (Discussion #49, alt B): the row is also mixed, so without a
+    # declaration both paths reject it; the run-level declaration isolates Rule 6.
     doc = _minimal_result_set("1.0.0")
     doc["results"][0]["grader_results"].append({"grader_id": "g2", "type": "human", "score": None, "passed": True})
+    assert not _js_accepts(RESULTSET_VALIDATOR, doc)
+    assert [e["code"] for e in validate_result_set(doc).errors] == ["NULL_SCORE_PASSED", "PARTIAL_RESULT_UNDECLARED"]
+    doc["metadata"] = {"openeval": {"aggregation": {"strategy": "all"}}}
     assert _js_accepts(RESULTSET_VALIDATOR, doc)
     result = validate_result_set(doc)
     assert not result.valid
     assert [e["code"] for e in result.errors] == ["NULL_SCORE_PASSED"]
+
+
+# PROPOSED (Discussion #49, alt B): exhaustive agreement between the JSON Schema
+# and the hand-rolled validator over grader shapes x passed x Result metadata x
+# ResultSet metadata. Mirrors sdk/typescript/tests/schema-consistency.test.ts.
+def _altb_truth_table():
+    import copy
+    G = lambda score, passed=True: {"grader_id": "g", "type": "custom", "score": score, "passed": passed}
+    shapes = {"mixed": [G(1.0), G(None, False)], "single": [G(1.0)], "allnull": [G(None, False)], "empty": []}
+    decls = {
+        "none": None,
+        "dot": {"openeval.aggregation": {"strategy": "all"}},
+        "nested": {"openeval": {"aggregation": {"strategy": "strict"}}},
+        "bad_strategy": {"openeval": {"aggregation": {"strategy": "fail-closed"}}},
+        "weighted_no_thr": {"openeval.aggregation": {"strategy": "weighted"}},
+        "weighted_ok": {"openeval.aggregation": {"strategy": "weighted", "threshold": 0.5}},
+        "thr_oob": {"openeval": {"aggregation": {"strategy": "all", "threshold": 2}}},
+        "status_partial": {"openeval": {"aggregation_status": "partial"}},
+        "status_partial_dot": {"openeval.aggregation_status": "partial"},
+        "status_unscored": {"openeval": {"aggregation_status": "unscored"}},
+        "status_bad": {"openeval.aggregation_status": "pending"},
+        "not_obj": {"openeval.aggregation": "all"},
+        "both": {"openeval": {"aggregation": {"strategy": "producer"}, "aggregation_status": "partial"}},
+    }
+    for shape, graders in shapes.items():
+        for passed in (True, False):
+            if shape == "allnull" and passed:
+                continue  # UNSCORED_RESULT_PASSED, hand-rolled only (tested above)
+            for rk, rm in decls.items():
+                for kk, km in decls.items():
+                    d = {"version": "1.0.0", "suite_id": "s", "run_id": "r", "started_at": "2026-01-15T10:30:00Z",
+                         "results": [{"test_case_id": "t", "passed": passed, "grader_results": copy.deepcopy(graders)}]}
+                    if rm is not None: d["results"][0]["metadata"] = copy.deepcopy(rm)
+                    if km is not None: d["metadata"] = copy.deepcopy(km)
+                    yield f"{shape} passed={passed} result={rk} run={kk}", d
+
+
+def test_altb_truth_table_json_schema_and_hand_rolled_agree():
+    rows = list(_altb_truth_table())
+    assert len(rows) == 7 * 13 * 13
+    disagreements = [name for name, d in rows if _js_accepts(RESULTSET_VALIDATOR, d) != validate_result_set(d).valid]
+    assert disagreements == []
 
 
 def test_all_null_scored_result_passed_true_json_schema_allows_hand_rolled_rejects():

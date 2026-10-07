@@ -609,6 +609,7 @@ def test_group_three_level_nesting_matches_mlflow_grandparent_parent_child_shape
 # started_at/completed_at, and a null-scored GraderResult with passed: true.
 # Mirrored case-for-case in sdk/typescript/tests/validate.test.ts.
 
+import copy
 import pytest
 from openeval.validate import is_rfc3339_date_time
 
@@ -724,10 +725,14 @@ def test_grader_result_missing_score_is_required_not_null():
 def test_rule6_null_score_with_passed_true_rejected():
     doc = _fid_rs()
     doc["results"][0]["grader_results"].append({"grader_id": "g2", "type": "human", "score": None, "passed": True})
+    # PROPOSED (Discussion #49, alt B): the row is now also mixed (one null, one
+    # scored) and undeclared, so a second error is reported next to Rule 6's.
     r = validate_result_set(doc)
     assert not r.valid
-    assert [e["code"] for e in r.errors] == ["NULL_SCORE_PASSED"]
+    assert [e["code"] for e in r.errors] == ["NULL_SCORE_PASSED", "PARTIAL_RESULT_UNDECLARED"]
     assert r.errors[0]["path"] == "$.results[0].grader_results[1].passed"
+    doc["metadata"] = {"openeval": {"aggregation": {"strategy": "all"}}}
+    assert [e["code"] for e in validate_result_set(doc).errors] == ["NULL_SCORE_PASSED"]
 
 def test_rule6_all_null_scored_result_with_passed_true_rejected():
     doc = _fid_rs()
@@ -745,12 +750,93 @@ def test_rule6_all_null_scored_result_with_passed_false_valid():
     doc["results"][0]["grader_results"] = [{"grader_id": "g1", "type": "human", "score": None, "passed": False}]
     assert validate_result_set(doc).valid
 
-def test_rule6_mixed_null_and_scored_result_can_pass():
-    # Null-scored graders are excluded from aggregation, so a Result can pass on
-    # its scored graders alone -- only the ALL-null case must be passed: false.
+def test_rule6_mixed_null_and_scored_result_can_pass_when_declared():
+    # Null-scored graders are excluded from the default aggregation, so a Result
+    # can pass on its scored graders alone -- only the ALL-null case must be
+    # passed: false. PROPOSED (Discussion #49, alt B): a partly-scored row must say
+    # which aggregation produced `passed`, on the Result or on the ResultSet,
+    # in either spelling of the reserved key.
     doc = _fid_rs()
     doc["results"][0]["grader_results"].append({"grader_id": "g2", "type": "human", "score": None, "passed": False})
+    r = validate_result_set(doc)
+    assert not r.valid
+    assert [(e["path"], e["code"]) for e in r.errors] == [("$.results[0].metadata", "PARTIAL_RESULT_UNDECLARED")]
+    for decl in ({"openeval.aggregation": {"strategy": "all"}}, {"openeval": {"aggregation": {"strategy": "all"}}}):
+        on_result = copy.deepcopy(doc); on_result["results"][0]["metadata"] = decl
+        assert validate_result_set(on_result).valid
+        on_run = copy.deepcopy(doc); on_run["metadata"] = decl
+        assert validate_result_set(on_run).valid
+
+
+# ---------------------------------------------------------------------------
+# PROPOSED (Discussion #49, alt B: declared aggregation). NOT on main.
+# ---------------------------------------------------------------------------
+
+def _mixed_rs(decl_on=None, decl=None, passed=True):
+    doc = _fid_rs()
+    doc["results"][0]["passed"] = passed
+    doc["results"][0]["grader_results"] = [
+        {"grader_id": "g1", "type": "exact_match", "score": 1.0, "passed": True},
+        {"grader_id": "g2", "type": "llm_judge", "score": None, "passed": False},
+    ]
+    if decl_on == "result": doc["results"][0]["metadata"] = {"openeval": {"aggregation": decl}}
+    if decl_on == "run": doc["metadata"] = {"openeval": {"aggregation": decl}}
+    return doc
+
+def _codes(doc): return [(e["path"], e["code"]) for e in validate_result_set(doc).errors]
+
+@pytest.mark.parametrize("strategy", ["all", "any", "majority", "strict", "producer"])
+def test_altb_every_strategy_declares_a_mixed_row(strategy):
+    assert validate_result_set(_mixed_rs("result", {"strategy": strategy})).valid
+    assert validate_result_set(_mixed_rs("run", {"strategy": strategy})).valid
+
+def test_altb_weighted_needs_a_threshold():
+    assert _codes(_mixed_rs("result", {"strategy": "weighted"})) == [("$.results[0].metadata.openeval.aggregation.threshold", "REQUIRED")]
+    assert validate_result_set(_mixed_rs("result", {"strategy": "weighted", "threshold": 0.7})).valid
+    assert _codes(_mixed_rs("run", {"strategy": "weighted", "threshold": 1.5})) == [("$.metadata.openeval.aggregation.threshold", "OUT_OF_RANGE")]
+
+def test_altb_unknown_strategy_rejected():
+    assert _codes(_mixed_rs("run", {"strategy": "fail-closed"})) == [("$.metadata.openeval.aggregation.strategy", "INVALID_VALUE")]
+    assert _codes(_mixed_rs("result", "all")) == [("$.results[0].metadata.openeval.aggregation", "TYPE_ERROR")]
+
+def test_altb_mixed_row_with_passed_false_also_needs_a_declaration():
+    # strict's `false` on a mixed row means "not verified", all's means "verified
+    # failing"; a reader cannot tell which without the declaration.
+    assert _codes(_mixed_rs(passed=False)) == [("$.results[0].metadata", "PARTIAL_RESULT_UNDECLARED")]
+    assert validate_result_set(_mixed_rs("run", {"strategy": "strict"}, passed=False)).valid
+
+def test_altb_unmixed_rows_need_no_declaration():
+    doc = _fid_rs()  # one scored grader
     assert validate_result_set(doc).valid
+    doc["results"][0]["passed"] = False
+    doc["results"][0]["grader_results"] = [{"grader_id": "g1", "type": "human", "score": None, "passed": False}]
+    assert validate_result_set(doc).valid  # all null (Rule 6), not mixed
+    doc["results"][0]["grader_results"] = []
+    assert validate_result_set(doc).valid
+
+def test_altb_result_declaration_overrides_nothing_but_satisfies_the_rule_alone():
+    doc = _mixed_rs("result", {"strategy": "producer"})
+    assert "metadata" not in doc or "openeval" not in doc.get("metadata", {})
+    assert validate_result_set(doc).valid
+
+def test_altb_aggregation_status_values_and_consistency():
+    doc = _mixed_rs("run", {"strategy": "all"})
+    doc["results"][0]["metadata"] = {"openeval": {"aggregation_status": "partial"}}
+    assert validate_result_set(doc).valid
+    doc["results"][0]["metadata"] = {"openeval.aggregation_status": "partial"}
+    assert validate_result_set(doc).valid
+    doc["results"][0]["metadata"] = {"openeval": {"aggregation_status": "unscored"}}
+    assert _codes(doc) == [("$.results[0].metadata.openeval.aggregation_status", "AGGREGATION_STATUS_MISMATCH")]
+    doc["results"][0]["metadata"] = {"openeval": {"aggregation_status": "pending"}}
+    assert _codes(doc) == [("$.results[0].metadata.openeval.aggregation_status", "INVALID_VALUE")]
+    # "partial" on a fully scored row is a mismatch too
+    full = _fid_rs(); full["results"][0]["metadata"] = {"openeval": {"aggregation_status": "partial"}}
+    assert _codes(full) == [("$.results[0].metadata.openeval.aggregation_status", "AGGREGATION_STATUS_MISMATCH")]
+    # the existing "unscored" marker on an all-null row stays valid
+    unscored = _fid_rs(); unscored["results"][0]["passed"] = False
+    unscored["results"][0]["grader_results"] = [{"grader_id": "g1", "type": "human", "score": None, "passed": False}]
+    unscored["results"][0]["metadata"] = {"openeval": {"aggregation_status": "unscored"}}
+    assert validate_result_set(unscored).valid
 
 def test_rule6_empty_grader_results_is_not_all_null():
     # An empty grader_results list is not "all null-scored" (nothing to aggregate
