@@ -151,6 +151,15 @@ reached stage 2 is `metadata.frontieror.stage_id`, and
 (null-scored results are excluded; the per-stage counts are in
 `metadata.frontieror.aggregates.stage_counts`).
 
+*On the evalport Discussion #49 alternative-B branch only (declared aggregation, not in the
+spec, not on `main`):* a Result with some null-scored and some scored graders has to declare how
+its `passed` was derived, so every ResultSet also carries
+`metadata.openeval.aggregation: {"strategy": "producer"}`: `passed` is the binary QTE grader's
+verdict alone (next paragraph), and the staged_qte null is a by-design "not placed in [0,1]"
+value, not a grader that failed to run. That mismatch is one of the branch's own open questions,
+since Rule 6 reads null as "not verified". On `main` the key is free-form metadata and nothing
+reads it.
+
 **`Result.passed`** is the paper's binary QTE (`beat_gurobi_1` in
 `scripts/compute_benchmark_main_metrics.py`). A cell passes when it is
 feasible, has gap <= 1%, and its budget-capped wall time is no slower than
