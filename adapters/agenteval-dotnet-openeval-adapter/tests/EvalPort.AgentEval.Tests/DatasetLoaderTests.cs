@@ -101,6 +101,63 @@ public class DatasetLoaderTests
         }
     }
 
+    /// <summary>
+    /// Raised in review by AgentEval's maintainer (AgentEvalHQ/AgentEval#203): a suite can come from
+    /// someone else, and the lines of <c>test_cases_file</c> become model inputs, so the file must not be
+    /// able to point anywhere the process can read.
+    /// </summary>
+    [Fact]
+    public async Task TestCasesFile_CannotLeaveTheSuitesDirectory()
+    {
+        var dir = Directory.CreateTempSubdirectory("evalport-loader-confine");
+        try
+        {
+            var outside = Path.Combine(dir.FullName, "outside.jsonl");
+            File.WriteAllText(outside, "{\"id\":\"leak\",\"input\":\"secret\",\"graders\":[\"gr_exact\"]}\n");
+            var suiteDir = Directory.CreateDirectory(Path.Combine(dir.FullName, "suite"));
+            Directory.CreateDirectory(Path.Combine(suiteDir.FullName, "data"));
+            File.WriteAllText(Path.Combine(suiteDir.FullName, "data", "cases.jsonl"),
+                "{\"id\":\"ok\",\"input\":\"1+1?\",\"expected_output\":\"2\",\"graders\":[\"gr_exact\"]}\n");
+
+            async Task<Exception?> LoadWith(string testCasesFile)
+            {
+                var suitePath = Path.Combine(suiteDir.FullName, "suite.evalport.json");
+                File.WriteAllText(suitePath, $$"""{"version":"1.0.0","id":"s","test_cases_file":{{System.Text.Json.JsonSerializer.Serialize(testCasesFile)}},"graders":[{"id":"gr_exact","type":"exact_match"}]}""");
+                return await Record.ExceptionAsync(() => new EvalPortDatasetLoader().LoadAsync(suitePath));
+            }
+
+            // A subdirectory of the suite's directory is fine.
+            Assert.Null(await LoadWith(Path.Combine("data", "cases.jsonl")));
+            Assert.Null(await LoadWith("./data/cases.jsonl"));
+
+            // Absolute paths and `..` escapes are rejected before anything is read.
+            Assert.IsType<InvalidDataException>(await LoadWith(outside));
+            Assert.IsType<InvalidDataException>(await LoadWith(Path.Combine("..", "outside.jsonl")));
+            Assert.IsType<InvalidDataException>(await LoadWith(Path.Combine("data", "..", "..", "outside.jsonl")));
+            Assert.IsType<InvalidDataException>(await LoadWith(""));
+
+            // A dangling reference inside the directory is a plain not-found, not a confinement error.
+            Assert.IsType<FileNotFoundException>(await LoadWith("missing.jsonl"));
+
+            if (!OperatingSystem.IsWindows())
+            {
+                // A link inside the directory that points outside is rejected: the file itself, ...
+                File.CreateSymbolicLink(Path.Combine(suiteDir.FullName, "link.jsonl"), outside);
+                Assert.IsType<InvalidDataException>(await LoadWith("link.jsonl"));
+                // ... and a linked directory on the way to it.
+                Directory.CreateSymbolicLink(Path.Combine(suiteDir.FullName, "linkdir"), dir.FullName);
+                Assert.IsType<InvalidDataException>(await LoadWith(Path.Combine("linkdir", "outside.jsonl")));
+                // A link that stays inside is fine.
+                File.CreateSymbolicLink(Path.Combine(suiteDir.FullName, "inside.jsonl"), Path.Combine(suiteDir.FullName, "data", "cases.jsonl"));
+                Assert.Null(await LoadWith("inside.jsonl"));
+            }
+        }
+        finally
+        {
+            dir.Delete(recursive: true);
+        }
+    }
+
     [Fact]
     public async Task MissingFile_InvalidJson_AndMissingInput_AreClearErrors()
     {

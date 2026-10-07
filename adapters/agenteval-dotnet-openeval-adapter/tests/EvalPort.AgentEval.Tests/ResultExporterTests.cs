@@ -61,7 +61,7 @@ public class ResultExporterTests
         Assert.Equal("2026-10-04T00:00:05Z", (string)rs["completed_at"]!);
         Assert.Equal("canned-model", (string)rs["provider"]!["model"]!);
         Assert.Equal("AgentEval", (string)rs["runner"]!["name"]!);
-        Assert.Equal("0.42.0-beta", (string)rs["runner"]!["version"]!);
+        Assert.Equal("0.43.0-beta", (string)rs["runner"]!["version"]!);
         Assert.Equal(5, (int)rs["summary"]!["total"]!);
         Assert.Equal(1, (int)rs["summary"]!["passed"]!);
         Assert.Equal(1, (int)rs["summary"]!["skipped"]!);

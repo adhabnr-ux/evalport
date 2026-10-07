@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EvalPort.AgentEval.Tests;
 
-/// <summary>How the exporter and loader reach AgentEval's registries through DI, in AgentEval 0.42.0-beta.</summary>
+/// <summary>How the exporter and loader reach AgentEval's registries through DI (AgentEval 0.43.0-beta).</summary>
 public class DependencyInjectionTests
 {
     [Fact]
@@ -56,8 +56,9 @@ public class DependencyInjectionTests
     [Fact]
     public void AddAgentEvalAlone_DoesNotCreateTheRegistries_WhateverTheDocsSay()
     {
-        // docs/export.md and docs/extensibility.md in AgentEval say AddAgentEval() populates IExporterRegistry;
-        // in 0.42.0-beta only AddAgentEvalDataLoaders() does. Pinned here so the README's advice stays true.
+        // AgentEval's docs/export.md and docs/extensibility.md (as of 0.42.0-beta) said AddAgentEval() populates
+        // IExporterRegistry; only AddAgentEvalDataLoaders() (or AddAgentEvalAll()) does. The maintainer confirmed
+        // it in #203 and fixed the docs. Still true in 0.43.0-beta; pinned here so the README's advice stays true.
         var services = new ServiceCollection().AddEvalPortAgentEval();
         services.AddAgentEval();
         using var provider = services.BuildServiceProvider();
