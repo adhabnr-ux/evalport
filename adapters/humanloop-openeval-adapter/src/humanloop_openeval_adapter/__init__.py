@@ -471,7 +471,11 @@ def result_to_openeval(
         "runner": {"name": runner_name, "version": runner_version or __version__},
         "results": results,
         "summary": summary,
-        "metadata": {"openeval": {"source": "humanloop"}},
+        # PROPOSED (evalport Discussion #49, alternative B), NOT in the spec on main: a Result with
+        # some null-scored and some scored graders must declare how its passed was derived.
+        # `strict`: Result.passed is all(grader.passed), so a null-scored grader fails the row.
+        # On main the key is free-form metadata and nothing reads it.
+        "metadata": {"openeval": {"source": "humanloop", "aggregation": {"strategy": "strict"}}},
     }
 
 
