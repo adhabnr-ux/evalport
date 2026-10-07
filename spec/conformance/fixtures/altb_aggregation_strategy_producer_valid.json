@@ -1,0 +1,82 @@
+{
+  "description": "PROPOSED (Discussion #49, alternative B: declared aggregation), NOT in the spec on main. `producer` is the second proposed strategy: the producer asserted `passed` by its own rules and consumers MUST NOT re-derive it from the graders. The row is q7 of the AgentEval .NET adapter's sample output (real AgentEval 0.43.0-beta CompositeEval run, no LLM): the exact grader passed, the required judge was skipped (`measurement: notMeasured`), and AgentEval's own composite verdict is `warn` -- a pass cannot rest on a required component that did not run -- so `passed` is false although the spec's default `all` over the scored graders would say true. Neither `all` nor `strict` describes that; `producer` does, and the native verdict stays in metadata.",
+  "type": "resultset",
+  "expect": {
+    "valid": true
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_agenteval_errored_graders",
+    "run_id": "run_agenteval_errored_graders_judge_required",
+    "started_at": "2026-10-04T00:00:00Z",
+    "runner": {
+      "name": "AgentEval",
+      "version": "0.43.0-beta"
+    },
+    "metadata": {
+      "openeval": {
+        "aggregation": {
+          "strategy": "producer"
+        }
+      },
+      "agenteval": {
+        "passed_semantics": "Result.passed is AgentEval's own verdict (AND of Score.Passed over the case's top-level results); null-scored graders are not re-aggregated by this exporter"
+      }
+    },
+    "results": [
+      {
+        "test_case_id": "q7",
+        "actual_output": "4",
+        "passed": false,
+        "grader_results": [
+          {
+            "grader_id": "exact",
+            "type": "agenteval_atomic_code",
+            "score": 1,
+            "passed": true,
+            "metadata": {
+              "agenteval": {
+                "label": "pass",
+                "measurement": "measured"
+              }
+            }
+          },
+          {
+            "grader_id": "judge",
+            "type": "agenteval_eval",
+            "score": null,
+            "passed": false,
+            "reason": "judge skipped by budget filter",
+            "metadata": {
+              "agenteval": {
+                "label": "skipped",
+                "measurement": "notMeasured"
+              }
+            }
+          }
+        ],
+        "metadata": {
+          "openeval": {
+            "aggregation_status": "partial"
+          },
+          "agenteval": {
+            "verdicts": [
+              {
+                "key": "answer_quality",
+                "label": "warn",
+                "passed": false,
+                "measurement": "notMeasured",
+                "summary": "Required component(s) that did not run or could not attest their own pass: judge. A pass cannot rest on them, so the verdict is warn. Measured 1 of 2 component(s); 1 left out of the score (1 skipped or not measured, 0 inapplicable, 0 errored)."
+              }
+            ],
+            "census": {
+              "measured": 1,
+              "not_applicable": 0,
+              "not_measured": 1
+            }
+          }
+        }
+      }
+    ]
+  }
+}

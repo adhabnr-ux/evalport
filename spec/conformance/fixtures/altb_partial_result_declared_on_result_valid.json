@@ -1,0 +1,41 @@
+{
+  "description": "PROPOSED (Discussion #49, alternative B: declared aggregation), NOT in the spec on main. The same q2 row as altb_partial_result_undeclared_rejected.json, now declaring on the Result that `passed` is the spec default `all` over the scored graders, plus the `partial` aggregation_status (a second value next to Rule 6's `unscored`, meaning some but not all graders have score null). A reader can now tell that `passed: true` rests on one grader with the other not verified. The dotted spelling of the reserved key is used here; the nested spelling (`metadata.openeval.aggregation`) is equivalent.",
+  "type": "resultset",
+  "expect": {
+    "valid": true
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_errored_graders_deepeval",
+    "run_id": "run_errored_graders_deepeval_spec_default",
+    "started_at": "2026-10-03T00:00:00Z",
+    "results": [
+      {
+        "test_case_id": "q2",
+        "actual_output": "4",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_exact",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          },
+          {
+            "grader_id": "gr_flaky",
+            "type": "exact_match",
+            "score": null,
+            "passed": false,
+            "reason": "RuntimeError: flaky grader unreachable"
+          }
+        ],
+        "metadata": {
+          "openeval.aggregation": {
+            "strategy": "all"
+          },
+          "openeval.aggregation_status": "partial"
+        }
+      }
+    ]
+  }
+}

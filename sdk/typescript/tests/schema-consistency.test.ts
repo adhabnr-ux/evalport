@@ -609,8 +609,59 @@ const RESULTSET_FIDELITY_CASES: [string, (d: any) => void, boolean][] = [
   ["error.code string", (d) => { r0(d).error = { type: "timeout", code: "ETIMEDOUT" }; }, true],
   ["integral float duration_ms", (d) => { r0(d).duration_ms = 1200.0; }, true],
   ["negative temperature allowed (no schema minimum)", (d) => { d.provider = { temperature: -1 }; }, true],
-  ["mixed null and scored graders, passed", (d) => {
+  // PROPOSED (Discussion #49, alt B): a partly-scored row must declare its
+  // aggregation (PARTIAL_RESULT_UNDECLARED); both validators enforce it.
+  ["mixed null and scored graders, passed, undeclared", (d) => {
     r0(d).grader_results.push({ grader_id: "g2", type: "human", score: null, passed: false });
+  }, false],
+  ["mixed null and scored graders, passed, declared on the Result (dotted)", (d) => {
+    r0(d).grader_results.push({ grader_id: "g2", type: "human", score: null, passed: false });
+    r0(d).metadata = { "openeval.aggregation": { strategy: "all" } };
+  }, true],
+  ["mixed null and scored graders, passed, declared on the ResultSet (nested)", (d) => {
+    r0(d).grader_results.push({ grader_id: "g2", type: "human", score: null, passed: false });
+    d.metadata = { openeval: { aggregation: { strategy: "strict" } } };
+  }, true],
+  ["mixed null and scored graders, passed false, undeclared", (d) => {
+    r0(d).passed = false;
+    r0(d).grader_results.push({ grader_id: "g2", type: "human", score: null, passed: false });
+  }, false],
+  ["declared aggregation with unknown strategy", (d) => {
+    r0(d).grader_results.push({ grader_id: "g2", type: "human", score: null, passed: false });
+    d.metadata = { openeval: { aggregation: { strategy: "fail-closed" } } };
+  }, false],
+  ["declared weighted aggregation without threshold", (d) => {
+    r0(d).grader_results.push({ grader_id: "g2", type: "human", score: null, passed: false });
+    r0(d).metadata = { "openeval.aggregation": { strategy: "weighted" } };
+  }, false],
+  ["declared weighted aggregation with threshold", (d) => {
+    r0(d).grader_results.push({ grader_id: "g2", type: "human", score: null, passed: false });
+    r0(d).metadata = { "openeval.aggregation": { strategy: "weighted", threshold: 0.5 } };
+  }, true],
+  ["declared aggregation threshold out of range", (d) => {
+    d.metadata = { openeval: { aggregation: { strategy: "all", threshold: 2 } } };
+  }, false],
+  ["declared aggregation not an object", (d) => {
+    d.metadata = { "openeval.aggregation": "all" };
+  }, false],
+  ["aggregation_status partial on a mixed, declared row", (d) => {
+    r0(d).grader_results.push({ grader_id: "g2", type: "human", score: null, passed: false });
+    d.metadata = { openeval: { aggregation: { strategy: "all" } } };
+    r0(d).metadata = { openeval: { aggregation_status: "partial" } };
+  }, true],
+  ["aggregation_status partial on a fully scored row", (d) => {
+    r0(d).metadata = { "openeval.aggregation_status": "partial" };
+  }, false],
+  ["aggregation_status unscored on a scored row", (d) => {
+    r0(d).metadata = { openeval: { aggregation_status: "unscored" } };
+  }, false],
+  ["aggregation_status unknown value", (d) => {
+    r0(d).metadata = { openeval: { aggregation_status: "pending" } };
+  }, false],
+  ["aggregation_status unscored on an all-null row", (d) => {
+    r0(d).passed = false;
+    r0(d).grader_results = [{ grader_id: "g1", type: "human", score: null, passed: false }];
+    r0(d).metadata = { openeval: { aggregation_status: "unscored" } };
   }, true],
   ["all null-scored, passed false", (d) => {
     r0(d).passed = false;
@@ -687,12 +738,70 @@ test("null score with passed true: JSON Schema allows, hand-rolled rejects (Rule
   // types score and passed independently and does not encode this cross-field
   // rule, so -- like SELF_PARENT and DUPLICATE_ATTEMPT -- it is enforced only
   // by the hand-rolled validators (NULL_SCORE_PASSED).
+  // PROPOSED (Discussion #49, alt B): the row is also mixed, so without a
+  // declaration both paths reject it; the run-level declaration isolates Rule 6.
   const doc = fidelityRs();
   doc.results[0].grader_results.push({ grader_id: "g2", type: "human", score: null, passed: true });
+  expect(resultsetValidate(doc) as boolean).toBe(false);
+  expect(validateResultSet(doc).errors.map(e => e.code)).toEqual(["NULL_SCORE_PASSED", "PARTIAL_RESULT_UNDECLARED"]);
+  doc.metadata = { openeval: { aggregation: { strategy: "all" } } };
   expect(resultsetValidate(doc) as boolean).toBe(true);
   const r = validateResultSet(doc);
   expect(r.valid).toBe(false);
   expect(r.errors.map(e => e.code)).toEqual(["NULL_SCORE_PASSED"]);
+});
+
+// PROPOSED (Discussion #49, alt B): exhaustive agreement between the JSON Schema
+// and the hand-rolled validator over grader shapes x passed x Result metadata x
+// ResultSet metadata. Mirrors sdk/python/tests/test_schema_consistency.py.
+describe("alt B (PROPOSED) truth table: JSON Schema and hand-rolled validator agree", () => {
+  const G = (score: number | null, passed = true) => ({ grader_id: "g", type: "custom", score, passed });
+  const SHAPES: Record<string, any[]> = {
+    mixed: [G(1.0), G(null, false)],
+    single: [G(1.0)],
+    allnull: [G(null, false)],
+    empty: [],
+  };
+  const DECLS: Record<string, any> = {
+    none: undefined,
+    dot: { "openeval.aggregation": { strategy: "all" } },
+    nested: { openeval: { aggregation: { strategy: "strict" } } },
+    bad_strategy: { openeval: { aggregation: { strategy: "fail-closed" } } },
+    weighted_no_thr: { "openeval.aggregation": { strategy: "weighted" } },
+    weighted_ok: { "openeval.aggregation": { strategy: "weighted", threshold: 0.5 } },
+    thr_oob: { openeval: { aggregation: { strategy: "all", threshold: 2 } } },
+    status_partial: { openeval: { aggregation_status: "partial" } },
+    status_partial_dot: { "openeval.aggregation_status": "partial" },
+    status_unscored: { openeval: { aggregation_status: "unscored" } },
+    status_bad: { "openeval.aggregation_status": "pending" },
+    not_obj: { "openeval.aggregation": "all" },
+    both: { openeval: { aggregation: { strategy: "producer" }, aggregation_status: "partial" } },
+  };
+  let count = 0;
+  const disagreements: string[] = [];
+  for (const [shape, graders] of Object.entries(SHAPES)) {
+    for (const passed of [true, false]) {
+      if (shape === "allnull" && passed) continue; // UNSCORED_RESULT_PASSED, hand-rolled only (tested above)
+      for (const [rk, rm] of Object.entries(DECLS)) {
+        for (const [kk, km] of Object.entries(DECLS)) {
+          const d: any = {
+            version: "1.0.0", suite_id: "s", run_id: "r", started_at: "2026-01-15T10:30:00Z",
+            results: [{ test_case_id: "t", passed, grader_results: structuredClone(graders) }],
+          };
+          if (rm !== undefined) d.results[0].metadata = structuredClone(rm);
+          if (km !== undefined) d.metadata = structuredClone(km);
+          count++;
+          const a = resultsetValidate(d) as boolean;
+          const b = validateResultSet(d).valid;
+          if (a !== b) disagreements.push(`${shape} passed=${passed} result=${rk} run=${kk}: schema=${a} hand=${b}`);
+        }
+      }
+    }
+  }
+  test(`every combination agrees (${count} cases)`, () => {
+    expect(count).toBe(7 * 13 * 13);
+    expect(disagreements).toEqual([]);
+  });
 });
 
 test("all null-scored Result with passed true: JSON Schema allows, hand-rolled rejects", () => {

@@ -222,6 +222,14 @@ Both are opt-in through `EvalPortExportOptions` and **neither is in the spec**.
   `metadata.agenteval.provenance.prompt_hash`. That is one real producer whose prompt digest does not
   fit the proposed `prompt_sha256` / `prompt_basis` pair.
 
+**On the #49 alternative-B branch only (declared aggregation, not in the spec, not on `main`):** every
+ResultSet this package writes also carries `metadata.openeval.aggregation: {"strategy": "producer"}`.
+That branch requires a row with some null-scored and some scored graders (q2, q3, q4, q7 here) to say how
+its `passed` was derived, and `producer` is the proposed name for what `passed_semantics` already says:
+`passed` is AgentEval's own verdict and is not re-derived from the graders. The branch's tests also
+teach the JsonSchema.Net helper to ignore a failed `if` subschema, which that schema is the first in this
+repository to use on `resultset.json`. On `main` the key is free-form metadata and nothing reads it.
+
 ## What is lost
 
 `EvalComponent.Required` and `Weight` (definition-side, not on the result); the prompt text and the

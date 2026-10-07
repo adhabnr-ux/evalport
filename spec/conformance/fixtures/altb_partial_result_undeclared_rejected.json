@@ -1,0 +1,38 @@
+{
+  "description": "PROPOSED (Discussion #49, alternative B: declared aggregation), NOT in the spec on main. A Result with some null-scored and some scored graders reads differently under different aggregation policies: under the spec's default `all` (null graders excluded) this row is a pass, under a fail-closed policy it is a failure, and a ResultSet validator never sees the suite to know which applied. Alternative B requires such a row to declare how `passed` was derived -- `openeval.aggregation` on the Result's metadata, or on the ResultSet's metadata as the run default -- and rejects the undeclared row (PARTIAL_RESULT_UNDECLARED). Both the JSON Schema (root `allOf` rule) and the reference validators enforce it. The document is row q2 of examples/errored-graders (real DeepEval 4.2.8 run: `exact` scored 1.0, the second grader raised) written with the spec default and no declaration -- exactly the file `sample_output/deepeval/results.json` on main, which this alternative would make invalid.",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.results[0].metadata"
+    ]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_errored_graders_deepeval",
+    "run_id": "run_errored_graders_deepeval_spec_default",
+    "started_at": "2026-10-03T00:00:00Z",
+    "results": [
+      {
+        "test_case_id": "q2",
+        "actual_output": "4",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_exact",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          },
+          {
+            "grader_id": "gr_flaky",
+            "type": "exact_match",
+            "score": null,
+            "passed": false,
+            "reason": "RuntimeError: flaky grader unreachable"
+          }
+        ]
+      }
+    ]
+  }
+}

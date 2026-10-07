@@ -1,0 +1,77 @@
+{
+  "description": "PROPOSED (Discussion #49, alternative B: declared aggregation), NOT in the spec on main. A run-level declaration on the ResultSet's own metadata covers every Result, so individual rows need none. `strict` is a proposed strategy with no equivalent on main: a null-scored grader fails the row. It is what DeepEval's own row flag does (`success` is false for q2 and q3 with ignore_errors=True, observed in examples/errored-graders) and what the Python SDK's CrewAI converter has always done (`passed = all(gr.passed)`). Note what the declaration buys: q2 and q3 both carry `passed: false`, and only the declared strategy tells a reader that q2's false means 'not verified' while q3's means 'verified failing'.",
+  "type": "resultset",
+  "expect": {
+    "valid": true
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_errored_graders_deepeval",
+    "run_id": "run_errored_graders_deepeval_fail_closed",
+    "started_at": "2026-10-03T00:00:00Z",
+    "results": [
+      {
+        "test_case_id": "q2",
+        "actual_output": "4",
+        "passed": false,
+        "grader_results": [
+          {
+            "grader_id": "gr_exact",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          },
+          {
+            "grader_id": "gr_flaky",
+            "type": "exact_match",
+            "score": null,
+            "passed": false,
+            "reason": "RuntimeError: flaky grader unreachable"
+          }
+        ],
+        "metadata": {
+          "openeval": {
+            "aggregation_status": "partial"
+          }
+        }
+      },
+      {
+        "test_case_id": "q3",
+        "actual_output": "5",
+        "passed": false,
+        "grader_results": [
+          {
+            "grader_id": "gr_exact",
+            "type": "exact_match",
+            "score": 0.0,
+            "passed": false,
+            "reason": "Expected 4, got 5"
+          },
+          {
+            "grader_id": "gr_flaky",
+            "type": "exact_match",
+            "score": null,
+            "passed": false,
+            "reason": "RuntimeError: flaky grader unreachable"
+          }
+        ],
+        "metadata": {
+          "openeval": {
+            "aggregation_status": "partial"
+          }
+        }
+      }
+    ],
+    "metadata": {
+      "openeval": {
+        "aggregation": {
+          "strategy": "strict"
+        }
+      },
+      "deepeval": {
+        "version": "4.2.8",
+        "policy": "fail-closed"
+      }
+    }
+  }
+}

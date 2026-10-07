@@ -800,6 +800,11 @@
         "aggregation": "WeightedSum, threshold null (severity-driven verdict), MinimumMeasuredShare 0.5",
         "llm": "none (FakeChatClient with canned replies, no network)"
       }
+    },
+    "openeval": {
+      "aggregation": {
+        "strategy": "producer"
+      }
     }
   }
 }
