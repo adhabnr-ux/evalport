@@ -22,7 +22,7 @@ Inspect AI (UK AISI) uses Python `Sample` objects and solver functions for evalu
 ### Python
 
 ```python
-from openeval.convert import from_inspect
+from openeval.converters_inspect import from_inspect
 import json
 
 inspect_data = json.load(open("inspect_export.json"))

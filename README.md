@@ -95,7 +95,7 @@ openeval/
 ├── docs/
 │   ├── getting-started/       # 5-minute quickstart
 │   ├── grader-reference/      # All 11 grader types
-│   ├── migration-guides/      # Promptfoo, DeepEval, Inspect AI
+│   ├── migration-guides/      # Promptfoo, DeepEval, Inspect AI, OpenAI Evals
 │   ├── api/                   # REST API docs
 │   ├── blog/                  # Launch posts
 │   └── landing-page.html      # Landing page
