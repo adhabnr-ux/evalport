@@ -57,11 +57,42 @@ maintainer's constraints from #9 are quoted there):
   policy in metadata. There is no daimax-wide 70-point cutoff. The one
   exception is EvalPort Validation Rule 6: a grader with ``score: null`` (metric
   not computed, or a SKIPPED check) always has ``passed: false``, and a native
-  ``True`` is kept as ``metadata.daimax.native_passed``. ``Result.passed`` is
-  still the AND of the native verdicts, but false when every grader is
-  null-scored (EvalPort's Aggregation Extension).
+  ``True`` is kept as ``metadata.daimax.native_passed`` for visibility only --
+  it is metadata, not a verdict. ``Result.passed`` is ``all(passed for graders
+  that were actually evaluated)``: a null-scored (not-evaluated) grader is
+  excluded from that AND rather than folded in via ``native_passed``, per the
+  maintainer's #9 follow-up ("keep 'not evaluated' distinct from both a
+  measured failure and a successful evaluation" / "generation success should
+  not imply quality or experience passed") -- false when EVERY grader is
+  null-scored (EvalPort's Aggregation Extension), unaffected either way when
+  at least one grader was genuinely evaluated and failed.
 - ``P0``/``P1``/``P2`` -> ``3``/``2``/``1`` is recorded as
   ``metadata.daimax.priority_weight`` and documented as a project convention.
+- Real daimax test-case ids are NOT globally unique -- every sample's
+  ``test_cases/test_cases_<platform>.json`` in daimax-appbench's own
+  ``dataset/`` reuses the same generic ids (``TC_LAUNCH``, ``TC001``,
+  ``TC002``, ...; verified directly against the dataset, not assumed). Per
+  the maintainer's #9 follow-up, ``test_cases=`` enrichment is scoped by
+  ``(item_id, platform)`` -- the same scope a daimax ``TestDesignOutput``
+  carries (``TestDesignOutput.prompt_id`` is ``EvalSample.sample_id``, via
+  ``EvalSample.to_eval_prompt()``) -- so one sample's ``TC001`` can never
+  overwrite another's ``name``/``category``/``priority``. Plain ``TestCase``
+  objects/dicts with no surrounding ``TestDesignOutput`` fall into a single
+  unscoped bucket, kept for backward compatibility with simple single-sample
+  calls.
+- ``Result.error`` origin is read from daimax's own structured
+  ``PromptResult.error_details`` (``list[EvaluationError]``, each with an
+  ``origin`` of ``"generator"``/``"evaluator"``/``"environment"``/``"unknown"``
+  computed by ``evalapp``'s own ``error_from_legacy``/``classify_failure``)
+  when present, per the maintainer's #9 follow-up that ``generation_success
+  == False`` alone does not establish *where* a failure came from.
+  ``"evaluator"``/``"environment"`` map to EvalPort's ``runner_error``;
+  ``"generator"`` (or no ``error_details``, with ``process_data.error_type``
+  naming a build/install/launch/codegen/timeout failure) maps to
+  ``provider_error``/``timeout``. ``"unknown"`` origin -- nothing in daimax's
+  own classification pins the source -- also stays ``provider_error`` rather
+  than guessing ``runner_error``, preserving every raw field in
+  ``metadata.daimax.error_details`` so a consumer can judge for itself.
 """
 from __future__ import annotations
 
@@ -248,23 +279,75 @@ def _scale_10(value: Any) -> Optional[float]:
     return min(1.0, max(0.0, score))
 
 
-def _test_case_index(test_cases: Any) -> Dict[str, Dict[str, Any]]:
+#: ``None`` is the unscoped bucket (bare ``TestCase``s/dicts with no
+#: surrounding ``TestDesignOutput``); any other key is ``(item_id, platform)``.
+_ScopeKey = Optional[tuple]
+
+
+def _test_case_index(
+    test_cases: Any,
+) -> Dict[_ScopeKey, Dict[str, Dict[str, Any]]]:
     """Index daimax ``TestCase`` objects (or dicts, or ``TestDesignOutput``
-    objects) by ``id`` so E2E grader results can be enriched with
-    ``priority``/``priority_weight``/``name``/``category``."""
-    index: Dict[str, Dict[str, Any]] = {}
+    objects) so E2E grader results can be enriched with
+    ``priority``/``priority_weight``/``name``/``category``.
+
+    Real daimax test-case ids are reused across samples and platforms --
+    every ``dataset/**/test_cases/test_cases_<platform>.json`` in
+    daimax-appbench starts from the same generic ids (``TC_LAUNCH``,
+    ``TC001``, ``TC002``, ...). A single flat ``{id: TestCase}`` dict would
+    let one sample's ``TC001`` silently overwrite another's, so the index is
+    nested: ``{(item_id, platform): {id: TestCase}}``. A
+    ``TestDesignOutput(prompt_id, platform, test_cases=[...])`` supplies its
+    own scope (``prompt_id`` is ``EvalSample.sample_id``, i.e. the same
+    ``item_id`` ``run_to_openeval()`` computes, via
+    ``EvalSample.to_eval_prompt()``). Bare ``TestCase``s/dicts passed with no
+    wrapping ``TestDesignOutput`` -- a single-sample call, or a test fixture
+    with no collision to worry about -- land in the unscoped bucket keyed by
+    ``None``, which ``_e2e_grader_result`` only falls back to when the
+    caller's scope has no entry for that id.
+    """
+    index: Dict[_ScopeKey, Dict[str, Dict[str, Any]]] = {}
     if not test_cases:
         return index
     for tc in test_cases:
         nested = _get(tc, "test_cases")
         if nested is not None and _get(tc, "id") is None:
-            # TestDesignOutput(prompt_id, platform, test_cases=[...])
-            index.update(_test_case_index(nested))
+            # TestDesignOutput(prompt_id, platform, test_cases=[...]): scope
+            # every nested TestCase to this one (prompt_id, platform) pair --
+            # never merged into another TestDesignOutput's bucket.
+            scope_prompt_id = _get(tc, "prompt_id") or _get(tc, "sample_id")
+            scope_platform = _get(tc, "platform")
+            scope_key: _ScopeKey = (
+                (str(scope_prompt_id), str(scope_platform))
+                if scope_prompt_id and scope_platform
+                else None
+            )
+            bucket = index.setdefault(scope_key, {})
+            for inner in nested:
+                d = _dump(inner)
+                if isinstance(d, dict) and d.get("id"):
+                    bucket[str(d["id"])] = d
             continue
         d = _dump(tc)
         if isinstance(d, dict) and d.get("id"):
-            index[str(d["id"])] = d
+            index.setdefault(None, {})[str(d["id"])] = d
     return index
+
+
+def _lookup_test_case(
+    tc_index: Dict[_ScopeKey, Dict[str, Dict[str, Any]]],
+    scope_key: _ScopeKey,
+    test_case_id: str,
+) -> Optional[Dict[str, Any]]:
+    """Look up ``test_case_id`` in its own ``(item_id, platform)`` scope
+    first; only fall back to the unscoped bucket (``None``) when that exact
+    scope has no entry at all, never to a *different* scope's entry."""
+    scoped = tc_index.get(scope_key)
+    if scoped is not None and test_case_id in scoped:
+        return scoped[test_case_id]
+    if scope_key is not None:
+        return tc_index.get(None, {}).get(test_case_id)
+    return None
 
 
 def _priority_weight(priority: Any) -> Optional[int]:
@@ -360,7 +443,9 @@ def _synthetic_grader_result(
 
 
 def _e2e_grader_result(
-    test_result: Any, tc_index: Dict[str, Dict[str, Any]]
+    test_result: Any,
+    tc_index: Dict[_ScopeKey, Dict[str, Dict[str, Any]]],
+    scope_key: _ScopeKey,
 ) -> Dict[str, Any]:
     tr = _dump(test_result)
     test_case_id = str(_get(tr, "test_case_id"))
@@ -393,7 +478,7 @@ def _e2e_grader_result(
         if value not in (None, "", 0, 0.0):
             meta[key] = value
 
-    tc = tc_index.get(test_case_id)
+    tc = _lookup_test_case(tc_index, scope_key, test_case_id)
     if tc is not None:
         for key in ("name", "category", "priority"):
             if tc.get(key) not in (None, ""):
@@ -416,21 +501,86 @@ def _e2e_grader_result(
     return result
 
 
+#: evalapp/evaluation/results/models/errors.py:error_from_legacy's own
+#: mapping from a legacy ``process_data.error_type`` string to an
+#: EvaluationError ``origin`` -- read here (not re-derived) so this adapter's
+#: classification tracks daimax's real one instead of drifting from it.
+_LEGACY_ERROR_TYPE_ORIGIN: Dict[str, str] = {
+    "collector_error": "evaluator",
+    "eval_script": "evaluator",
+    "environment": "environment",
+    "infra": "environment",
+    "emulator": "environment",
+}
+
+
 def _error_for(prompt_result: Any) -> Optional[Dict[str, Any]]:
     """``Result.error`` only when daimax's own ``generation_success`` is
-    False. The generator is the system under test -- the EvalPort analogue of
-    the provider that should have produced the output -- so a failed
-    generation is ``provider_error``; when daimax's ``process_data.error_type``
-    names a timeout it is ``timeout``. Nothing about the evaluation harness
-    itself failed, so ``runner_error`` is deliberately not used."""
+    False.
+
+    ``generation_success == False`` alone does not establish *where* the
+    failure came from -- the maintainer's #9 follow-up: "``generation_
+    success=False`` can also occur after an evaluation or environment
+    error". daimax's own structured ``PromptResult.error_details``
+    (``list[EvaluationError]``, each carrying an ``origin`` of
+    ``"generator"``/``"evaluator"``/``"environment"``/``"unknown"`` computed
+    by ``evalapp``'s own ``error_from_legacy``/``classify_failure`` --
+    ``evalapp/evaluation/results/models/errors.py`` + ``summary.py``) is read
+    when present, rather than re-derived from scratch:
+
+    - ``"evaluator"`` / ``"environment"`` (the harness or its infra/emulator
+      failed, not the generator under test) -> EvalPort ``runner_error``.
+    - ``"generator"`` -> ``provider_error`` (``timeout`` when the
+      ``EvaluationError.code`` says so). The generator is the EvalPort
+      analogue of the provider that should have produced the output.
+    - ``"unknown"`` (daimax itself could not establish the source) stays
+      ``provider_error`` rather than guessing ``runner_error`` on no
+      evidence -- a guess, not a claim.
+
+    When there is no ``error_details`` at all (an older run, or a plain dict
+    fixture that predates that field), the same mapping is applied directly
+    to the legacy ``process_data.error_type`` string via
+    ``_LEGACY_ERROR_TYPE_ORIGIN``, so the fallback still matches daimax's own
+    classification instead of a reinvented one. Every raw field -- origin,
+    stage, code, the original ``error_type`` -- is preserved in
+    ``metadata.daimax.error_details``/``process_error_type`` regardless of
+    which path was used, so a consumer can judge the classification for
+    itself."""
     if _get(prompt_result, "generation_success", False):
         return None
     process = _dump(_get(prompt_result, "process_data")) or {}
     error_type = str(process.get("error_type") or "").strip()
     message = _get(prompt_result, "error_message") or process.get("error_message") or ""
-    err: Dict[str, Any] = {
-        "type": "timeout" if "timeout" in error_type.lower() else "provider_error",
-    }
+
+    origin: Optional[str] = None
+    code: Optional[str] = None
+    for detail in _get(prompt_result, "error_details") or []:
+        d = _dump(detail)
+        if not d:
+            continue
+        origin = str(d.get("origin") or "").strip().lower() or None
+        code = str(d.get("code") or "").strip().lower() or None
+        break  # the first reported EvaluationError is the one for this item
+
+    if origin is None:
+        et_lower = error_type.lower()
+        origin = _LEGACY_ERROR_TYPE_ORIGIN.get(et_lower)
+        if origin is None:
+            origin = "generator" if "timeout" in et_lower else "unknown"
+            if "timeout" in et_lower:
+                code = "timeout"
+
+    if origin in ("evaluator", "environment"):
+        err_type = "runner_error"
+    elif code == "timeout" or "timeout" in error_type.lower():
+        err_type = "timeout"
+    else:
+        # "generator" or "unknown": nothing establishes the harness itself
+        # was at fault, so this stays provider_error rather than defaulting
+        # to runner_error on a guess.
+        err_type = "provider_error"
+
+    err: Dict[str, Any] = {"type": err_type}
     if message:
         err["message"] = str(message)
     if error_type:
@@ -460,11 +610,18 @@ def run_to_openeval(
     ``composite_score >= pass_threshold``; the policy is then written to
     ``metadata.daimax.adapter_policy`` on the ResultSet and each Result, so no
     consumer can mistake it for a daimax-native cutoff. ``Result.passed`` is
-    ``all(native grader verdict)`` -- false when every grader is null-scored.
+    ``all(passed for graders that were actually evaluated)`` -- a grader
+    with ``score: null`` (a metric that was never computed, or a SKIPPED
+    check) is excluded from that AND rather than counted as a pass, so it
+    stays false when every grader is null-scored and is otherwise unaffected
+    by missing data either way.
 
     ``test_cases`` optionally supplies daimax ``TestCase`` objects (or
     ``TestDesignOutput`` objects, or dicts) so each E2E grader result can be
-    enriched with ``name``/``category``/``priority``/``priority_weight``.
+    enriched with ``name``/``category``/``priority``/``priority_weight``;
+    when a ``TestDesignOutput`` is passed, its enrichment is scoped to its
+    own ``(prompt_id, platform)`` so one sample's reused ids (e.g. ``TC001``)
+    can never overwrite another's.
 
     ``assume_timezone`` is attached to daimax's naive ``EvalRun.timestamp``
     (default UTC); the raw string and the assumption are kept in metadata.
@@ -507,6 +664,8 @@ def run_to_openeval(
     total_duration_ms = 0
     for pr in prompt_results:
         item_id = _item_id(pr)
+        platform = _get(pr, "platform") or ""
+        scope_key: _ScopeKey = (item_id, str(platform)) if platform else None
         generation_success = bool(_get(pr, "generation_success", False))
         grader_results: List[Dict[str, Any]] = []
         for gid in (GRADER_SUCCESS_RATE, GRADER_QUALITY, GRADER_EXPERIENCE):
@@ -519,7 +678,7 @@ def run_to_openeval(
                 )
             )
         for tr in _get(pr, "test_results") or []:
-            grader_results.append(_e2e_grader_result(tr, tc_index))
+            grader_results.append(_e2e_grader_result(tr, tc_index, scope_key))
 
         duration_s = float(_get(pr, "generation_duration", 0.0) or 0.0)
         duration_ms = int(round(duration_s * 1000))
@@ -564,16 +723,24 @@ def run_to_openeval(
         }
         if tokens:
             meta["tokens"] = tokens
+        error_details = [d for d in (_dump(x) for x in _get(pr, "error_details") or []) if d]
+        if error_details:
+            meta["error_details"] = error_details
+
+        # Result.passed = all(passed) over graders that were ACTUALLY
+        # evaluated (score is not None); a null-scored grader is excluded
+        # from the AND rather than folded in via metadata.daimax.native_passed
+        # -- that flag is visibility-only, never a verdict -- so "not
+        # evaluated" stays distinct from both a measured failure and a
+        # successful evaluation (maintainer's #9 follow-up). Empty (every
+        # grader null-scored) -> False, per the SPEC Aggregation Extension.
+        evaluated = [gr for gr in grader_results if gr["score"] is not None]
+        result_passed = bool(evaluated) and all(gr["passed"] for gr in evaluated)
 
         result: Dict[str, Any] = {
             "test_case_id": item_id,
             "grader_results": grader_results,
-            # all(native grader.passed), as before -- a null-scored grader's
-            # native verdict lives in metadata.daimax.native_passed (Rule 6) --
-            # except that a Result whose graders are ALL null-scored is
-            # passed: false (SPEC Aggregation Extension).
-            "passed": any(gr["score"] is not None for gr in grader_results)
-            and all(gr["passed"] or gr["metadata"][_NS].get("native_passed", False) for gr in grader_results),
+            "passed": result_passed,
             "duration_ms": duration_ms,
             "metadata": {_NS: meta},
         }
@@ -634,7 +801,8 @@ def run_from_openeval(result_set: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Reverse ``run_to_openeval()``: recover ``PromptResult``-shaped dicts
     (``prompt_id``, ``sample_id``, ``platform``, ``generator_name``,
     ``generation_success``, ``generation_duration``, ``error_message``,
-    ``test_results``, ``success_rate``/``quality``/``experience``, ...) from a
+    ``error_details``, ``test_results``,
+    ``success_rate``/``quality``/``experience``, ...) from a
     ResultSet this module produced. The dicts validate as real
     ``evalapp...PromptResult`` models when ``evalapp`` is installed.
 
@@ -689,6 +857,8 @@ def run_from_openeval(result_set: Dict[str, Any]) -> List[Dict[str, Any]]:
             process.update(meta["tokens"])
         if process:
             pr["process_data"] = process
+        if "error_details" in meta:
+            pr["error_details"] = [dict(d) for d in meta["error_details"]]
 
         for gr in result.get("grader_results", []):
             gmeta = (gr.get("metadata") or {}).get(_NS) or {}
