@@ -36,40 +36,40 @@ python3 spec/conformance/run.py
 
 The TypeScript SDK runs the same portable fixtures as part of `cd sdk/typescript && npm test`, so additions are checked automatically by both reference validators.
 
-Every fixture here has also been independently checked against the raw JSON Schema files in `spec/schemas/` (via the same `Draft202012Validator` machinery `test_schema_consistency.py` uses) — not just the hand-rolled validator — so `expect.valid` reflects genuine agreement between both validation paths this project maintains, not just one of them.
+Each fixture's `expect.valid` defines what a conformant validator must return. For most fixtures, the raw JSON Schema files in `spec/schemas/` agree (checked via the same `Draft202012Validator` machinery `test_schema_consistency.py` uses). However, a specific subset of rejected fixtures tests cross-field, cross-item, or referential integrity constraints that plain JSON Schema cannot express without `$data` (e.g. unique attempts, self-parent prevention, duplicate IDs, referential integrity, and Rule 6 null-score enforcement). For those cases, the raw JSON Schema alone accepts the document, and a conformant runner or SDK must enforce the constraint in validator code.
 
 ## What's covered so far
 
-| Fixture | Exercises |
-|---|---|
-| `null_score_not_scored_failure.json` | Validation Rule 6: an unparseable `llm_judge` verdict is `score: null, passed: false`, distinct from a scored failure. |
-| `categorical_grader_invalid_category.json` | The same Rule 6 distinction reached from a categorical (non-binary) grader's "couldn't judge" category. |
-| `score_out_of_range_rejected.json` | Validation Rule 5: an unclamped native score outside `[0.0, 1.0]` is rejected. |
-| `boolean_score_rejected.json` | `score` must be `number \| null`, never boolean — a cross-language gotcha (Python's `bool` is an `int` subclass). |
-| `partial_resultset_resumable_run.json` | The resumable-run convention from Discussion #10: per-result `completed_at` plus `metadata.openeval.partial`. |
-| `judge_hardening_self_report.json` | The `openeval.judge_hardening` self-report convention from Discussion #11. |
-| `custom_grader_missing_handler_rejected.json` | A `custom` (or any non-standard) grader type without `params.handler` is rejected. |
-| `non_standard_grader_type_with_handler_valid.json` | Grader `type` is open, not a closed enum, as long as `params.handler` is present. |
-| `multi_attempt_resultset_valid.json` | The repetition/attempt tracking convention from Discussion #22 / issue #20: multiple `Result`s for one `test_case_id` distinguished by ascending `attempt`, plus a single `ResultSet`-level `isolation`. |
-| `duplicate_attempt_collision_rejected.json` | Discussion #22 / issue #20's uniqueness rule: a duplicate `(test_case_id, run_id, attempt)` is rejected. |
-| `group_membership_valid.json` | **Landed in [PR #54](https://github.com/adhabnr-ux/evalport/pull/54), following [Discussion #45](https://github.com/adhabnr-ux/evalport/discussions/45).** A valid grouped `ResultSet` (`group.group_id`/`role`/`label`/`sequence`), composed with `attempt`/`isolation` from the previous row. |
-| `group_missing_group_id_rejected.json` | **Landed (Discussion #45 / PR #54).** `group` present without the required `group_id` sub-field is rejected. |
-| `group_hyperparameter_sweep_valid.json` | **Landed (Discussion #45 / PR #54).** `group` grounded in a second, unrelated domain — an Optuna hyperparameter grid-search trial — proving `role`/`sequence` aren't silently mutation-testing-shaped. |
-| `group_role_metadata_real_gap_valid.json` / `group_role_metadata_inert_survivor_valid.json` | **Landed (Discussion #45 / PR #54).** The maintainer-confirmed refinement from `AshwinUgale/muteval`: `role: "survived"` stays coarse, while `metadata.output_changed` (reusing muteval's own field name) distinguishes a real coverage gap from an inert/equivalent mutant — both branches. |
-| `group_multi_model_comparison_valid.json` | **Landed (Discussion #45 / PR #54).** `group` grounded in a third domain — a promptfoo multi-model comparison, using the real provider ids and premise from promptfoo's own `examples/compare-claude-vs-gpt-image/promptfooconfig.yaml` — closing out issue #36's own two named use cases beyond mutation testing. |
-| `group_nested_parent_group_valid.json` | **Landed (Discussion #45 / PR #54).** `group.parent_group_id` nesting one group under a parent group (a sweep-of-sweeps), MLflow-nested-runs style. |
-| `group_self_parent_rejected.json` | **Landed (Discussion #45 / PR #54).** `group.parent_group_id` equal to the object's own `group_id` is rejected (`SELF_PARENT`) — a hand-rolled-only cross-field rule the raw JSON Schema cannot express. |
-| `suite_minimal_valid.json` | A minimal valid suite with one shared grader and one test case that references it. |
-| `suite_duplicate_test_case_id_rejected.json` | Suite test-case ids are unique; this cross-item rule cannot be expressed in JSON Schema. |
-| `suite_duplicate_grader_id_rejected.json` | Suite-level grader ids are unique; this cross-item rule cannot be expressed in JSON Schema. |
-| `suite_dangling_grader_reference_rejected.json` | Test-case grader references resolve to a suite-level grader; referential integrity cannot be expressed in JSON Schema. |
-| `testcase_empty_string_input_rejected.json` | A TestCase with an empty-string `input` is rejected because string input requires `minLength: 1`. |
-| `actual_output_list_rejected.json` | `Result.actual_output` is a string; a list is rejected (`TYPE_ERROR`). Found by ChelseaKR in ChelseaKR/gauntlet#76 — both reference validators used to type-check only required fields. |
-| `started_at_date_only_rejected.json` | `started_at` is an RFC 3339 `date-time` (seconds and offset required); a date-only value is rejected (`INVALID_DATE_TIME`). JSON-Schema-based implementations must enable `format` assertion to agree. |
-| `result_completed_at_without_offset_rejected.json` | Same rule for the per-result `completed_at`: an offset-less local time (a naive `datetime.isoformat()`) is rejected. |
-| `optional_fields_well_typed_valid.json` | Every optional `ResultSet`/`Result`/`GraderResult` field the schema types, present and correctly typed (incl. lowercase `t`/`z` and a `+05:30` offset), is accepted. |
-| `null_score_passed_true_rejected.json` | Validation Rule 6: `score: null` MUST have `passed: false` (`NULL_SCORE_PASSED`) — a hand-rolled-only cross-field rule the raw JSON Schema does not encode. Surfaced by frontieror-openeval-adapter. |
-| `all_null_scored_result_passed_rejected.json` | Aggregation Extension: a `Result` whose `grader_results` are all null-scored MUST have `passed: false` (`UNSCORED_RESULT_PASSED`) — hand-rolled only. |
+| Fixture | Raw JSON Schema | Exercises |
+|---|---|---|
+| `null_score_not_scored_failure.json` | agrees | Validation Rule 6: an unparseable `llm_judge` verdict is `score: null, passed: false`, distinct from a scored failure. |
+| `categorical_grader_invalid_category.json` | agrees | The same Rule 6 distinction reached from a categorical (non-binary) grader's "couldn't judge" category. |
+| `score_out_of_range_rejected.json` | agrees | Validation Rule 5: an unclamped native score outside `[0.0, 1.0]` is rejected. |
+| `boolean_score_rejected.json` | agrees | `score` must be `number \| null`, never boolean — a cross-language gotcha (Python's `bool` is an `int` subclass). |
+| `partial_resultset_resumable_run.json` | agrees | The resumable-run convention from Discussion #10: per-result `completed_at` plus `metadata.openeval.partial`. |
+| `judge_hardening_self_report.json` | agrees | The `openeval.judge_hardening` self-report convention from Discussion #11. |
+| `custom_grader_missing_handler_rejected.json` | agrees | A `custom` (or any non-standard) grader type without `params.handler` is rejected. |
+| `non_standard_grader_type_with_handler_valid.json` | agrees | Grader `type` is open, not a closed enum, as long as `params.handler` is present. |
+| `multi_attempt_resultset_valid.json` | agrees | The repetition/attempt tracking convention from Discussion #22 / issue #20: multiple `Result`s for one `test_case_id` distinguished by ascending `attempt`, plus a single `ResultSet`-level `isolation`. |
+| `duplicate_attempt_collision_rejected.json` | accepts (hand-rolled: `DUPLICATE_ATTEMPT`) | Discussion #22 / issue #20's uniqueness rule: a duplicate `(test_case_id, run_id, attempt)` is rejected. |
+| `group_membership_valid.json` | agrees | **Landed in [PR #54](https://github.com/adhabnr-ux/evalport/pull/54), following [Discussion #45](https://github.com/adhabnr-ux/evalport/discussions/45).** A valid grouped `ResultSet` (`group.group_id`/`role`/`label`/`sequence`), composed with `attempt`/`isolation` from the previous row. |
+| `group_missing_group_id_rejected.json` | agrees | **Landed (Discussion #45 / PR #54).** `group` present without the required `group_id` sub-field is rejected. |
+| `group_hyperparameter_sweep_valid.json` | agrees | **Landed (Discussion #45 / PR #54).** `group` grounded in a second, unrelated domain — an Optuna hyperparameter grid-search trial — proving `role`/`sequence` aren't silently mutation-testing-shaped. |
+| `group_role_metadata_real_gap_valid.json` / `group_role_metadata_inert_survivor_valid.json` | agrees | **Landed (Discussion #45 / PR #54).** The maintainer-confirmed refinement from `AshwinUgale/muteval`: `role: "survived"` stays coarse, while `metadata.output_changed` (reusing muteval's own field name) distinguishes a real coverage gap from an inert/equivalent mutant — both branches. |
+| `group_multi_model_comparison_valid.json` | agrees | **Landed (Discussion #45 / PR #54).** `group` grounded in a third domain — a promptfoo multi-model comparison, using the real provider ids and premise from promptfoo's own `examples/compare-claude-vs-gpt-image/promptfooconfig.yaml` — closing out issue #36's own two named use cases beyond mutation testing. |
+| `group_nested_parent_group_valid.json` | agrees | **Landed (Discussion #45 / PR #54).** `group.parent_group_id` nesting one group under a parent group (a sweep-of-sweeps), MLflow-nested-runs style. |
+| `group_self_parent_rejected.json` | accepts (hand-rolled: `SELF_PARENT`) | **Landed (Discussion #45 / PR #54).** `group.parent_group_id` equal to the object's own `group_id` is rejected (`SELF_PARENT`) — a hand-rolled-only cross-field rule the raw JSON Schema cannot express. |
+| `suite_minimal_valid.json` | agrees | A minimal valid suite with one shared grader and one test case that references it. |
+| `suite_duplicate_test_case_id_rejected.json` | accepts (hand-rolled: `DUPLICATE_ID`) | Suite test-case ids are unique; this cross-item rule cannot be expressed in JSON Schema. |
+| `suite_duplicate_grader_id_rejected.json` | accepts (hand-rolled: `DUPLICATE_ID`) | Suite-level grader ids are unique; this cross-item rule cannot be expressed in JSON Schema. |
+| `suite_dangling_grader_reference_rejected.json` | accepts (hand-rolled: `DANGLING_REFERENCE`) | Test-case grader references resolve to a suite-level grader; referential integrity cannot be expressed in JSON Schema. |
+| `testcase_empty_string_input_rejected.json` | agrees | A TestCase with an empty-string `input` is rejected because string input requires `minLength: 1`. |
+| `actual_output_list_rejected.json` | agrees | `Result.actual_output` is a string; a list is rejected (`TYPE_ERROR`). Found by ChelseaKR in ChelseaKR/gauntlet#76 — both reference validators used to type-check only required fields. |
+| `started_at_date_only_rejected.json` | agrees | `started_at` is an RFC 3339 `date-time` (seconds and offset required); a date-only value is rejected (`INVALID_DATE_TIME`). JSON-Schema-based implementations must enable `format` assertion to agree. |
+| `result_completed_at_without_offset_rejected.json` | agrees | Same rule for the per-result `completed_at`: an offset-less local time (a naive `datetime.isoformat()`) is rejected. |
+| `optional_fields_well_typed_valid.json` | agrees | Every optional `ResultSet`/`Result`/`GraderResult` field the schema types, present and correctly typed (incl. lowercase `t`/`z` and a `+05:30` offset), is accepted. |
+| `null_score_passed_true_rejected.json` | accepts (hand-rolled: `NULL_SCORE_PASSED`) | Validation Rule 6: `score: null` MUST have `passed: false` (`NULL_SCORE_PASSED`) — a hand-rolled-only cross-field rule the raw JSON Schema does not encode. Surfaced by frontieror-openeval-adapter. |
+| `all_null_scored_result_passed_rejected.json` | accepts (hand-rolled: `UNSCORED_RESULT_PASSED`) | Aggregation Extension: a `Result` whose `grader_results` are all null-scored MUST have `passed: false` (`UNSCORED_RESULT_PASSED`) — hand-rolled only. |
 
 This set is deliberately not exhaustive — it's the fixtures that came directly out of building 30 real framework adapters and encountering these exact edge cases in practice (see the `description` field on each fixture for which adapter surfaced it), plus the RFC conventions (#10, #11, and #45 — all landed; see `spec/SPEC.md`'s Grouped/Sibling ResultSets section for #45's history) it made sense to ship fixtures for at the same time their spec text landed. Contributions of new fixtures — especially ones derived from a *real* edge case you hit building or consuming an EvalPort document, not a hypothetical one — are welcome via the same RFC process as any other spec change (see `spec/SPEC.md`'s Governance section); a new fixture that isn't also a spec/behavior change doesn't need the full two-week comment period, just a PR.
 
