@@ -63,8 +63,15 @@ result_set = run_to_openeval(
     suite_id="appbench_v2",     # default: EvalRun.sample_source
     # pass_threshold=None      # default: passed comes only from daimax's
     #                          # own booleans; see "Mapping" before setting one
-    # test_cases=[...],        # optional daimax TestCase objects, to enrich
-    #                          # E2E grader results with priority/name/category
+    # test_cases=[...],        # optional daimax TestCase or TestDesignOutput
+    #                          # objects, to enrich E2E grader results with
+    #                          # priority/name/category -- pass real
+    #                          # TestDesignOutput(prompt_id, platform,
+    #                          # test_cases=[...]) objects (or dicts shaped
+    #                          # like them) when you have more than one
+    #                          # sample, so ids that repeat across samples
+    #                          # (daimax reuses "TC001" etc. everywhere)
+    #                          # don't cross-contaminate each other
 )
 
 from openeval.validate import validate_result_set
@@ -136,7 +143,7 @@ The maintainer's constraints from #9 are quoted where they apply.
 | `PromptResult` | one `Result` | |
 | `PromptResult.item_id` (`sample_id or prompt_id`) | `Result.test_case_id` | Both raw ids are kept in `metadata.daimax.prompt_id` / `sample_id`. |
 | `PromptResult.generation_duration` (float seconds) | `Result.duration_ms` | `int(round(seconds * 1000))`; raw seconds in `metadata.daimax.generation_duration_s_raw`. |
-| `PromptResult.generation_success == False` | `Result.error` | Only then. `type` is `provider_error` (the generator is the EvalPort-analogue of the provider that should have produced the output; the harness did not fail, so `runner_error` is not used), or `timeout` when `process_data.error_type` contains "timeout". `message` = `error_message` only when non-empty (never fabricated); `code` = `process_data.error_type` when set. |
+| `PromptResult.generation_success == False` | `Result.error` | Only then. `type` is read from `PromptResult.error_details` (`list[EvaluationError]`, each with an `origin` of `generator`/`evaluator`/`environment`/`unknown` computed by `evalapp`'s own `error_from_legacy`/`classify_failure`) when present: `evaluator`/`environment` origin -> `runner_error` (the harness or its infra/emulator failed, not the generator); `generator` origin (or no `error_details` at all) -> `provider_error`, or `timeout` when the code/`process_data.error_type` names one. `unknown` origin stays `provider_error` rather than guessing `runner_error` on no evidence. Every raw `EvaluationError` is kept verbatim in `metadata.daimax.error_details`. `message` = `error_message` only when non-empty (never fabricated); `code` = `process_data.error_type` when set. **Changed in the #9 follow-up round:** earlier versions always used `provider_error`/`timeout` and never read `error_details`, which conflated a harness/environment failure with a generator failure. |
 | `PromptResult.success_rate` / `quality` / `experience` | three `GraderResult`s, `type: "custom"` | "`usecase_completeness`, `stability_deduction`, and `backend_deduction` belong specifically to `QualityMetrics`. Each of the three synthetic graders should preserve its own metric's breakdown". `gr_daimax_quality.metadata.daimax.breakdown` holds the whole `QualityMetrics` (usecase_completeness, e2e counts, stability_score/deduction, backend_completeness/deduction, compliance, ...); `gr_daimax_success_rate` holds the three rates + weights + reasons; `gr_daimax_experience` holds duration, package size, tokens and aesthetics. Nothing is cross-mixed or flattened. |
 | `*.composite_score` (0..100) | `GraderResult.score` | `composite_score / 100`, clamped to [0, 1]. Raw value in `metadata.daimax.composite_score_raw`. |
 | `usecase_completeness`, `stability_score`, `backend_completeness`, `compliance_score`, `initial_generation_rate`, `issue_fix_rate`, `requirement_extension_rate`, `duration_score`, `package_size_score` (0..100) | `metadata.daimax.normalized.*` | `/ 100`; raw values stay in `breakdown`. |
@@ -151,7 +158,7 @@ The maintainer's constraints from #9 are quoted where they apply.
 | `report_path`, `report_started_at`, `report_generated_at`, `verifications` | `metadata.daimax.*` | When present. |
 | `TestCase.priority` `P0`/`P1`/`P2` | `metadata.daimax.priority_weight` `3`/`2`/`1` | **Project convention, not a daimax-native quantity.** The maintainer accepted the mapping on the condition that it be documented as such; it is applied only when you pass `test_cases=`, it is never used to compute any score, and the table is exported as `PRIORITY_WEIGHTS` and repeated in `metadata.daimax.priority_weight_convention`. |
 | (none) | `GraderResult.passed` for the three metric graders | **Adapter policy, explicit.** "The sketch's 70-point cutoff isn't a native daimax-wide pass threshold, so any derived verdict should be clearly documented as an adapter policy." Default `pass_threshold=None` (policy `native_booleans`): `passed` is daimax's own `generation_success`, the only per-item boolean daimax computes -- no verdict is derived from any score. With `pass_threshold=<0..100>` (policy `composite_threshold`): `passed = composite_score >= pass_threshold`; a missing metric is `passed: false`. The chosen policy is written to `metadata.daimax.adapter_policy` on the ResultSet and on every Result. |
-| (derived) | `Result.passed` | `all(native grader verdict)` (a null-scored grader's is `metadata.daimax.native_passed`), so under the default policy it equals `generation_success and all(TestCaseResult.passed)` -- native booleans only -- except that a Result whose graders are all null-scored is `passed: false` (EvalPort Aggregation Extension). |
+| (derived) | `Result.passed` | `all(passed for graders that were actually evaluated)` -- a grader with `score: null` (a metric never computed, or a SKIPPED check) is **excluded** from that AND, not folded in via `metadata.daimax.native_passed` (that flag is visibility-only, never a verdict). `passed: false` when every grader is null-scored (EvalPort Aggregation Extension); otherwise unaffected by missing data in either direction. **Changed in the #9 follow-up round:** the earlier formula was `all(gr.passed or native_passed)`, which let a missing/skipped grader's `native_passed` (effectively `generation_success` again) count as a pass at the Result level even though the grader itself correctly showed `passed: false` -- i.e. "generation success" could silently imply "quality/experience passed" one level up. The fix keeps "not evaluated" distinct from both a measured failure and a successful evaluation, per the maintainer's own framing. |
 | `platform`, `sample_title`, `sample_complexity`, `sample_top_category`, `requirement`, `session_id`, `project_id`, `project_path`, `e2e_report_path`, `requires_backend`, `error_message`, `result_data.{build,install,launch,generation}_status`, `process_data.error_type`, `process_data.token_*` | `Result.metadata.daimax.*` | |
 
 No `actual_output` is emitted: daimax's output is a generated app (a project
@@ -193,10 +200,11 @@ python -m pytest -q
 
 Fully offline. Fixtures are plain dicts shaped like `model_dump()`; when
 `evalapp` is importable (`pip install "evalapp @ git+https://github.com/open-daimax/daimax-appbench"`, or an editable install
-of the upstream clone), two extra tests feed the same fixtures through the
-real `EvalRun` / `PromptResult` / `TestCaseResult` / `QualityMetrics` /
-`EvalSample` / `TestCase` models and assert identical output, otherwise they
-skip.
+of the upstream clone), four extra tests feed the same fixtures -- plus the
+real `EvaluationError` and `TestDesignOutput` models for the error-origin and
+test-case-scoping fixes below -- through the real `EvalRun` / `PromptResult` /
+`TestCaseResult` / `QualityMetrics` / `EvalSample` / `TestCase` models and
+assert identical output, otherwise they skip.
 
 ## Spec
 

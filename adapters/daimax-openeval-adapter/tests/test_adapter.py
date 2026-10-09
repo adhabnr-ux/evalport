@@ -31,11 +31,13 @@ from daimax_openeval_adapter import (
 try:  # real upstream models, optional
     from evalapp.benchset.samples.models import EvalSample
     from evalapp.benchset.testcases.models import TestCase as DaimaxTestCase
+    from evalapp.benchset.testcases.models import TestDesignOutput
     from evalapp.evaluation.metrics.models import (
         ExperienceMetrics,
         QualityMetrics,
         SuccessRateMetrics,
     )
+    from evalapp.evaluation.results.models.errors import EvaluationError
     from evalapp.evaluation.results.models.execution import (
         EvalRun,
         PromptResult,
@@ -226,6 +228,114 @@ SKIPPED_PROMPT_RESULT = {
         _tr("TC_ADD", False, "SKIPPED", "Skipped due to TC_LAUNCH failure (app failed to launch)"),
         _tr("TC_DELETE", False, "SKIPPED", "Skipped due to TC_LAUNCH failure (app failed to launch)"),
     ],
+    "success_rate": None,
+    "quality": None,
+    "experience": None,
+}
+
+# Everything measured is good, but E2E coverage for this one check was never
+# run (e.g. "needs a physical device, not available in this CI run") -- it is
+# SKIPPED with a native passed=False (there's nothing to override: it was
+# never True to begin with, so no metadata.daimax.native_passed is written).
+# Regression fixture for the maintainer's #9 follow-up ("generation success
+# should not imply quality or experience passed" / keep "not evaluated"
+# distinct from a measured failure): under the old Result.passed formula
+# (`all(gr["passed"] or native_passed)`), this not-evaluated grader's
+# `False or False` would have dragged the whole Result to passed=False even
+# though every grader that WAS evaluated passed. The fixed formula excludes
+# null-scored graders from the AND entirely, so this Result is passed=True.
+ENV_SKIPPED_PROMPT_RESULT = {
+    "prompt_id": "p_env_skip",
+    "platform": "android",
+    "generator_name": "gen-x",
+    "generation_success": True,
+    "generation_duration": 50.0,
+    "test_results": [
+        _tr("TC_DEVICE_ONLY", False, "SKIPPED", "needs a physical device, not available in this CI run"),
+    ],
+    "success_rate": SUCCESS_RATE,
+    "quality": QUALITY,
+    "experience": EXPERIENCE,
+}
+
+# generation_success False, but daimax's own structured error_details says
+# the EVALUATOR (its collector), not the generator under test, is at fault --
+# the maintainer's #9 follow-up point 1 example of exactly this ambiguity.
+EVALUATOR_FAULT_PROMPT_RESULT = {
+    "prompt_id": "p_evaluator_fault",
+    "platform": "android",
+    "generator_name": "gen-x",
+    "generation_success": False,
+    "generation_duration": 2.0,
+    "error_message": "collector crashed while capturing the build artifact",
+    "process_data": {"error_type": "collector_error", "error_message": ""},
+    "error_details": [
+        {
+            "origin": "evaluator",
+            "stage": "evaluation",
+            "code": "evaluation_exception",
+            "message": "collector crashed while capturing the build artifact",
+            "raw_error_type": "collector_error",
+        }
+    ],
+    "result_data": {},
+    "test_results": [],
+    "success_rate": None,
+    "quality": None,
+    "experience": None,
+}
+
+# Same shape, but the structured error says the ENVIRONMENT (emulator/infra)
+# was at fault -- also maps to runner_error.
+ENVIRONMENT_FAULT_PROMPT_RESULT = {
+    "prompt_id": "p_env_fault",
+    "platform": "android",
+    "generator_name": "gen-x",
+    "generation_success": False,
+    "generation_duration": 1.5,
+    "error_message": "emulator failed to boot",
+    "process_data": {"error_type": "emulator", "error_message": ""},
+    "error_details": [
+        {"origin": "environment", "stage": "install", "code": "unknown", "raw_error_type": "emulator"}
+    ],
+    "test_results": [],
+    "success_rate": None,
+    "quality": None,
+    "experience": None,
+}
+
+# The structured error says the GENERATOR itself is at fault (a genuine
+# provider-side failure) -- stays provider_error.
+GENERATOR_FAULT_PROMPT_RESULT = {
+    "prompt_id": "p_generator_fault",
+    "platform": "android",
+    "generator_name": "gen-x",
+    "generation_success": False,
+    "generation_duration": 3.0,
+    "error_message": "codegen crashed: syntax error in main.dart",
+    "process_data": {"error_type": "code_generation", "error_message": ""},
+    "error_details": [
+        {"origin": "generator", "stage": "generation", "code": "evaluation_exception", "raw_error_type": "code_generation"}
+    ],
+    "test_results": [],
+    "success_rate": None,
+    "quality": None,
+    "experience": None,
+}
+
+# No error_details at all (an older run) but process_data.error_type is one
+# of daimax's own legacy evaluator/environment codes -- the fallback mapping
+# must still classify this as runner_error, not provider_error, because it
+# mirrors evalapp's error_from_legacy exactly rather than guessing.
+LEGACY_EVALUATOR_FAULT_PROMPT_RESULT = {
+    "prompt_id": "p_legacy_eval_script",
+    "platform": "ios",
+    "generator_name": "gen-x",
+    "generation_success": False,
+    "generation_duration": 0.8,
+    "error_message": "",
+    "process_data": {"error_type": "eval_script", "error_message": "grading script raised"},
+    "test_results": [],
     "success_rate": None,
     "quality": None,
     "experience": None,
@@ -459,6 +569,153 @@ def test_skipped_statuses_give_score_null_and_keep_native_passed():
     assert r["passed"] is False
     assert "error" not in r  # generation itself succeeded
     assert validate_result_set(rs).valid
+
+
+def test_not_evaluated_grader_is_excluded_from_result_passed_not_folded_in():
+    """Regression for #9 follow-up: a SKIPPED check whose native `passed` was
+    already False (nothing to override, so no `native_passed` flag is set)
+    must NOT drag an otherwise-fully-passing Result down to `passed: false`,
+    and a generation that succeeded must not make an unevaluated grader
+    count as a pass either way -- "not evaluated" is excluded entirely, not
+    folded into the AND in either direction."""
+    rs = run_to_openeval(
+        {"run_id": "r", "timestamp": NAIVE_TIMESTAMP, "prompt_results": [ENV_SKIPPED_PROMPT_RESULT]}
+    )
+    r = rs["results"][0]
+    skipped_grader = _grader(r, GRADER_E2E)
+    assert skipped_grader["score"] is None
+    assert skipped_grader["passed"] is False
+    assert "native_passed" not in skipped_grader["metadata"]["daimax"]
+
+    # Every grader that WAS evaluated (the three real metrics) passed, so the
+    # not-evaluated E2E check must not veto the Result.
+    for gid in (GRADER_SUCCESS_RATE, GRADER_QUALITY, GRADER_EXPERIENCE):
+        assert _grader(r, gid)["passed"] is True
+    assert r["passed"] is True
+    assert validate_result_set(rs).valid
+
+
+def test_result_passed_still_false_when_every_grader_is_null_scored():
+    # Unchanged guarantee (SPEC Aggregation Extension): nothing evaluated at
+    # all -> passed: false, not vacuously true.
+    rs = run_to_openeval(EVAL_RUN)
+    r = _by_id(rs, "p_fail")
+    assert all(gr["score"] is None for gr in r["grader_results"])
+    assert r["passed"] is False
+
+
+def test_error_origin_from_structured_error_details_overrides_generic_guess():
+    for fixture, expected_type in (
+        (EVALUATOR_FAULT_PROMPT_RESULT, "runner_error"),
+        (ENVIRONMENT_FAULT_PROMPT_RESULT, "runner_error"),
+        (GENERATOR_FAULT_PROMPT_RESULT, "provider_error"),
+    ):
+        rs = run_to_openeval(
+            {"run_id": "r", "timestamp": NAIVE_TIMESTAMP, "prompt_results": [fixture]}
+        )
+        r = rs["results"][0]
+        assert r["error"]["type"] == expected_type, fixture["prompt_id"]
+        # the raw EvaluationError is preserved verbatim for a consumer to
+        # judge for itself, never silently dropped once classified.
+        assert r["metadata"]["daimax"]["error_details"] == fixture["error_details"]
+        assert validate_result_set(rs).valid
+
+
+def test_error_origin_legacy_fallback_matches_error_from_legacy():
+    # No error_details (older run / plain dict): the fallback mirrors
+    # evalapp's own error_from_legacy mapping rather than guessing.
+    rs = run_to_openeval(
+        {"run_id": "r", "timestamp": NAIVE_TIMESTAMP, "prompt_results": [LEGACY_EVALUATOR_FAULT_PROMPT_RESULT]}
+    )
+    r = rs["results"][0]
+    assert r["error"]["type"] == "runner_error"
+    assert r["error"]["code"] == "eval_script"
+    assert "error_details" not in r["metadata"]["daimax"]  # none were supplied
+
+    # "code_generation" (FAILED_PROMPT_RESULT, no error_details) still has no
+    # evidence the harness itself failed, so it stays provider_error -- the
+    # existing test_failed_generation_maps_to_error_and_native_false already
+    # pins this; this just documents the "unknown origin" branch explicitly.
+    rs2 = run_to_openeval(EVAL_RUN)
+    assert _by_id(rs2, "p_fail")["error"]["type"] == "provider_error"
+
+
+def test_run_from_openeval_round_trips_error_details():
+    rs = run_to_openeval(
+        {"run_id": "r", "timestamp": NAIVE_TIMESTAMP, "prompt_results": [EVALUATOR_FAULT_PROMPT_RESULT]}
+    )
+    back = run_from_openeval(rs)
+    assert back[0]["error_details"] == EVALUATOR_FAULT_PROMPT_RESULT["error_details"]
+
+
+def test_e2e_enrichment_is_scoped_per_sample_platform_not_globally_by_id():
+    """Regression for #9 follow-up point 3: real daimax test-case ids are NOT
+    globally unique -- every sample's test_cases_<platform>.json in
+    daimax-appbench's own dataset reuses ids like TC001 (verified directly
+    against open-daimax/daimax-appbench's dataset/, not assumed). A single
+    flat {id: TestCase} index would let one sample's TC001 overwrite
+    another's name/category/priority. Here two different samples each have
+    their own TC001 with different fields, supplied as TestDesignOutput-
+    shaped dicts (prompt_id, platform, test_cases) exactly as evalapp's test
+    designer produces them."""
+    run = {
+        "run_id": "r_collision",
+        "timestamp": NAIVE_TIMESTAMP,
+        "prompt_results": [
+            {
+                "prompt_id": "sample_a", "sample_id": "sample_a", "platform": "android",
+                "generator_name": "gen-x", "generation_success": True, "generation_duration": 1.0,
+                "test_results": [_tr("TC001", True, "PASS", "sample_a's TC001 passed")],
+                "success_rate": None, "quality": None, "experience": None,
+            },
+            {
+                "prompt_id": "sample_b", "sample_id": "sample_b", "platform": "android",
+                "generator_name": "gen-x", "generation_success": True, "generation_duration": 1.0,
+                "test_results": [_tr("TC001", False, "FAIL", "sample_b's TC001 failed")],
+                "success_rate": None, "quality": None, "experience": None,
+            },
+        ],
+    }
+    design_outputs = [
+        {
+            "prompt_id": "sample_a", "platform": "android",
+            "test_cases": [{"id": "TC001", "name": "Sample A's check", "description": "",
+                             "priority": "P0", "category": "launch_check"}],
+        },
+        {
+            "prompt_id": "sample_b", "platform": "android",
+            "test_cases": [{"id": "TC001", "name": "Sample B's check", "description": "",
+                             "priority": "P2", "category": "core_function"}],
+        },
+    ]
+    rs = run_to_openeval(run, test_cases=design_outputs)
+    a = _grader(_by_id(rs, "sample_a"), GRADER_E2E)
+    b = _grader(_by_id(rs, "sample_b"), GRADER_E2E)
+
+    assert a["metadata"]["daimax"]["name"] == "Sample A's check"
+    assert a["metadata"]["daimax"]["priority"] == "P0"
+    assert a["metadata"]["daimax"]["priority_weight"] == 3
+
+    assert b["metadata"]["daimax"]["name"] == "Sample B's check"
+    assert b["metadata"]["daimax"]["priority"] == "P2"
+    assert b["metadata"]["daimax"]["priority_weight"] == 1
+    assert validate_result_set(rs).valid
+
+
+def test_e2e_enrichment_falls_back_to_unscoped_bucket_for_bare_test_cases():
+    # Backward compatibility: a caller passing bare TestCase dicts/objects
+    # with no surrounding TestDesignOutput (today's documented usage, and
+    # DAIMAX_TEST_CASES above) keeps working exactly as before -- this is
+    # the existing test_e2e_grader_results_use_namespaced_type_and_native_pass
+    # assertion, repeated here to make the "no TestDesignOutput -> unscoped"
+    # fallback explicit rather than incidental.
+    rs = run_to_openeval(EVAL_RUN, test_cases=DAIMAX_TEST_CASES)
+    r = _by_id(rs, "s_todo_001")
+    launch = next(
+        g for g in r["grader_results"]
+        if g["grader_id"] == GRADER_E2E and g["metadata"]["daimax"]["test_case_id"] == "TC_LAUNCH"
+    )
+    assert launch["metadata"]["daimax"]["priority"] == "P0"
 
 
 def test_threshold_none_vs_threshold_provided():
@@ -702,3 +959,80 @@ def test_real_evalapp_samples_and_test_cases_build_a_valid_suite():
     assert s2["test_cases"][0]["metadata"]["daimax"]["test_cases"][0]["priority_weight"] == 3
     for s in from_openeval(suite):
         EvalSample(**{k: v for k, v in s.items() if k != "test_cases"})
+
+
+@pytest.mark.skipif(not HAVE_EVALAPP, reason="evalapp (daimax-appbench) not installed")
+def test_real_evaluation_error_model_drives_runner_error_classification():
+    """The real evalapp.evaluation.results.models.errors.EvaluationError --
+    not a hand-shaped dict -- must produce the same runner_error/
+    provider_error split this module's offline fixtures assert."""
+    pr = PromptResult(
+        prompt_id="p_evaluator_fault_real",
+        platform="android",
+        generator_name="gen-x",
+        generation_success=False,
+        generation_duration=2.0,
+        error_message="collector crashed while capturing the build artifact",
+        process_data={"error_type": "collector_error", "error_message": ""},
+        error_details=[
+            EvaluationError(
+                origin="evaluator",
+                stage="evaluation",
+                code="evaluation_exception",
+                message="collector crashed while capturing the build artifact",
+                raw_error_type="collector_error",
+            )
+        ],
+    )
+    assert isinstance(pr.error_details[0], EvaluationError)
+    run = EvalRun(run_id="r", timestamp=NAIVE_TIMESTAMP, prompt_results=[pr])
+    rs = run_to_openeval(run)
+    assert rs["results"][0]["error"]["type"] == "runner_error"
+    assert rs["results"][0]["metadata"]["daimax"]["error_details"][0]["origin"] == "evaluator"
+    assert validate_result_set(rs).valid
+
+    # And it round-trips back into a real, re-validating PromptResult.
+    back = run_from_openeval(rs)[0]
+    PromptResult(**back)
+    assert back["error_details"][0]["origin"] == "evaluator"
+
+
+@pytest.mark.skipif(not HAVE_EVALAPP, reason="evalapp (daimax-appbench) not installed")
+def test_real_test_design_output_scopes_enrichment_per_sample_platform():
+    """The real evalapp.benchset.testcases.models.TestDesignOutput (not a
+    hand-shaped dict) must scope E2E enrichment per (prompt_id, platform),
+    so two samples' real, colliding TC001 ids never cross-contaminate."""
+    run = EvalRun(
+        run_id="r_collision_real",
+        timestamp=NAIVE_TIMESTAMP,
+        prompt_results=[
+            PromptResult(
+                prompt_id="sample_a", sample_id="sample_a", platform="android",
+                generator_name="gen-x", generation_success=True, generation_duration=1.0,
+                test_results=[DaimaxTestCaseResult(test_case_id="TC001", passed=True, status="PASS")],
+            ),
+            PromptResult(
+                prompt_id="sample_b", sample_id="sample_b", platform="android",
+                generator_name="gen-x", generation_success=True, generation_duration=1.0,
+                test_results=[DaimaxTestCaseResult(test_case_id="TC001", passed=False, status="FAIL")],
+            ),
+        ],
+    )
+    design_outputs = [
+        TestDesignOutput(
+            prompt_id="sample_a", platform="android",
+            test_cases=[DaimaxTestCase(id="TC001", name="Sample A's check", description="", priority="P0")],
+        ),
+        TestDesignOutput(
+            prompt_id="sample_b", platform="android",
+            test_cases=[DaimaxTestCase(id="TC001", name="Sample B's check", description="", priority="P2")],
+        ),
+    ]
+    rs = run_to_openeval(run, test_cases=design_outputs)
+    a = _grader(_by_id(rs, "sample_a"), GRADER_E2E)
+    b = _grader(_by_id(rs, "sample_b"), GRADER_E2E)
+    assert a["metadata"]["daimax"]["name"] == "Sample A's check"
+    assert a["metadata"]["daimax"]["priority_weight"] == 3
+    assert b["metadata"]["daimax"]["name"] == "Sample B's check"
+    assert b["metadata"]["daimax"]["priority_weight"] == 1
+    assert validate_result_set(rs).valid
