@@ -70,6 +70,13 @@ choice that matters is how a row with a mix is aggregated into `Result.passed`:
   it (the TypeScript one was not run). SPEC.md's prose does not describe it, and no `openeval.aggregation`
   strategy means this.
 
+*On the Discussion #49 alternative-B branch only (declared aggregation, not in the spec, not on `main`):*
+the writer declares the policy once on the ResultSet, `spec-default` as `{"strategy": "all"}` and
+`fail-closed` as `{"strategy": "strict"}` (the proposed name for exactly this policy), because that branch
+rejects every row with a mix of null and scored graders that declares nothing (`PARTIAL_RESULT_UNDECLARED`).
+The declaration is what the `--mark-partial` section below says the marker alone lacks. On `main` the key
+is free-form metadata and nothing reads it.
+
 Both validate. They differ in exactly one row:
 
 | Row | graders | DeepEval's own row flag | `spec-default` | `fail-closed` | What Rule 6 lets a reader conclude (`spec-default`) | What `Result.verdict` (#49) would say |

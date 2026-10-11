@@ -61,16 +61,26 @@ public sealed class EvalPortSchemas
     }
 
     /// <summary>Evaluate a node and return the list of failing keyword locations (empty when valid).</summary>
+    /// <remarks>
+    /// With <see cref="OutputFormat.List"/>, JsonSchema.Net also reports the failed evaluation of an
+    /// <c>if</c> subschema as an invalid detail with errors, although a false <c>if</c> only selects the
+    /// <c>else</c> branch and never makes the instance invalid. Those details are dropped here by their
+    /// evaluation path, so only keywords that actually failed the document are listed. The schemas on
+    /// <c>main</c> have no <c>if</c> on resultset.json; the Discussion #49 alternative-B schema does.
+    /// </remarks>
     public IReadOnlyList<string> Errors(JsonSchema schema, JsonNode node)
     {
         var result = schema.Evaluate(node, _options);
         if (result.IsValid) return Array.Empty<string>();
         return result.Details
-            .Where(d => !d.IsValid && d.HasErrors)
+            .Where(d => !d.IsValid && d.HasErrors && !UnderIfKeyword(d.EvaluationPath))
             .SelectMany(d => d.Errors!.Select(e => $"{d.InstanceLocation}: {e.Key}: {e.Value}"))
             .Distinct()
             .ToList();
     }
+
+    private static bool UnderIfKeyword(Json.Pointer.JsonPointer evaluationPath) =>
+        evaluationPath.Any(segment => segment == "if");
 
     /// <summary>Assert that a Suite document is schema-valid.</summary>
     public void AssertValidSuite(JsonNode suite) => Assert.Empty(Errors(Suite, suite));

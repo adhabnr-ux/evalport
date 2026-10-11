@@ -112,7 +112,11 @@ def from_crewai(crew_tasks: Dict[str, Any]) -> Dict[str, Any]:
         "name": "Imported from CrewAI",
         "graders": graders,
         "test_cases": test_cases,
-        "metadata": {"openeval": {"source": "crewai"}},
+        # PROPOSED (Discussion #49, alt B): this converter writes passed as the AND of
+        # every grader including the unscored judges (a null-scored grader fails the
+        # row), which is the "strict" strategy, not the spec's default "all". Declared
+        # so a consumer can read a partly-scored row correctly.
+        "metadata": {"openeval": {"source": "crewai", "aggregation": {"strategy": "strict"}}},
     }
 
 
@@ -197,5 +201,9 @@ def crewai_result_to_result_set(
         "completed_at": now,
         "runner": {"name": runner_name, "version": runner_version},
         "results": results,
-        "metadata": {"openeval": {"source": "crewai"}},
+        # PROPOSED (Discussion #49, alt B): this converter writes passed as the AND of
+        # every grader including the unscored judges (a null-scored grader fails the
+        # row), which is the "strict" strategy, not the spec's default "all". Declared
+        # so a consumer can read a partly-scored row correctly.
+        "metadata": {"openeval": {"source": "crewai", "aggregation": {"strategy": "strict"}}},
     }

@@ -1152,7 +1152,17 @@ def results_to_openeval(
         "started_at": started_at,
         "results": results,
         "summary": summary,
-        "metadata": {_NS: rs_meta},
+        "metadata": {
+            _NS: rs_meta,
+            # PROPOSED (evalport Discussion #49, alternative B), NOT in the spec on
+            # main: a Result with some null-scored and some scored graders must say
+            # how its `passed` was derived. Here `passed` is the binary QTE grader's
+            # verdict alone, and the staged_qte grader's null is by design (unbounded
+            # score kept in metadata), not a grader that failed to run -- so the
+            # honest declaration is `producer`: consumers must not re-derive passed
+            # from the graders. Harmless on main, which ignores unknown metadata.
+            "openeval": {"aggregation": {"strategy": "producer"}},
+        },
     }
     if completed_at is not None:
         result_set["completed_at"] = completed_at

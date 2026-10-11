@@ -1,0 +1,45 @@
+{
+  "description": "PROPOSED (Discussion #49, alternative B: declared aggregation), NOT in the spec on main. A declared strategy must be one of all, any, majority, weighted (the Aggregation Extension's four) plus the proposed strict and producer (INVALID_VALUE otherwise). `fail-closed` is the name examples/errored-graders used for the policy before this proposal gave it a strategy name (`strict`); an undefined name would leave a reader exactly as uninformed as no declaration. Also exercised by the reference validators but not this fixture: `weighted` without `threshold` (REQUIRED), `threshold` outside [0,1] (OUT_OF_RANGE), and a non-object declaration (TYPE_ERROR).",
+  "type": "resultset",
+  "expect": {
+    "valid": false,
+    "error_paths": [
+      "$.metadata.openeval.aggregation.strategy"
+    ]
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_errored_graders_deepeval",
+    "run_id": "run_errored_graders_deepeval_fail_closed",
+    "started_at": "2026-10-03T00:00:00Z",
+    "results": [
+      {
+        "test_case_id": "q2",
+        "actual_output": "4",
+        "passed": false,
+        "grader_results": [
+          {
+            "grader_id": "gr_exact",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          },
+          {
+            "grader_id": "gr_flaky",
+            "type": "exact_match",
+            "score": null,
+            "passed": false,
+            "reason": "RuntimeError: flaky grader unreachable"
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "openeval": {
+        "aggregation": {
+          "strategy": "fail-closed"
+        }
+      }
+    }
+  }
+}

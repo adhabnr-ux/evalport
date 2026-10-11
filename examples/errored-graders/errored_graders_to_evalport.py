@@ -21,6 +21,12 @@ Policies (``--policy``)
     validator accepts this (the TypeScript one was not run), but SPEC.md's prose does not
     describe it: no ``openeval.aggregation`` strategy means "any missing grader fails the row".
 
+On the Discussion #49 alternative-B branch (declared aggregation, NOT in the spec on main),
+each policy is declared once on the ResultSet as ``metadata.openeval.aggregation``:
+``spec-default`` → ``{"strategy": "all"}``, ``fail-closed`` → ``{"strategy": "strict"}``.
+Without it the branch's validators reject every row with a mix of null and scored graders
+(``PARTIAL_RESULT_UNDECLARED``). On main the key is unknown metadata and changes nothing.
+
 The metadata-convention alternative (``--mark-partial``)
 
     The competing option to a ``Result.verdict`` field, named in Discussion #49, is a
@@ -75,6 +81,11 @@ def true_situation(row: Row) -> str:
     if len(scored) < len(row.graders):
         return "unverified"
     return "passed"
+
+
+# PROPOSED (Discussion #49, alternative B): the `openeval.aggregation.strategy` each policy
+# declares on the ResultSet. Neither name is settled; `strict` does not exist on main.
+DECLARED_STRATEGY = {"spec-default": "all", "fail-closed": "strict"}
 
 
 def result_passed(row: Row, policy: str) -> bool:
@@ -275,7 +286,14 @@ def build_documents(
         "runner": {"name": "errored-graders-example", "version": obs.version},
         "results": results,
         "summary": summarize(results),
-        "metadata": {obs.framework: fw_meta},
+        "metadata": {
+            obs.framework: fw_meta,
+            # PROPOSED (Discussion #49, alternative B: declared aggregation), NOT in the
+            # spec on main. A row with some null and some scored graders must say how its
+            # `passed` was derived; the policy is declared once for the run. `all` is the
+            # spec's existing default; `strict` is the proposed name for fail-closed.
+            "openeval": {"aggregation": {"strategy": DECLARED_STRATEGY[policy]}},
+        },
     }
     if not deterministic:
         doc["completed_at"] = _now()

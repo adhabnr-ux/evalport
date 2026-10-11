@@ -240,7 +240,16 @@ public static class EvalPortDocuments
         if (options.EmitProposedVerdict) ae["proposed_verdict"] = "Discussion #49 (not in the spec)";
         if (options.EmitProposedJudgeIdentity) ae["proposed_judge_identity"] = "Discussion #118 (not in the spec)";
         if (run.Metadata is { Count: > 0 }) ae["run"] = EvalPortJson.ToObject(run.Metadata);
-        rs["metadata"] = new JsonObject { [EvalPortJson.MetadataKey] = ae };
+        rs["metadata"] = new JsonObject
+        {
+            [EvalPortJson.MetadataKey] = ae,
+            // PROPOSED (evalport Discussion #49, alternative B: declared aggregation), NOT in the spec on
+            // main. A Result with some null-scored and some scored graders must say how its `passed` was
+            // derived, once per run here. `producer` is the proposed name for exactly what passed_semantics
+            // above says: AgentEval's own verdict, not re-derived from the graders. On main the key is
+            // free-form metadata and changes nothing.
+            ["openeval"] = new JsonObject { ["aggregation"] = new JsonObject { ["strategy"] = "producer" } },
+        };
         return rs;
     }
 

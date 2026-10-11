@@ -270,6 +270,46 @@ def validate_suite(s):
                         if isinstance(gr,str) and gr not in gids: errors.append(_err(f"$.test_cases[{i}].graders[{j}]",f"not found:{gr}","DANGLING_REFERENCE"))
     return ValidationResult(not errors,errors)
 
+# ---------------------------------------------------------------------------
+# PROPOSED, Discussion #49 (alternative B: declared aggregation), NOT on main.
+# A Result whose graders are partly null-scored (some "not verified", some scored)
+# reads differently under different aggregation policies, and a ResultSet
+# validator never sees the suite. This alternative makes the policy part of the
+# document instead of adding a Result.verdict field: the declaration may sit on
+# the Result (metadata.openeval.aggregation, dotted or nested) or on the
+# ResultSet's own metadata as the run default.
+# ---------------------------------------------------------------------------
+AGGREGATION_STRATEGIES = ("all", "any", "majority", "weighted", "strict", "producer")
+AGGREGATION_STATUSES = ("unscored", "partial")
+
+def _openeval_key(meta, key):
+    """Return (present, value, path_suffix) for metadata['openeval.<key>'] or
+    metadata['openeval'][<key>]. Both spellings appear in the spec and the SDKs."""
+    if not isinstance(meta, dict): return (False, None, None)
+    if "openeval."+key in meta: return (True, meta["openeval."+key], "['openeval."+key+"']")
+    oe = meta.get("openeval")
+    if isinstance(oe, dict) and key in oe: return (True, oe[key], ".openeval."+key)
+    return (False, None, None)
+
+def _check_aggregation(agg, path, errors):
+    """Shape of a declared openeval.aggregation object (PROPOSED)."""
+    if not isinstance(agg, dict):
+        errors.append(_err(path, "must be object", "TYPE_ERROR")); return
+    st = agg.get("strategy")
+    if st not in AGGREGATION_STRATEGIES:
+        errors.append(_err(path+".strategy", "must be one of: "+", ".join(AGGREGATION_STRATEGIES), "INVALID_VALUE"))
+    if "threshold" in agg:
+        th = agg["threshold"]
+        if not _is_num(th) or th < 0 or th > 1: errors.append(_err(path+".threshold", "must be in [0,1]", "OUT_OF_RANGE"))
+    elif st == "weighted":
+        errors.append(_err(path+".threshold", "required for strategy weighted", "REQUIRED"))
+
+def _score_census(grs):
+    """(null_scored, number_scored) over well-formed GraderResults."""
+    nulls = sum(1 for g in grs if isinstance(g, dict) and "score" in g and g["score"] is None)
+    nums = sum(1 for g in grs if isinstance(g, dict) and _is_num(g.get("score")))
+    return nulls, nums
+
 def validate_result_set(r):
     errors=[]
     if not isinstance(r,dict): return ValidationResult(False,[_err("$","Must be object","TYPE_ERROR")])
@@ -290,6 +330,10 @@ def validate_result_set(r):
             for gk,gv in summary["by_grader"].items():
                 if not isinstance(gv,dict): errors.append(_err(f"$.summary.by_grader.{gk}","must be object","TYPE_ERROR"))
                 else: _check_optional(gv,f"$.summary.by_grader.{gk}",_BY_GRADER_ENTRY_FIELDS,errors)
+    # PROPOSED (Discussion #49, alt B): a run-level aggregation declaration on the
+    # ResultSet's own metadata is validated here and used as the default below.
+    rs_decl, rs_agg, rs_suffix = _openeval_key(r.get("metadata"), "aggregation")
+    if rs_decl: _check_aggregation(rs_agg, "$.metadata"+rs_suffix, errors)
     # isolation / group / group.* / attempt below: like every other optional field,
     # an explicit null is a type error (resultset.json declares none of them nullable).
     if "isolation" in r and not isinstance(r["isolation"],str): errors.append(_err("$.isolation","must be string","TYPE_ERROR"))
@@ -372,6 +416,25 @@ def validate_result_set(r):
                 # verdict; runners MUST report such a case's `passed` as `false` [...]"
                 if grs and x.get("passed") is True and all(isinstance(gr,dict) and "score" in gr and gr["score"] is None for gr in grs):
                     errors.append(_err(f"$.results[{i}].passed","a Result whose grader_results are all null-scored MUST have passed false (SPEC Aggregation Extension / Rule 6)","UNSCORED_RESULT_PASSED"))
+                # PROPOSED (Discussion #49, alt B: declared aggregation), NOT on main.
+                nulls, nums = _score_census(grs)
+                mixed = nulls > 0 and nums > 0
+                res_decl, res_agg, res_suffix = _openeval_key(x.get("metadata"), "aggregation")
+                if res_decl: _check_aggregation(res_agg, f"$.results[{i}].metadata"+res_suffix, errors)
+                if mixed and not res_decl and not rs_decl:
+                    errors.append(_err(f"$.results[{i}].metadata",
+                        "a Result with some null-scored and some scored graders MUST declare how passed was derived: "
+                        "openeval.aggregation on the Result or on the ResultSet (PROPOSED, Discussion #49 alt B)",
+                        "PARTIAL_RESULT_UNDECLARED"))
+                st_present, status, st_suffix = _openeval_key(x.get("metadata"), "aggregation_status")
+                if st_present:
+                    spath = f"$.results[{i}].metadata"+st_suffix
+                    if status not in AGGREGATION_STATUSES:
+                        errors.append(_err(spath, "must be one of: "+", ".join(AGGREGATION_STATUSES), "INVALID_VALUE"))
+                    elif status == "unscored" and nums > 0:
+                        errors.append(_err(spath, "unscored means every grader has score null, but this Result has a scored grader", "AGGREGATION_STATUS_MISMATCH"))
+                    elif status == "partial" and not mixed:
+                        errors.append(_err(spath, "partial means some but not all graders have score null", "AGGREGATION_STATUS_MISMATCH"))
     return ValidationResult(not errors,errors)
 
 def validate_document(d,t):

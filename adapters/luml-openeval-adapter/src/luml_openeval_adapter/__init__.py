@@ -592,7 +592,11 @@ def to_openeval(
             "pass_rate": (passed_count / total) if total else 0.0,
             "avg_score": (sum(all_scores) / len(all_scores)) if all_scores else 0.0,
         },
-        "metadata": {"openeval": {"source": "luml"}},
+        # PROPOSED (evalport Discussion #49, alternative B), NOT in the spec on main: a Result with
+        # some null-scored and some scored graders must declare how its passed was derived.
+        # `strict`: Result.passed is all(grader.passed), so a scorer error (score null) fails the row.
+        # On main the key is free-form metadata and nothing reads it.
+        "metadata": {"openeval": {"source": "luml", "aggregation": {"strategy": "strict"}}},
     }
     if completed_at:
         result_set["completed_at"] = completed_at

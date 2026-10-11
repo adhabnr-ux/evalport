@@ -172,6 +172,11 @@
           "flaky"
         ]
       }
+    },
+    "openeval": {
+      "aggregation": {
+        "strategy": "all"
+      }
     }
   }
 }

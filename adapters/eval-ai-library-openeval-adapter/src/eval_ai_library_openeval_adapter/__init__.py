@@ -758,7 +758,12 @@ def results_to_openeval(
                 "source": "eval_ai_library",
                 "adapter_version": __version__,
                 "total_evaluation_cost": total_cost,
-            }
+            },
+            # PROPOSED (evalport Discussion #49, alternative B), NOT in the spec on main: a Result with
+            # some null-scored and some scored graders must declare how its passed was derived.
+            # `producer`: Result.passed is eval_lib's own per-item `success`, not re-derived from the metrics.
+            # On main the key is free-form metadata and nothing reads it.
+            "openeval": {"aggregation": {"strategy": "producer"}},
         },
     }
     if completed_at is not None:

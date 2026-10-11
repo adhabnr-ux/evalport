@@ -169,11 +169,24 @@
           },
           "metadata": {
             "type": "object",
-            "description": "Free-form metadata (trace ID, cost, tokens).",
-            "additionalProperties": true
+            "description": "Free-form metadata (trace ID, cost, tokens). The reserved openeval.aggregation / openeval.aggregation_status keys, in either spelling, are checked against $defs/openevalMetadata (PROPOSED, Discussion #49 alternative B).",
+            "additionalProperties": true,
+            "$ref": "#/$defs/openevalResultMetadata"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "description": "PROPOSED (Discussion #49, alternative B): openeval.aggregation_status \"partial\" is only for a Result with some null-scored and some scored graders (AGGREGATION_STATUS_MISMATCH in the hand-rolled validators).",
+            "if": { "$ref": "#/$defs/statusPartial" },
+            "then": { "$ref": "#/$defs/mixedScoredResult" }
+          },
+          {
+            "description": "PROPOSED (Discussion #49, alternative B): openeval.aggregation_status \"unscored\" (Rule 6) is only for a Result whose graders all have score null (AGGREGATION_STATUS_MISMATCH in the hand-rolled validators).",
+            "if": { "$ref": "#/$defs/statusUnscored" },
+            "then": { "properties": { "grader_results": { "items": { "properties": { "score": { "type": "null" } } } } } }
+          }
+        ]
       }
     },
     "summary": {
@@ -203,9 +216,108 @@
     },
     "metadata": {
       "type": "object",
-      "description": "Free-form metadata.",
-      "additionalProperties": true
+      "description": "Free-form metadata. A run-level openeval.aggregation declaration here (either spelling) is the default for every Result (PROPOSED, Discussion #49 alternative B).",
+      "additionalProperties": true,
+      "$ref": "#/$defs/openevalRunMetadata"
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "description": "PROPOSED (Discussion #49, alternative B: declared aggregation), not yet finalized. A Result with at least one null-scored and at least one scored GraderResult MUST declare how passed was derived -- openeval.aggregation on the Result's own metadata -- unless the ResultSet's metadata declares one for the whole run. The hand-rolled validators report this as PARTIAL_RESULT_UNDECLARED.",
+      "if": { "not": { "$ref": "#/$defs/declaresAggregation" } },
+      "then": {
+        "properties": {
+          "results": {
+            "items": {
+              "if": { "$ref": "#/$defs/mixedScoredResult" },
+              "then": { "$ref": "#/$defs/declaresAggregation" }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "aggregation": {
+      "type": "object",
+      "description": "PROPOSED (Discussion #49, alternative B), not yet finalized. How Result.passed was derived from the GraderResults. all / any / majority / weighted as in the Aggregation Extension; strict: a null-scored grader fails the row; producer: the producer asserted passed by its own rules (for example a composite verdict) and consumers MUST NOT re-derive it from the graders.",
+      "required": ["strategy"],
+      "properties": {
+        "strategy": { "enum": ["all", "any", "majority", "weighted", "strict", "producer"] },
+        "threshold": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "if": { "properties": { "strategy": { "const": "weighted" } } },
+      "then": { "required": ["strategy", "threshold"] }
+    },
+    "openevalRunMetadata": {
+      "description": "The reserved openeval.* keys this schema checks on a ResultSet's metadata, in both spellings the spec and the SDKs use: a dotted key at the metadata level, or nested under an openeval object. Everything else in metadata stays free-form.",
+      "properties": {
+        "openeval.aggregation": { "$ref": "#/$defs/aggregation" },
+        "openeval": {
+          "type": "object",
+          "properties": { "aggregation": { "$ref": "#/$defs/aggregation" } }
+        }
+      }
+    },
+    "openevalResultMetadata": {
+      "description": "The reserved openeval.* keys this schema checks on a Result's metadata, in both spellings.",
+      "properties": {
+        "openeval.aggregation": { "$ref": "#/$defs/aggregation" },
+        "openeval.aggregation_status": { "enum": ["unscored", "partial"] },
+        "openeval": {
+          "type": "object",
+          "properties": {
+            "aggregation": { "$ref": "#/$defs/aggregation" },
+            "aggregation_status": { "enum": ["unscored", "partial"] }
+          }
+        }
+      }
+    },
+    "statusPartial": {
+      "required": ["metadata"],
+      "properties": {
+        "metadata": {
+          "anyOf": [
+            { "required": ["openeval.aggregation_status"], "properties": { "openeval.aggregation_status": { "const": "partial" } } },
+            { "required": ["openeval"], "properties": { "openeval": { "type": "object", "required": ["aggregation_status"], "properties": { "aggregation_status": { "const": "partial" } } } } }
+          ]
+        }
+      }
+    },
+    "statusUnscored": {
+      "required": ["metadata"],
+      "properties": {
+        "metadata": {
+          "anyOf": [
+            { "required": ["openeval.aggregation_status"], "properties": { "openeval.aggregation_status": { "const": "unscored" } } },
+            { "required": ["openeval"], "properties": { "openeval": { "type": "object", "required": ["aggregation_status"], "properties": { "aggregation_status": { "const": "unscored" } } } } }
+          ]
+        }
+      }
+    },
+    "declaresAggregation": {
+      "required": ["metadata"],
+      "properties": {
+        "metadata": {
+          "anyOf": [
+            { "required": ["openeval.aggregation"] },
+            { "required": ["openeval"], "properties": { "openeval": { "type": "object", "required": ["aggregation"] } } }
+          ]
+        }
+      }
+    },
+    "mixedScoredResult": {
+      "description": "A Result with at least one null-scored and at least one scored GraderResult.",
+      "required": ["grader_results"],
+      "properties": {
+        "grader_results": {
+          "allOf": [
+            { "contains": { "required": ["score"], "properties": { "score": { "type": "null" } } } },
+            { "contains": { "required": ["score"], "properties": { "score": { "type": "number" } } } }
+          ]
+        }
+      }
+    }
+  }
 }
