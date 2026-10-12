@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flashrag-openeval-adapter"
+version = "0.1.0"
+description = "Convert RUC-NLPIR/FlashRAG datasets, items and evaluator metric scores to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["flashrag", "evalport", "openeval", "llm", "evaluation", "rag", "eval"]
+classifiers = [
+"License :: OSI Approved :: Apache Software License",
+"Programming Language :: Python :: 3",
+"Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/flashrag-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Proposal = "https://github.com/RUC-NLPIR/FlashRAG/issues/246"
+
+[project.optional-dependencies]
+# Deliberately no `flashrag` extra: every accessor in this module is duck-typed
+# against FlashRAG's real `Item`/`Dataset` attribute shapes (dict-like `.output`,
+# `.question`/`.golden_answers`/`.id`/`.choices` properties) rather than importing
+# the `flashrag` package, the same approach `ares_openeval_adapter` and
+# `autogen_openeval_adapter` take for their own upstream frameworks. The test
+# suite below does import real `flashrag.dataset.dataset.Item`/`Dataset` and
+# `flashrag.evaluator.evaluator.Evaluator` to validate against the genuine
+# classes, not a hand-rolled mock -- see tests/test_adapter.py.
+test = ["pytest", "flashrag"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
