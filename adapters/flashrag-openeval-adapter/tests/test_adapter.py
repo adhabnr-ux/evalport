@@ -6,6 +6,22 @@ hand-rolled stand-in), and validate adapter output against EvalPort's real
 `openeval.validate.validate_suite()`/`validate_result_set()` -- not a mock
 of either side.
 """
+import importlib.util
+
+import pytest
+
+# This module imports real flashrag classes at module import time, so
+# nothing in it can run without flashrag installed (CI's min-mode
+# adapter-tests job installs evalport-sdk only -- see
+# .github/workflows/ci.yml and .github/CONTRIBUTING.md). Skip the whole
+# module when it is absent. Checked with find_spec rather than
+# pytest.importorskip so that, with flashrag installed, a broken install or
+# upstream API drift still fails loudly instead of being swallowed as a
+# skip -- the same convention dspy-openeval-adapter and
+# haystack-openeval-adapter use.
+if importlib.util.find_spec("flashrag") is None:
+    pytest.skip("flashrag not installed", allow_module_level=True)
+
 from openeval.validate import validate_suite, validate_result_set
 from openeval.types import OPENEVAL_VERSION
 
