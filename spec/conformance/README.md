@@ -48,6 +48,7 @@ Every fixture here has also been independently checked against the raw JSON Sche
 | `boolean_score_rejected.json` | `score` must be `number \| null`, never boolean — a cross-language gotcha (Python's `bool` is an `int` subclass). |
 | `partial_resultset_resumable_run.json` | The resumable-run convention from Discussion #10: per-result `completed_at` plus `metadata.openeval.partial`. |
 | `judge_hardening_self_report.json` | The `openeval.judge_hardening` self-report convention from Discussion #11. |
+| `judge_identity_self_report.json` | **PROPOSED ([Discussion #118](https://github.com/adhabnr-ux/evalport/discussions/118)), not yet finalized.** A `GraderResult` carrying the `openeval.judge` self-report is spec-valid. |
 | `custom_grader_missing_handler_rejected.json` | A `custom` (or any non-standard) grader type without `params.handler` is rejected. |
 | `non_standard_grader_type_with_handler_valid.json` | Grader `type` is open, not a closed enum, as long as `params.handler` is present. |
 | `multi_attempt_resultset_valid.json` | The repetition/attempt tracking convention from Discussion #22 / issue #20: multiple `Result`s for one `test_case_id` distinguished by ascending `attempt`, plus a single `ResultSet`-level `isolation`. |
