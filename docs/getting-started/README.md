@@ -98,6 +98,6 @@ console.log(result.valid); // true
 ## Next Steps
 
 - [Grader Type Reference](../grader-reference/README.md) — all 11 grader types
-- [Migration Guides](../migration-guides/) — convert from DeepEval, Promptfoo, Inspect AI
+- [Migration Guides](../migration-guides/) — convert from DeepEval, Promptfoo, Inspect AI, OpenAI Evals
 - [API Reference](../api/README.md) — REST API for serving eval suites
 - [Full Specification](../../spec/SPEC.md) — the complete EvalPort spec
