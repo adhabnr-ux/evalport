@@ -1,0 +1,72 @@
+{
+  "description": "Four synthetic attempts exercise a complete disjoint pair with different categorical outputs: approve/review, then approve/approve. The second output fails its quality assertion but remains an observed decision. Structural validation accepts it; a downstream consumer using actual_output as its declared decision projection has one disagreement in two pairs. This complements multi_attempt_resultset_valid.json, whose changed third observation is unpaired. The open isolation string fresh-instance is a producer declaration, not proof of statistical independence.",
+  "type": "resultset",
+  "expect": {
+    "valid": true
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_agentverity_repetition_review",
+    "run_id": "run_synthetic_fixture",
+    "started_at": "2026-10-15T00:00:00Z",
+    "isolation": "fresh-instance",
+    "results": [
+      {
+        "test_case_id": "case_a",
+        "attempt": 1,
+        "actual_output": "approve",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_reviewed_decision",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      },
+      {
+        "test_case_id": "case_a",
+        "attempt": 2,
+        "actual_output": "review",
+        "passed": false,
+        "grader_results": [
+          {
+            "grader_id": "gr_reviewed_decision",
+            "type": "exact_match",
+            "score": 0.0,
+            "passed": false
+          }
+        ]
+      },
+      {
+        "test_case_id": "case_a",
+        "attempt": 3,
+        "actual_output": "approve",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_reviewed_decision",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      },
+      {
+        "test_case_id": "case_a",
+        "attempt": 4,
+        "actual_output": "approve",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_reviewed_decision",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      }
+    ]
+  }
+}
