@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "argus-openeval-adapter"
+version = "0.1.0"
+description = "Convert Argus redteam run Findings to/from the EvalPort open evaluation format"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+dependencies = ["evalport-sdk>=1.0.0"]
+authors = [{name = "Sahi Adharva Katukojula"}]
+keywords = ["argus", "evalport", "openeval", "llm", "redteam", "evaluation", "eval"]
+classifiers = [
+"License :: OSI Approved :: Apache Software License",
+"Programming Language :: Python :: 3",
+"Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/argus-openeval-adapter"
+Spec = "https://github.com/adhabnr-ux/evalport/blob/main/spec/SPEC.md"
+Upstream = "https://github.com/gy15901580825/Argus"
+
+[project.optional-dependencies]
+# No named `argus` extra -- the CONTRIBUTING.md exception for a target with
+# no installable package applies here, just not for the dataset reason
+# financebench-openeval-adapter documents it for. Argus
+# (https://github.com/gy15901580825/Argus) is a monorepo of separate
+# per-service packages (argus-orchestrator 0.3.0, argus-probe 0.1.0, an
+# unnamed api_service, ...), none published to PyPI -- confirmed by cloning
+# the repo and checking for a publish workflow (.github/workflows/ only has
+# ci.yml, no publish step) alongside each service's own pyproject.toml.
+# There is no upstream version to pin an extra against, so -- like
+# autogen-openeval-adapter, for an unrelated reason (three conflicting
+# PyPI packages, not zero) -- this adapter is built against Argus's public
+# `Finding`/run `dict` shape (orchestrator/orchestrator/redteam/runner.py,
+# api_service/redteam/reports.py) from the outside, duck-typed on
+# dict-or-attribute access, rather than importing Argus itself. See
+# https://github.com/gy15901580825/Argus/issues/17 for the design
+# discussion this adapter was built from.
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
