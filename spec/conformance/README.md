@@ -52,6 +52,10 @@ Every fixture here has also been independently checked against the raw JSON Sche
 | `non_standard_grader_type_with_handler_valid.json` | Grader `type` is open, not a closed enum, as long as `params.handler` is present. |
 | `multi_attempt_resultset_valid.json` | The repetition/attempt tracking convention from Discussion #22 / issue #20: multiple `Result`s for one `test_case_id` distinguished by ascending `attempt`, plus a single `ResultSet`-level `isolation`. |
 | `duplicate_attempt_collision_rejected.json` | Discussion #22 / issue #20's uniqueness rule: a duplicate `(test_case_id, run_id, attempt)` is rejected. |
+| `four_attempt_disagreement_valid.json` | Four attempts include one disagreeing pair and a scored quality failure with a usable decision. Also exercises the open isolation string `fresh-instance`. |
+| `interleaved_attempt_order_valid.json` | Cases are interleaved and attempts are stored out of order. Consumers use ascending attempt within a case/run, rather than array position, to recover observation order. |
+| `repeated_shared_session_valid.json` | Shared-session repeats are structurally valid. A consumer's statistical or baseline-admission policy remains separate from schema conformance. |
+| `repeated_runner_error_valid.json` | A runner failure remains at its attempt position, distinct from an observed decision that fails a quality assertion. Consumers retain the error or refuse incomplete evidence. |
 | `group_membership_valid.json` | **Landed in [PR #54](https://github.com/adhabnr-ux/evalport/pull/54), following [Discussion #45](https://github.com/adhabnr-ux/evalport/discussions/45).** A valid grouped `ResultSet` (`group.group_id`/`role`/`label`/`sequence`), composed with `attempt`/`isolation` from the previous row. |
 | `group_missing_group_id_rejected.json` | **Landed (Discussion #45 / PR #54).** `group` present without the required `group_id` sub-field is rejected. |
 | `group_hyperparameter_sweep_valid.json` | **Landed (Discussion #45 / PR #54).** `group` grounded in a second, unrelated domain — an Optuna hyperparameter grid-search trial — proving `role`/`sequence` aren't silently mutation-testing-shaped. |
@@ -74,5 +78,13 @@ Every fixture here has also been independently checked against the raw JSON Sche
 This set is deliberately not exhaustive — it's the fixtures that came directly out of building 30 real framework adapters and encountering these exact edge cases in practice (see the `description` field on each fixture for which adapter surfaced it), plus the RFC conventions (#10, #11, and #45 — all landed; see `spec/SPEC.md`'s Grouped/Sibling ResultSets section for #45's history) it made sense to ship fixtures for at the same time their spec text landed. Contributions of new fixtures — especially ones derived from a *real* edge case you hit building or consuming an EvalPort document, not a hypothetical one — are welcome via the same RFC process as any other spec change (see `spec/SPEC.md`'s Governance section); a new fixture that isn't also a spec/behavior change doesn't need the full two-week comment period, just a PR.
 
 ## What this doesn't cover (yet)
+
+The four repeated-run fixtures above extend the review requested in issue #20
+and Discussion #22. They are synthetic and make no model calls. The reference
+validators check their structural validity. They do not sort attempts, compute
+pairwise disagreement, infer independence, or decide whether a regression
+reference may be admitted. Those are downstream consumer checks. In particular,
+the original three-attempt fixture's changed third output is unpaired under
+disjoint adjacent pairing, so it does not by itself exercise a disagreeing pair.
 
 This suite currently only exercises `spec/schemas/*.json`-level structural validity — whether a document is a well-formed EvalPort document. It does not (yet) have fixtures for the CLI's runtime behavior (`openeval run`'s cost estimation, retry logic, grader execution) or cross-document referential rules beyond what `validate_suite()` already checks (dangling grader references, duplicate IDs). Those would be reasonable extensions of this suite if someone wants to take them on — flagged here rather than silently treated as "done" by this README's existence.

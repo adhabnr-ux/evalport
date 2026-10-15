@@ -1,0 +1,128 @@
+{
+  "description": "Synthetic repeated cases with results stored out of attempt order and interleaved across cases. Ascending attempt, not array position or output sorting, defines observation order within each case/run. case_a is approve/approve/review/review by attempt (zero disagreements in two pairs) but approve/review/approve/review in storage order (two disagreements). case_b is consistently deny. Structural validation accepts the document without reordering it; downstream consumers must apply the declared attempt ordering.",
+  "type": "resultset",
+  "expect": {
+    "valid": true
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_agentverity_repetition_review",
+    "run_id": "run_synthetic_fixture",
+    "started_at": "2026-10-15T00:00:00Z",
+    "isolation": "fresh-session",
+    "results": [
+      {
+        "test_case_id": "case_a",
+        "attempt": 1,
+        "actual_output": "approve",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_reviewed_decision",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      },
+      {
+        "test_case_id": "case_b",
+        "attempt": 2,
+        "actual_output": "deny",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_reviewed_decision",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      },
+      {
+        "test_case_id": "case_a",
+        "attempt": 3,
+        "actual_output": "review",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_reviewed_decision",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      },
+      {
+        "test_case_id": "case_b",
+        "attempt": 1,
+        "actual_output": "deny",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_reviewed_decision",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      },
+      {
+        "test_case_id": "case_a",
+        "attempt": 2,
+        "actual_output": "approve",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_reviewed_decision",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      },
+      {
+        "test_case_id": "case_b",
+        "attempt": 4,
+        "actual_output": "deny",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_reviewed_decision",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      },
+      {
+        "test_case_id": "case_a",
+        "attempt": 4,
+        "actual_output": "review",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_reviewed_decision",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      },
+      {
+        "test_case_id": "case_b",
+        "attempt": 3,
+        "actual_output": "deny",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_reviewed_decision",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      }
+    ]
+  }
+}

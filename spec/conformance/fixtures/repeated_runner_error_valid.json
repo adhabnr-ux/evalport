@@ -1,0 +1,75 @@
+{
+  "description": "A synthetic four-attempt ResultSet preserves a runner error at attempt 2 with no actual_output, passed false, and an unscored grader. This is structurally valid evidence, not four matching decisions. A downstream repeatability consumer must retain the failure as incomplete evidence or refuse the collection rather than inventing a decision or dropping the row and treating the remaining attempts as a complete schedule. Contrasts with four_attempt_disagreement_valid.json, where a quality assertion fails after a usable decision.",
+  "type": "resultset",
+  "expect": {
+    "valid": true
+  },
+  "document": {
+    "version": "1.0.0",
+    "suite_id": "suite_agentverity_repetition_review",
+    "run_id": "run_synthetic_fixture",
+    "started_at": "2026-10-15T00:00:00Z",
+    "isolation": "fresh-session",
+    "results": [
+      {
+        "test_case_id": "case_a",
+        "attempt": 1,
+        "actual_output": "approve",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_reviewed_decision",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      },
+      {
+        "test_case_id": "case_a",
+        "attempt": 2,
+        "passed": false,
+        "error": {
+          "type": "runner_error",
+          "message": "Synthetic harness failure; no decision was produced."
+        },
+        "grader_results": [
+          {
+            "grader_id": "gr_reviewed_decision",
+            "type": "exact_match",
+            "score": null,
+            "passed": false
+          }
+        ]
+      },
+      {
+        "test_case_id": "case_a",
+        "attempt": 3,
+        "actual_output": "approve",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_reviewed_decision",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      },
+      {
+        "test_case_id": "case_a",
+        "attempt": 4,
+        "actual_output": "approve",
+        "passed": true,
+        "grader_results": [
+          {
+            "grader_id": "gr_reviewed_decision",
+            "type": "exact_match",
+            "score": 1.0,
+            "passed": true
+          }
+        ]
+      }
+    ]
+  }
+}
