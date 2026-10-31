@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evalport-wilson"
+version = "0.1.0"
+description = "Wilson score interval for EvalPort adapters: successes and trials in, (low, high) out, standard library only"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+dependencies = []
+authors = [{name = "Sattyam Jain"}]
+keywords = ["evalport", "openeval", "evaluation", "wilson", "confidence-interval", "binomial"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/adhabnr-ux/evalport"
+Source = "https://github.com/adhabnr-ux/evalport/tree/main/adapters/evalport-wilson"
+Discussion = "https://github.com/NVIDIA/garak/issues/2110"
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+evalport_wilson = ["py.typed"]
